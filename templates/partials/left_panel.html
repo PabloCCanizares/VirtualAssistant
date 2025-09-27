@@ -1,0 +1,35 @@
+<aside>
+  <div class="brand">
+    <span class="dot" aria-hidden="true"></span>
+    <h1>Asistente Personal LLM</h1>
+  </div>
+  <p class="tagline">Memoria aumentada · Agenda · Objetivos</p>
+
+  <nav aria-label="Secciones">
+    <ul>
+      <li><a href="{{ url_for('dashboard') }}" {% if page == 'dashboard' %}aria-current="page"{% endif %}>🏠 Dashboard</a></li>
+      <li><a href="{{ url_for('agenda') }}" {% if page == 'agenda' %}aria-current="page"{% endif %}>📅 Agenda</a></li>
+      <li><a href="{{ url_for('objetivos') }}" {% if page == 'objetivos' %}aria-current="page"{% endif %}>🎯 Objetivos</a></li>
+      <li><a href="{{ url_for('tareas') }}" {% if page == 'tareas' %}aria-current="page"{% endif %}>🧩 Tareas</a></li>
+      <li><a href="{{ url_for('estadisticas') }}" {% if page == 'estadisticas' %}aria-current="page"{% endif %}>📈 Estadísticas</a></li>
+      <li><a href="{{ url_for('config') }}" {% if page == 'config' %}aria-current="page"{% endif %}>⚙️ Configuración</a></li>
+    </ul>
+  </nav>
+
+  <div class="section">
+    <div class="section-title">Sistema multi-agente (lang-graph)</div>
+    <div class="pill ok">🧠 Identificador de tareas · OK</div>
+    <div class="pill idle">🔧 Ejecutor de operaciones · Idle</div>
+    <div class="pill ok">💡 Sugerencias proactivas · OK</div>
+    <div class="pill warn">📝 Transcriptor · En espera</div>
+    <a class="btn" href="#" title="Placeholder">⛓️ Conectar Google Calendar</a>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Categorías</div>
+    <div class="pill">🧑‍🏫 Docencia</div>
+    <div class="pill">📚 Publicaciones</div>
+    <div class="pill">🏠 Personal</div>
+    <div class="pill">💼 Gestión</div>
+  </div>
+</aside>

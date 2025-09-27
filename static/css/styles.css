@@ -1,0 +1,228 @@
+/* ========= Variables y tema ========= */
+:root{
+  --bg: #0b0f1a;
+  --bg-2:#0e1424;
+  --card:#10182b;
+  --muted:#9fb0d7;
+  --text:#e8f0ff;
+  --accent:#6cf3ff;
+  --accent-2:#8b7bff;
+  --good:#37e18f;
+  --warn:#ffcc66;
+  --bad:#ff6b88;
+  --grid:#1c2b4d;
+  --shadow: 0 10px 30px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.03);
+  --radius: 16px;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font: 15px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, "Helvetica Neue", Arial, sans-serif;
+  color:var(--text);
+  background:
+    radial-gradient(1200px 600px at 120% -10%, rgba(108,243,255,.08), transparent 40%),
+    radial-gradient(900px 600px at -20% -10%, rgba(139,123,255,.10), transparent 45%),
+    linear-gradient(180deg, var(--bg), var(--bg-2) 60%);
+  letter-spacing:.2px;
+}
+a{color:var(--accent);text-decoration:none}
+.app{
+  display:grid;
+  grid-template-columns: 260px 1fr;
+  min-height:100dvh;
+}
+
+/* ========= Sidebar ========= */
+aside{
+  backdrop-filter: blur(10px);
+  background: linear-gradient(180deg, rgba(16,24,43,.7), rgba(16,24,43,.35));
+  border-right:1px solid rgba(255,255,255,.06);
+  padding:22px 18px;
+}
+.brand{
+  display:flex;align-items:center;gap:10px;margin-bottom:18px
+}
+.brand .dot{
+  width:12px;height:12px;border-radius:50%;
+  background: conic-gradient(from 180deg, var(--accent), var(--accent-2));
+  box-shadow:0 0 16px var(--accent);
+}
+h1{font-size:15px;margin:0;color:#dbe7ff;font-weight:600}
+.tagline{margin:6px 0 14px;color:var(--muted);font-size:12px}
+nav ul{list-style:none;margin:10px 0 24px;padding:0;display:grid;gap:6px}
+nav li a{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 12px;border-radius:12px;color:#dfe8ff;
+  background: transparent;border:1px solid rgba(255,255,255,.06);
+}
+nav li a[aria-current="page"]{
+  background: linear-gradient(180deg, rgba(108,243,255,.12), rgba(139,123,255,.12));
+  border-color: rgba(140,230,255,.35);
+  box-shadow: var(--shadow);
+}
+.section-title{font-size:12px;color:#b8c7ef;opacity:.9;margin:16px 0 8px}
+.pill{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:6px 10px;border-radius:999px;font-size:12px;
+  border:1px solid rgba(255,255,255,.08);
+  background: rgba(255,255,255,.02);
+  margin:4px 4px 0 0;
+}
+.ok{color:var(--good);border-color:rgba(55,225,143,.35)}
+.idle{color:var(--muted)}
+.warn{color:var(--warn);border-color:rgba(255,204,102,.35)}
+.btn{
+  display:inline-block;margin-top:12px;
+  padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.08);
+  background: linear-gradient(180deg, rgba(108,243,255,.14), rgba(139,123,255,.14));
+  color:var(--text);font-weight:600;
+}
+
+/* ========= Main / Dashboard ========= */
+main{
+  padding:22px;
+  display:grid;gap:18px;
+  grid-template-rows:auto 1fr auto;
+}
+.topbar{
+  display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between
+}
+.breadcrumbs{font-size:13px;color:var(--muted)}
+.quick-actions{display:flex;gap:8px;flex-wrap:wrap}
+.chip{
+  padding:8px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.08);
+  background: rgba(255,255,255,.03);font-size:13px
+}
+
+.grid{
+  display:grid;gap:18px;
+  grid-template-columns: 2.1fr .9fr;
+  grid-template-areas:
+    "calendar side"
+    "calendar side";
+  min-height:0;
+}
+.card{
+  background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+  border:1px solid rgba(255,255,255,.08);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding:16px;
+  min-height:120px;
+}
+.card h2{
+  margin:0 0 12px;font-size:14px;letter-spacing:.4px;font-weight:700;color:#eaf2ff;
+  display:flex;align-items:center;gap:8px
+}
+.muted{color:var(--muted);font-size:13px}
+
+/* ========= Calendario (semanal estilo Excel) ========= */
+.calendar{grid-area: calendar;display:flex;flex-direction:column;min-height:420px}
+.calendar .legend{
+  display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;font-size:12px;color:var(--muted)
+}
+.calendar table{
+  width:100%;border-collapse:separate;border-spacing:0;
+  table-layout:fixed;overflow:hidden;border-radius:12px;border:1px solid rgba(255,255,255,.08)
+}
+.calendar thead th{
+  position:sticky;top:0;z-index:2;background:#0f172a;
+  border-bottom:1px solid rgba(255,255,255,.08);padding:10px;font-weight:600;color:#dfe8ff
+}
+.calendar tbody th{
+  position:sticky;left:0;z-index:1;background:#0f172a;
+  border-right:1px solid rgba(255,255,255,.08);padding:8px;color:#bcd1ff;font-weight:500;width:76px
+}
+.calendar td{
+  height:42px;border-right:1px solid var(--grid);border-bottom:1px solid var(--grid);
+  vertical-align:top;position:relative;background:linear-gradient(180deg, rgba(12,18,34,.6), rgba(12,18,34,.3))
+}
+.calendar tr:last-child td{border-bottom:none}
+.calendar td:last-child{border-right:none}
+.event{
+  position:absolute;left:6px;right:6px;top:6px;
+  padding:8px;border-radius:10px;font-size:12px;line-height:1.3;
+  border:1px solid rgba(255,255,255,.12);
+  box-shadow:0 6px 16px rgba(0,0,0,.3);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.ev-blue{background:linear-gradient(180deg, rgba(108,243,255,.18), rgba(108,243,255,.10))}
+.ev-violet{background:linear-gradient(180deg, rgba(139,123,255,.20), rgba(139,123,255,.10))}
+.ev-green{background:linear-gradient(180deg, rgba(55,225,143,.22), rgba(55,225,143,.10))}
+.event small{display:block;color:#dfe8ff;opacity:.85}
+.hint{color:var(--muted);font-size:12px;margin-top:8px}
+
+/* ========= Columna lateral ========= */
+.side{grid-area: side;display:grid;gap:18px;align-content:start}
+
+/* Objetivos */
+.goal{display:grid;gap:6px;margin-bottom:10px}
+.goal .row{display:flex;justify-content:space-between;gap:8px}
+.goal .title{font-weight:600}
+.goal .deadline{color:var(--muted);font-size:12px}
+.bar{height:10px;background:#0f1a30;border:1px solid rgba(255,255,255,.08);border-radius:999px;overflow:hidden}
+.bar span{display:block;height:100%;background:linear-gradient(90deg, var(--accent), var(--accent-2));width:40%}
+
+.subgoals{margin:6px 0 0 0;padding-left:16px;color:var(--muted);font-size:12px}
+.subgoals li{margin:4px 0}
+
+/* Alarms */
+.alarm{display:flex;justify-content:space-between;gap:10px;padding:10px;border-radius:10px;margin:6px 0;
+  border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.03)}
+.alarm .status{font-weight:700}
+.alarm.danger{border-color: rgba(255,107,136,.35);background: rgba(255,107,136,.08)}
+.alarm.warn{border-color: rgba(255,204,102,.35);background: rgba(255,204,102,.08)}
+
+/* Tareas */
+.task{display:grid;grid-template-columns: 1fr auto;gap:8px;padding:10px;border-radius:10px;margin:6px 0;
+  border:1px solid rgba(255,255,255,.08)}
+.task small{color:var(--muted);font-size:12px}
+.badge{font-size:11px;padding:4px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.10);color:#cfe3ff}
+
+/* Estadísticas minis */
+.stats{display:grid;grid-template-columns: repeat(2,1fr);gap:10px}
+.kpi{
+  padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.08);
+  background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+}
+.kpi .val{font-size:20px;font-weight:800;margin-top:2px}
+.kpi .bar{height:6px;margin-top:8px}
+.kpi .bar span{background:linear-gradient(90deg, var(--accent-2), var(--accent))}
+
+/* Quick forms */
+.form{display:grid;gap:10px}
+.form label{font-size:12px;color:#cfe3ff}
+.form input, .form select, .form textarea{
+  width:100%;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,.10);
+  background:#0c1324;color:var(--text)
+}
+.form .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.form .submit{
+  border:1px solid rgba(255,255,255,.12);background:linear-gradient(180deg, rgba(108,243,255,.20), rgba(139,123,255,.18));
+  padding:10px;border-radius:10px;color:#08101f;font-weight:800;text-shadow:0 1px 0 rgba(255,255,255,.35);
+  cursor:default;
+}
+
+/* Footer */
+.footer{
+  display:flex;gap:8px;align-items:center;justify-content:flex-end;
+  font-size:12px;color:var(--muted);padding:8px 4px;
+  border-top:1px solid rgba(255,255,255,.06);
+}
+
+/* Responsive */
+@media (max-width: 1024px){
+  .app{grid-template-columns: 1fr}
+  aside{position:sticky;top:0;z-index:3}
+  .grid{grid-template-columns:1fr;grid-template-areas:"calendar" "side"}
+}
+
+/* A11y utility */
+.visually-hidden{
+  position:absolute;
+  width:1px; height:1px;
+  padding:0; margin:-1px;
+  overflow:hidden; clip:rect(0, 0, 1px, 1px);
+  white-space:nowrap; border:0;
+}

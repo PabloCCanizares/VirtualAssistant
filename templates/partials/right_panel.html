@@ -1,0 +1,132 @@
+<div class="side">
+  <section class="card">
+    <h2>🎯 Objetivos</h2>
+    <div class="goal">
+      <div class="row">
+        <div class="title">Largo plazo · <span class="muted">Libro “Fog Testing”</span></div>
+        <div class="deadline">Fecha límite: 30/06</div>
+      </div>
+      <div class="bar"><span style="width:42%"></span></div>
+      <ul class="subgoals">
+        <li>Cap. 1–2 redactados ✔️</li>
+        <li>Cap. 3 en progreso (30%)</li>
+      </ul>
+    </div>
+
+    <div class="goal">
+      <div class="row">
+        <div class="title">Medio plazo · <span class="muted">Paper “CloudEvolve”</span></div>
+        <div class="deadline">Fecha límite: 15/12</div>
+      </div>
+      <div class="bar"><span style="width:68%"></span></div>
+      <ul class="subgoals">
+        <li>Experimentos completados ✔️</li>
+        <li>Discusión pendiente</li>
+      </ul>
+    </div>
+
+    <div class="goal">
+      <div class="row">
+        <div class="title">Corto plazo · <span class="muted">Preparar slides de clase</span></div>
+        <div class="deadline">Fecha límite: 02/10</div>
+      </div>
+      <div class="bar"><span style="width:80%"></span></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>🧩 Tareas</h2>
+    <div class="task">
+      <div>
+        <strong>Exportar agenda mensual a .ics</strong>
+        <div><small>Operación asociada a objetivo: “Organización docente”</small></div>
+      </div>
+      <div><span class="badge">pendiente</span></div>
+    </div>
+    <div class="task">
+      <div>
+        <strong>Revisión bibliográfica semanal</strong>
+        <div><small>Objetivo: “Paper CloudEvolve”</small></div>
+      </div>
+      <div><span class="badge">en curso</span></div>
+    </div>
+    <div class="task">
+      <div>
+        <strong>Bloquear franja 15–17 para escritura</strong>
+        <div><small>Automática por asistente</small></div>
+      </div>
+      <div><span class="badge">programada</span></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>⏰ Alarmas</h2>
+    <div class="alarm warn">
+      <div>
+        <strong>Objetivo medio plazo con riesgo</strong>
+        <div class="muted">“Paper CloudEvolve” — progreso <b>68%</b>, faltan 3 semanas</div>
+      </div>
+      <div class="status">⚠️</div>
+    </div>
+    <div class="alarm danger">
+      <div>
+        <strong>Objetivo no cumplido</strong>
+        <div class="muted">“Entregar borrador beca” — vencido hace 2 días</div>
+      </div>
+      <div class="status">❗</div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>📈 Estadísticas</h2>
+    <div class="stats">
+      <div class="kpi">
+        <div class="muted">Tareas completadas (7 días)</div>
+        <div class="val">18</div>
+        <div class="bar"><span style="width:72%"></span></div>
+      </div>
+      <div class="kpi">
+        <div class="muted">Objetivos cumplidos (30 días)</div>
+        <div class="val">4</div>
+        <div class="bar"><span style="width:40%"></span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>⚡ Crear rápido</h2>
+    <form class="form" aria-label="Formularios rápidos (diseño)">
+      <label for="cita">Cita</label>
+      <input id="cita" placeholder="Reunión con … (fecha, hora)">
+
+      <div class="row">
+        <div>
+          <label for="obj">Objetivo</label>
+          <input id="obj" placeholder="Definir objetivo">
+        </div>
+        <div>
+          <label for="plazo">Plazo</label>
+          <select id="plazo" aria-label="Plazo">
+            <option>Corto</option><option>Medio</option><option>Largo</option>
+          </select>
+        </div>
+      </div>
+
+      <label for="desc">Descripción</label>
+      <textarea id="desc" rows="3" placeholder="Descripción del objetivo…"></textarea>
+
+      <div class="row">
+        <div>
+          <label for="cat">Categoría</label>
+          <input id="cat" placeholder="p. ej., Docencia">
+        </div>
+        <div>
+          <label for="pct">Porcentaje inicial</label>
+          <input id="pct" placeholder="0–100%">
+        </div>
+      </div>
+
+      <div class="submit" aria-disabled="true">Guardar (mock)</div>
+    </form>
+  </section>
+</div>
