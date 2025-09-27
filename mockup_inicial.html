@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Asistente Personal LLM — Dashboard</title>
+  <style>
+    /* ========= Variables y tema ========= */
+    :root{
+      --bg: #0b0f1a;
+      --bg-2:#0e1424;
+      --card:#10182b;
+      --muted:#9fb0d7;
+      --text:#e8f0ff;
+      --accent:#6cf3ff;
+      --accent-2:#8b7bff;
+      --good:#37e18f;
+      --warn:#ffcc66;
+      --bad:#ff6b88;
+      --grid:#1c2b4d;
+      --shadow: 0 10px 30px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.03);
+      --radius: 16px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font: 15px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, "Helvetica Neue", Arial, sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(1200px 600px at 120% -10%, rgba(108,243,255,.08), transparent 40%),
+        radial-gradient(900px 600px at -20% -10%, rgba(139,123,255,.10), transparent 45%),
+        linear-gradient(180deg, var(--bg), var(--bg-2) 60%);
+      letter-spacing:.2px;
+    }
+    a{color:var(--accent);text-decoration:none}
+    .app{
+      display:grid;
+      grid-template-columns: 260px 1fr;
+      min-height:100dvh;
+    }
+
+    /* ========= Sidebar ========= */
+    aside{
+      backdrop-filter: blur(10px);
+      background: linear-gradient(180deg, rgba(16,24,43,.7), rgba(16,24,43,.35));
+      border-right:1px solid rgba(255,255,255,.06);
+      padding:22px 18px;
+    }
+    .brand{
+      display:flex;align-items:center;gap:10px;margin-bottom:18px
+    }
+    .brand .dot{
+      width:12px;height:12px;border-radius:50%;
+      background: conic-gradient(from 180deg, var(--accent), var(--accent-2));
+      box-shadow:0 0 16px var(--accent);
+    }
+    h1{font-size:15px;margin:0;color:#dbe7ff;font-weight:600}
+    .tagline{margin:6px 0 14px;color:var(--muted);font-size:12px}
+    nav ul{list-style:none;margin:10px 0 24px;padding:0;display:grid;gap:6px}
+    nav li a{
+      display:flex;align-items:center;gap:10px;
+      padding:10px 12px;border-radius:12px;color:#dfe8ff;
+      background: transparent;border:1px solid rgba(255,255,255,.06);
+    }
+    nav li a[aria-current="page"]{
+      background: linear-gradient(180deg, rgba(108,243,255,.12), rgba(139,123,255,.12));
+      border-color: rgba(140,230,255,.35);
+      box-shadow: var(--shadow);
+    }
+    .section-title{font-size:12px;color:#b8c7ef;opacity:.9;margin:16px 0 8px}
+    .pill{
+      display:inline-flex;align-items:center;gap:8px;
+      padding:6px 10px;border-radius:999px;font-size:12px;
+      border:1px solid rgba(255,255,255,.08);
+      background: rgba(255,255,255,.02);
+      margin:4px 4px 0 0;
+    }
+    .ok{color:var(--good);border-color:rgba(55,225,143,.35)}
+    .idle{color:var(--muted)}
+    .warn{color:var(--warn);border-color:rgba(255,204,102,.35)}
+    .btn{
+      display:inline-block;margin-top:12px;
+      padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.08);
+      background: linear-gradient(180deg, rgba(108,243,255,.14), rgba(139,123,255,.14));
+      color:var(--text);font-weight:600;
+    }
+
+    /* ========= Main / Dashboard ========= */
+    main{
+      padding:22px;
+      display:grid;gap:18px;
+      grid-template-rows:auto 1fr;
+    }
+    .topbar{
+      display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between
+    }
+    .breadcrumbs{font-size:13px;color:var(--muted)}
+    .quick-actions{display:flex;gap:8px;flex-wrap:wrap}
+    .chip{
+      padding:8px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.08);
+      background: rgba(255,255,255,.03);font-size:13px
+    }
+
+    .grid{
+      display:grid;gap:18px;
+      grid-template-columns: 2.1fr .9fr;
+      grid-template-areas:
+        "calendar side"
+        "calendar side";
+      min-height:0;
+    }
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      border:1px solid rgba(255,255,255,.08);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding:16px;
+      min-height:120px;
+    }
+    .card h2{
+      margin:0 0 12px;font-size:14px;letter-spacing:.4px;font-weight:700;color:#eaf2ff;
+      display:flex;align-items:center;gap:8px
+    }
+    .muted{color:var(--muted);font-size:13px}
+
+    /* ========= Calendario (semanal estilo Excel) ========= */
+    .calendar{grid-area: calendar;display:flex;flex-direction:column;min-height:420px}
+    .calendar .legend{
+      display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;font-size:12px;color:var(--muted)
+    }
+    .calendar table{
+      width:100%;border-collapse:separate;border-spacing:0;
+      table-layout:fixed;overflow:hidden;border-radius:12px;border:1px solid rgba(255,255,255,.08)
+    }
+    .calendar thead th{
+      position:sticky;top:0;z-index:2;background:#0f172a;
+      border-bottom:1px solid rgba(255,255,255,.08);padding:10px;font-weight:600;color:#dfe8ff
+    }
+    .calendar tbody th{
+      position:sticky;left:0;z-index:1;background:#0f172a;
+      border-right:1px solid rgba(255,255,255,.08);padding:8px;color:#bcd1ff;font-weight:500;width:76px
+    }
+    .calendar td{
+      height:42px;border-right:1px solid var(--grid);border-bottom:1px solid var(--grid);
+      vertical-align:top;position:relative;background:linear-gradient(180deg, rgba(12,18,34,.6), rgba(12,18,34,.3))
+    }
+    .calendar tr:last-child td{border-bottom:none}
+    .calendar td:last-child{border-right:none}
+    .event{
+      position:absolute;left:6px;right:6px;top:6px;
+      padding:8px;border-radius:10px;font-size:12px;line-height:1.3;
+      border:1px solid rgba(255,255,255,.12);
+      box-shadow:0 6px 16px rgba(0,0,0,.3);
+      overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+    }
+    .ev-blue{background:linear-gradient(180deg, rgba(108,243,255,.18), rgba(108,243,255,.10))}
+    .ev-violet{background:linear-gradient(180deg, rgba(139,123,255,.20), rgba(139,123,255,.10))}
+    .ev-green{background:linear-gradient(180deg, rgba(55,225,143,.22), rgba(55,225,143,.10))}
+    .event small{display:block;color:#dfe8ff;opacity:.85}
+    .hint{color:var(--muted);font-size:12px;margin-top:8px}
+
+    /* ========= Columna lateral ========= */
+    .side{grid-area: side;display:grid;gap:18px;align-content:start}
+
+    /* Objetivos */
+    .goal{display:grid;gap:6px;margin-bottom:10px}
+    .goal .row{display:flex;justify-content:space-between;gap:8px}
+    .goal .title{font-weight:600}
+    .goal .deadline{color:var(--muted);font-size:12px}
+    .bar{height:10px;background:#0f1a30;border:1px solid rgba(255,255,255,.08);border-radius:999px;overflow:hidden}
+    .bar span{display:block;height:100%;background:linear-gradient(90deg, var(--accent), var(--accent-2));width:40%}
+
+    .subgoals{margin:6px 0 0 0;padding-left:16px;color:var(--muted);font-size:12px}
+    .subgoals li{margin:4px 0}
+
+    /* Alarms */
+    .alarm{display:flex;justify-content:space-between;gap:10px;padding:10px;border-radius:10px;margin:6px 0;
+      border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.03)}
+    .alarm .status{font-weight:700}
+    .alarm.danger{border-color: rgba(255,107,136,.35);background: rgba(255,107,136,.08)}
+    .alarm.warn{border-color: rgba(255,204,102,.35);background: rgba(255,204,102,.08)}
+
+    /* Tareas */
+    .task{display:grid;grid-template-columns: 1fr auto;gap:8px;padding:10px;border-radius:10px;margin:6px 0;
+      border:1px solid rgba(255,255,255,.08)}
+    .task small{color:var(--muted);font-size:12px}
+    .badge{font-size:11px;padding:4px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.10);color:#cfe3ff}
+
+    /* Estadísticas minis */
+    .stats{display:grid;grid-template-columns: repeat(2,1fr);gap:10px}
+    .kpi{
+      padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.08);
+      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+    }
+    .kpi .val{font-size:20px;font-weight:800;margin-top:2px}
+    .kpi .bar{height:6px;margin-top:8px}
+    .kpi .bar span{background:linear-gradient(90deg, var(--accent-2), var(--accent))}
+
+    /* Quick forms */
+    .form{
+      display:grid;gap:10px
+    }
+    .form label{font-size:12px;color:#cfe3ff}
+    .form input, .form select, .form textarea{
+      width:100%;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,.10);
+      background:#0c1324;color:var(--text)
+    }
+    .form .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .form .submit{
+      border:1px solid rgba(255,255,255,.12);background:linear-gradient(180deg, rgba(108,243,255,.20), rgba(139,123,255,.18));
+      padding:10px;border-radius:10px;color:#08101f;font-weight:800;text-shadow:0 1px 0 rgba(255,255,255,.35);
+      cursor:default;
+    }
+
+    /* Responsive */
+    @media (max-width: 1024px){
+      .app{grid-template-columns: 1fr}
+      aside{position:sticky;top:0;z-index:3}
+      .grid{grid-template-columns:1fr;grid-template-areas:"calendar" "side"}
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- ==================== SIDEBAR ==================== -->
+    <aside>
+      <div class="brand">
+        <span class="dot" aria-hidden="true"></span>
+        <h1>Asistente Personal LLM</h1>
+      </div>
+      <p class="tagline">Memoria aumentada · Agenda · Objetivos</p>
+
+      <nav aria-label="Secciones">
+        <ul>
+          <li><a href="#" aria-current="page">🏠 Dashboard</a></li>
+          <li><a href="#">📅 Agenda</a></li>
+          <li><a href="#">🎯 Objetivos</a></li>
+          <li><a href="#">🧩 Tareas</a></li>
+          <li><a href="#">📈 Estadísticas</a></li>
+          <li><a href="#">⚙️ Configuración</a></li>
+        </ul>
+      </nav>
+
+      <div class="section">
+        <div class="section-title">Sistema multi-agente (lang-graph)</div>
+        <div class="pill ok">🧠 Identificador de tareas · OK</div>
+        <div class="pill idle">🔧 Ejecutor de operaciones · Idle</div>
+        <div class="pill ok">💡 Sugerencias proactivas · OK</div>
+        <div class="pill warn">📝 Transcriptor · En espera</div>
+        <a class="btn" href="#" title="Placeholder">⛓️ Conectar Google Calendar</a>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Categorías</div>
+        <div class="pill">🧑‍🏫 Docencia</div>
+        <div class="pill">📚 Publicaciones</div>
+        <div class="pill">🏠 Personal</div>
+        <div class="pill">💼 Gestión</div>
+      </div>
+    </aside>
+
+    <!-- ==================== MAIN ==================== -->
+    <main>
+      <div class="topbar">
+        <div class="breadcrumbs">Dashboard ▸ Semana actual</div>
+        <div class="quick-actions">
+          <span class="chip">+ Nueva cita</span>
+          <span class="chip">+ Nuevo objetivo</span>
+          <span class="chip">+ Nueva tarea</span>
+        </div>
+      </div>
+
+      <div class="grid">
+        <!-- ===== Calendario semanal (excel-like) ===== -->
+        <section class="card calendar" aria-label="Calendario semanal">
+          <h2>📅 Calendario semanal</h2>
+          <div class="legend">
+            <span>Bloques de 1 hora</span> •
+            <span>Arrastra/edita en versión funcional</span> •
+            <span>Sincronizable con Google Calendar</span>
+          </div>
+          <table aria-describedby="cal-desc">
+            <caption id="cal-desc" class="visually-hidden">Vista de semana con horas y días.</caption>
+            <thead>
+              <tr>
+                <th scope="col" style="width:76px">Hora</th>
+                <th scope="col">Lun</th>
+                <th scope="col">Mar</th>
+                <th scope="col">Mié</th>
+                <th scope="col">Jue</th>
+                <th scope="col">Vie</th>
+                <th scope="col">Sáb</th>
+                <th scope="col">Dom</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Horas (ejemplo compacto 08–18) -->
+              <!-- Cada celda puede alojar .event para simular bloques -->
+              <!-- 08 -->
+              <tr>
+                <th scope="row">08:00</th>
+                <td></td>
+                <td></td>
+                <td><div class="event ev-blue"><strong>Revisión objetivos</strong><small>08:15–08:45</small></div></td>
+                <td></td><td></td><td></td><td></td>
+              </tr>
+              <!-- 09 -->
+              <tr>
+                <th scope="row">09:00</th>
+                <td><div class="event ev-violet"><strong>Clase</strong><small>09:00–11:00</small></div></td>
+                <td></td><td></td><td></td><td></td><td></td><td></td>
+              </tr>
+              <!-- 10 -->
+              <tr>
+                <th scope="row">10:00</th>
+                <td></td>
+                <td><div class="event ev-green"><strong>Reunión proyecto</strong><small>10:30–11:00</small></div></td>
+                <td></td><td></td><td></td><td></td><td></td>
+              </tr>
+              <!-- 11 -->
+              <tr>
+                <th scope="row">11:00</th>
+                <td></td><td></td><td></td>
+                <td><div class="event ev-blue"><strong>Correos & planning</strong><small>11:00–12:00</small></div></td>
+                <td></td><td></td><td></td>
+              </tr>
+              <!-- 12 -->
+              <tr>
+                <th scope="row">12:00</th>
+                <td></td><td></td><td></td><td></td>
+                <td><div class="event ev-violet"><strong>Oficina alumno</strong><small>12:00–12:30</small></div></td>
+                <td></td><td></td>
+              </tr>
+              <!-- 13 -->
+              <tr>
+                <th scope="row">13:00</th>
+                <td></td><td></td><td></td><td></td>
+                <td></td><td></td><td></td>
+              </tr>
+              <!-- 14 -->
+              <tr>
+                <th scope="row">14:00</th>
+                <td></td><td></td><td></td><td></td>
+                <td></td><td></td><td></td>
+              </tr>
+              <!-- 15 -->
+              <tr>
+                <th scope="row">15:00</th>
+                <td></td>
+                <td></td>
+                <td><div class="event ev-green"><strong>Escritura paper</strong><small>15:00–17:00</small></div></td>
+                <td></td><td></td><td></td><td></td>
+              </tr>
+              <!-- 16 -->
+              <tr>
+                <th scope="row">16:00</th>
+                <td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+              </tr>
+              <!-- 17 -->
+              <tr>
+                <th scope="row">17:00</th>
+                <td></td><td></td><td></td>
+                <td><div class="event ev-blue"><strong>Gym / Salud</strong><small>17:30–18:30</small></div></td>
+                <td></td><td></td><td></td>
+              </tr>
+              <!-- 18 -->
+              <tr>
+                <th scope="row">18:00</th>
+                <td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+              </tr>
+            </tbody>
+          </table>
+          <p class="hint">Sugerencia LLM: reserva 30′ diarios para “revisión rápida” al inicio de la jornada.</p>
+        </section>
+
+        <!-- ===== Columna lateral ===== -->
+        <div class="side">
+          <!-- Objetivos -->
+          <section class="card">
+            <h2>🎯 Objetivos</h2>
+            <div class="goal">
+              <div class="row">
+                <div class="title">Largo plazo · <span class="muted">Libro “Fog Testing”</span></div>
+                <div class="deadline">Fecha límite: 30/06</div>
+              </div>
+              <div class="bar"><span style="width:42%"></span></div>
+              <ul class="subgoals">
+                <li>Cap. 1–2 redactados ✔️</li>
+                <li>Cap. 3 en progreso (30%)</li>
+              </ul>
+            </div>
+
+            <div class="goal">
+              <div class="row">
+                <div class="title">Medio plazo · <span class="muted">Paper “CloudEvolve”</span></div>
+                <div class="deadline">Fecha límite: 15/12</div>
+              </div>
+              <div class="bar"><span style="width:68%"></span></div>
+              <ul class="subgoals">
+                <li>Experimentos completados ✔️</li>
+                <li>Discusión pendiente</li>
+              </ul>
+            </div>
+
+            <div class="goal">
+              <div class="row">
+                <div class="title">Corto plazo · <span class="muted">Preparar slides de clase</span></div>
+                <div class="deadline">Fecha límite: 02/10</div>
+              </div>
+              <div class="bar"><span style="width:80%"></span></div>
+            </div>
+          </section>
+
+          <!-- Tareas vinculadas -->
+          <section class="card">
+            <h2>🧩 Tareas</h2>
+            <div class="task">
+              <div>
+                <strong>Exportar agenda mensual a .ics</strong>
+                <div><small>Operación asociada a objetivo: “Organización docente”</small></div>
+              </div>
+              <div><span class="badge">pendiente</span></div>
+            </div>
+            <div class="task">
+              <div>
+                <strong>Revisión bibliográfica semanal</strong>
+                <div><small>Objetivo: “Paper CloudEvolve”</small></div>
+              </div>
+              <div><span class="badge">en curso</span></div>
+            </div>
+            <div class="task">
+              <div>
+                <strong>Bloquear franja 15–17 para escritura</strong>
+                <div><small>Automática por asistente</small></div>
+              </div>
+              <div><span class="badge">programada</span></div>
+            </div>
+          </section>
+
+          <!-- Alarmas -->
+          <section class="card">
+            <h2>⏰ Alarmas</h2>
+            <div class="alarm warn">
+              <div>
+                <strong>Objetivo medio plazo con riesgo</strong>
+                <div class="muted">“Paper CloudEvolve” — progreso <b>68%</b>, faltan 3 semanas</div>
+              </div>
+              <div class="status">⚠️</div>
+            </div>
+            <div class="alarm danger">
+              <div>
+                <strong>Objetivo no cumplido</strong>
+                <div class="muted">“Entregar borrador beca” — vencido hace 2 días</div>
+              </div>
+              <div class="status">❗</div>
+            </div>
+          </section>
+
+          <!-- Estadísticas -->
+          <section class="card">
+            <h2>📈 Estadísticas</h2>
+            <div class="stats">
+              <div class="kpi">
+                <div class="muted">Tareas completadas (7 días)</div>
+                <div class="val">18</div>
+                <div class="bar"><span style="width:72%"></span></div>
+              </div>
+              <div class="kpi">
+                <div class="muted">Objetivos cumplidos (30 días)</div>
+                <div class="val">4</div>
+                <div class="bar"><span style="width:40%"></span></div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Formularios rápidos -->
+          <section class="card">
+            <h2>⚡ Crear rápido</h2>
+            <form class="form" aria-label="Formularios rápidos (diseño)">
+              <label for="cita">Cita</label>
+              <input id="cita" placeholder="Reunión con … (fecha, hora)">
+
+              <div class="row">
+                <div>
+                  <label for="obj">Objetivo</label>
+                  <input id="obj" placeholder="Definir objetivo">
+                </div>
+                <div>
+                  <label for="plazo">Plazo</label>
+                  <select id="plazo" aria-label="Plazo">
+                    <option>Corto</option><option>Medio</option><option>Largo</option>
+                  </select>
+                </div>
+              </div>
+
+              <label for="desc">Descripción</label>
+              <textarea id="desc" rows="3" placeholder="Descripción del objetivo…"></textarea>
+
+              <div class="row">
+                <div>
+                  <label for="cat">Categoría</label>
+                  <input id="cat" placeholder="p. ej., Docencia">
+                </div>
+                <div>
+                  <label for="pct">Porcentaje inicial</label>
+                  <input id="pct" placeholder="0–100%">
+                </div>
+              </div>
+
+              <div class="submit" aria-disabled="true">Guardar (mock)</div>
+            </form>
+          </section>
+        </div>
+      </div>
+    </main>
+  </div>
+</body>
+</html>
+
