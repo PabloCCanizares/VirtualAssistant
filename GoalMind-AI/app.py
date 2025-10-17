@@ -1,9 +1,23 @@
 from flask import Flask, render_template, url_for
+from database.mongo_conn import init_app, mongo
+from controllers.task_controller import task_bp, get_all_tasks_from_db
 
 app = Flask(__name__)
+init_app(app)
 
+app.register_blueprint(task_bp)
+
+def test_connection():
+    try:
+        mongo.db.command("ping")
+        print(f"Tareas recibidas: {get_all_tasks_from_db()}")
+        print("✅ Conectado correctamente a MongoDB Atlas")
+    except Exception as e:
+        print(f"❌ Error de conexión a MongoDB: {e}")
+        
 @app.route("/")
 def dashboard():
+    test_connection()
     return render_template("dashboard.html", page="dashboard")
 
 @app.route("/agenda")
