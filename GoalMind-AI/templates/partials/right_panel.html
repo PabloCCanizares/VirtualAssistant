@@ -1,4 +1,74 @@
 <div class="side">
+
+    <section class="card">
+    <h2>Crear objetivo</h2>
+    <form id="quickGoalForm" class="form">
+      <label for="goal_title">Objetivo</label>
+      <input id="goal_title" name="title" placeholder="Definir objetivo" required>
+
+      <div class="row">
+        <div>
+          <label for="goal_scope">Plazo</label>
+          <select id="goal_scope" name="scope" required>
+            <option value="short">Corto</option>
+            <option value="medium">Medio</option>
+            <option value="long">Largo</option>
+          </select>
+        </div>
+        <div>
+          <label for="goal_deadline">Fecha límite (opcional)</label>
+          <input id="goal_deadline" name="deadline" type="date">
+        </div>
+      </div>
+
+      <label for="goal_desc">Descripción</label>
+      <textarea id="goal_desc" name="description" rows="3" placeholder="Descripción del objetivo…"></textarea>
+
+      <div class="row">
+        <div>
+          <label for="goal_category">Categoría</label>
+          <input id="goal_category" name="category" placeholder="p. ej., Docencia">
+        </div>
+        <div>
+          <label for="goal_progress">Progreso inicial (%)</label>
+          <input id="goal_progress" name="progress" type="number" min="0" max="100" step="1" placeholder="0–100">
+        </div>
+      </div>
+
+      <button type="submit" class="submit">Guardar objetivo</button>
+    </form>
+    <p id="goalMessage" class="muted" style="margin-top:8px;"></p>
+    <ul id="goalList" class="muted" style="margin-top:10px;"></ul>
+  </section>
+
+  <section class="card">
+  <h2>Crear tarea</h2>
+  <form id="quickTaskForm" class="form">
+    <label for="task_title">Título de la tarea</label>
+    <input id="task_title" name="title" placeholder="p. ej., Revisión bibliográfica" required>
+
+    <div class="row">
+      <div>
+        <label for="task_status">Estado</label>
+        <select id="task_status" name="status">
+          <option value="pending">Pendiente</option>
+          <option value="in_progress">En curso</option>
+          <option value="done">Completada</option>
+        </select>
+      </div>
+      <div>
+        <label for="task_due">Vencimiento (opcional)</label>
+        <input id="task_due" name="due" type="datetime-local">
+      </div>
+    </div>
+
+    <button type="submit" class="submit">Guardar tarea</button>
+  </form>
+  <p id="taskMessage" class="muted" style="margin-top:8px;"></p>
+
+  <ul id="taskList" class="muted" style="margin-top:10px;"></ul>
+  </section>
+
   <section class="card">
     <h2>🎯 Objetivos</h2>
     <div class="goal">
@@ -93,40 +163,158 @@
     </div>
   </section>
 
-  <section class="card">
-    <h2>⚡ Crear rápido</h2>
-    <form class="form" aria-label="Formularios rápidos (diseño)">
-      <label for="cita">Cita</label>
-      <input id="cita" placeholder="Reunión con … (fecha, hora)">
+  <script>
+async function loadGoals() {
+  try {
+    const res = await fetch("/goals");
+    if (!res.ok) throw new Error("No se pudieron cargar los objetivos");
+    const goals = await res.json();
+    const list = document.getElementById("goalList");
+    if (!list) return;
+    list.innerHTML = "";
+    if (goals.length === 0) {
+      const empty = document.createElement("li");
+      empty.textContent = "Aún no hay objetivos guardados.";
+      list.appendChild(empty);
+      return;
+    }
 
-      <div class="row">
-        <div>
-          <label for="obj">Objetivo</label>
-          <input id="obj" placeholder="Definir objetivo">
-        </div>
-        <div>
-          <label for="plazo">Plazo</label>
-          <select id="plazo" aria-label="Plazo">
-            <option>Corto</option><option>Medio</option><option>Largo</option>
-          </select>
-        </div>
-      </div>
+    goals.forEach((goal) => {
+      const li = document.createElement("li");
+      const scopeLabels = { short: "Corto", medium: "Medio", long: "Largo" };
+      const parts = [`${goal.title} (${scopeLabels[goal.scope] || goal.scope})`];
+      if (goal.deadline) parts.push(`vence: ${goal.deadline}`);
+      if (typeof goal.progress === "number") parts.push(`progreso: ${goal.progress}%`);
+      li.textContent = parts.join(" · ");
+      list.appendChild(li);
+    });
+  } catch (error) {
+    const list = document.getElementById("goalList");
+    if (list) list.innerHTML = "<li>No se pudieron cargar los objetivos.</li>";
+  }
+}
 
-      <label for="desc">Descripción</label>
-      <textarea id="desc" rows="3" placeholder="Descripción del objetivo…"></textarea>
+async function loadTasks() {
+  const res = await fetch("/tasks");
+  const tasks = await res.json();
+  const list = document.getElementById("taskList");
+  list.innerHTML = "";
+  tasks.forEach(t => {
+    const li = document.createElement("li");
+    li.textContent = `${t.title} (${t.status})` + (t.due ? ` · vence: ${t.due}` : "");
+    list.appendChild(li);
+  });
+}
 
-      <div class="row">
-        <div>
-          <label for="cat">Categoría</label>
-          <input id="cat" placeholder="p. ej., Docencia">
-        </div>
-        <div>
-          <label for="pct">Porcentaje inicial</label>
-          <input id="pct" placeholder="0–100%">
-        </div>
-      </div>
+const goalForm = document.getElementById("quickGoalForm");
+if (goalForm) {
+  goalForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const msg = document.getElementById("goalMessage");
 
-      <div class="submit" aria-disabled="true">Guardar (mock)</div>
-    </form>
-  </section>
+    const title = document.getElementById("goal_title").value.trim();
+    const scope = document.getElementById("goal_scope").value;
+    const description = document.getElementById("goal_desc").value.trim();
+    const category = document.getElementById("goal_category").value.trim();
+    const progressRaw = document.getElementById("goal_progress").value;
+    const deadline = document.getElementById("goal_deadline").value;
+
+    if (!title) {
+      msg.textContent = "⚠️ El objetivo necesita un título.";
+      return;
+    }
+
+    const payload = { title, scope };
+    if (description) payload.description = description;
+    if (category) payload.category = category;
+    if (deadline) payload.deadline = deadline;
+    if (progressRaw !== "") {
+      const progress = Number(progressRaw);
+      if (Number.isNaN(progress) || progress < 0 || progress > 100) {
+        msg.textContent = "⚠️ El progreso debe estar entre 0 y 100.";
+        return;
+      }
+      payload.progress = progress;
+    }
+
+    try {
+      const res = await fetch("/goals", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) throw new Error();
+      msg.textContent = "✅ Objetivo guardado correctamente.";
+      goalForm.reset();
+      loadGoals();
+    } catch (err) {
+      msg.textContent = "❌ Error al guardar el objetivo.";
+    }
+  });
+}
+
+const taskForm = document.getElementById("quickTaskForm");
+if (taskForm) {
+  taskForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const msg = document.getElementById("taskMessage");
+    const title = document.getElementById("task_title").value.trim();
+    const status = document.getElementById("task_status").value;
+    const dueRaw = document.getElementById("task_due").value; // ISO local o vacío
+    if (!title) { msg.textContent = "⚠️ El título es obligatorio."; return; }
+
+    // Si hay due, convertir a ISO (simple: dejarlo tal cual; ya lo maneja tu API como string)
+    const payload = { title, status };
+    if (dueRaw) payload.due = dueRaw;
+
+    const res = await fetch("/tasks", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    if (res.ok) {
+      msg.textContent = "✅ Tarea creada correctamente.";
+      e.target.reset();
+      loadTasks();
+    } else {
+      msg.textContent = "❌ Error al crear la tarea.";
+    }
+  });
+}
+
+const newTaskBtn = document.querySelector('[data-action="new-task"]');
+if (newTaskBtn) {
+  newTaskBtn.addEventListener("click", () => {
+    const target = document.getElementById("quickTaskForm");
+    if (target) {
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+    const titleInput = document.getElementById("task_title");
+    if (titleInput) {
+      titleInput.focus({ preventScroll: true });
+    }
+  });
+}
+
+const newGoalBtn = document.querySelector('[data-action="new-goal"]');
+if (newGoalBtn) {
+  newGoalBtn.addEventListener("click", () => {
+    const target = document.getElementById("quickGoalForm");
+    if (target) {
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+    const titleInput = document.getElementById("goal_title");
+    if (titleInput) {
+      titleInput.focus({ preventScroll: true });
+    }
+  });
+}
+
+// carga inicial
+loadGoals();
+loadTasks();
+  </script>
+
 </div>

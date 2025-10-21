@@ -1,11 +1,15 @@
 from flask import Flask, render_template, url_for
 from database.mongo_conn import init_app, mongo
 from controllers.task_controller import task_bp, get_all_tasks_from_db
+from controllers.goal_controller import goal_bp
+from controllers.event_controller import event_bp
 
 app = Flask(__name__)
 init_app(app)
 
 app.register_blueprint(task_bp)
+app.register_blueprint(goal_bp)
+app.register_blueprint(event_bp)
 
 def test_connection():
     try:

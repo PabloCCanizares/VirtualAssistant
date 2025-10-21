@@ -91,9 +91,12 @@ main{
 .breadcrumbs{font-size:13px;color:var(--muted)}
 .quick-actions{display:flex;gap:8px;flex-wrap:wrap}
 .chip{
+  display:inline-flex;align-items:center;gap:4px;
   padding:8px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.08);
-  background: rgba(255,255,255,.03);font-size:13px
+  background: rgba(255,255,255,.03);font-size:13px;color:inherit;
+  cursor:pointer;font-family:inherit;line-height:1.2;text-decoration:none
 }
+.chip:focus-visible{outline:2px solid rgba(255,255,255,.3);outline-offset:2px}
 
 .grid{
   display:grid;gap:18px;
@@ -135,18 +138,18 @@ main{
   border-right:1px solid rgba(255,255,255,.08);padding:8px;color:#bcd1ff;font-weight:500;width:76px
 }
 .calendar td{
-  height:42px;border-right:1px solid var(--grid);border-bottom:1px solid var(--grid);
-  vertical-align:top;position:relative;background:linear-gradient(180deg, rgba(12,18,34,.6), rgba(12,18,34,.3))
+  min-height:48px;padding:6px;border-right:1px solid var(--grid);border-bottom:1px solid var(--grid);
+  vertical-align:top;background:linear-gradient(180deg, rgba(12,18,34,.6), rgba(12,18,34,.3))
 }
 .calendar tr:last-child td{border-bottom:none}
 .calendar td:last-child{border-right:none}
 .event{
-  position:absolute;left:6px;right:6px;top:6px;
-  padding:8px;border-radius:10px;font-size:12px;line-height:1.3;
+  display:block;padding:8px;border-radius:10px;font-size:12px;line-height:1.3;
   border:1px solid rgba(255,255,255,.12);
   box-shadow:0 6px 16px rgba(0,0,0,.3);
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis;white-space:normal;
 }
+.event + .event{margin-top:6px}
 .ev-blue{background:linear-gradient(180deg, rgba(108,243,255,.18), rgba(108,243,255,.10))}
 .ev-violet{background:linear-gradient(180deg, rgba(139,123,255,.20), rgba(139,123,255,.10))}
 .ev-green{background:linear-gradient(180deg, rgba(55,225,143,.22), rgba(55,225,143,.10))}

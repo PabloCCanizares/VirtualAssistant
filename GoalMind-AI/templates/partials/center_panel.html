@@ -1,3 +1,14 @@
+{% set days = [
+  {"key": "mon", "label": "Lun"},
+  {"key": "tue", "label": "Mar"},
+  {"key": "wed", "label": "Mié"},
+  {"key": "thu", "label": "Jue"},
+  {"key": "fri", "label": "Vie"},
+  {"key": "sat", "label": "Sáb"},
+  {"key": "sun", "label": "Dom"}
+] %}
+{% set hours = ["08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00"] %}
+
 <section class="card calendar" aria-label="Calendario semanal">
   <h2>📅 Calendario semanal</h2>
   <div class="legend">
@@ -5,67 +16,200 @@
     <span>Arrastra/edita en versión funcional</span> •
     <span>Sincronizable con Google Calendar</span>
   </div>
-  <table aria-describedby="cal-desc">
+  <table aria-describedby="cal-desc" data-weekly-calendar="true">
     <caption id="cal-desc" class="visually-hidden">Vista de semana con horas y días.</caption>
     <thead>
       <tr>
         <th scope="col" style="width:76px">Hora</th>
-        <th scope="col">Lun</th>
-        <th scope="col">Mar</th>
-        <th scope="col">Mié</th>
-        <th scope="col">Jue</th>
-        <th scope="col">Vie</th>
-        <th scope="col">Sáb</th>
-        <th scope="col">Dom</th>
+        {% for day in days %}
+          <th scope="col">{{ day.label }}</th>
+        {% endfor %}
       </tr>
     </thead>
     <tbody>
-      <tr>
-        <th scope="row">08:00</th>
-        <td></td><td></td>
-        <td><div class="event ev-blue"><strong>Revisión objetivos</strong><small>08:15–08:45</small></div></td>
-        <td></td><td></td><td></td><td></td>
-      </tr>
-      <tr>
-        <th scope="row">09:00</th>
-        <td><div class="event ev-violet"><strong>Clase</strong><small>09:00–11:00</small></div></td>
-        <td></td><td></td><td></td><td></td><td></td><td></td>
-      </tr>
-      <tr>
-        <th scope="row">10:00</th>
-        <td></td>
-        <td><div class="event ev-green"><strong>Reunión proyecto</strong><small>10:30–11:00</small></div></td>
-        <td></td><td></td><td></td><td></td><td></td>
-      </tr>
-      <tr>
-        <th scope="row">11:00</th>
-        <td></td><td></td><td></td>
-        <td><div class="event ev-blue"><strong>Correos &amp; planning</strong><small>11:00–12:00</small></div></td>
-        <td></td><td></td><td></td>
-      </tr>
-      <tr>
-        <th scope="row">12:00</th>
-        <td></td><td></td><td></td><td></td>
-        <td><div class="event ev-violet"><strong>Oficina alumno</strong><small>12:00–12:30</small></div></td>
-        <td></td><td></td>
-      </tr>
-      <tr><th scope="row">13:00</th><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-      <tr><th scope="row">14:00</th><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-      <tr>
-        <th scope="row">15:00</th>
-        <td></td><td></td>
-        <td><div class="event ev-green"><strong>Escritura paper</strong><small>15:00–17:00</small></div></td>
-        <td></td><td></td><td></td><td></td>
-      </tr>
-      <tr><th scope="row">16:00</th><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-      <tr>
-        <th scope="row">17:00</th>
-        <td></td><td></td><td></td>
-        <td><div class="event ev-blue"><strong>Gym / Salud</strong><small>17:30–18:30</small></div></td>
-        <td></td><td></td><td></td>
-      </tr>
-      <tr><th scope="row">18:00</th><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      {% for hour in hours %}
+        <tr>
+          <th scope="row">{{ hour }}</th>
+          {% for day in days %}
+            <td data-day="{{ day.key }}" data-hour="{{ hour[:2] }}"></td>
+          {% endfor %}
+        </tr>
+      {% endfor %}
     </tbody>
   </table>
-  <p class="hint">Sugerencia LLM: reserva 30′ diarios para “revisión rápida” al inicio de la jornada.</p>
+
+  <form id="quickEventForm" class="form" style="margin-top:16px">
+    <h3 class="muted" style="margin:0 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:.6px">Crear cita</h3>
+
+    <label for="event_title">Título</label>
+    <input id="event_title" name="title" placeholder="p. ej., Tutoría Proyecto" required>
+
+    <div class="row">
+      <div>
+        <label for="event_day">Día</label>
+        <select id="event_day" name="day" required>
+          <option value="mon">Lunes</option>
+          <option value="tue">Martes</option>
+          <option value="wed">Miércoles</option>
+          <option value="thu">Jueves</option>
+          <option value="fri">Viernes</option>
+          <option value="sat">Sábado</option>
+          <option value="sun">Domingo</option>
+        </select>
+      </div>
+      <div>
+        <label for="event_start">Inicio</label>
+        <input id="event_start" name="start" type="time" required>
+      </div>
+      <div>
+        <label for="event_end">Fin (opcional)</label>
+        <input id="event_end" name="end" type="time">
+      </div>
+    </div>
+
+    <label for="event_description">Descripción</label>
+    <textarea id="event_description" name="description" rows="2" placeholder="Añade detalles breves…"></textarea>
+
+    <div class="row">
+      <div>
+        <label for="event_color">Color</label>
+        <select id="event_color" name="color">
+          <option value="blue">Azul</option>
+          <option value="violet">Violeta</option>
+          <option value="green">Verde</option>
+        </select>
+      </div>
+    </div>
+
+    <button type="submit" class="submit">Guardar cita</button>
+  </form>
+  <p id="eventMessage" class="muted" style="margin-top:8px;"></p>
 </section>
+
+<script>
+const calendarTable = document.querySelector("[data-weekly-calendar]");
+const eventMessage = document.getElementById("eventMessage");
+
+const colorClassMap = {
+  blue: "ev-blue",
+  violet: "ev-violet",
+  green: "ev-green"
+};
+
+function clearCalendarCells() {
+  if (!calendarTable) return;
+  calendarTable.querySelectorAll("td[data-day]").forEach((cell) => {
+    cell.textContent = "";
+  });
+}
+
+function renderEvents(events) {
+  if (!calendarTable) return;
+  clearCalendarCells();
+
+  events.forEach((ev) => {
+    const day = ev.day;
+    const start = ev.start || "00:00";
+    const hourKey = start.slice(0, 2);
+    const cell = calendarTable.querySelector(`[data-day="${day}"][data-hour="${hourKey}"]`);
+    if (!cell) return;
+
+    const eventEl = document.createElement("div");
+    const colorClass = colorClassMap[ev.color] || colorClassMap.blue;
+    eventEl.className = `event ${colorClass}`;
+
+    const titleEl = document.createElement("strong");
+    titleEl.textContent = ev.title;
+    eventEl.appendChild(titleEl);
+
+    const metaParts = [];
+    if (ev.start) {
+      const timeRange = ev.end ? `${ev.start}–${ev.end}` : ev.start;
+      metaParts.push(timeRange);
+    }
+    if (ev.description) {
+      metaParts.push(ev.description);
+    }
+    if (metaParts.length) {
+      const details = document.createElement("small");
+      details.textContent = metaParts.join(" · ");
+      eventEl.appendChild(details);
+    }
+
+    cell.appendChild(eventEl);
+  });
+}
+
+async function loadEvents() {
+  if (!calendarTable) return;
+  try {
+    const res = await fetch("/events");
+    if (!res.ok) throw new Error("No se pudo cargar el calendario");
+    const data = await res.json();
+    renderEvents(data);
+    if (data.length === 0 && eventMessage && !eventMessage.textContent) {
+      eventMessage.textContent = "ℹ️ Añade tu primera cita para verla en el calendario.";
+    }
+  } catch (error) {
+    if (eventMessage) {
+      eventMessage.textContent = "❌ No se pudieron cargar las citas.";
+    }
+  }
+}
+
+const eventForm = document.getElementById("quickEventForm");
+if (eventForm) {
+  eventForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (eventMessage) eventMessage.textContent = "";
+
+    const formData = new FormData(eventForm);
+    const title = (formData.get("title") || "").trim();
+    const description = (formData.get("description") || "").trim();
+    const payload = {
+      title,
+      day: formData.get("day"),
+      start: formData.get("start"),
+      end: formData.get("end"),
+      description,
+      color: formData.get("color"),
+    };
+
+    if (!title) {
+      eventMessage.textContent = "⚠️ La cita necesita un título.";
+      return;
+    }
+    if (!payload.start) {
+      eventMessage.textContent = "⚠️ Selecciona una hora de inicio.";
+      return;
+    }
+
+    try {
+      const res = await fetch("/events", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) throw new Error();
+      eventMessage.textContent = "✅ Cita guardada correctamente.";
+      eventForm.reset();
+      loadEvents();
+    } catch (err) {
+      eventMessage.textContent = "❌ Error al guardar la cita.";
+    }
+  });
+}
+
+const newAppointmentBtn = document.querySelector('[data-action="new-appointment"]');
+if (newAppointmentBtn && eventForm) {
+  newAppointmentBtn.addEventListener("click", () => {
+    eventForm.scrollIntoView({ behavior: "smooth", block: "start" });
+    const titleInput = document.getElementById("event_title");
+    if (titleInput) {
+      titleInput.focus({ preventScroll: true });
+    }
+  });
+}
+
+loadEvents();
+</script>
