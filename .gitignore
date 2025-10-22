@@ -1,2 +1,27 @@
+# === Entorno virtual ===
+GoalMind-AI/venv/
 
-/GoalMind-AI/.venv
+# === Cachés y archivos temporales de Python ===
+GoalMind-AI/__pycache__/
+GoalMind-AI/**/*.pyc
+GoalMind-AI/**/*.pyo
+GoalMind-AI/**/*.pyd
+
+# === Archivos del sistema ===
+.DS_Store
+Thumbs.db
+
+# === Archivos de editores ===
+.vscode/
+.idea/
+
+# === Archivos generados o personales ===
+documentation.pdf
+plantilla_tfg_word.docx
+mockup_inicial.html
+info.txt
+
+# === Archivos de construcción o instalación ===
+GoalMind-AI/*.egg-info/
+GoalMind-AI/build/
+GoalMind-AI/dist/
