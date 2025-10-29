@@ -1,0 +1,38 @@
+<section class="panel center">
+  <h2>Mis tareas</h2>
+
+  {% if tasks and tasks|length > 0 %}
+    <ul class="tasks-list">
+      {% for task in tasks %}
+      <li class="task-item">
+
+        <div class="task-content">
+          <p class="task-title">{{ task['contenido'] }}</p>
+
+          <p class="task-subtitle">
+            Objetivo: 
+            {% if task['objetivo_id'] %}
+              {{ task['objetivo_id'] }}
+            {% else %}
+              (sin objetivo)
+            {% endif %}
+          </p>
+
+          {% if task['fecha_limite'] %}
+          <p class="task-deadline">
+            Fecha límite: {{ task['fecha_limite'] }}
+          </p>
+          {% endif %}
+        </div>
+
+        <form action="{{ url_for('task_bp.delete_task', task_id=task['_id']) }}" method="post">
+          <button class="task-delete-btn" title="Eliminar tarea">🗑️</button>
+        </form>
+
+      </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No hay tareas registradas todavía.</p>
+  {% endif %}
+</section>

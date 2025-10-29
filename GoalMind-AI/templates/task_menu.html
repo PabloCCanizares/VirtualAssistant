@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/task_menu.css') }}">
+  <div class="grid">
+    {% include "partials/tasks_center_panel.html" %}
+    {% include "partials/tasks_right_panel.html" %}
+  </div>
+{% endblock %}
