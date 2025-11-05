@@ -10,7 +10,7 @@
       <li><a href="{{ url_for('dashboard_bp.dashboard') }}" {% if page == 'dashboard' %}aria-current="page"{% endif %}>🏠 Dashboard</a></li>
       <li><a href="{{ url_for('dashboard_bp.agenda') }}" {% if page == 'agenda' %}aria-current="page"{% endif %}>📅 Agenda</a></li>
       <li><a href="{{ url_for('dashboard_bp.objetivos') }}" {% if page == 'objetivos' %}aria-current="page"{% endif %}>🎯 Objetivos</a></li>
-      <li><a href="{{ url_for('task_bp.list_tasks_by_user', user_id='66ffbbbbbbbbbbbbbbbb0001') }}"{% if page == 'tareas' %}aria-current="page"{% endif %}>🧩 Tareas</a></li>
+      <li><a href="{{ url_for('task_bp.list_tasks_by_user', user_id=0) }}"{% if page == 'tareas' %}aria-current="page"{% endif %}>🧩 Tareas</a></li>
       <li><a href="{{ url_for('dashboard_bp.estadisticas') }}" {% if page == 'estadisticas' %}aria-current="page"{% endif %}>📈 Estadísticas</a></li>
       <li><a href="{{ url_for('dashboard_bp.config') }}" {% if page == 'config' %}aria-current="page"{% endif %}>⚙️ Configuración</a></li>
     </ul>
