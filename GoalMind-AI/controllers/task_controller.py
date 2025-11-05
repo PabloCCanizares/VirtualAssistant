@@ -12,7 +12,7 @@ task_bp = Blueprint("task_bp", __name__, url_prefix="/tasks")
 def list_tasks():
     """Muestra todas las tareas disponibles."""
     tasks = TaskModel.get_all_tasks()
-    return render_template("task_menu.html", tasks=tasks, selected_task=None, page="list")
+    return render_template("partials/task_templates/task_menu.html", tasks=tasks, selected_task=None, page="list")
 
 
 # -------------------------------------------------------------
@@ -26,7 +26,7 @@ def view_task(task_id):
         if not task:
             flash("❌ Tarea no encontrada", "warning")
             return redirect(url_for("task_bp.list_tasks"))
-        return render_template("task_menu.html", selected_task=task, tasks=None, page="detail")
+        return render_template("partials/task_templates/task_menu.html", selected_task=task, tasks=None, page="detail")
     except Exception as e:
         flash(f"Error al obtener la tarea: {e}", "danger")
         return redirect(url_for("task_bp.list_tasks"))
@@ -38,12 +38,13 @@ def view_task(task_id):
 def list_tasks_by_user(user_id):
     """Muestra todas las tareas creadas por un usuario específico."""
     try:
+        if user_id == 0:
+            user_id = "66ffbbbbbbbbbbbbbbbb0100"
         tasks = TaskModel.get_task_by_user(user_id)
         if not tasks:
             flash("Este usuario aún no tiene tareas.", "info")
-
         return render_template(
-            "task_menu.html",
+            "partials/task_templates/task_menu.html",
             tasks=tasks,
             page="tareas",
             user_id=user_id

@@ -1,13 +1,36 @@
-/* Lista general */
+/* ===== LISTA GENERAL ===== */
 .tasks-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: grid;
+  max-height: 80vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 6px;
+  margin-top: 12px;
+
+  display: flex;
+  flex-direction: column;
   gap: 10px;
+
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 12px;
+  box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.25);
 }
 
-/* Cada tarjeta de tarea */
+/* Scrollbar personalizado */
+.tasks-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.tasks-list::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--accent), var(--accent-2));
+  border-radius: 8px;
+}
+
+.tasks-list::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+}
+
+/* ===== CADA TARJETA DE TAREA ===== */
 .task-item {
   display: flex;
   justify-content: space-between;
@@ -15,10 +38,12 @@
   background: linear-gradient(180deg, rgba(108,243,255,.06), rgba(108,243,255,.03));
   border: 1px solid rgba(255,255,255,.08);
   border-left: 4px solid var(--accent);
-  padding: 14px;
-  border-radius: var(--radius);
+  border-radius: 12px;
   box-shadow: var(--shadow);
-  transition: 0.2s ease;
+  padding: 14px;
+  margin-bottom: 12px;
+  transition: all 0.3s ease;
+  cursor: pointer;
 }
 
 .task-item:hover {
@@ -26,30 +51,129 @@
   background: linear-gradient(180deg, rgba(108,243,255,.10), rgba(139,123,255,.08));
 }
 
-/********* CONTENIDO *********/
+/* ===== ESTADO EXPANDIDO ===== */
+.task-item.expanded {
+  display: grid;
+  grid-template-columns: 1fr 3fr;
+  gap: 12px;
+}
+
+/* ===== CONTENIDO PRINCIPAL (RESUMEN) ===== */
+.task-summary {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  width: 100%;
+}
+
 .task-content {
   flex-grow: 1;
 }
 
 .task-title {
-  font-size: 15px;
+  font-size: 1.25rem;
   font-weight: 700;
   color: #eaf4ff;
   margin: 0 0 6px;
 }
 
 .task-subtitle {
-  font-size: 12px;
+  font-size: 1rem;
   color: var(--muted);
-  margin: 0 0 4px;
+  margin: 3px 0 0;
 }
 
 .task-deadline {
-  font-size: 11px;
+  font-size: 0.95rem;
   color: var(--warn);
+  margin: 0;
 }
 
-/********* BOTÓN PAPELERA *********/
+/* ===== DETALLES DESPLEGABLES ===== */
+.task-details {
+  display: none;
+  flex-direction: row;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 16px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.03);
+}
+
+.task-item.expanded .task-details {
+  display: flex;
+  animation: expandFade 0.3s ease;
+}
+
+@keyframes expandFade {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== INFORMACIÓN A LA IZQUIERDA ===== */
+.task-info-left {
+  flex: 1;
+}
+
+.task-info-left p, 
+.task-fields-edit label {
+  font-size: 15px;
+  color: var(--muted);
+  margin: 6px 0;
+}
+
+/* ===== CAMPOS DE EDICIÓN ===== */
+.task-fields-edit input,
+.task-fields-edit select,
+.task-fields-edit textarea {
+  width: 100%;
+  background: #0c1324;
+  color: var(--text);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  padding: 8px;
+  margin-bottom: 10px;
+}
+
+/* ===== BOTONES DERECHA ===== */
+.task-buttons-right {
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-end;
+  gap: 10px;
+  margin: 5px;
+  min-width: 160px;
+}
+
+.task-buttons-right button {
+  font-size: 15px;
+  font-weight: 700;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.08);
+  padding: 10px 16px;
+  cursor: pointer;
+  background: linear-gradient(180deg, rgba(108,243,255,.12), rgba(139,123,255,.06));
+  color: var(--text);
+  transition: 0.2s;
+}
+
+.task-buttons-right button:hover {
+  filter: brightness(1.2);
+}
+
+/* Confirm / Cancel coloreados */
+.btn-confirm {
+  background: linear-gradient(90deg, var(--good), #2fd19e);
+  color: #081b14;
+}
+
+.btn-cancel {
+  background: linear-gradient(90deg, var(--bad), #ff8aa0);
+  color: #fff;
+}
+
+/* ===== PAPELERA ===== */
 .task-delete-btn {
   border: 1px solid rgba(255,255,255,.12);
   background: rgba(255,255,255,.03);
@@ -66,7 +190,7 @@
   color: white;
 }
 
-/********* Estados visuales *********/
+/* ===== BADGES ===== */
 .badge {
   font-size: 11px;
   padding: 4px 8px;
@@ -75,20 +199,14 @@
   margin-left: 8px;
 }
 
-.badge.pendiente {
-  color: var(--warn);
-}
-
-.badge.en\ curso {
-  color: var(--accent);
-}
-
+.badge.pendiente { color: var(--warn); }
+.badge.en\ curso { color: var(--accent); }
 .badge.completada {
   color: var(--good);
   border-color: rgba(55,225,143,.35);
 }
 
-/* Estado vacío */
+/* ===== ESTADO VACÍO ===== */
 .empty-state {
   color: var(--muted);
   font-size: 14px;
@@ -96,13 +214,3 @@
   text-align: center;
 }
 
-.task-item.selected {
-  background: linear-gradient(180deg, rgba(108,243,255,.14), rgba(139,123,255,.14));
-  border-left-color: var(--accent-2);
-  transform: scale(1.01);
-  box-shadow: 0 0 20px rgba(108,243,255,.18);
-}
-
-.task-item.selected:hover {
-  background: linear-gradient(180deg, rgba(108,243,255,.18), rgba(139,123,255,.18));
-}

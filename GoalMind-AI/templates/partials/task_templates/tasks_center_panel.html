@@ -1,0 +1,87 @@
+<section class="panel center">
+  <h2>Mis tareas</h2>
+
+  {% if tasks and tasks|length > 0 %}
+  <ul class="tasks-list" id="taskList">
+    {% for task in tasks %}
+    <li class="task-item" data-task-id="{{ task['_id'] }}">
+      <div class="task-summary">
+        <div class="task-content">
+          <p class="task-title">{{ task['contenido'] }}</p>
+          <p class="task-subtitle">
+            Objetivo:
+            {% if task['objetivo_id'] %}
+              {{ task['objetivo_id'] }}
+            {% else %}
+              (sin objetivo)
+            {% endif %}
+          </p>
+          {% if task['fecha_limite'] %}
+          <p class="task-deadline">
+            Fecha límite: {{ task['fecha_limite'] }}
+          </p>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- 🔹 DETALLE (bloque expandible) -->
+      <div class="task-details" aria-hidden="true">
+        <form class="task-edit-form" action="{{ url_for('task_bp.update_task', task_id=task['_id']) }}" method="post">
+          
+          <div class="task-fields-view">
+            <div class="task-info-left">
+              <p><strong>Descripción:</strong> <span class="task-desc-text">{{ task['descripcion'] or "(sin descripción)" }}</span></p>
+              <p><strong>Estado:</strong> <span class="task-est-text">{{ task['estado'] }}</span></p>
+              <p><strong>Categoría:</strong> <span class="task-cat-text">{{ task['categoria'] or "—" }}</span></p>
+              <p><strong>Prioridad:</strong> <span class="task-prio-text">{{ task['prioridad'] or "media" }}</span></p>
+              <p><strong>Fecha límite:</strong> <span class="task-date-text">{{ task['fecha_limite'] or "—" }}</span></p>
+            </div>
+          </div>
+
+          <!-- MODO EDICIÓN -->
+          <div class="task-fields-edit" style="display:none;">
+            <div class="task-info-left">
+              <label>Título</label>
+              <input type="text" name="contenido" value="{{ task['contenido'] }}" required>
+
+              <label>Descripción</label>
+              <textarea name="descripcion" rows="3">{{ task['descripcion'] }}</textarea>
+
+              <label>Fecha límite</label>
+              <input type="date" name="fecha_limite" value="{{ task['fecha_limite']|default('') }}">
+
+              <label>Estado</label>
+              <select name="estado">
+                <option value="pendiente" {% if task['estado']=="pendiente" %}selected{% endif %}>Pendiente</option>
+                <option value="en curso" {% if task['estado']=="en curso" %}selected{% endif %}>En curso</option>
+                <option value="completada" {% if task['estado']=="completada" %}selected{% endif %}>Completada</option>
+              </select>
+
+              <label>Categoría</label>
+              <input type="text" name="categoria" value="{{ task['categoria'] or '' }}">
+
+              <label>Prioridad</label>
+              <select name="prioridad">
+                <option value="baja" {% if task['prioridad']=="baja" %}selected{% endif %}>Baja</option>
+                <option value="media" {% if task['prioridad']=="media" %}selected{% endif %}>Media</option>
+                <option value="alta" {% if task['prioridad']=="alta" %}selected{% endif %}>Alta</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- 🔹 BOTONES (parte derecha inferior) -->
+          <div class="task-buttons-right">
+            <button type="button" class="btn-edit">✏️ Editar</button>
+            <button type="submit" class="btn-confirm" style="display:none;">✅ Confirmar</button>
+            <button type="button" class="btn-cancel" style="display:none;">❌ Cancelar</button>
+          </div>
+        </form>
+      </div>
+
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p>No hay tareas registradas todavía.</p>
+  {% endif %}
+</section>
