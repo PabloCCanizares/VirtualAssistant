@@ -1,4 +1,15 @@
 <section class="panel center">
+
+  <div class="card">
+  <h2>🧮 Filtrar por categoría</h2>
+  <form method="get" action="{{ url_for('task_bp.filter_by_category') }}" class="form">
+    <label for="categoria">Categoría</label>
+    <input type="text" name="categoria" id="categoria" placeholder="p.ej. trabajo, personal" value="{{ selected_category or '' }}">
+    <button type="submit" class="submit">Filtrar</button>
+  </form>
+</div>
+
+
   <h2>Mis tareas</h2>
 
   {% if tasks and tasks|length > 0 %}
@@ -85,3 +96,4 @@
   <p>No hay tareas registradas todavía.</p>
   {% endif %}
 </section>
+

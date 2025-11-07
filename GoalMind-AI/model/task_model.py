@@ -31,6 +31,7 @@ class TaskModel:
 
         print(f"🗂️ Tarea insertada localmente y sincronizada: {task_data['_id']}")
         return task_data
+    
 
     # -------------------------------------------------------------
     #  OBTENER POR ID
@@ -51,6 +52,25 @@ class TaskModel:
             task = local_col.find_one({"_id": _id})
 
         return task
+    
+        # -------------------------------------------------------------
+    #  OBTENER POR CATEGORÍA
+    # -------------------------------------------------------------
+    @staticmethod
+    def get_tasks_by_category(categoria):
+        """
+        Devuelve todas las tareas de una categoría específica.
+        
+        Args:
+            categoria (str): Categoría a filtrar (ej: "trabajo", "personal", "estudio")
+            
+        Returns:
+            list: Lista de tareas que pertenecen a la categoría especificada
+        """
+        local_col, _ = get_collection(TaskModel.COLLECTION)
+        
+        # Buscar tareas por categoría, ordenadas por fecha de creación descendente
+        return list(local_col.find({"categoria": categoria}).sort("fecha_creacion", -1))
 
     # -------------------------------------------------------------
     #  OBTENER TODAS
@@ -119,3 +139,24 @@ class TaskModel:
 
         print(f"♻️ Tarea {_id} actualizada y sincronizada.")
         return updated_task
+    
+    
+
+
+# -------------------------------------------------------------
+#  CONSULTAS 07-11-2025
+# -------------------------------------------------------------
+@staticmethod
+def get_all_tasks():
+    """Devuelve todas las tareas desde la base local."""
+    local_col, _ = get_collection(TaskModel.COLLECTION)
+    return list(local_col.find().sort("fecha_creacion", -1))
+
+@staticmethod
+def get_task_by_id(task_id):
+    """Obtiene una tarea por su _id."""
+    local_col, _ = get_collection(TaskModel.COLLECTION)
+    _id = ObjectId(task_id) if not isinstance(task_id, ObjectId) else task_id
+    return local_col.find_one({"_id": _id})
+
+

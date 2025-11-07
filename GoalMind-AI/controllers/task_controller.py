@@ -118,3 +118,43 @@ def delete_task(task_id):
         flash(f"❌ Error al eliminar la tarea: {e}", "danger")
 
     return redirect(url_for("task_bp.list_tasks"))
+
+    # -------------------------------------------------------------
+# 🧮 FILTRAR POR CATEGORÍA (07-11-2025)
+# -------------------------------------------------------------
+@task_bp.route("/filter", methods=["GET"])
+def filter_by_category():
+    """Filtra las tareas por una categoría dada (?categoria=...)."""
+    category = request.args.get("categoria", "").strip()
+    tasks = TaskModel.get_tasks_by_category(category)
+    return render_template(
+        "partials/task_templates/task_menu.html",
+        tasks=tasks,
+        selected_task=None,
+        page="filter",
+        selected_category=category
+    )
+
+# -------------------------------------------------------------
+# 🔎 BUSCAR POR ID 07-11-2025
+# -------------------------------------------------------------
+@task_bp.route("/search", methods=["GET"])
+def search_by_id():
+    """Busca y muestra una tarea por su ID (?id=...)."""
+    task_id = request.args.get("id", "").strip()
+    task = None
+    if task_id:
+        try:
+            task = TaskModel.get_task_by_id(task_id)
+            if task is None:
+                flash("No se encontró ninguna tarea con ese ID.", "warning")
+        except Exception:
+            flash("El ID proporcionado no es válido.", "danger")
+    tasks = [task] if task else []
+    return render_template(
+        "partials/task_templates/task_menu.html",
+        tasks=tasks,
+        selected_task=None,
+        page="search",
+        searched_id=task_id
+    )

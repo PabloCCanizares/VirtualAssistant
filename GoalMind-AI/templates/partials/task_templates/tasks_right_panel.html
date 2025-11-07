@@ -48,54 +48,90 @@
   </div>
 
   {% else %}
-  <div class="card">
-    <h2>➕ Nueva tarea</h2>
+ <div class="card">
+  <h2>➕ Nueva tarea</h2>
 
-    <form method="post" action="{{ url_for('task_bp.add_task') }}" class="form">
+  <form method="post" action="{{ url_for('task_bp.add_task') }}" class="form">
 
-      <label for="contenido">Título</label>
-      <input type="text" name="contenido" placeholder="Título de la tarea" required>
+    <label for="contenido">Título</label>
+    <input type="text" name="contenido" placeholder="Título de la tarea" required>
 
-      <label for="objetivo_id">Objetivo asociado</label>
-      <select name="objetivo_id" required>
-        {% if goals and goals|length > 0 %}
-          {% for goal in goals %}
-            <option value="{{ goal['_id'] }}">{{ goal['nombre'] }}</option>
-          {% endfor %}
-        {% else %}
-          <option disabled selected>⚠️ No hay objetivos definidos</option>
-        {% endif %}
-      </select>
+    <label for="objetivo_id">Objetivo asociado</label>
+    <select name="objetivo_id" required>
+      {% if goals and goals|length > 0 %}
+        {% for goal in goals %}
+          <option value="{{ goal['_id'] }}">{{ goal['nombre'] }}</option>
+        {% endfor %}
+      {% else %}
+        <option disabled selected>⚠️ No hay objetivos definidos</option>
+      {% endif %}
+    </select>
 
-      <label for="descripcion">Descripción</label>
-      <textarea name="descripcion" rows="3" placeholder="Detalles de la tarea"></textarea>
+    <!-- Campo de categoría añadido -->
+    <label for="categoria">Categoría</label>
+    <select name="categoria">
+      <option value="trabajo">Trabajo</option>
+      <option value="personal" selected>Personal</option>
+      <option value="estudio">Estudio</option>
+      <option value="salud">Salud</option>
+      <option value="hogar">Hogar</option>
+      <option value="otros">Otros</option>
+    </select>
 
-      <label for="fecha_limite">Fecha límite</label>
-      <input type="date" name="fecha_limite">
+    <label for="descripcion">Descripción</label>
+    <textarea name="descripcion" rows="3" placeholder="Detalles de la tarea"></textarea>
 
-      <div class="row">
-        <div>
-          <label for="estado">Estado</label>
-          <select name="estado">
-            <option value="pendiente" selected>Pendiente</option>
-            <option value="en curso">En curso</option>
-            <option value="completada">Completada</option>
-          </select>
-        </div>
+    <label for="fecha_limite">Fecha límite</label>
+    <input type="date" name="fecha_limite">
 
-        <div>
-          <label for="prioridad">Prioridad</label>
-          <select name="prioridad">
-            <option value="baja">Baja</option>
-            <option value="media" selected>Media</option>
-            <option value="alta">Alta</option>
-          </select>
-        </div>
+    <div class="row">
+      <div>
+        <label for="estado">Estado</label>
+        <select name="estado">
+          <option value="pendiente" selected>Pendiente</option>
+          <option value="en curso">En curso</option>
+          <option value="completada">Completada</option>
+        </select>
       </div>
 
-      <button type="submit" class="submit">Crear tarea ✨</button>
-    </form>
-  </div>
-  {% endif %}
+      <div>
+        <label for="prioridad">Prioridad</label>
+        <select name="prioridad">
+          <option value="baja">Baja</option>
+          <option value="media" selected>Media</option>
+          <option value="alta">Alta</option>
+        </select>
+      </div>
+    </div>
+
+    <button type="submit" class="submit">Crear tarea ✨</button>
+  </form>
+</div>
+{% endif %}
 
 </aside>
+
+
+<!--BUSCAR POR ID DE COLECCIONES NO LO VEO FACTIBLE YA QUE NO ESTÁN NUMERADAS COMO ENTEROS DESDE 0
+<div class="card">
+  <h2>🔎 Buscar tarea por ID</h2>
+  <form method="get" action="{{ url_for('task_bp.view_task', task_id='') }}" class="form">
+    <label for="task_id">ID de la tarea</label>
+    <input type="text" name="task_id" id="task_id" placeholder="64f1b2c..." value="{{ searched_id or '' }}" required>
+    <button type="submit" class="submit">Buscar</button>
+  </form>
+</div>
+
+<script>
+// JavaScript para manejar el envío del formulario
+document.querySelector('form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const taskId = document.getElementById('task_id').value.trim();
+    if (taskId) {
+        // Construir la URL con el task_id como parte de la ruta
+        const url = "{{ url_for('task_bp.view_task', task_id='') }}" + taskId;
+        window.location.href = url;
+    }
+});
+</script>
+-->
