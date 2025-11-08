@@ -385,12 +385,5 @@ main{
 }
 
 
-/* 🟡 efecto hover */
-.btn-danger:hover:not(:disabled) {
-  background: linear-gradient(180deg, rgba(255,107,136,.4), rgba(255,107,136,.25));
-  border-color: rgba(255,107,136,.6);
-  box-shadow: 0 6px 14px rgba(255,107,136,.25);
-  transform: translateY(-2px);
-}
 
 
