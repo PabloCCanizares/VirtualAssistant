@@ -117,6 +117,26 @@ class TaskModel:
         else:
             print(f"⚠️ Tarea eliminada solo localmente (sin conexión remota): {_id}")
 
+    @staticmethod
+    def delete_tasks_by_ids(task_ids):
+        """
+        Elimina varias tareas por sus _id. Devuelve el nº de documentos eliminados.
+        """
+        local_col, remote_col = get_collection(TaskModel.COLLECTION)
+        ids = [
+            ObjectId(tid) if not isinstance(tid, ObjectId) else tid
+            for tid in task_ids if tid
+        ]
+        res_local = local_col.delete_many({"_id": {"$in": ids}})
+
+        if remote_col is not None:
+            try:
+                remote_col.delete_many({"_id": {"$in": ids}})
+            except Exception:
+                pass
+
+        return res_local.deleted_count
+
     # -------------------------------------------------------------
     #  ACTUALIZAR
     # -------------------------------------------------------------
@@ -139,6 +159,8 @@ class TaskModel:
 
         print(f"♻️ Tarea {_id} actualizada y sincronizada.")
         return updated_task
+    
+    
     
     
 

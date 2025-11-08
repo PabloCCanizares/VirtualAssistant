@@ -158,3 +158,22 @@ def search_by_id():
         page="search",
         searched_id=task_id
     )
+
+
+# -------------------------------------------------------------
+# 🗑️🗑️ ELIMINACIÓN MASIVA (POST)
+# -------------------------------------------------------------
+@task_bp.route("/bulk-delete", methods=["POST"])
+def bulk_delete_tasks():
+    ids = request.form.getlist("selected_tasks")
+    if not ids:
+        flash("No has seleccionado ninguna tarea.", "warning")
+        return redirect(url_for("task_bp.list_tasks"))
+
+    try:
+        deleted = TaskModel.delete_tasks_by_ids(ids)
+        flash(f"Se eliminaron {deleted} tarea(s).", "success")
+    except Exception:
+        flash("No se pudieron eliminar las tareas seleccionadas.", "danger")
+
+    return redirect(url_for("task_bp.list_tasks"))

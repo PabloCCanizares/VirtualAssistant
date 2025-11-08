@@ -1,53 +1,95 @@
+// task_menu.js
 document.addEventListener("DOMContentLoaded", () => {
-  const taskList = document.getElementById("taskList");
-  if (!taskList) return;
+  // ============================================================
+  // =======  Seleccionar todo / Eliminación múltiple  ===========
+  // ============================================================
+  const selectAll = document.getElementById("selectAllTasks");
+  const bulkDeleteBtn = document.getElementById("bulkDeleteBtn");
+  const bulkForm = document.getElementById("bulkDeleteForm");
 
-  let expandedItem = null;
+  const getChecks = () => Array.from(document.querySelectorAll(".task-select"));
 
-  function isInteractiveTarget(target) {
-    if (!target) return false;
-    return !!target.closest("button, a, input, textarea, select, form, .task-delete-btn, .btn-edit, .btn-confirm, .btn-cancel");
+  function updateBulkButtonState() {
+    const anyChecked = getChecks().some(ch => ch.checked);
+    if (bulkDeleteBtn) bulkDeleteBtn.disabled = !anyChecked;
   }
 
-  // Click delegado en la lista (abre/cierra)
-  taskList.addEventListener("click", (ev) => {
-    const li = ev.target.closest(".task-item");
-    if (!li) return;
-
-    // Si clic en elemento interactivo, no togglear
-    if (isInteractiveTarget(ev.target)) return;
-
-    // Evita que el document capture el mismo click
-    ev.stopPropagation();
-
-    const already = li.classList.contains("expanded");
-
-    // Cierra cualquiera abierto (si distinto)
-    document.querySelectorAll(".task-item.expanded").forEach(item => {
-      if (item !== li) collapseItem(item);
+  if (selectAll) {
+    selectAll.addEventListener("change", () => {
+      getChecks().forEach(ch => { ch.checked = selectAll.checked; });
+      updateBulkButtonState();
     });
+  }
 
-    if (!already) expandItem(li);
-    else collapseItem(li);
+  // Delegado global: cambio en cualquier checkbox de tarea
+  document.addEventListener("change", (ev) => {
+    const t = ev.target;
+    if (!t || !t.classList || !t.classList.contains("task-select")) return;
+
+    updateBulkButtonState();
+
+    if (selectAll) {
+      const checks = getChecks();
+      const all = checks.length > 0 && checks.every(ch => ch.checked);
+      const some = checks.some(ch => ch.checked);
+      selectAll.checked = all;
+      selectAll.indeterminate = !all && some;
+    }
   });
 
-  // Soporte teclado (Enter / Space) para abrir cuando li está enfocado
-  taskList.addEventListener("keydown", (ev) => {
-    const li = ev.target.closest(".task-item");
-    if (!li) return;
-    if (ev.key === "Enter" || ev.key === " ") {
-      ev.preventDefault();
+  // Estado inicial del botón
+  updateBulkButtonState();
+
+
+  // ============================================================
+  // ===============  Expandir / Colapsar tareas  ===============
+  // ============================================================
+  const taskList = document.getElementById("taskList");
+  let expandedItem = null;
+
+  // Permite clicks en inputs/botones sin togglear el panel
+  function isInteractiveTarget(target) {
+    if (!target) return false;
+    return !!target.closest(
+      "button, a, input, textarea, select, form, .task-delete-btn, .btn-edit, .btn-confirm, .btn-cancel"
+    );
+  }
+
+  if (taskList) {
+    // Click para expandir/colapsar
+    taskList.addEventListener("click", (ev) => {
+      const li = ev.target.closest(".task-item");
+      if (!li) return;
+      if (isInteractiveTarget(ev.target)) return; // no togglear si es control
       ev.stopPropagation();
+
       const already = li.classList.contains("expanded");
       document.querySelectorAll(".task-item.expanded").forEach(item => {
         if (item !== li) collapseItem(item);
       });
+
       if (!already) expandItem(li);
       else collapseItem(li);
-    }
-  });
+    });
 
-  // Click fuera de cualquier task -> cierra todo
+    // Teclado (Enter / Espacio) cuando el <li> está enfocado
+    taskList.addEventListener("keydown", (ev) => {
+      const li = ev.target.closest(".task-item");
+      if (!li) return;
+      if (ev.key === "Enter" || ev.key === " ") {
+        ev.preventDefault();
+        ev.stopPropagation();
+        const already = li.classList.contains("expanded");
+        document.querySelectorAll(".task-item.expanded").forEach(item => {
+          if (item !== li) collapseItem(item);
+        });
+        if (!already) expandItem(li);
+        else collapseItem(li);
+      }
+    });
+  }
+
+  // Cerrar al clicar fuera
   document.addEventListener("click", (ev) => {
     if (!expandedItem) return;
     if (ev.target.closest(".task-item")) return;
@@ -80,12 +122,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const details = li.querySelector(".task-details");
     if (details) {
       const form = li.querySelector(".task-edit-form");
-      if (form) {
-        try {
-          if (typeof exitEditMode === "function") exitEditMode(form, true);
-        } catch (err) {}
+      if (form && typeof exitEditMode === "function") {
+        try { exitEditMode(form, true); } catch (e) {}
       }
-
       li.classList.remove("expanded");
       li.setAttribute("aria-expanded", "false");
       details.style.display = "none";
@@ -94,93 +133,108 @@ document.addEventListener("DOMContentLoaded", () => {
     if (expandedItem === li) expandedItem = null;
   }
 
-  // Inicializar handlers por item (editar, cancelar, submit)
-  document.querySelectorAll(".task-item").forEach(li => {
-    const form = li.querySelector(".task-edit-form");
-    if (!form) return;
 
+  // ============================================================
+  // ==================  Edición de una tarea  ==================
+  // ============================================================
+  // Nota: definimos enter/exit a nivel de módulo para que collapseItem pueda llamarlas.
+  function enterEditMode(form) {
+    const view = form.querySelector(".task-fields-view");
+    const edit = form.querySelector(".task-fields-edit");
+    const editBtn = form.closest(".task-item").querySelector(".btn-edit");
+    const confirmBtn = form.closest(".task-item").querySelector(".btn-confirm");
+    const cancelBtn = form.closest(".task-item").querySelector(".btn-cancel");
+
+    if (view) view.style.display = "none";
+    if (edit) {
+      edit.style.display = "flex";
+      edit.style.flexDirection = "column";
+      edit.style.gap = "8px";
+    }
+    if (editBtn) editBtn.style.display = "none";
+    if (confirmBtn) confirmBtn.style.display = "inline-block";
+    if (cancelBtn) cancelBtn.style.display = "inline-block";
+  }
+
+  function exitEditMode(form, restore = true) {
+    const li = form.closest(".task-item");
+    const view = form.querySelector(".task-fields-view");
+    const edit = form.querySelector(".task-fields-edit");
     const editBtn = li.querySelector(".btn-edit");
+    const confirmBtn = li.querySelector(".btn-confirm");
     const cancelBtn = li.querySelector(".btn-cancel");
 
-    // stopPropagation en botones para evitar burbujeo que cierre el panel
-    [editBtn, cancelBtn].forEach(btn => {
-      if (!btn) return;
-      btn.addEventListener("click", (e) => e.stopPropagation());
-    });
-  });
+    const inputs = form.querySelectorAll("input[name], textarea[name], select[name]");
+    const original = form.__originalValues || {};
 
-});
+    if (restore) {
+      inputs.forEach(i => {
+        if (Object.prototype.hasOwnProperty.call(original, i.name)) {
+          i.value = original[i.name];
+        }
+      });
+    } else {
+      // persistimos nuevos valores como "original"
+      form.__originalValues = {};
+      inputs.forEach(i => form.__originalValues[i.name] = i.value);
+    }
 
-document.addEventListener("DOMContentLoaded", () => {
-  const taskList = document.getElementById("taskList");
-  if (!taskList) return;
+    if (view) view.style.display = "flex";
+    if (edit) edit.style.display = "none";
+    if (editBtn) editBtn.style.display = "inline-block";
+    if (confirmBtn) confirmBtn.style.display = "none";
+    if (cancelBtn) cancelBtn.style.display = "none";
 
-  let expandedItem = null;
-
-  // ========= Helpers =========
-  function isInteractiveTarget(target) {
-    return !!target.closest("button, a, input, textarea, select, form");
+    if (!restore) updateViewFromForm(form);
   }
 
-  // ========= Expand / Collapse logic =========
-  taskList.addEventListener("click", (ev) => {
-    const li = ev.target.closest(".task-item");
-    if (!li) return;
+  function updateViewFromForm(form) {
+    const li = form.closest(".task-item");
+    const contentInput = form.querySelector("input[name='contenido']");
+    const descTextarea = form.querySelector("textarea[name='descripcion']");
+    const fechaInput = form.querySelector("input[name='fecha_limite']");
+    const estadoSel = form.querySelector("select[name='estado']");
+    const categoriaInput = form.querySelector("input[name='categoria']");
+    const prioSel = form.querySelector("select[name='prioridad']");
 
-    // Evitar toggle si se ha pulsado un botón o control
-    if (isInteractiveTarget(ev.target)) return;
-
-    ev.stopPropagation();
-
-    const already = li.classList.contains("expanded");
-    document.querySelectorAll(".task-item.expanded").forEach(item => {
-      if (item !== li) collapseItem(item);
-    });
-
-    if (!already) expandItem(li);
-    else collapseItem(li);
-  });
-
-  // Click fuera → cerrar todo
-  document.addEventListener("click", (ev) => {
-    if (!expandedItem) return;
-    if (ev.target.closest(".task-item")) return;
-    document.querySelectorAll(".task-item.expanded").forEach(item => collapseItem(item));
-  });
-
-  // Escape → cerrar
-  document.addEventListener("keydown", (ev) => {
-    if (ev.key === "Escape" && expandedItem) {
-      document.querySelectorAll(".task-item.expanded").forEach(item => collapseItem(item));
+    if (contentInput) {
+      const title = li.querySelector(".task-title");
+      if (title) title.textContent = contentInput.value;
     }
-  });
-
-  function expandItem(li) {
-    const details = li.querySelector(".task-details");
-    if (details) {
-      li.classList.add("expanded");
-      li.setAttribute("aria-expanded", "true");
-      details.style.display = "flex";
-      details.style.flexDirection = "column";
-      details.setAttribute("aria-hidden", "false");
+    if (descTextarea) {
+      const el = form.querySelector(".task-desc-text");
+      if (el) el.textContent = descTextarea.value || "(sin descripción)";
     }
-    expandedItem = li;
+    if (estadoSel) {
+      const el = form.querySelector(".task-est-text");
+      if (el) el.textContent = estadoSel.value;
+    }
+    if (categoriaInput) {
+      const el = form.querySelector(".task-cat-text");
+      if (el) el.textContent = categoriaInput.value || "—";
+    }
+    if (prioSel) {
+      const el = form.querySelector(".task-prio-text");
+      if (el) el.textContent = prioSel.value;
+    }
+
+    const contentBlock = li.querySelector(".task-content");
+    const deadlineEl = li.querySelector(".task-deadline");
+    if (fechaInput && fechaInput.value) {
+      if (deadlineEl) {
+        deadlineEl.textContent = "Fecha límite: " + fechaInput.value;
+      } else if (contentBlock) {
+        const p = document.createElement("p");
+        p.className = "task-deadline";
+        p.textContent = "Fecha límite: " + fechaInput.value;
+        contentBlock.appendChild(p);
+      }
+    } else if (deadlineEl) {
+      deadlineEl.remove();
+    }
   }
 
-  function collapseItem(li) {
-    const details = li.querySelector(".task-details");
-    if (details) {
-      const form = li.querySelector(".task-edit-form");
-      if (form) exitEditMode(form, true);
-      li.classList.remove("expanded");
-      li.setAttribute("aria-expanded", "false");
-      details.style.display = "none";
-      details.setAttribute("aria-hidden", "true");
-    }
-    if (expandedItem === li) expandedItem = null;
-  }
-
-  // ========= Edit / Submit logic =========
+  // Inicialización de formularios de edición en cada task
   document.querySelectorAll(".task-item").forEach(li => {
     const form = li.querySelector(".task-edit-form");
     if (!form) return;
@@ -189,111 +243,59 @@ document.addEventListener("DOMContentLoaded", () => {
     const confirmBtn = li.querySelector(".btn-confirm");
     const cancelBtn = li.querySelector(".btn-cancel");
 
-    const view = form.querySelector(".task-fields-view");
-    const edit = form.querySelector(".task-fields-edit");
+    // Guardar valores originales
     const inputs = form.querySelectorAll("input[name], textarea[name], select[name]");
-    const original = {};
-    inputs.forEach(i => original[i.name] = i.value);
+    form.__originalValues = {};
+    inputs.forEach(i => form.__originalValues[i.name] = i.value);
 
-    // 🖊️ EDITAR
-    editBtn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      enterEditMode(form);
+    // Evitar burbujeo que cierre el panel
+    [editBtn, cancelBtn, confirmBtn].forEach(btn => {
+      if (!btn) return;
+      btn.addEventListener("click", (e) => e.stopPropagation());
     });
 
-    // ❌ CANCELAR
-    cancelBtn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      exitEditMode(form, true);
-    });
+    // 🖊️ Editar
+    if (editBtn) {
+      editBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        enterEditMode(form);
+      });
+    }
 
-    // ✅ CONFIRMAR (submit vía fetch)
+    // ❌ Cancelar
+    if (cancelBtn) {
+      cancelBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        exitEditMode(form, true);
+      });
+    }
+
+    // ✅ Confirmar (submit via fetch)
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
       e.stopPropagation();
 
       const url = form.action;
-      const formData = new URLSearchParams();
-      inputs.forEach(i => formData.append(i.name, i.value));
+      const data = new URLSearchParams();
+      inputs.forEach(i => data.append(i.name, i.value));
 
       try {
         const resp = await fetch(url, {
           method: "POST",
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: formData.toString()
+          body: data.toString()
         });
-
-        if (resp.ok) {
-          updateViewFromForm(form);
-          exitEditMode(form, false);
-        } else {
+        if (!resp.ok) {
           const text = await resp.text();
           alert("Error al actualizar: " + resp.status + " " + text);
+          return;
         }
+        updateViewFromForm(form);
+        exitEditMode(form, false);
       } catch (err) {
         alert("Error de red: " + err);
       }
     });
-
-    // ====== Funciones auxiliares ======
-
-    function enterEditMode(form) {
-      view.style.display = "none";
-      edit.style.display = "flex";
-      edit.style.flexDirection = "column";
-      edit.style.gap = "8px";
-
-      editBtn.style.display = "none";
-      confirmBtn.style.display = "inline-block";
-      cancelBtn.style.display = "inline-block";
-    }
-
-    function exitEditMode(form, restore = true) {
-      if (restore) {
-        inputs.forEach(i => {
-          if (original.hasOwnProperty(i.name)) i.value = original[i.name];
-        });
-      } else {
-        inputs.forEach(i => original[i.name] = i.value);
-      }
-
-      view.style.display = "flex";
-      edit.style.display = "none";
-
-      editBtn.style.display = "inline-block";
-      confirmBtn.style.display = "none";
-      cancelBtn.style.display = "none";
-
-      if (!restore) updateViewFromForm(form);
-    }
-
-    function updateViewFromForm(form) {
-      const li = form.closest(".task-item");
-      const contentInput = form.querySelector("input[name='contenido']");
-      const descTextarea = form.querySelector("textarea[name='descripcion']");
-      const fechaInput = form.querySelector("input[name='fecha_limite']");
-      const estadoSel = form.querySelector("select[name='estado']");
-      const categoriaInput = form.querySelector("input[name='categoria']");
-      const prioSel = form.querySelector("select[name='prioridad']");
-
-      li.querySelector(".task-title").textContent = contentInput.value;
-      form.querySelector(".task-desc-text").textContent = descTextarea.value || "(sin descripción)";
-      form.querySelector(".task-est-text").textContent = estadoSel.value;
-      form.querySelector(".task-cat-text").textContent = categoriaInput.value || "—";
-      form.querySelector(".task-prio-text").textContent = prioSel.value;
-
-      const deadlineEl = li.querySelector(".task-deadline");
-      if (fechaInput.value) {
-        if (deadlineEl) deadlineEl.textContent = fechaInput.value;
-        else {
-          const p = document.createElement("p");
-          p.className = "task-deadline";
-          p.textContent = fechaInput.value;
-          li.querySelector(".task-content").appendChild(p);
-        }
-      } else if (deadlineEl) {
-        deadlineEl.remove();
-      }
-    }
   });
+
 });
