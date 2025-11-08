@@ -1,0 +1,82 @@
+<aside class="side panel-right">
+  <div class="card">
+    <h2>➕ Nuevo objetivo</h2>
+
+    <form method="post" action="{{ url_for('goal_bp.add_goal') }}" class="form">
+      <!-- Si usas CSRF, descomenta la siguiente línea -->
+      {# {% if csrf_token is defined %}{{ csrf_token() }}{% endif %} #}
+
+      <label for="titulo">Título</label>
+      <input type="text" name="titulo" id="titulo" placeholder="Aprender MongoDB" required>
+
+      <label for="descripcion">Descripción</label>
+      <textarea name="descripcion" id="descripcion" rows="3" placeholder="Completar curso y proyecto práctico."></textarea>
+
+      <div class="row">
+        <div>
+          <label for="fecha_inicio">Fecha inicio</label>
+          <input type="date" name="fecha_inicio" id="fecha_inicio">
+        </div>
+        <div>
+          <label for="fecha_fin">Fecha fin</label>
+          <input type="date" name="fecha_fin" id="fecha_fin">
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label for="categoria">Categoría</label>
+          <select name="categoria" id="categoria">
+            <option value="Educación" selected>Educación</option>
+            <option value="Trabajo">Trabajo</option>
+            <option value="Personal">Personal</option>
+            <option value="Estudios">Estudios</option>
+            <option value="Salud">Salud</option>
+            <option value="Otros">Otros</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="progreso">Progreso (%)</label>
+          <input type="number" name="progreso" id="progreso" min="0" max="100" value="0">
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label for="estado">Estado</label>
+          <select name="estado" id="estado">
+            <option value="Pendiente">Pendiente</option>
+            <option value="En progreso" selected>En progreso</option>
+            <option value="Completado">Completado</option>
+            <option value="Pausado">Pausado</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="prioridad">Prioridad</label>
+          <select name="prioridad" id="prioridad">
+            <option value="Baja">Baja</option>
+            <option value="Media" selected>Media</option>
+            <option value="Alta">Alta</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label for="scope">Ámbito</label>
+          <select name="scope" id="scope">
+            <option value="corto">Corto plazo</option>
+            <option value="medio" selected>Medio plazo</option>
+            <option value="largo">Largo plazo</option>
+          </select>
+        </div>
+    
+      </div>
+
+
+      <button type="submit" class="submit">Crear objetivo ✨</button>
+    </form>
+  </div>
+</aside>

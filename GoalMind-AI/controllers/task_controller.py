@@ -2,6 +2,8 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash
 from model.task_model import TaskModel
 from bson import ObjectId
 
+from model.goal_model import GoalModel
+
 task_bp = Blueprint("task_bp", __name__, url_prefix="/tasks")
 
 
@@ -10,10 +12,25 @@ task_bp = Blueprint("task_bp", __name__, url_prefix="/tasks")
 # -------------------------------------------------------------
 @task_bp.route("/", methods=["GET"])
 def list_tasks():
-    """Muestra todas las tareas disponibles."""
     tasks = TaskModel.get_all_tasks()
-    return render_template("partials/task_templates/task_menu.html", tasks=tasks, selected_task=None, page="list")
+    # 🔽 Traer objetivos
+    goals = GoalModel.get_all_goals()
 
+    # (Opcional pero recomendado) serializar _id para que el <option value="..."> no sea ObjectId('..')
+    goals_view = []
+    for g in goals:
+        g = dict(g)
+        if "_id" in g:
+            g["_id"] = str(g["_id"])
+        goals_view.append(g)
+
+    return render_template(
+        "partials/task_templates/task_menu.html",  # o tu plantilla de tareas principal
+        tasks=tasks,
+        goals=goals_view,
+        selected_category=None,
+        page="list"
+    )
 
 # -------------------------------------------------------------
 # 🔍 OBTENER UNA TAREA POR ID
