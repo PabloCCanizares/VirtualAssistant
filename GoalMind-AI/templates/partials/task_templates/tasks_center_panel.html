@@ -1,37 +1,62 @@
 <section class="panel center">
 
   <div class="card">
-  <h2>🧮 Filtrar por categoría</h2>
-  <form method="get" action="{{ url_for('task_bp.filter_by_category') }}" class="form">
-    <label for="categoria">Categoría</label>
-    <input type="text" name="categoria" id="categoria" placeholder="p.ej. trabajo, personal" value="{{ selected_category or '' }}">
-    <button type="submit" class="submit">Filtrar</button>
-  </form>
-</div>
-
+    <h2>🧮 Filtrar por categoría</h2>
+    <form method="get" action="{{ url_for('task_bp.filter_by_category') }}" class="form">
+      <label for="categoria">Categoría</label>
+      <input type="text" name="categoria" id="categoria" placeholder="p.ej. trabajo, personal" value="{{ selected_category or '' }}">
+      <button type="submit" class="submit">Filtrar</button>
+    </form>
+  </div>
 
   <h2>Mis tareas</h2>
+
+  <div class="bulk-actions">
+    <label>
+      <input type="checkbox" id="selectAllTasks">
+      Seleccionar todo
+    </label>
+
+    <form id="bulkDeleteForm" action="{{ url_for('task_bp.bulk_delete_tasks') }}" method="post" onsubmit="return confirm('¿Eliminar las tareas seleccionadas?');" style="display:inline-block; margin-left: 1rem;">
+      <button type="submit" class="btn btn-danger" disabled id="bulkDeleteBtn">Eliminar seleccionadas</button>
+    </form>
+  </div>
 
   {% if tasks and tasks|length > 0 %}
   <ul class="tasks-list" id="taskList">
     {% for task in tasks %}
     <li class="task-item" data-task-id="{{ task['_id'] }}">
-      <div class="task-summary">
-        <div class="task-content">
-          <p class="task-title">{{ task['contenido'] }}</p>
-          <p class="task-subtitle">
-            Objetivo:
-            {% if task['objetivo_id'] %}
-              {{ task['objetivo_id'] }}
-            {% else %}
-              (sin objetivo)
+      
+      <!-- ✅ Formulario oculto de borrado (no anidado) -->
+      <form id="delete-{{ task['_id'] }}"
+            action="{{ url_for('task_bp.delete_task', task_id=task['_id']) }}"
+            method="post"
+            onsubmit="return confirm('¿Eliminar esta tarea?');"
+            style="display:none;">
+        {% if csrf_token is defined %}{{ csrf_token() }}{% endif %}
+      </form>
+
+      <div class="task-row">
+        <!-- checkbox para selección múltiple -->
+        <input class="task-select" type="checkbox" name="selected_tasks" value="{{ task['_id'] }}" form="bulkDeleteForm" aria-label="Seleccionar tarea">
+        
+        <div class="task-summary">
+          <div class="task-content">
+            <p class="task-title">{{ task['contenido'] }}</p>
+            <p class="task-subtitle">
+              Objetivo:
+              {% if task['objetivo_id'] %}
+                {{ task['objetivo_id'] }}
+              {% else %}
+                (sin objetivo)
+              {% endif %}
+            </p>
+            {% if task['fecha_limite'] %}
+            <p class="task-deadline">
+              Fecha límite: {{ task['fecha_limite'] }}
+            </p>
             {% endif %}
-          </p>
-          {% if task['fecha_limite'] %}
-          <p class="task-deadline">
-            Fecha límite: {{ task['fecha_limite'] }}
-          </p>
-          {% endif %}
+          </div>
         </div>
       </div>
 
@@ -85,7 +110,14 @@
             <button type="button" class="btn-edit">✏️ Editar</button>
             <button type="submit" class="btn-confirm" style="display:none;">✅ Confirmar</button>
             <button type="button" class="btn-cancel" style="display:none;">❌ Cancelar</button>
+
+            <!-- ✅ Botón eliminar conectado con el formulario de borrado -->
+            <button type="submit"
+                    class="btn btn-danger task-delete-btn"
+                    title="Eliminar"
+                    form="delete-{{ task['_id'] }}">🗑️ Eliminar</button>
           </div>
+
         </form>
       </div>
 
@@ -96,4 +128,3 @@
   <p>No hay tareas registradas todavía.</p>
   {% endif %}
 </section>
-
