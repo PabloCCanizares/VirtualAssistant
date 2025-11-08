@@ -1,0 +1,183 @@
+<section class="panel center">
+
+  <!-- 🔎 Filtro por categoría -->
+  <div class="card">
+    <h2>🧮 Filtrar por categoría</h2>
+    <form method="get" action="{{ url_for('goal_bp.filter_by_category') }}" class="form">
+      <label for="categoria">Categoría</label>
+      <input type="text" name="categoria" id="categoria" placeholder="p.ej. educación, personal" value="{{ selected_category or '' }}">
+      <button type="submit" class="submit">Filtrar</button>
+    </form>
+  </div>
+
+  <h2>Mis objetivos</h2>
+
+  <!-- 🔁 Acciones masivas -->
+  <div class="bulk-actions">
+    <label>
+      <input type="checkbox" id="selectAllGoals">
+      Seleccionar todo
+    </label>
+
+    <form id="bulkDeleteGoalsForm"
+          action="{{ url_for('goal_bp.bulk_delete_goals') }}"
+          method="post"
+          onsubmit="return confirm('¿Eliminar los objetivos seleccionados?');"
+          style="display:inline-block; margin-left: 1rem;">
+      <button type="submit" class="btn btn-danger" disabled id="bulkDeleteGoalsBtn">Eliminar seleccionados</button>
+    </form>
+  </div>
+
+  {% if goals and goals|length > 0 %}
+  <ul class="tasks-list" id="goalList">
+    {% for goal in goals %}
+    <li class="task-item" data-goal-id="{{ goal['_id'] }}">
+
+      <!-- 🗑️ Formulario oculto de borrado -->
+      <form id="delete-{{ goal['_id'] }}"
+            action="{{ url_for('goal_bp.delete_goal', goal_id=goal['_id']) }}"
+            method="post"
+            onsubmit="return confirm('¿Eliminar este objetivo?');"
+            style="display:none;">
+        {% if csrf_token is defined %}{{ csrf_token() }}{% endif %}
+      </form>
+
+      <div class="task-row">
+        <!-- checkbox para selección múltiple -->
+        <input class="task-select"
+               type="checkbox"
+               name="selected_goals"
+               value="{{ goal['_id'] }}"
+               form="bulkDeleteGoalsForm"
+               aria-label="Seleccionar objetivo">
+
+        <div class="task-summary">
+          <div class="task-content">
+            <p class="task-title">{{ goal.get('titulo','(sin título)') }}</p>
+            <p class="task-subtitle">
+              {% set inicio = (goal.get('fecha_inicio') or '')[:10] %}
+              {% set fin = (goal.get('fecha_fin') or '')[:10] %}
+              Periodo:
+              {% if inicio %}{{ inicio }}{% else %}—{% endif %}
+              {% if fin %} → {{ fin }}{% endif %}
+              · Categoría: {{ goal.get('categoria','—') }}
+            </p>
+            <p class="task-subtitle">
+              Estado: {{ goal.get('estado','En progreso') }} ·
+              Prioridad: {{ goal.get('prioridad','Media') }} ·
+              Progreso: {{ goal.get('progreso', 0) }}%
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 🔽 Detalle expandible (vista + edición) -->
+      <div class="task-details" aria-hidden="true">
+        <form class="task-edit-form"
+              action="{{ url_for('goal_bp.update_goal', goal_id=goal['_id']) }}"
+              method="post">
+
+          <!-- VISTA -->
+          <div class="task-fields-view">
+            <div class="task-info-left">
+              <p><strong>Descripción:</strong> <span class="task-desc-text">{{ goal.get('descripcion','(sin descripción)') }}</span></p>
+              <p><strong>Ámbito:</strong> <span class="task-scope-text">{{ goal.get('scope','Personal') }}</span></p>
+              <p><strong>ID Usuario:</strong> <span class="task-user-text">{{ goal.get('id_usuario','—') }}</span></p>
+              <p><strong>Alarma ID:</strong> <span class="task-alarm-text">{{ goal.get('alarma_id','—') }}</span></p>
+              <p><strong>Inicio:</strong> <span class="task-date-start">{{ (goal.get('fecha_inicio') or '—') }}</span></p>
+              <p><strong>Fin:</strong> <span class="task-date-end">{{ (goal.get('fecha_fin') or '—') }}</span></p>
+            </div>
+          </div>
+
+          <!-- EDICIÓN -->
+          <div class="task-fields-edit" style="display:none;">
+            <div class="task-info-left">
+              <label>Título</label>
+              <input type="text" name="titulo" value="{{ goal.get('titulo','') }}" required>
+
+              <label>Descripción</label>
+              <textarea name="descripcion" rows="3">{{ goal.get('descripcion','') }}</textarea>
+
+              <div class="row">
+                <div>
+                  <label>Fecha inicio</label>
+                  <input type="date" name="fecha_inicio" value="{{ (goal.get('fecha_inicio') or '')[:10] }}">
+                </div>
+                <div>
+                  <label>Fecha fin</label>
+                  <input type="date" name="fecha_fin" value="{{ (goal.get('fecha_fin') or '')[:10] }}">
+                </div>
+              </div>
+
+              <label>Categoría</label>
+              <input type="text" name="categoria" value="{{ goal.get('categoria','') }}">
+
+              <div class="row">
+                <div>
+                  <label>Estado</label>
+                  {% set st = goal.get('estado','En progreso') %}
+                  <select name="estado">
+                    <option value="Pendiente"   {% if st == 'Pendiente' %}selected{% endif %}>Pendiente</option>
+                    <option value="En progreso" {% if st == 'En progreso' %}selected{% endif %}>En progreso</option>
+                    <option value="Completado"  {% if st == 'Completado' %}selected{% endif %}>Completado</option>
+                    <option value="Pausado"     {% if st == 'Pausado' %}selected{% endif %}>Pausado</option>
+                  </select>
+                </div>
+                <div>
+                    <label>Prioridad</label>
+                    {% set pr = goal.get('prioridad','Media')|lower %}
+                    <select name="prioridad">
+                      <option value="Baja"  {% if pr == 'baja' %}selected{% endif %}>Baja</option>
+                      <option value="Media" {% if pr == 'media' %}selected{% endif %}>Media</option>
+                      <option value="Alta"  {% if pr == 'alta' %}selected{% endif %}>Alta</option>
+                    </select>
+                </div>
+              </div>
+
+              <div class="row">
+                <div>
+                  <label>Progreso (%)</label>
+                  <input type="number" name="progreso" min="0" max="100" value="{{ goal.get('progreso', 0) }}">
+                </div>
+                <div>
+                  <label>Ámbito</label>
+                  {% set sc = goal.get('scope','Personal') %}
+                  <select name="scope">
+                    <option value="Personal" {% if sc == 'Personal' %}selected{% endif %}>Personal</option>
+                    <option value="Trabajo"  {% if sc == 'Trabajo' %}selected{% endif %}>Trabajo</option>
+                    <option value="Estudios" {% if sc == 'Estudios' %}selected{% endif %}>Estudios</option>
+                  </select>
+                </div>
+              </div>
+
+              <label>ID Usuario</label>
+              <input type="text" name="id_usuario" value="{{ goal.get('id_usuario','') }}">
+
+              <label>Alarma ID (opcional)</label>
+              <input type="text" name="alarma_id" value="{{ goal.get('alarma_id','') }}">
+            </div>
+          </div>
+
+          <!-- Botones -->
+          <div class="task-buttons-right">
+            <button type="button" class="btn-edit">✏️ Editar</button>
+            <button type="submit" class="btn-confirm" style="display:none;">✅ Confirmar</button>
+            <button type="button" class="btn-cancel" style="display:none;">❌ Cancelar</button>
+
+            <!-- Eliminar -->
+            <button type="submit"
+                    class="btn btn-danger task-delete-btn"
+                    title="Eliminar"
+                    form="delete-{{ goal['_id'] }}">🗑️ Eliminar</button>
+          </div>
+
+        </form>
+      </div>
+
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p>No hay objetivos registrados todavía.</p>
+  {% endif %}
+</section>
