@@ -13,5 +13,6 @@ app.mongo_remote = remote
 app.register_blueprint(task_bp)
 app.register_blueprint(dashboard_bp)
 
+
 if __name__ == "__main__":
     app.run(debug=True)
