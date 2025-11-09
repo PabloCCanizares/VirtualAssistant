@@ -1,89 +1,36 @@
-{% set days = [
-  {"key": "mon", "label": "Lun"},
-  {"key": "tue", "label": "Mar"},
-  {"key": "wed", "label": "Mié"},
-  {"key": "thu", "label": "Jue"},
-  {"key": "fri", "label": "Vie"},
-  {"key": "sat", "label": "Sáb"},
-  {"key": "sun", "label": "Dom"}
-] %}
-{% set hours = ["08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00"] %}
-
-<section class="card calendar" aria-label="Calendario semanal">
-  <h2>📅 Calendario semanal</h2>
-  <div class="legend">
-    <span>Bloques de 1 hora</span> •
-    <span>Arrastra/edita en versión funcional</span> •
-    <span>Sincronizable con Google Calendar</span>
-  </div>
-  <table aria-describedby="cal-desc" data-weekly-calendar="true">
-    <caption id="cal-desc" class="visually-hidden">Vista de semana con horas y días.</caption>
-    <thead>
-      <tr>
-        <th scope="col" style="width:76px">Hora</th>
-        {% for day in days %}
-          <th scope="col">{{ day.label }}</th>
-        {% endfor %}
-      </tr>
-    </thead>
-    <tbody>
-      {% for hour in hours %}
-        <tr>
-          <th scope="row">{{ hour }}</th>
-          {% for day in days %}
-            <td data-day="{{ day.key }}" data-hour="{{ hour[:2] }}"></td>
-          {% endfor %}
-        </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-
-  <form id="quickEventForm" class="form" style="margin-top:16px">
-    <h3 class="muted" style="margin:0 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:.6px">Crear cita</h3>
-
-    <label for="event_title">Título</label>
-    <input id="event_title" name="title" placeholder="p. ej., Tutoría Proyecto" required>
-
-    <div class="row">
-      <div>
-        <label for="event_day">Día</label>
-        <select id="event_day" name="day" required>
-          <option value="mon">Lunes</option>
-          <option value="tue">Martes</option>
-          <option value="wed">Miércoles</option>
-          <option value="thu">Jueves</option>
-          <option value="fri">Viernes</option>
-          <option value="sat">Sábado</option>
-          <option value="sun">Domingo</option>
-        </select>
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>Calendario semanal</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="/static/css/calendar.css" rel="stylesheet" />
+</head>
+<body>
+  <header class="toolbar">
+    <div class="left">
+      <button id="btn-today">Hoy</button>
+      <div class="nav">
+        <button id="btn-prev">⟨</button>
+        <button id="btn-next">⟩</button>
       </div>
-      <div>
-        <label for="event_start">Inicio</label>
-        <input id="event_start" name="start" type="time" required>
-      </div>
-      <div>
-        <label for="event_end">Fin (opcional)</label>
-        <input id="event_end" name="end" type="time">
-      </div>
+      <span id="week-label" class="week-label"></span>
     </div>
+    <div class="right">Vista semanal estilo Google Calendar</div>
+  </header>
 
-    <label for="event_description">Descripción</label>
-    <textarea id="event_description" name="description" rows="2" placeholder="Añade detalles breves…"></textarea>
+  <section class="day-headers">
+    <div class="all-day-label">Todo el día</div>
+    <div id="day-labels" class="days"></div>
+  </section>
 
-    <div class="row">
-      <div>
-        <label for="event_color">Color</label>
-        <select id="event_color" name="color">
-          <option value="blue">Azul</option>
-          <option value="violet">Violeta</option>
-          <option value="green">Verde</option>
-        </select>
-      </div>
-    </div>
+  <section class="all-day-row">
+    <div class="spacer"></div>
+    <div id="all-day-cells" class="days"></div>
+  </section>
 
-    <button type="submit" class="submit">Guardar cita</button>
-  </form>
-  <p id="eventMessage" class="muted" style="margin-top:8px;"></p>
-</section>
+  <main id="calendar" class="calendar"></main>
 
-
+  <script src="/static/js/calendar.js" type="module"></script>
+</body>
+</html>
