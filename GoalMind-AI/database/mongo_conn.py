@@ -9,10 +9,13 @@ def init_app(app):
 
 from flask_pymongo import PyMongo
 from pymongo import MongoClient
+from pathlib import Path
 import socket
 import json
 
-with open("database\mongo_user.json", "r", encoding="utf-8") as f:
+CONFIG_PATH = Path(__file__).resolve().parent / "mongo_user.json"
+
+with CONFIG_PATH.open("r", encoding="utf-8") as f:
     file = json.load(f)
 username = file["username"]
 pswd = file["pswd"]
