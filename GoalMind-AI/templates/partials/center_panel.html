@@ -1,13 +1,5 @@
-<!doctype html>
-<html lang="es">
-<head>
-  <meta charset="utf-8" />
-  <title>Calendario semanal</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link href="/static/css/calendar.css" rel="stylesheet" />
-</head>
-<body>
-  <header class="toolbar">
+<section class="calendar-shell">
+  <header class="toolbar glass">
     <div class="left">
       <button id="btn-today">Hoy</button>
       <div class="nav">
@@ -16,21 +8,18 @@
       </div>
       <span id="week-label" class="week-label"></span>
     </div>
-    <div class="right">Vista semanal estilo Google Calendar</div>
+    <div class="right muted">Vista semanal estilo Google Calendar</div>
   </header>
 
-  <section class="day-headers">
+  <section class="day-headers glass">
     <div class="all-day-label">Todo el día</div>
     <div id="day-labels" class="days"></div>
   </section>
 
-  <section class="all-day-row">
+  <section class="all-day-row glass">
     <div class="spacer"></div>
     <div id="all-day-cells" class="days"></div>
   </section>
 
   <main id="calendar" class="calendar"></main>
-
-  <script src="/static/js/calendar.js" type="module"></script>
-</body>
-</html>
+</section>
