@@ -1,4 +1,4 @@
-<!doctype html>
+
 <html lang="es">
 <head>
   <meta charset="utf-8" />
@@ -14,31 +14,6 @@
 
   <!-- Tus estilos -->
   <link rel="stylesheet" href="/static/css/calendar.css">
-  <style>
-    /* Mínimo estilo por si no cargas calendar.css todavía */
-    body{font-family:Inter,system-ui,Segoe UI,Tahoma,Arial,sans-serif;background:#f8f9fc;margin:0}
-    #calendar-container{max-width:1100px;margin:24px auto;padding:0 16px}
-    .toolbar{display:flex;gap:8px;align-items:center;margin-bottom:12px}
-    .btn{border:1px solid #d0d7de;background:#fff;border-radius:10px;padding:8px 12px;cursor:pointer}
-    .btn.primary{background:#111827;color:#fff;border-color:#111827}
-    .badge{display:inline-block;padding:.2rem .5rem;border-radius:999px;font-size:.75rem;background:#eef2ff;color:#3730a3}
-    /* Modal sencillo */
-    .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center;z-index:50}
-    .modal{background:#fff;border-radius:16px;max-width:560px;width:92%;padding:18px;box-shadow:0 10px 30px rgba(0,0,0,.15)}
-    .modal h3{margin:0 0 8px}
-    .modal .field{display:flex;flex-direction:column;margin:8px 0}
-    .modal label{font-size:.9rem;color:#374151;margin-bottom:4px}
-    .modal input,.modal textarea,.modal select{
-      border:1px solid #d1d5db;border-radius:10px;padding:10px 12px;font-size:14px;background:#fff
-    }
-    .modal textarea{min-height:80px;resize:vertical}
-    .modal .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
-    .btn.danger{background:#fee2e2;border-color:#ef4444;color:#991b1b}
-    .btn.ghost{background:#f3f4f6;border-color:#e5e7eb}
-    /* FullCalendar pequeños ajustes */
-    .fc .fc-toolbar-title{font-size:1.25rem}
-    .fc .fc-button{border-radius:10px !important}
-  </style>
 </head>
 <body>
   <div id="calendar-container">
@@ -151,6 +126,39 @@
       if (e.target === modalBackdrop) closeModal();
     });
 
+    function timeStrToMinutes(t){ // "07:00:00" -> 420
+    if(!t) return 0;
+      const parts = t.split(':').map(Number);
+      return parts[0]*60 + (parts[1]||0);
+    }
+
+    function getHourPixelHeight(){
+      // lee la variable CSS --hour-h de tu contenedor (fallback 48)
+      const el = document.querySelector('#calendar-container') || document.documentElement;
+      const v = getComputedStyle(el).getPropertyValue('--hour-h');
+      const px = parseFloat(v);
+      return isNaN(px) ? 48 : px;
+    }
+
+    function calcContentHeight(slotMinTime, slotMaxTime, extraPx = 120){
+      // extraPx: espacio para header/toolbar/col-headers; ajústalo si necesitas
+      const minutes = timeStrToMinutes(slotMaxTime) - timeStrToMinutes(slotMinTime);
+      const hours = Math.max(1, minutes / 60);
+      return Math.round(hours * getHourPixelHeight() + extraPx);
+    }
+
+    function updateCalendarSize(newMin, newMax){
+      const h = calcContentHeight(newMin, newMax, 120);
+      calendar.setOption('contentHeight', h);
+      calendar.setOption('slotMinTime', newMin);
+      calendar.setOption('slotMaxTime', newMax);
+    }
+
+    /* --- inicialización del calendario --- */
+    const slotMin = '07:00:00'; // o lee de donde lo tengas
+    const slotMax = '24:00:00';
+    const initialContentHeight = calcContentHeight(slotMin, slotMax, 120);
+
     // ---------- FullCalendar ----------
     document.addEventListener('DOMContentLoaded', function () {
       const calendarEl = document.getElementById('calendar');
@@ -160,8 +168,8 @@
         timeZone: 'local',
         initialView: 'timeGridWeek',
         firstDay: 1,                 // Semana inicia en lunes
-        slotMinTime: '07:00:00',
-        slotMaxTime: '21:00:00',
+        slotMinTime: slotMin,
+        slotMaxTime: slotMax,
         nowIndicator: true,
         selectable: true,
         selectMirror: true,
@@ -172,6 +180,7 @@
           center: 'title',
           right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
         },
+        height: window.innerHeight,
         buttonText: {
           today: 'Hoy',
           month: 'Mes',
@@ -179,7 +188,6 @@
           day: 'Día',
           list: 'Lista'
         },
-
         // Carga de eventos desde tu API, mapeando los campos
         events: async function (info, success, failure) {
           try {
@@ -344,6 +352,11 @@
           alert('No se pudieron actualizar las fechas del evento.');
         }
       }
+    });
+
+    window.addEventListener('resize', () => {
+      const h = calcContentHeight(slotMin, slotMax, 120);
+      calendar.setOption('contentHeight', h);
     });
   </script>
 </body>
