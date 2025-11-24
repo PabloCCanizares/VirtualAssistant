@@ -1,0 +1,49 @@
+{# templates/partials/stats_templates/stat_goals_progress_panel.html #}
+<div class="panel stat-panel" role="region" aria-label="{{ title }}">
+  <h2>{{ title }}</h2>
+
+  <div class="chart-container">
+    <canvas id="chart-goals-{{ data.uid }}"></canvas>
+  </div>
+
+  <div style="margin-top:12px;">
+    <table class="stats-table">
+      <thead><tr><th>Objetivo</th><th>Progreso (%)</th><th>#Tareas</th></tr></thead>
+      <tbody>
+      {% for g in data.goals %}
+        <tr>
+          <td>{{ g.titulo or g.goal_id }}</td>
+          <td>{{ g.progreso }}</td>
+          <td>{{ g.num_tasks }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+(function(){
+  try {
+    const uid = "{{ data.uid }}";
+    const pal = {{ data.palette | tojson }};
+    const labels = {{ data.goals | map(attribute='titulo') | list | tojson }};
+    const values = {{ data.goals | map(attribute='progreso') | list | tojson }};
+    const ctx = document.getElementById("chart-goals-" + uid);
+    if (!ctx) return;
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{ label: 'Progreso (%)', data: values, borderWidth: 3, borderColor: pal.accent, backgroundColor: 'rgba(108,243,255,0.18)' }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { enabled: true } }
+      }
+    });
+  } catch(e) { console.error(e); }
+})();
+</script>

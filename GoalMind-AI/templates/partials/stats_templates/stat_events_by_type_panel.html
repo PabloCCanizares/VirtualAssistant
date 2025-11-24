@@ -1,0 +1,42 @@
+{# templates/partials/stats_templates/stat_events_by_type_panel.html #}
+<div class="panel stat-panel" role="region" aria-label="{{ title }}">
+  <h2>{{ title }}</h2>
+
+  <div class="chart-container">
+    <canvas id="chart-events-{{ data.uid }}"></canvas>
+  </div>
+
+  <div style="margin-top:12px;">
+    <table class="stats-table">
+      <thead><tr><th>Tipo</th><th>Count</th><th>%</th></tr></thead>
+      <tbody>
+        {% for row in data.distribution %}
+        <tr>
+          <td>{{ row.tipo }}</td><td>{{ row.count }}</td><td>{{ row.percentage }}%</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+(function(){
+  try {
+    const uid = "{{ data.uid }}";
+    const pal = {{ data.palette | tojson }};
+    const labels = {{ data.distribution | map(attribute='tipo') | list | tojson }};
+    const values = {{ data.distribution | map(attribute='count') | list | tojson }};
+    const ctx = document.getElementById("chart-events-" + uid);
+    if (!ctx) return;
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{ label:'Eventos', data: values, borderWidth: 3, borderColor: pal.accent2, backgroundColor: 'rgba(139,123,255,0.18)' }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend:{ display:false } } }
+    });
+  } catch(e) { console.error(e); }
+})();
+</script>

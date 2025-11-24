@@ -1,4 +1,6 @@
 <section class="calendar-shell">
+
+  <!-- 1) Toolbar -->
   <header class="toolbar glass">
     <div class="left">
       <button id="btn-today">Hoy</button>
@@ -11,15 +13,40 @@
     <div class="right muted">Vista semanal estilo Google Calendar</div>
   </header>
 
+  <!-- 2) GRID 2x2 DE ESTADÍSTICAS -->
+  <div class="stats-section">
+    <div class="stats-grid">
+      <div class="stats-cell" data-stat="tasks_completed_month" id="cell-tasks_completed_month">
+        <div class="panel-placeholder">Cargando “Tareas cumplidas”...</div>
+      </div>
+
+      <div class="stats-cell" data-stat="goals_progress" id="cell-goals_progress">
+        <div class="panel-placeholder">Cargando “Progreso objetivos”...</div>
+      </div>
+
+      <div class="stats-cell" data-stat="tasks_relevance" id="cell-tasks_relevance">
+        <div class="panel-placeholder">Cargando “Relevancia tareas”...</div>
+      </div>
+
+      <div class="stats-cell" data-stat="events_by_type" id="cell-events_by_type">
+        <div class="panel-placeholder">Cargando “Eventos por tipo”...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3) Day headers -->
   <section class="day-headers glass">
     <div class="all-day-label">Todo el día</div>
     <div id="day-labels" class="days"></div>
   </section>
 
+  <!-- 4) All-day-row -->
   <section class="all-day-row glass">
     <div class="spacer"></div>
     <div id="all-day-cells" class="days"></div>
   </section>
 
+  <!-- 5) Main calendar -->
   <main id="calendar" class="calendar"></main>
+
 </section>
