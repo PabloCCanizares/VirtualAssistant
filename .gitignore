@@ -25,3 +25,5 @@ info.txt
 GoalMind-AI/*.egg-info/
 GoalMind-AI/build/
 GoalMind-AI/dist/
+GoalMind-AI/controllers/__pycache__/task_controller.cpython-39.pyc
+GoalMind-AI/controllers/__pycache__/task_controller.cpython-39.pyc

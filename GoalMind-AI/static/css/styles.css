@@ -450,3 +450,223 @@ main{
   cursor: pointer;
   transition: all 0.25s ease;
 }
+/* ====== Calendario semanal/diario (FUTURISTA DARK) ====== */
+.calendar-container{
+  /* Dimensiones */
+  --header-h:56px;
+  --time-col-w:64px;
+  --day-gap:2px;
+  --hour-h:48px; /* baja a 30px si quieres más compacto */
+
+  /* Tema */
+  --border: rgba(255,255,255,.08);
+  --bg: #0b1020;                 /* fondo base oscuro */
+  --panel: rgba(255,255,255,.04); /* vidrio suave */
+  --panel-2: rgba(255,255,255,.06);
+  --muted:#9fb0c7;
+  --text:#eaf4ff;
+
+  /* Acentos neón */
+  --accent:#6cf3ff;
+  --accent-2:#8b7bff;
+
+  /* Eventos / Hoy / Ahora */
+  --event-bg: linear-gradient(180deg, rgba(108,243,255,.14), rgba(139,123,255,.10));
+  --event-border:#6cf3ff;
+  --today-bg: rgba(54,229,159,.10);
+  --today-line:#ff6b88;
+
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Inter, sans-serif;
+  color: var(--text);
+  background:
+    radial-gradient(1200px 900px at -10% -10%, rgba(139,123,255,.10), transparent 40%),
+    radial-gradient(900px 700px at 110% 0%, rgba(108,243,255,.10), transparent 40%),
+    var(--bg);
+}
+
+/* ====== Header ====== */
+.calendar-header{
+  display:flex; align-items:center; gap:8px;
+  padding:10px 12px; height: var(--header-h);
+  position:sticky; top:0; z-index:5;
+  background: linear-gradient(180deg, var(--panel), rgba(255,255,255,.02));
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(8px);
+}
+.calendar-header .title{ font-weight:700; margin-right:auto; letter-spacing:.2px; }
+.calendar-header button, .calendar-header select{
+  border:1px solid var(--border);
+  background: linear-gradient(180deg, rgba(108,243,255,.12), rgba(139,123,255,.06));
+  color: var(--text);
+  padding:8px 12px; border-radius:10px; cursor:pointer;
+  box-shadow: 0 2px 10px rgba(0,0,0,.25);
+  transition: transform .15s ease, filter .2s ease;
+}
+.calendar-header button:hover,
+.calendar-header select:hover{ transform: translateY(-1px); filter: brightness(1.1); }
+.calendar-header .primary{
+  border-color: transparent;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  color:#08131c; font-weight:800;
+}
+.calendar-header .danger{
+  border-color: #ff6b88; color:#ffd0d8;
+  background: linear-gradient(180deg, rgba(255,107,136,.18), rgba(255,107,136,.10));
+}
+.calendar-header .ghost{
+  background: rgba(255,255,255,.05);
+}
+
+/* ====== Grid ====== */
+.calendar-grid{
+  display:grid; grid-template-columns: var(--time-col-w) repeat(7, 1fr);
+  gap: var(--day-gap);
+  height: calc(100vh - var(--header-h) - 16px);
+  position:relative;
+}
+
+/* Columna de horas */
+.time-col{
+  background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
+  border-right:1px solid var(--border);
+  position:relative; overflow:hidden;
+}
+.time-slot{
+  height: var(--hour-h);
+  border-bottom:1px dashed rgba(255,255,255,.06);
+  font-size:12px; color:var(--muted); padding-right:6px;
+  display:flex; justify-content:flex-end; align-items:flex-start;
+}
+
+/* Columnas de días */
+.day-col{
+  position:relative; overflow:auto;
+  background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
+  border-left:1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: inset 0 2px 10px rgba(0,0,0,.25);
+}
+.day-col .date-head{
+  position:sticky; top:0; z-index:2;
+  padding:10px; display:flex; gap:6px; align-items:baseline;
+  background: linear-gradient(180deg, var(--panel-2), rgba(255,255,255,0));
+  backdrop-filter: blur(6px);
+  border-bottom:1px solid var(--border);
+  border-top-left-radius: 8px; border-top-right-radius: 8px;
+}
+.day-col .date-head .dow{ font-size:12px; color:var(--muted); text-transform:capitalize; letter-spacing:.2px; }
+.day-col .date-head .dnum{ font-weight:800; }
+.day-col.today{ background: linear-gradient(180deg, var(--today-bg), rgba(255,255,255,0)); }
+
+/* líneas horarias */
+.day-grid-slot{
+  height: var(--hour-h);
+  border-bottom:1px solid rgba(255,255,255,.05);
+  position:relative;
+}
+
+/* Línea de “ahora” */
+.now-line{
+  position:absolute; left: var(--time-col-w); right:0; height:2px;
+  background: var(--today-line); z-index:3;
+  box-shadow: 0 0 12px rgba(255,107,136,.6);
+}
+
+/* ====== Eventos ====== */
+.event{
+  position:absolute; left:6px; right:6px;
+  border:1px solid var(--event-border);
+  background: var(--event-bg);
+  border-left:4px solid var(--event-border);
+  border-radius:12px; padding:8px 10px; font-size:12px; line-height:1.25;
+  cursor:pointer; overflow:hidden;
+  display:flex; flex-direction:column; gap:4px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.35);
+  transition: transform .2s ease, filter .2s ease, box-shadow .2s ease;
+}
+.event:hover{
+  transform: translateX(4px);
+  filter: brightness(1.08);
+  box-shadow: 0 14px 36px rgba(0,0,0,.45), 0 0 0 1px rgba(108,243,255,.18) inset;
+}
+.event .title{ font-weight:800; letter-spacing:.2px; }
+.event .meta{ color:var(--muted); font-size:11px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+/* Colores por tipo de evento */
+.event[data-type="reunion"]     { --event-border:#6cf3ff; background: linear-gradient(180deg, rgba(108,243,255,.18), rgba(108,243,255,.10)); }
+.event[data-type="cita"]        { --event-border:#f59e0b; background: linear-gradient(180deg, rgba(245,158,11,.20), rgba(245,158,11,.10)); }
+.event[data-type="recordatorio"]{ --event-border:#36e59f; background: linear-gradient(180deg, rgba(54,229,159,.20), rgba(54,229,159,.10)); }
+.event[data-type="entrega"]     { --event-border:#ff6b88; background: linear-gradient(180deg, rgba(255,107,136,.22), rgba(255,107,136,.12)); }
+.event[data-type="formacion"]   { --event-border:#8b7bff; background: linear-gradient(180deg, rgba(139,123,255,.22), rgba(139,123,255,.12)); }
+
+/* ====== Modal CRUD (dark glass) ====== */
+.modal-backdrop{
+  position:fixed; inset:0; background:#00000066;
+  display:none; align-items:center; justify-content:center; z-index:50;
+  backdrop-filter: blur(2px);
+}
+.modal{
+  width:min(520px, 92vw);
+  background: linear-gradient(180deg, rgba(108,243,255,.08), rgba(139,123,255,.06));
+  border:1px solid var(--border);
+  border-left:4px solid var(--accent);
+  border-radius:16px; box-shadow:0 20px 60px rgba(0,0,0,.5);
+  padding:16px; display:flex; flex-direction:column; gap:10px; color:var(--text);
+}
+.modal header{ font-weight:900; font-size:16px; letter-spacing:.2px; }
+.modal .row{ display:flex; gap:8px; flex-wrap:wrap; }
+.modal input, .modal textarea, .modal select{
+  width:100%; padding:10px 12px;
+  background:#0c1324; color:var(--text);
+  border:1px solid rgba(255,255,255,.12); border-radius:10px; font-size:14px;
+  box-shadow: inset 0 1px 6px rgba(0,0,0,.25);
+}
+.modal textarea{ min-height:90px; }
+.modal footer{ display:flex; gap:8px; justify-content:flex-end; margin-top:6px; }
+.modal .danger{
+  color:#ffe7ec; border-color:#ff6b88;
+  background: linear-gradient(90deg, rgba(255,107,136,.25), rgba(255,107,136,.15));
+}
+.modal .primary{
+  border-color: transparent;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  color:#08131c; font-weight:900;
+}
+.modal .ghost{
+  background: rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.12);
+  color: var(--text);
+}
+
+/* ====== Scrollbar personalizado (dark) ====== */
+.calendar-container *::-webkit-scrollbar{ width:8px; height:8px; }
+.calendar-container *::-webkit-scrollbar-thumb{
+  background: linear-gradient(180deg, var(--accent), var(--accent-2));
+  border-radius:8px;
+}
+.calendar-container *::-webkit-scrollbar-track{
+  background: rgba(255,255,255,0.06);
+  border-radius:8px;
+}
+
+/* Helpers */
+.hidden{ display:none !important; }
+
+/* ====== Responsivo ====== */
+@media (max-width: 900px){
+  .calendar-header{ flex-wrap:wrap; gap:6px; }
+  .calendar-grid{ height: calc(100vh - var(--header-h) - 64px); }
+  .calendar-container{ --time-col-w:54px; --hour-h:44px; }
+}
+@media (max-width: 600px){
+  .calendar-container{ --hour-h:40px; }
+  .calendar-header .title{ width:100%; order:3; margin:6px 0 0; }
+}
+
+/* ====== Modo claro opcional (desactiva si no lo quieres) ======
+html[data-theme="light"], body[data-theme="light"]{
+  --bg:#f6f8ff; --text:#0b1020; --muted:#51617a;
+  --panel: rgba(255,255,255,.9); --panel-2: rgba(255,255,255,.95);
+  --border: rgba(10,20,60,.08);
+}
+*/
