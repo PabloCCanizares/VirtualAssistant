@@ -24,7 +24,6 @@ with CONFIG_PATH.open("r", encoding="utf-8") as f:
 mongo_local = PyMongo()
 mongo_remote = None
 
-
 def internet_available():
     try:
         socket.create_connection(("8.8.8.8", 53), timeout=3)
@@ -33,18 +32,12 @@ def internet_available():
         return False
 
 def init_app(app):
-    
-    return mongo_local
 
-
-def init_app(app):
     """Inicializa las conexiones local y remota."""
     global mongo_remote
-
+    
     # Conexión local
-    #app.config["MONGO_URI"] = "mongodb://localhost:27017/VirtualAssistantDB"
-    #mongo_local.init_app(app)
-    app.config["MONGO_URI"] = "mongodb://127.0.0.1:27017/data"
+    app.config["MONGO_URI"] = "mongodb://127.0.0.1:27017/VirtualAssistantDB"
     mongo_local.init_app(app)
     print("Conectado a MongoDB local")
 
