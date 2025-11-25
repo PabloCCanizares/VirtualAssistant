@@ -1,25 +1,25 @@
+#Utilidades para manejo de rutas y archivos
+from pathlib import Path
 
-"""
-
-def init_app(app):
-    app.config["MONGO_URI"] = f"mongodb+srv://{username}:{pswd}@database.3vr51dn.mongodb.net/data"
-    mongo.init_app(app)
-    return mongo
-"""
-
+#Permite la conexion a la base de datos MongoDB via Flask-PyMongo (Local y Remota). Es obligatorio llamar a init_app()
+## MongoClient es la clase principal para la conexion. Es el cliente puro de MongoDB ##
 from flask_pymongo import PyMongo
 from pymongo import MongoClient
-from pathlib import Path
+#Modulo estandar de python para comprobar conexion a internet
 import socket
+#Modulo estandar de python para manejo de JSON
 import json
 
+############################### Configuracion de la base de datos MongoDB #############################
+#Ruta al archivo JSON que contiene las credenciales de la base de datos remota
+## El archivo mongo_user.json debe estar en la misma carpeta que este archivo ##
 CONFIG_PATH = Path(__file__).resolve().parent / "mongo_user.json"
-
+## Carga las credenciales desde la ruta configurada ##
 with CONFIG_PATH.open("r", encoding="utf-8") as f:
     file = json.load(f)
-username = file["username"]
-pswd = file["pswd"]
-collections = file["collections"]
+    username = file["username"]
+    pswd = file["pswd"]
+    collections = file["collections"]
 
 mongo_local = PyMongo()
 mongo_remote = None
@@ -33,11 +33,18 @@ def internet_available():
         return False
 
 def init_app(app):
+    
+    return mongo_local
+
+
+def init_app(app):
     """Inicializa las conexiones local y remota."""
     global mongo_remote
 
     # Conexión local
-    app.config["MONGO_URI"] = "mongodb://localhost:27017/VirtualAssistantDB"
+    #app.config["MONGO_URI"] = "mongodb://localhost:27017/VirtualAssistantDB"
+    #mongo_local.init_app(app)
+    app.config["MONGO_URI"] = "mongodb://127.0.0.1:27017/data"
     mongo_local.init_app(app)
     print("Conectado a MongoDB local")
 
