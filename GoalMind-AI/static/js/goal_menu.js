@@ -204,4 +204,45 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Estado inicial del botón de borrado múltiple
   updateBulkButtonState();
+
+  // ============================================================
+  // =====================  Mini chart ==========================
+  // ============================================================
+  const chartEl = document.getElementById("progressChart");
+  if (chartEl && window.Chart) {
+    const sample = {
+      labels: ["Sem 1", "Sem 2", "Sem 3", "Sem 4", "Sem 5", "Sem 6"],
+      data: [3, 7, 5, 12, 9, 15],
+    };
+    new Chart(chartEl, {
+      type: "bar",
+      data: {
+        labels: sample.labels,
+        datasets: [
+          {
+            label: "Tareas completadas",
+            data: sample.data,
+            backgroundColor: "rgba(108,243,255,.4)",
+            borderColor: "#6cf3ff",
+            borderWidth: 2,
+            borderRadius: 8,
+          },
+        ],
+      },
+      options: {
+        plugins: { legend: { display: false } },
+        scales: {
+          y: {
+            beginAtZero: true,
+            grid: { color: "rgba(255,255,255,.08)" },
+            ticks: { color: "#9fb0d7" },
+          },
+          x: {
+            grid: { display: false },
+            ticks: { color: "#9fb0d7" },
+          },
+        },
+      },
+    });
+  }
 });
