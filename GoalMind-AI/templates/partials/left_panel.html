@@ -7,12 +7,12 @@
 
   <nav aria-label="Secciones">
     <ul>
-      <li><a href="{{ url_for('dashboard') }}" {% if page == 'dashboard' %}aria-current="page"{% endif %}>🏠 Dashboard</a></li>
-      <li><a href="{{ url_for('agenda') }}" {% if page == 'agenda' %}aria-current="page"{% endif %}>📅 Agenda</a></li>
-      <li><a href="{{ url_for('objetivos') }}" {% if page == 'objetivos' %}aria-current="page"{% endif %}>🎯 Objetivos</a></li>
-      <li><a href="{{ url_for('tareas') }}" {% if page == 'tareas' %}aria-current="page"{% endif %}>🧩 Tareas</a></li>
-      <li><a href="{{ url_for('estadisticas') }}" {% if page == 'estadisticas' %}aria-current="page"{% endif %}>📈 Estadísticas</a></li>
-      <li><a href="{{ url_for('config') }}" {% if page == 'config' %}aria-current="page"{% endif %}>⚙️ Configuración</a></li>
+      <li><a href="{{ url_for('dashboard_bp.dashboard') }}" {% if page == 'dashboard' %}aria-current="page"{% endif %}>🏠 Dashboard</a></li>
+      <li><a href="{{ url_for('calendar_bp.calendar_page') }}" {% if page == 'agenda' %}aria-current="page"{% endif %}>📅 Agenda</a></li>
+      <li><a href="{{ url_for('goal_bp.list_goals_by_user',user_id=0) }}" {% if page == 'objetivos' %}aria-current="page"{% endif %}>🎯 Objetivos</a></li>
+      <li><a href="{{ url_for('task_bp.list_tasks_by_user', user_id=0) }}"{% if page == 'tareas' %}aria-current="page"{% endif %}>🧩 Tareas</a></li>
+      <li><a href="{{ url_for('dashboard_bp.estadisticas') }}" {% if page == 'estadisticas' %}aria-current="page"{% endif %}>📈 Estadísticas</a></li>
+      <li><a href="{{ url_for('dashboard_bp.config') }}" {% if page == 'config' %}aria-current="page"{% endif %}>⚙️ Configuración</a></li>
     </ul>
   </nav>
 

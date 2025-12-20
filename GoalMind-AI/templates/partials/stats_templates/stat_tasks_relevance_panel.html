@@ -1,0 +1,57 @@
+{# templates/partials/stats_templates/stat_tasks_relevance_panel.html #}
+<div class="panel stat-panel" role="region" aria-label="{{ title }}">
+  <h2>{{ title }}</h2>
+
+  <div class="chart-container">
+    <canvas id="chart-relevance-{{ data.uid }}"></canvas>
+  </div>
+
+  <div style="margin-top:10px;">
+    <strong>Puntos totales:</strong> {{ data.total_points }} &nbsp;
+    <strong>Puntos mes:</strong> {{ data.month_points }} &nbsp;
+    <strong>% relevancia:</strong> {{ data.percentage_of_relevance }}%
+  </div>
+
+  <div style="margin-top:12px;">
+    <table class="stats-table">
+      <thead><tr><th>Tarea</th><th>Prioridad</th><th>Puntos</th><th>Estado</th></tr></thead>
+      <tbody>
+        {% for t in data.month_tasks %}
+        <tr>
+          <td>{{ t.contenido }}</td><td>{{ t.prioridad }}</td><td>{{ t.points }}</td><td>{{ t.estado }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+(function(){
+  try {
+    const uid = "{{ data.uid }}";
+    const pal = {{ data.palette | tojson }};
+    const rows = {{ data.month_tasks | tojson }};
+    const byPrio = { 'Alta':0, 'Media':0, 'Baja':0, 'Otra':0 };
+    rows.forEach(r => {
+      const p = (r.prioridad || '').toLowerCase();
+      if (p === 'alta') byPrio.Alta += r.points;
+      else if (p === 'media') byPrio.Media += r.points;
+      else if (p === 'baja') byPrio.Baja += r.points;
+      else byPrio.Otra += r.points;
+    });
+    const labels = Object.keys(byPrio);
+    const values = Object.values(byPrio);
+    const ctx = document.getElementById("chart-relevance-" + uid);
+    if (!ctx) return;
+    new Chart(ctx, {
+      type: 'pie',
+      data: {
+        labels: labels,
+        datasets: [{ data: values, backgroundColor: ['rgba(108,243,255,0.35)','rgba(139,123,255,0.32)','rgba(255,204,102,0.32)','rgba(255,107,136,0.28)'], borderColor: [pal.accent, pal.accent2, pal.warn, pal.bad], borderWidth: 3 }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend:{position:'bottom'} } }
+    });
+  } catch(e) { console.error(e); }
+})();
+</script>

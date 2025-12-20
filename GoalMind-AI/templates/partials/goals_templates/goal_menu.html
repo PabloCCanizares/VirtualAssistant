@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/task_menu.css') }}">
+
+<section class="mission-shell">
+  {% include "partials/goals_templates/goal_header.html" %}
+
+  <div class="mission-heading">
+    <h1 class="mission-title">Objetivos · Mission Control</h1>
+    <p class="mission-subtitle">Detalle operativo y seguimiento visual de tus objetivos</p>
+  </div>
+
+  <div class="mission-grid goal-layout">
+    <section class="panel mission-main">
+      {% include "partials/goals_templates/goal_center_panel.html" %}
+    </section>
+    <aside class="panel mission-side-panel">
+      {% include "partials/goals_templates/goal_right_panel.html" %}
+    </aside>
+  </div>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{{ url_for('static', filename='js/goal_menu.js') }}"></script>
+{% endblock %}

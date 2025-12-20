@@ -1,215 +1,52 @@
-{% set days = [
-  {"key": "mon", "label": "Lun"},
-  {"key": "tue", "label": "Mar"},
-  {"key": "wed", "label": "Mié"},
-  {"key": "thu", "label": "Jue"},
-  {"key": "fri", "label": "Vie"},
-  {"key": "sat", "label": "Sáb"},
-  {"key": "sun", "label": "Dom"}
-] %}
-{% set hours = ["08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00"] %}
+<section class="calendar-shell">
 
-<section class="card calendar" aria-label="Calendario semanal">
-  <h2>📅 Calendario semanal</h2>
-  <div class="legend">
-    <span>Bloques de 1 hora</span> •
-    <span>Arrastra/edita en versión funcional</span> •
-    <span>Sincronizable con Google Calendar</span>
+  <!-- 1) Toolbar -->
+  <header class="toolbar glass">
+    <div class="left">
+      <button id="btn-today">Hoy</button>
+      <div class="nav">
+        <button id="btn-prev">⟨</button>
+        <button id="btn-next">⟩</button>
+      </div>
+      <span id="week-label" class="week-label"></span>
+    </div>
+    <div class="right muted">Vista semanal estilo Google Calendar</div>
+  </header>
+
+  <!-- 2) GRID 2x2 DE ESTADÍSTICAS -->
+  <div class="stats-section">
+    <div class="stats-grid">
+      <div class="stats-cell" data-stat="tasks_completed_month" id="cell-tasks_completed_month">
+        <div class="panel-placeholder">Cargando “Tareas cumplidas”...</div>
+      </div>
+
+      <div class="stats-cell" data-stat="goals_progress" id="cell-goals_progress">
+        <div class="panel-placeholder">Cargando “Progreso objetivos”...</div>
+      </div>
+
+      <div class="stats-cell" data-stat="tasks_relevance" id="cell-tasks_relevance">
+        <div class="panel-placeholder">Cargando “Relevancia tareas”...</div>
+      </div>
+
+      <div class="stats-cell" data-stat="events_by_type" id="cell-events_by_type">
+        <div class="panel-placeholder">Cargando “Eventos por tipo”...</div>
+      </div>
+    </div>
   </div>
-  <table aria-describedby="cal-desc" data-weekly-calendar="true">
-    <caption id="cal-desc" class="visually-hidden">Vista de semana con horas y días.</caption>
-    <thead>
-      <tr>
-        <th scope="col" style="width:76px">Hora</th>
-        {% for day in days %}
-          <th scope="col">{{ day.label }}</th>
-        {% endfor %}
-      </tr>
-    </thead>
-    <tbody>
-      {% for hour in hours %}
-        <tr>
-          <th scope="row">{{ hour }}</th>
-          {% for day in days %}
-            <td data-day="{{ day.key }}" data-hour="{{ hour[:2] }}"></td>
-          {% endfor %}
-        </tr>
-      {% endfor %}
-    </tbody>
-  </table>
 
-  <form id="quickEventForm" class="form" style="margin-top:16px">
-    <h3 class="muted" style="margin:0 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:.6px">Crear cita</h3>
+  <!-- 3) Day headers -->
+  <section class="day-headers glass">
+    <div class="all-day-label">Todo el día</div>
+    <div id="day-labels" class="days"></div>
+  </section>
 
-    <label for="event_title">Título</label>
-    <input id="event_title" name="title" placeholder="p. ej., Tutoría Proyecto" required>
+  <!-- 4) All-day-row -->
+  <section class="all-day-row glass">
+    <div class="spacer"></div>
+    <div id="all-day-cells" class="days"></div>
+  </section>
 
-    <div class="row">
-      <div>
-        <label for="event_day">Día</label>
-        <select id="event_day" name="day" required>
-          <option value="mon">Lunes</option>
-          <option value="tue">Martes</option>
-          <option value="wed">Miércoles</option>
-          <option value="thu">Jueves</option>
-          <option value="fri">Viernes</option>
-          <option value="sat">Sábado</option>
-          <option value="sun">Domingo</option>
-        </select>
-      </div>
-      <div>
-        <label for="event_start">Inicio</label>
-        <input id="event_start" name="start" type="time" required>
-      </div>
-      <div>
-        <label for="event_end">Fin (opcional)</label>
-        <input id="event_end" name="end" type="time">
-      </div>
-    </div>
+  <!-- 5) Main calendar -->
+  <main id="calendar" class="calendar"></main>
 
-    <label for="event_description">Descripción</label>
-    <textarea id="event_description" name="description" rows="2" placeholder="Añade detalles breves…"></textarea>
-
-    <div class="row">
-      <div>
-        <label for="event_color">Color</label>
-        <select id="event_color" name="color">
-          <option value="blue">Azul</option>
-          <option value="violet">Violeta</option>
-          <option value="green">Verde</option>
-        </select>
-      </div>
-    </div>
-
-    <button type="submit" class="submit">Guardar cita</button>
-  </form>
-  <p id="eventMessage" class="muted" style="margin-top:8px;"></p>
 </section>
-
-<script>
-const calendarTable = document.querySelector("[data-weekly-calendar]");
-const eventMessage = document.getElementById("eventMessage");
-
-const colorClassMap = {
-  blue: "ev-blue",
-  violet: "ev-violet",
-  green: "ev-green"
-};
-
-function clearCalendarCells() {
-  if (!calendarTable) return;
-  calendarTable.querySelectorAll("td[data-day]").forEach((cell) => {
-    cell.textContent = "";
-  });
-}
-
-function renderEvents(events) {
-  if (!calendarTable) return;
-  clearCalendarCells();
-
-  events.forEach((ev) => {
-    const day = ev.day;
-    const start = ev.start || "00:00";
-    const hourKey = start.slice(0, 2);
-    const cell = calendarTable.querySelector(`[data-day="${day}"][data-hour="${hourKey}"]`);
-    if (!cell) return;
-
-    const eventEl = document.createElement("div");
-    const colorClass = colorClassMap[ev.color] || colorClassMap.blue;
-    eventEl.className = `event ${colorClass}`;
-
-    const titleEl = document.createElement("strong");
-    titleEl.textContent = ev.title;
-    eventEl.appendChild(titleEl);
-
-    const metaParts = [];
-    if (ev.start) {
-      const timeRange = ev.end ? `${ev.start}–${ev.end}` : ev.start;
-      metaParts.push(timeRange);
-    }
-    if (ev.description) {
-      metaParts.push(ev.description);
-    }
-    if (metaParts.length) {
-      const details = document.createElement("small");
-      details.textContent = metaParts.join(" · ");
-      eventEl.appendChild(details);
-    }
-
-    cell.appendChild(eventEl);
-  });
-}
-
-async function loadEvents() {
-  if (!calendarTable) return;
-  try {
-    const res = await fetch("/events");
-    if (!res.ok) throw new Error("No se pudo cargar el calendario");
-    const data = await res.json();
-    renderEvents(data);
-    if (data.length === 0 && eventMessage && !eventMessage.textContent) {
-      eventMessage.textContent = "ℹ️ Añade tu primera cita para verla en el calendario.";
-    }
-  } catch (error) {
-    if (eventMessage) {
-      eventMessage.textContent = "❌ No se pudieron cargar las citas.";
-    }
-  }
-}
-
-const eventForm = document.getElementById("quickEventForm");
-if (eventForm) {
-  eventForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    if (eventMessage) eventMessage.textContent = "";
-
-    const formData = new FormData(eventForm);
-    const title = (formData.get("title") || "").trim();
-    const description = (formData.get("description") || "").trim();
-    const payload = {
-      title,
-      day: formData.get("day"),
-      start: formData.get("start"),
-      end: formData.get("end"),
-      description,
-      color: formData.get("color"),
-    };
-
-    if (!title) {
-      eventMessage.textContent = "⚠️ La cita necesita un título.";
-      return;
-    }
-    if (!payload.start) {
-      eventMessage.textContent = "⚠️ Selecciona una hora de inicio.";
-      return;
-    }
-
-    try {
-      const res = await fetch("/events", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      if (!res.ok) throw new Error();
-      eventMessage.textContent = "✅ Cita guardada correctamente.";
-      eventForm.reset();
-      loadEvents();
-    } catch (err) {
-      eventMessage.textContent = "❌ Error al guardar la cita.";
-    }
-  });
-}
-
-const newAppointmentBtn = document.querySelector('[data-action="new-appointment"]');
-if (newAppointmentBtn && eventForm) {
-  newAppointmentBtn.addEventListener("click", () => {
-    eventForm.scrollIntoView({ behavior: "smooth", block: "start" });
-    const titleInput = document.getElementById("event_title");
-    if (titleInput) {
-      titleInput.focus({ preventScroll: true });
-    }
-  });
-}
-
-loadEvents();
-</script>
