@@ -305,16 +305,17 @@
 }
 .goal-card:hover{transform:translateY(-6px);box-shadow:0 20px 50px rgba(0,0,0,.6)}
 .goal-card h3{margin:0;font-size:17px;text-align:center;font-weight:700}
-.glass{
+.goal-progress-ring{
   width:150px;height:150px;border-radius:50%;
   background: conic-gradient(from 0deg, var(--accent) 0% var(--progress, 75%), rgba(255,255,255,.08) var(--progress, 75%) 100%);
   display:flex;align-items:center;justify-content:center;position:relative;
+  flex-shrink:0;
 }
-.glass::before{
+.goal-progress-ring::before{
   content:"";position:absolute;width:112px;height:112px;border-radius:50%;
   background:#0e1424;backdrop-filter:blur(18px);
 }
-.glass span{
+.goal-progress-ring span{
   position:relative;font-size:42px;font-weight:900;color:var(--accent);
   text-shadow:0 0 32px var(--accent);
 }

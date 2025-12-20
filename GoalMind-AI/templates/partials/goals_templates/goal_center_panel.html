@@ -74,7 +74,7 @@
       {% set progreso = goal.get('progreso', 0) %}
       <div class="goal-card">
         <h3>{{ goal.get('titulo','(sin título)') }}</h3>
-        <div class="glass" style="--progress:{{ progreso }}%">
+        <div class="goal-progress-ring" style="--progress:{{ progreso }}%">
           <span>{{ progreso }}%</span>
         </div>
         <div class="goal-meta">
