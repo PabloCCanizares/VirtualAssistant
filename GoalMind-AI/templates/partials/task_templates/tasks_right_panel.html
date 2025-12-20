@@ -1,0 +1,115 @@
+<aside class="side panel right">
+
+  {% if selected_task %}
+  <div class="card">
+    <h2>✏️ Editar tarea</h2>
+    <form method="post" action="{{ url_for('task_bp.update_task', task_id=selected_task['_id']) }}" class="form">
+
+      <label for="contenido">Título</label>
+      <input type="text" name="contenido" value="{{ selected_task['contenido'] }}" required>
+
+      <label for="objetivo_id">Objetivo asociado</label>
+      <select name="objetivo_id" required>
+        {% if goals and goals|length > 0 %}
+          {% set current_goal_id = (selected_task.get('objetivo_id') | string) %}
+          {% for goal in goals %}
+            {% set gid = (goal['_id'] | string) %}
+            <option value="{{ gid }}" {% if gid == current_goal_id %}selected{% endif %}>
+              {{ goal.get('titulo', '(sin título)') }}
+            </option>
+          {% endfor %}
+        {% else %}
+          <option disabled selected>⚠️ No hay objetivos definidos</option>
+        {% endif %}
+      </select>
+
+      <label for="descripcion">Descripción</label>
+      <textarea name="descripcion">{{ selected_task['descripcion'] }}</textarea>
+
+      <label for="fecha_limite">Fecha límite</label>
+      <input type="date" name="fecha_limite" value="{{ selected_task['fecha_limite']|default('') }}">
+
+      <div class="row">
+        <div>
+          <label for="estado">Estado</label>
+          <select name="estado">
+            <option value="pendiente" {% if selected_task['estado'] == "pendiente" %}selected{% endif %}>Pendiente</option>
+            <option value="en curso" {% if selected_task['estado'] == "en curso" %}selected{% endif %}>En curso</option>
+            <option value="completada" {% if selected_task['estado'] == "completada" %}selected{% endif %}>Completada</option>
+          </select>
+        </div>
+        <div>
+          <label for="prioridad">Prioridad</label>
+          <select name="prioridad">
+            <option value="baja" {% if selected_task['prioridad'] == "baja" %}selected{% endif %}>Baja</option>
+            <option value="media" {% if selected_task['prioridad'] == "media" %}selected{% endif %}>Media</option>
+            <option value="alta" {% if selected_task['prioridad'] == "alta" %}selected{% endif %}>Alta</option>
+          </select>
+        </div>
+      </div>
+
+      <button type="submit" class="submit">Guardar cambios ✅</button>
+    </form>
+  </div>
+
+  {% else %}
+  <div class="card">
+    <h2>➕ Nueva tarea</h2>
+
+    <form method="post" action="{{ url_for('task_bp.add_task') }}" class="form">
+      <label for="contenido">Título</label>
+      <input type="text" name="contenido" placeholder="Título de la tarea" required>
+
+      <label for="objetivo_id">Objetivo asociado</label>
+      <select name="objetivo_id" required>
+        {% if goals and goals|length > 0 %}
+          {% for goal in goals %}
+            <option value="{{ goal['_id'] }}">{{ goal.get('titulo', '(sin título)') }}</option>
+          {% endfor %}
+        {% else %}
+          <option disabled selected>⚠️ No hay objetivos definidos</option>
+        {% endif %}
+      </select>
+
+      <label for="categoria">Categoría</label>
+      <select name="categoria">
+        <option value="trabajo">Trabajo</option>
+        <option value="personal" selected>Personal</option>
+        <option value="estudio">Estudio</option>
+        <option value="salud">Salud</option>
+        <option value="hogar">Hogar</option>
+        <option value="otros">Otros</option>
+      </select>
+
+      <label for="descripcion">Descripción</label>
+      <textarea name="descripcion" rows="3" placeholder="Detalles de la tarea"></textarea>
+
+      <label for="fecha_limite">Fecha límite</label>
+      <input type="date" name="fecha_limite">
+
+      <div class="row">
+        <div>
+          <label for="estado">Estado</label>
+          <select name="estado">
+            <option value="pendiente" selected>Pendiente</option>
+            <option value="en curso">En curso</option>
+            <option value="completada">Completada</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="prioridad">Prioridad</label>
+          <select name="prioridad">
+            <option value="baja">Baja</option>
+            <option value="media" selected>Media</option>
+            <option value="alta">Alta</option>
+          </select>
+        </div>
+      </div>
+
+      <button type="submit" class="submit">Crear tarea ✨</button>
+    </form>
+  </div>
+  {% endif %}
+
+</aside>

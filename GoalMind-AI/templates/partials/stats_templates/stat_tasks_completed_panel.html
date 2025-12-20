@@ -1,0 +1,44 @@
+{# templates/partials/stats_templates/stat_tasks_completed_panel.html #}
+<div class="panel stat-panel" role="region" aria-label="{{ title }}">
+  <h2>{{ title }}</h2>
+  <div class="chart-container">
+    <canvas id="chart-tasks-{{ data.uid }}"></canvas>
+  </div>
+
+  <div class="stat-numbers" style="margin-top:10px;">
+    <strong>Total propuestas:</strong> {{ data.total }} &nbsp;
+    <strong>Completadas:</strong> {{ data.completed }} &nbsp;
+    <strong>% completadas:</strong> {{ data.percentage_completed }}%
+  </div>
+</div>
+
+<script>
+(function(){
+  try {
+    const uid = "{{ data.uid }}";
+    const pal = {{ data.palette | tojson }};
+    const total = {{ data.total }};
+    const completed = {{ data.completed }};
+    const remaining = Math.max(0, total - completed);
+    const ctx = document.getElementById("chart-tasks-" + uid);
+    if (!ctx) return;
+    new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Completadas','No completadas'],
+        datasets: [{
+          data: [completed, remaining],
+          backgroundColor: [ 'rgba(108,243,255,0.35)', 'rgba(139,123,255,0.25)' ],
+          borderColor: [ pal.accent, pal.accent2 ],
+          borderWidth: 3
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom', labels: { color: pal.text } } }
+      }
+    });
+  } catch(e) { console.error(e); }
+})();
+</script>

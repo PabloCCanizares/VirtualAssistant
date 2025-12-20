@@ -1,0 +1,122 @@
+:root{
+  --bg: #0b0f1a;
+  --bg2: #0e1424;
+  --text: #e8f0ff;
+  --muted: #9fb0d7;
+  --accent: #6cf3ff;
+  --accent2: #8b7bff;
+  --good: #37e18f;
+  --warn: #ffcc66;
+  --bad: #ff6b88;
+  --border: rgba(255,255,255,.08);
+  --panel: rgba(255,255,255,.04);
+  --glow: 0 0 32px rgba(108,243,255,.4);
+  --shadow: 0 16px 48px rgba(0,0,0,.6);
+  --radius: 24px;
+}
+
+body { background: linear-gradient(180deg,var(--bg),var(--bg2)); color:var(--text); font-family: system-ui, Arial, sans-serif; }
+.panel.stat-panel{
+  background: linear-gradient(135deg,var(--panel), rgba(255,255,255,.06));
+  border: 1px solid var(--border);
+  border-left: 6px solid var(--accent);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: var(--shadow);
+  display:flex; flex-direction:column;
+  transition:.3s;
+}
+.panel.stat-panel:hover{ transform: translateY(-6px); box-shadow: var(--glow), var(--shadow); }
+.panel.stat-panel h2{
+  font-size:16px; font-weight:800; margin-bottom:12px; display:flex; align-items:center; gap:12px;
+}
+.chart-container{ flex:1; min-height:220px; background: rgba(0,0,0,.35); border-radius:18px; padding:10px; overflow:hidden; }
+.stat-numbers{ margin-top:8px; font-size:0.95rem; color:var(--muted); }
+.stats-table{ width:100%; border-collapse:collapse; margin-top:8px; font-size:0.95rem; }
+.stats-table th, .stats-table td{ padding:8px 10px; border-bottom:1px solid rgba(255,255,255,.03); text-align:left; color:var(--text); }
+
+/*****************************
+   ESTRUCTURA PRINCIPAL
+*****************************/
+.calendar-shell {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    gap: 18px;
+}
+
+/*****************************
+   GRID SECTION
+*****************************/
+.stats-section {
+    flex: 0 0 auto;
+    padding: 0 12px;
+}
+
+.stats-grid {
+    width: 100%;
+    height: auto;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);  /* 2x2 */
+    grid-template-rows: repeat(2, 500px);   /* ← altura fija cuadrada */
+    gap: 18px;
+}
+
+/*****************************
+   Cada bloque (CUADRADO)
+*****************************/
+.stats-cell {
+    background: linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0.06));
+    border: 1px solid rgba(255,255,255,0.06);
+    border-left: 6px solid var(--accent, #6cf3ff);
+    border-radius: 20px;
+    padding: 0;
+    box-shadow: 0 12px 36px rgba(0,0,0,0.55);
+
+    /* clave: todos igual de altos */
+    height: 500px;
+    max-height: 500px;
+    overflow: hidden;
+
+    display: flex;
+    flex-direction: column;
+}
+
+/*****************************
+   CONTENIDO INTERNO SCROLL
+*****************************/
+.stats-cell > * {
+    overflow-y: auto;
+    flex-grow: 1;
+    padding: 14px;
+    scrollbar-width: thin;
+}
+
+.stats-cell > *::-webkit-scrollbar {
+    width: 6px;
+}
+.stats-cell > *::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.15);
+    border-radius: 8px;
+}
+
+/*****************************
+   Placeholder inicial
+*****************************/
+.panel-placeholder {
+    color: var(--muted, #9fb0d7);
+    height: 100%;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+/*****************************
+   RESPONSIVE
+*****************************/
+@media (max-width: 1100px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+        grid-template-rows: repeat(4, 300px); /* 4 cuadrados verticales */
+    }
+}

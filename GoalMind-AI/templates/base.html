@@ -4,17 +4,26 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Asistente Personal LLM — Dashboard</title>
+
+  <!-- Estilo general de la app -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+
+  <!-- Estilos Mission Control SOLO para paneles de estadísticas -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/stats_theme.css') }}">
 </head>
 <body>
   <div class="app">
     {% include "partials/left_panel.html" %}
     <main>
-      {% include "partials/header.html" %}
       {% block content %}{% endblock %}
       {% include "partials/footer.html" %}
     </main>
   </div>
+
+  <!-- Chart.js OFFLINE -->
+  <script src="{{ url_for('static', filename='js/chart.umd.js') }}"></script>
+
+  <!-- Script general de la app -->
   <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 </body>
 </html>

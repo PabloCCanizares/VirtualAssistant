@@ -1,0 +1,363 @@
+
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>Calendario de eventos</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  
+
+  <!-- FullCalendar 6 (CDN) -->
+  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.11/locales-all.global.min.js"></script>
+
+  <!-- Tus estilos -->
+  <link rel="stylesheet" href="/static/css/calendar.css">
+</head>
+<body>
+  <div id="calendar-container">
+    <div class="toolbar">
+      <span class="badge">Calendario</span>
+      <button id="btn-today" class="btn">Hoy</button>
+      <button id="btn-new" class="btn primary">+ Nuevo evento</button>
+    </div>
+    <div id="calendar"></div>
+  </div>
+
+  <!-- Modal Crear/Editar -->
+  <div class="modal-backdrop" id="eventModalBackdrop" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <h3 id="modalTitle">Nuevo evento</h3>
+      <form id="eventForm">
+        <input type="hidden" id="eventId">
+        <div class="field">
+          <label for="titulo">Título *</label>
+          <input type="text" id="titulo" required placeholder="p. ej., Reunión con equipo">
+        </div>
+        <div class="field">
+          <label for="descripcion">Descripción</label>
+          <textarea id="descripcion" placeholder="Notas, agenda, enlaces…"></textarea>
+        </div>
+        <div class="field">
+          <label for="tipo_evento">Tipo</label>
+          <select id="tipo_evento">
+            <option value="">(sin tipo)</option>
+            <option value="reunion">Reunión</option>
+            <option value="tarea">Tarea</option>
+            <option value="recordatorio">Recordatorio</option>
+            <option value="otro">Otro</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="fecha_inicio">Inicio *</label>
+          <input type="datetime-local" id="fecha_inicio" required>
+        </div>
+        <div class="field">
+          <label for="fecha_fin">Fin *</label>
+          <input type="datetime-local" id="fecha_fin" required>
+        </div>
+
+        <div class="actions">
+          <button type="button" id="btn-cancel" class="btn ghost">Cancelar</button>
+          <button type="button" id="btn-delete" class="btn danger" style="display:none">Eliminar</button>
+          <button type="submit" class="btn primary">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // ---------- Utilidades de fecha ----------
+    // Convierte ISO (UTC o con offset) -> valor válido para input datetime-local (en hora local)
+    function isoToLocalInputValue(iso) {
+      if (!iso) return "";
+      const d = new Date(iso);
+      const pad = n => String(n).padStart(2, "0");
+      const yyyy = d.getFullYear();
+      const mm = pad(d.getMonth() + 1);
+      const dd = pad(d.getDate());
+      const hh = pad(d.getHours());
+      const mi = pad(d.getMinutes());
+      return `${yyyy}-${mm}-${dd}T${hh}:${mi}`;
+    }
+    // Convierte valor de <input type="datetime-local"> -> ISO (toISOString())
+    function localInputValueToISO(val) {
+      if (!val) return null;
+      // Interpretado en zona local por el navegador
+      const d = new Date(val);
+      return d.toISOString();
+    }
+
+    // ---------- Modal ----------
+    const modalBackdrop = document.getElementById('eventModalBackdrop');
+    const form = document.getElementById('eventForm');
+    const inputId = document.getElementById('eventId');
+    const inputTitulo = document.getElementById('titulo');
+    const inputDescripcion = document.getElementById('descripcion');
+    const inputTipo = document.getElementById('tipo_evento');
+    const inputInicio = document.getElementById('fecha_inicio');
+    const inputFin = document.getElementById('fecha_fin');
+    const btnDelete = document.getElementById('btn-delete');
+    const btnCancel = document.getElementById('btn-cancel');
+    const btnNew = document.getElementById('btn-new');
+    const btnToday = document.getElementById('btn-today');
+    const modalTitle = document.getElementById('modalTitle');
+
+    function openModal(mode, data = {}) {
+      modalTitle.textContent = mode === 'edit' ? 'Editar evento' : 'Nuevo evento';
+      inputId.value = data._id || data.id || '';
+      inputTitulo.value = data.titulo || data.title || '';
+      inputDescripcion.value = data.descripcion || data.extendedProps?.descripcion || '';
+      inputTipo.value = data.tipo_evento || data.extendedProps?.tipo_evento || '';
+      inputInicio.value = isoToLocalInputValue(data.fecha_inicio || data.start);
+      inputFin.value = isoToLocalInputValue(data.fecha_fin || data.end);
+      btnDelete.style.display = mode === 'edit' ? 'inline-block' : 'none';
+      modalBackdrop.style.display = 'flex';
+    }
+    function closeModal() {
+      modalBackdrop.style.display = 'none';
+      form.reset();
+      inputId.value = '';
+    }
+
+    btnCancel.addEventListener('click', closeModal);
+    modalBackdrop.addEventListener('click', (e) => {
+      if (e.target === modalBackdrop) closeModal();
+    });
+
+    function timeStrToMinutes(t){ // "07:00:00" -> 420
+    if(!t) return 0;
+      const parts = t.split(':').map(Number);
+      return parts[0]*60 + (parts[1]||0);
+    }
+
+    function getHourPixelHeight(){
+      // lee la variable CSS --hour-h de tu contenedor (fallback 48)
+      const el = document.querySelector('#calendar-container') || document.documentElement;
+      const v = getComputedStyle(el).getPropertyValue('--hour-h');
+      const px = parseFloat(v);
+      return isNaN(px) ? 48 : px;
+    }
+
+    function calcContentHeight(slotMinTime, slotMaxTime, extraPx = 120){
+      // extraPx: espacio para header/toolbar/col-headers; ajústalo si necesitas
+      const minutes = timeStrToMinutes(slotMaxTime) - timeStrToMinutes(slotMinTime);
+      const hours = Math.max(1, minutes / 60);
+      return Math.round(hours * getHourPixelHeight() + extraPx);
+    }
+
+    function updateCalendarSize(newMin, newMax){
+      const h = calcContentHeight(newMin, newMax, 120);
+      calendar.setOption('contentHeight', h);
+      calendar.setOption('slotMinTime', newMin);
+      calendar.setOption('slotMaxTime', newMax);
+    }
+
+    /* --- inicialización del calendario --- */
+    const slotMin = '07:00:00'; // o lee de donde lo tengas
+    const slotMax = '24:00:00';
+    const initialContentHeight = calcContentHeight(slotMin, slotMax, 120);
+
+    // ---------- FullCalendar ----------
+    document.addEventListener('DOMContentLoaded', function () {
+      const calendarEl = document.getElementById('calendar');
+
+      const calendar = new FullCalendar.Calendar(calendarEl, {
+        locale: 'es',
+        timeZone: 'local',
+        initialView: 'timeGridWeek',
+        firstDay: 1,                 // Semana inicia en lunes
+        slotMinTime: slotMin,
+        slotMaxTime: slotMax,
+        nowIndicator: true,
+        selectable: true,
+        selectMirror: true,
+        editable: true,              // permite drag & drop y redimensionar
+        eventResizableFromStart: true,
+        headerToolbar: {
+          left: 'prev,next today',
+          center: 'title',
+          right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
+        },
+        height: window.innerHeight,
+        buttonText: {
+          today: 'Hoy',
+          month: 'Mes',
+          week: 'Semana',
+          day: 'Día',
+          list: 'Lista'
+        },
+        // Carga de eventos desde tu API, mapeando los campos
+        events: async function (info, success, failure) {
+          try {
+            const url = `/api/events?start=${encodeURIComponent(info.startStr)}&end=${encodeURIComponent(info.endStr)}`;
+            const res = await fetch(url);
+            if (!res.ok) throw new Error('Error al cargar eventos');
+            const data = await res.json();
+
+            const mapped = data.map(e => ({
+              id: e._id,
+              title: e.titulo || '(Sin título)',
+              start: e.fecha_inicio || e.start,
+              end: e.fecha_fin || e.end,
+              extendedProps: {
+                descripcion: e.descripcion || '',
+                tipo_evento: e.tipo_evento || '',
+                raw: e
+              }
+            }));
+            success(mapped);
+          } catch (err) {
+            console.error(err);
+            failure(err);
+          }
+        },
+
+        // Crear por selección en el calendario
+        select: function (selectionInfo) {
+          openModal('new', {
+            start: selectionInfo.startStr,
+            end: selectionInfo.endStr
+          });
+        },
+
+        // Editar con clic
+        eventClick: function (clickInfo) {
+          const ev = clickInfo.event;
+          openModal('edit', {
+            id: ev.id,
+            title: ev.title,
+            start: ev.start?.toISOString(),
+            end: ev.end?.toISOString(),
+            descripcion: ev.extendedProps?.descripcion || '',
+            tipo_evento: ev.extendedProps?.tipo_evento || ''
+          });
+        },
+
+        // Mover evento (drag & drop) -> guardar
+        eventDrop: async function (changeInfo) {
+          await quickUpdateDates(changeInfo);
+        },
+
+        // Redimensionar evento -> guardar
+        eventResize: async function (resizeInfo) {
+          await quickUpdateDates(resizeInfo);
+        }
+      });
+
+      calendar.render();
+
+      // Botones extras
+      btnNew.addEventListener('click', () => {
+        const now = new Date();
+        const in1h = new Date(now.getTime() + 60 * 60 * 1000);
+        openModal('new', { start: now.toISOString(), end: in1h.toISOString() });
+      });
+      btnToday.addEventListener('click', () => calendar.today());
+      document.getElementById('btn-today').addEventListener('click', () => calendar.today());
+
+      // Guardar (crear/actualizar)
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const id = inputId.value.trim();
+        const payload = {
+          titulo: inputTitulo.value.trim(),
+          descripcion: inputDescripcion.value.trim(),
+          tipo_evento: inputTipo.value.trim() || null,
+          fecha_inicio: localInputValueToISO(inputInicio.value),
+          fecha_fin: localInputValueToISO(inputFin.value)
+        };
+
+        if (!payload.titulo) {
+          alert('El título es obligatorio.');
+          return;
+        }
+        if (!payload.fecha_inicio || !payload.fecha_fin) {
+          alert('Las fechas de inicio y fin son obligatorias.');
+          return;
+        }
+        if (new Date(payload.fecha_fin) <= new Date(payload.fecha_inicio)) {
+          alert('La fecha/hora de fin debe ser posterior al inicio.');
+          return;
+        }
+
+        try {
+          let res;
+          if (id) {
+            // UPDATE
+            res = await fetch(`/api/events/${encodeURIComponent(id)}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload)
+            });
+          } else {
+            // CREATE
+            res = await fetch('/api/events', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload)
+            });
+          }
+          const data = await res.json();
+          if (!res.ok) {
+            throw new Error(data?.error || 'Error guardando el evento');
+          }
+          closeModal();
+          // Recargar fuente de datos
+          calendar.refetchEvents();
+        } catch (err) {
+          console.error(err);
+          alert('No se pudo guardar el evento.');
+        }
+      });
+
+      // Eliminar
+      btnDelete.addEventListener('click', async () => {
+        const id = inputId.value.trim();
+        if (!id) return;
+        if (!confirm('¿Eliminar este evento?')) return;
+        try {
+          const res = await fetch(`/api/events/${encodeURIComponent(id)}`, { method: 'DELETE' });
+          const data = await res.json();
+          if (!res.ok || !data?.deleted) throw new Error('Error eliminando');
+          closeModal();
+          calendar.refetchEvents();
+        } catch (err) {
+          console.error(err);
+          alert('No se pudo eliminar el evento.');
+        }
+      });
+
+      // Actualización rápida tras drag/resize
+      async function quickUpdateDates(info) {
+        const ev = info.event;
+        const payload = {
+          fecha_inicio: ev.start?.toISOString(),
+          fecha_fin: (ev.end ? ev.end : new Date(ev.start.getTime() + 30 * 60 * 1000)).toISOString()
+        };
+        try {
+          const res = await fetch(`/api/events/${encodeURIComponent(ev.id)}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          if (!res.ok) {
+            info.revert(); // volver al estado previo
+            const data = await res.json().catch(() => ({}));
+            throw new Error(data?.error || 'Error actualizando fechas');
+          }
+        } catch (err) {
+          console.error(err);
+          alert('No se pudieron actualizar las fechas del evento.');
+        }
+      }
+    });
+
+    window.addEventListener('resize', () => {
+      const h = calcContentHeight(slotMin, slotMax, 120);
+      calendar.setOption('contentHeight', h);
+    });
+  </script>
+</body>
+</html>
