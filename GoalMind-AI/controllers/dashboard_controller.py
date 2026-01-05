@@ -1,12 +1,11 @@
 from flask import Blueprint, render_template
-from database.mongo_conn import sync_all_collections
 
 dashboard_bp = Blueprint("dashboard_bp", __name__)
 
 
 @dashboard_bp.route("/")
 def dashboard():
-    sync_all_collections()
+    # La sincronización ahora se ejecuta en background via APScheduler (ver database/scheduler.py)
     return render_template("dashboard.html", page="dashboard")
 
 
