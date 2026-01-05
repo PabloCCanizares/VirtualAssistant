@@ -115,21 +115,28 @@ def sync_from_remote(collection_name, obj):
 
 
 def sync_to_remote(collection_name, obj):
-    """Comprueba si un documento existe en remoto; si no, lo sube."""
+    """Sube o actualiza un documento en la base remota."""
     local_col, remote_col = get_collection(collection_name)
 
     if not remote_col:
         print("⚠️ No hay conexión remota para subir datos.")
         return
 
-    filtro = {"_id": obj["_id"]} if "_id" in obj else obj
-    existe = remote_col.find_one(filtro)
+    if "_id" not in obj:
+        print("⚠️ El documento no tiene _id, no se puede sincronizar.")
+        return
 
-    if not existe:
-        remote_col.insert_one(obj)
+    filtro = {"_id": obj["_id"]}
+
+    # Usar replace_one con upsert=True para insertar o actualizar
+    result = remote_col.replace_one(filtro, obj, upsert=True)
+
+    if result.upserted_id:
         print(f"⬆️ Documento {filtro} subido a la nube.")
+    elif result.modified_count > 0:
+        print(f"🔄 Documento {filtro} actualizado en la nube.")
     else:
-        print("ℹ️ Documento ya existe en la nube.")
+        print(f"ℹ️ Documento {filtro} sin cambios en la nube.")
 
 
 def sync_all_collections():

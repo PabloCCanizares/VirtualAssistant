@@ -159,26 +159,3 @@ class TaskModel:
 
         print(f"♻️ Tarea {_id} actualizada y sincronizada.")
         return updated_task
-    
-    
-    
-    
-
-
-# -------------------------------------------------------------
-#  CONSULTAS 07-11-2025
-# -------------------------------------------------------------
-@staticmethod
-def get_all_tasks():
-    """Devuelve todas las tareas desde la base local."""
-    local_col, _ = get_collection(TaskModel.COLLECTION)
-    return list(local_col.find().sort("fecha_creacion", -1))
-
-@staticmethod
-def get_task_by_id(task_id):
-    """Obtiene una tarea por su _id."""
-    local_col, _ = get_collection(TaskModel.COLLECTION)
-    _id = ObjectId(task_id) if not isinstance(task_id, ObjectId) else task_id
-    return local_col.find_one({"_id": _id})
-
-

@@ -116,8 +116,34 @@ class GoalModel:
         return list(local_col.find({"categoria": categoria}).sort("created_at", -1))
 
     @staticmethod
+    def delete_goal(goal_id):
+        """
+        Elimina un objetivo tanto en la base local como remota (si está disponible).
+        Devuelve True si se eliminó, False si no se encontró.
+        """
+        local_col, remote_col = get_collection(GoalModel.COLLECTION)
+        _id = ObjectId(goal_id) if not isinstance(goal_id, ObjectId) else goal_id
+
+        # Eliminar local
+        res = local_col.delete_one({"_id": _id})
+
+        # Eliminar remoto (si hay conexión)
+        if remote_col:
+            try:
+                remote_col.delete_one({"_id": _id})
+                print(f"🗑️ Objetivo eliminado en local y remoto: {_id}")
+            except Exception:
+                pass
+        else:
+            print(f"⚠️ Objetivo eliminado solo localmente (sin conexión remota): {_id}")
+
+        return res.deleted_count > 0
+
+    @staticmethod
     def delete_goals_by_ids(ids):
-        # acepta lista de strings
+        """
+        Elimina varios objetivos por sus _id. Devuelve el nº de documentos eliminados.
+        """
         object_ids = []
         for s in ids:
             try:
@@ -126,11 +152,14 @@ class GoalModel:
                 continue
         if not object_ids:
             return 0
-        local_col, _ = get_collection(GoalModel.COLLECTION)
+        local_col, remote_col = get_collection(GoalModel.COLLECTION)
         res = local_col.delete_many({"_id": {"$in": object_ids}})
+
+        # Eliminar en remoto también
+        if remote_col:
+            try:
+                remote_col.delete_many({"_id": {"$in": object_ids}})
+            except Exception:
+                pass
+
         return res.deleted_count
-    
-
-  
-
-
