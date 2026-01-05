@@ -152,9 +152,9 @@ def list_goals_by_user(user_id):
     try:
         if user_id == "0":  # Cambié 0 por "0" ya que user_id es string
             user_id = "66ffbbbbbbbbbbbbbbbb0100"
-        goals = GoalModel.get_goal_by_user(user_id)
-        if not goals:  # Cambié "tasks" por "goals" - había una variable inconsistente
-            flash("Este usuario aún no tiene tareas.", "info")
+        goals = GoalModel.get_by_user_id(user_id)
+        if not goals:
+            flash("Este usuario aún no tiene objetivos.", "info")
         return render_template(
             "partials/goals_templates/goal_menu.html",
             goals=goals,
