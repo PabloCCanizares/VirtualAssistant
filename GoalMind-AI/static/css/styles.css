@@ -133,18 +133,34 @@ main{
 }
 .mission-grid{
   display:grid;
-  grid-template-columns: minmax(0, 3fr) minmax(320px, 1fr);
-  gap:28px;
+  grid-template-columns: minmax(0, 2.5fr) minmax(340px, 1fr);
+  gap:24px;
+  align-items: start;
 }
 .mission-main{
   min-height:0;
+  display:flex;
+  flex-direction:column;
+  gap:20px;
 }
 .mission-side-panel{
+  position: sticky;
+  top: 24px;
   padding:0;
   background:transparent;
   border:none;
   border-left:none;
   box-shadow:none;
+}
+
+@media (max-width: 1200px) {
+  .mission-grid {
+    grid-template-columns: 1fr;
+  }
+  .mission-side-panel {
+    position: relative;
+    top: 0;
+  }
 }
 .glass{
   background: linear-gradient(135deg, rgba(255,255,255,.05), rgba(255,255,255,.02));

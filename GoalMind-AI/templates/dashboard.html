@@ -1,24 +1,26 @@
 {% extends "base.html" %}
 
 {% block content %}
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/calendar.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/calendar.css') }}">
 
-  <section class="mission-shell">
-    {% include "partials/header.html" %}
+<section class="mission-shell">
+  {% include "partials/header.html" %}
 
-    <div class="mission-heading">
-      <h1 class="mission-title">Mission Control</h1>
-      <p class="mission-subtitle">Resumen ejecutivo del asistente personal · estado operativo en tiempo real</p>
-    </div>
+  <div class="mission-heading">
+    <h1 class="mission-title">Mission Control</h1>
+    <p class="mission-subtitle">Resumen ejecutivo del asistente personal · estado operativo en tiempo real</p>
+  </div>
 
-    <div class="mission-grid">
-      <section class="panel mission-main">
-        {% include "partials/center_panel.html" %}
-      </section>
-      <aside class="panel mission-side-panel">
-        {% include "partials/right_panel.html" %}
-      </aside>
-    </div>
-  </section>
-  <script src="{{ url_for('static', filename='js/calendar.js') }}" type="module"></script>
+  <div class="mission-grid">
+    <section class="mission-main">
+      {% include "partials/center_panel.html" %}
+    </section>
+    <aside class="mission-side-panel">
+      {% include "partials/right_panel.html" %}
+    </aside>
+  </div>
+</section>
+
+<script src="{{ url_for('static', filename='js/calendar.js') }}" type="module"></script>
 {% endblock %}

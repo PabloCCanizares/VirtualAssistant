@@ -1,52 +1,62 @@
-<section class="calendar-shell">
+<section class="dashboard-center">
 
-  <!-- 1) Toolbar -->
-  <header class="toolbar glass">
-    <div class="left">
-      <button id="btn-today">Hoy</button>
-      <div class="nav">
+  <!-- Calendar Toolbar -->
+  <header class="calendar-toolbar">
+    <div class="calendar-toolbar-left">
+      <button id="btn-today" class="calendar-toolbar-btn primary">Hoy</button>
+      <div class="calendar-toolbar-nav">
         <button id="btn-prev">⟨</button>
         <button id="btn-next">⟩</button>
       </div>
-      <span id="week-label" class="week-label"></span>
+      <span id="week-label" class="calendar-toolbar-label"></span>
     </div>
-    <div class="right muted">Vista semanal estilo Google Calendar</div>
+    <div class="calendar-toolbar-right">Vista semanal</div>
   </header>
 
-  <!-- 2) GRID 2x2 DE ESTADÍSTICAS -->
-  <div class="stats-section">
-    <div class="stats-grid">
-      <div class="stats-cell" data-stat="tasks_completed_month" id="cell-tasks_completed_month">
-        <div class="panel-placeholder">Cargando “Tareas cumplidas”...</div>
+  <!-- Stats Grid 2x2 -->
+  <div class="dashboard-stats-grid">
+    <div class="dashboard-stats-cell" data-stat="tasks_completed_month" id="cell-tasks_completed_month">
+      <div class="panel-placeholder">
+        <span class="panel-placeholder-icon">📊</span>
+        <span>Cargando "Tareas cumplidas"...</span>
       </div>
+    </div>
 
-      <div class="stats-cell" data-stat="goals_progress" id="cell-goals_progress">
-        <div class="panel-placeholder">Cargando “Progreso objetivos”...</div>
+    <div class="dashboard-stats-cell" data-stat="goals_progress" id="cell-goals_progress">
+      <div class="panel-placeholder">
+        <span class="panel-placeholder-icon">🎯</span>
+        <span>Cargando "Progreso objetivos"...</span>
       </div>
+    </div>
 
-      <div class="stats-cell" data-stat="tasks_relevance" id="cell-tasks_relevance">
-        <div class="panel-placeholder">Cargando “Relevancia tareas”...</div>
+    <div class="dashboard-stats-cell" data-stat="tasks_relevance" id="cell-tasks_relevance">
+      <div class="panel-placeholder">
+        <span class="panel-placeholder-icon">⚡</span>
+        <span>Cargando "Relevancia tareas"...</span>
       </div>
+    </div>
 
-      <div class="stats-cell" data-stat="events_by_type" id="cell-events_by_type">
-        <div class="panel-placeholder">Cargando “Eventos por tipo”...</div>
+    <div class="dashboard-stats-cell" data-stat="events_by_type" id="cell-events_by_type">
+      <div class="panel-placeholder">
+        <span class="panel-placeholder-icon">📅</span>
+        <span>Cargando "Eventos por tipo"...</span>
       </div>
     </div>
   </div>
 
-  <!-- 3) Day headers -->
-  <section class="day-headers glass">
-    <div class="all-day-label">Todo el día</div>
+  <!-- Day Headers -->
+  <section class="calendar-day-headers">
+    <div class="all-day-label">Todo el dia</div>
     <div id="day-labels" class="days"></div>
   </section>
 
-  <!-- 4) All-day-row -->
-  <section class="all-day-row glass">
+  <!-- All Day Row -->
+  <section class="calendar-all-day-row">
     <div class="spacer"></div>
     <div id="all-day-cells" class="days"></div>
   </section>
 
-  <!-- 5) Main calendar -->
+  <!-- Main Calendar -->
   <main id="calendar" class="calendar"></main>
 
 </section>

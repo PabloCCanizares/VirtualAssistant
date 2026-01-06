@@ -1,33 +1,57 @@
-<aside class="side mission-side">
-  <div class="card">
-    <h2>➕ Nuevo objetivo</h2>
+<aside class="side-panel">
 
-    <form method="post" action="{{ url_for('goal_bp.add_goal') }}" class="form_goal">
-      <!-- Si usas CSRF, descomenta la siguiente línea -->
-      {# {% if csrf_token is defined %}{{ csrf_token() }}{% endif %} #}
+  <!-- Formulario de nuevo objetivo -->
+  <div class="side-panel-card">
+    <div class="side-panel-header">
+      <span class="side-panel-icon">➕</span>
+      <h3 class="side-panel-title">Nuevo objetivo</h3>
+    </div>
 
-      <label for="titulo">Título</label>
-      <input type="text" name="titulo" id="titulo" placeholder="Aprender MongoDB" required>
+    <form method="post"
+          action="{{ url_for('goal_bp.add_goal') }}"
+          class="panel-form">
 
-      <label for="descripcion">Descripción</label>
-      <textarea name="descripcion" id="descripcion" rows="3" placeholder="Completar curso y proyecto práctico."></textarea>
+      <div class="panel-form-group">
+        <label class="panel-form-label" for="titulo">Titulo</label>
+        <input type="text"
+               name="titulo"
+               id="titulo"
+               class="panel-form-input"
+               placeholder="Aprender MongoDB"
+               required>
+      </div>
 
-      <div class="row">
-        <div>
-          <label for="fecha_inicio">Fecha inicio</label>
-          <input type="date" name="fecha_inicio" id="fecha_inicio">
+      <div class="panel-form-group">
+        <label class="panel-form-label" for="descripcion">Descripcion</label>
+        <textarea name="descripcion"
+                  id="descripcion"
+                  class="panel-form-textarea"
+                  rows="3"
+                  placeholder="Completar curso y proyecto practico."></textarea>
+      </div>
+
+      <div class="panel-form-row">
+        <div class="panel-form-group">
+          <label class="panel-form-label" for="fecha_inicio">Fecha inicio</label>
+          <input type="date"
+                 name="fecha_inicio"
+                 id="fecha_inicio"
+                 class="panel-form-input">
         </div>
-        <div>
-          <label for="fecha_fin">Fecha fin</label>
-          <input type="date" name="fecha_fin" id="fecha_fin">
+        <div class="panel-form-group">
+          <label class="panel-form-label" for="fecha_fin">Fecha fin</label>
+          <input type="date"
+                 name="fecha_fin"
+                 id="fecha_fin"
+                 class="panel-form-input">
         </div>
       </div>
 
-      <div class="row">
-        <div>
-          <label for="categoria">Categoría</label>
-          <select name="categoria" id="categoria">
-            <option value="Educación" selected>Educación</option>
+      <div class="panel-form-row">
+        <div class="panel-form-group">
+          <label class="panel-form-label" for="categoria">Categoria</label>
+          <select name="categoria" id="categoria" class="panel-form-select">
+            <option value="Educacion" selected>Educacion</option>
             <option value="Trabajo">Trabajo</option>
             <option value="Personal">Personal</option>
             <option value="Estudios">Estudios</option>
@@ -36,16 +60,22 @@
           </select>
         </div>
 
-        <div>
-          <label for="progreso">Progreso (%)</label>
-          <input type="number" name="progreso" id="progreso" min="0" max="100" value="0">
+        <div class="panel-form-group">
+          <label class="panel-form-label" for="progreso">Progreso (%)</label>
+          <input type="number"
+                 name="progreso"
+                 id="progreso"
+                 class="panel-form-input"
+                 min="0"
+                 max="100"
+                 value="0">
         </div>
       </div>
 
-      <div class="row">
-        <div>
-          <label for="estado">Estado</label>
-          <select name="estado" id="estado">
+      <div class="panel-form-row">
+        <div class="panel-form-group">
+          <label class="panel-form-label" for="estado">Estado</label>
+          <select name="estado" id="estado" class="panel-form-select">
             <option value="Pendiente">Pendiente</option>
             <option value="En progreso" selected>En progreso</option>
             <option value="Completado">Completado</option>
@@ -53,9 +83,9 @@
           </select>
         </div>
 
-        <div>
-          <label for="prioridad">Prioridad</label>
-          <select name="prioridad" id="prioridad">
+        <div class="panel-form-group">
+          <label class="panel-form-label" for="prioridad">Prioridad</label>
+          <select name="prioridad" id="prioridad" class="panel-form-select">
             <option value="Baja">Baja</option>
             <option value="Media" selected>Media</option>
             <option value="Alta">Alta</option>
@@ -63,20 +93,52 @@
         </div>
       </div>
 
-      <div class="row">
-        <div>
-          <label for="scope">Ámbito</label>
-          <select name="scope" id="scope">
-            <option value="corto">Corto plazo</option>
-            <option value="medio" selected>Medio plazo</option>
-            <option value="largo">Largo plazo</option>
-          </select>
-        </div>
-    
+      <div class="panel-form-group">
+        <label class="panel-form-label" for="scope">Ambito</label>
+        <select name="scope" id="scope" class="panel-form-select">
+          <option value="corto">Corto plazo</option>
+          <option value="medio" selected>Medio plazo</option>
+          <option value="largo">Largo plazo</option>
+        </select>
       </div>
 
-
-      <button type="submit" class="submit">Crear objetivo ✨</button>
+      <button type="submit" class="panel-form-submit">Crear objetivo ✨</button>
     </form>
   </div>
+
+  <!-- Estadisticas rapidas -->
+  <div class="side-panel-card">
+    <div class="side-panel-header">
+      <span class="side-panel-icon">📊</span>
+      <h3 class="side-panel-title">Resumen rapido</h3>
+    </div>
+
+    <div class="panel-kpis" style="grid-template-columns: 1fr;">
+      <div class="panel-kpi">
+        <div class="panel-kpi-label">Objetivos activos</div>
+        <div class="panel-kpi-value">{{ goals|selectattr('estado', 'equalto', 'En progreso')|list|length if goals else 0 }}</div>
+      </div>
+      <div class="panel-kpi">
+        <div class="panel-kpi-label">Completados</div>
+        <div class="panel-kpi-value">{{ goals|selectattr('estado', 'equalto', 'Completado')|list|length if goals else 0 }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Consejos -->
+  <div class="side-panel-card">
+    <div class="side-panel-header">
+      <span class="side-panel-icon">💡</span>
+      <h3 class="side-panel-title">Consejos</h3>
+    </div>
+    <div class="ai-suggestion-item" style="border-left-color: var(--accent);">
+      <strong>Define metas SMART</strong>
+      <p>Tus objetivos deben ser especificos, medibles, alcanzables, relevantes y temporales.</p>
+    </div>
+    <div class="ai-suggestion-item" style="border-left-color: var(--accent-2);">
+      <strong>Divide y venceras</strong>
+      <p>Divide objetivos grandes en tareas mas pequenas y manejables.</p>
+    </div>
+  </div>
+
 </aside>
