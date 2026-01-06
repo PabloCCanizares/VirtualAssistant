@@ -1,35 +1,71 @@
-<aside>
-  <div class="brand">
-    <span class="dot" aria-hidden="true"></span>
-    <h1>Asistente Personal LLM</h1>
+<aside class="sidebar">
+  <!-- Brand -->
+  <div class="sidebar-brand">
+    <span class="sidebar-brand-dot" aria-hidden="true"></span>
+    <div>
+      <h1 class="sidebar-brand-title">GoalMind AI</h1>
+      <p class="sidebar-tagline">Memoria aumentada · Agenda · Objetivos</p>
+    </div>
   </div>
-  <p class="tagline">Memoria aumentada · Agenda · Objetivos</p>
 
-  <nav aria-label="Secciones">
-    <ul>
-      <li><a href="{{ url_for('dashboard_bp.dashboard') }}" {% if page == 'dashboard' %}aria-current="page"{% endif %}>🏠 Dashboard</a></li>
-      <li><a href="{{ url_for('calendar_bp.calendar_page') }}" {% if page == 'agenda' %}aria-current="page"{% endif %}>📅 Agenda</a></li>
-      <li><a href="{{ url_for('goal_bp.list_goals_by_user',user_id=0) }}" {% if page == 'objetivos' %}aria-current="page"{% endif %}>🎯 Objetivos</a></li>
-      <li><a href="{{ url_for('task_bp.list_tasks_by_user', user_id=0) }}"{% if page == 'tareas' %}aria-current="page"{% endif %}>🧩 Tareas</a></li>
-      <li><a href="{{ url_for('dashboard_bp.estadisticas') }}" {% if page == 'estadisticas' %}aria-current="page"{% endif %}>📈 Estadísticas</a></li>
-      <li><a href="{{ url_for('dashboard_bp.config') }}" {% if page == 'config' %}aria-current="page"{% endif %}>⚙️ Configuración</a></li>
-    </ul>
+  <!-- Navigation -->
+  <nav class="sidebar-nav" aria-label="Secciones">
+    <a href="{{ url_for('dashboard_bp.dashboard') }}"
+       class="sidebar-nav-item"
+       {% if page == 'dashboard' %}aria-current="page"{% endif %}>
+      <span class="sidebar-nav-icon">🏠</span>
+      Dashboard
+    </a>
+    <a href="{{ url_for('calendar_bp.calendar_page') }}"
+       class="sidebar-nav-item"
+       {% if page == 'agenda' %}aria-current="page"{% endif %}>
+      <span class="sidebar-nav-icon">📅</span>
+      Agenda
+    </a>
+    <a href="{{ url_for('goal_bp.list_goals_by_user', user_id=0) }}"
+       class="sidebar-nav-item"
+       {% if page == 'objetivos' %}aria-current="page"{% endif %}>
+      <span class="sidebar-nav-icon">🎯</span>
+      Objetivos
+    </a>
+    <a href="{{ url_for('task_bp.list_tasks_by_user', user_id=0) }}"
+       class="sidebar-nav-item"
+       {% if page == 'tareas' %}aria-current="page"{% endif %}>
+      <span class="sidebar-nav-icon">🧩</span>
+      Tareas
+    </a>
+    <a href="{{ url_for('dashboard_bp.estadisticas') }}"
+       class="sidebar-nav-item"
+       {% if page == 'estadisticas' %}aria-current="page"{% endif %}>
+      <span class="sidebar-nav-icon">📈</span>
+      Estadisticas
+    </a>
+    <a href="{{ url_for('dashboard_bp.config') }}"
+       class="sidebar-nav-item"
+       {% if page == 'config' %}aria-current="page"{% endif %}>
+      <span class="sidebar-nav-icon">⚙️</span>
+      Configuracion
+    </a>
   </nav>
 
-  <div class="section">
-    <div class="section-title">Sistema multi-agente (lang-graph)</div>
-    <div class="pill ok">🧠 Identificador de tareas · OK</div>
-    <div class="pill idle">🔧 Ejecutor de operaciones · Idle</div>
-    <div class="pill ok">💡 Sugerencias proactivas · OK</div>
-    <div class="pill warn">📝 Transcriptor · En espera</div>
-    <a class="btn" href="#" title="Placeholder">⛓️ Conectar Google Calendar</a>
+  <!-- Sistema multi-agente -->
+  <div class="sidebar-section">
+    <div class="sidebar-section-title">Sistema multi-agente (LangGraph)</div>
+    <div class="sidebar-pill ok">🧠 Identificador de tareas · OK</div>
+    <div class="sidebar-pill idle">🔧 Ejecutor de operaciones · Idle</div>
+    <div class="sidebar-pill ok">💡 Sugerencias proactivas · OK</div>
+    <div class="sidebar-pill warn">📝 Transcriptor · En espera</div>
+    <a class="sidebar-btn" href="#" title="Conectar Google Calendar">
+      ⛓️ Conectar Google Calendar
+    </a>
   </div>
 
-  <div class="section">
-    <div class="section-title">Categorías</div>
-    <div class="pill">🧑‍🏫 Docencia</div>
-    <div class="pill">📚 Publicaciones</div>
-    <div class="pill">🏠 Personal</div>
-    <div class="pill">💼 Gestión</div>
+  <!-- Categorias -->
+  <div class="sidebar-section">
+    <div class="sidebar-section-title">Categorias</div>
+    <div class="sidebar-pill">🧑‍🏫 Docencia</div>
+    <div class="sidebar-pill">📚 Publicaciones</div>
+    <div class="sidebar-pill">🏠 Personal</div>
+    <div class="sidebar-pill">💼 Gestion</div>
   </div>
 </aside>

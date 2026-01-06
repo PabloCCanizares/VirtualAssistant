@@ -30,9 +30,7 @@ def init_scheduler(app, sync_interval_minutes=1):
         with app.app_context():
             from database.mongo_conn import sync_all_collections
             try:
-                print("\n [Scheduler] Iniciando sincronización automática...")
                 sync_all_collections()
-                print(" [Scheduler] Sincronización completada.\n")
             except Exception as e:
                 print(f"[Scheduler] Error en sincronización: {e}")
 

@@ -1,130 +1,222 @@
-<section class="panel center">
+<section class="panel-container">
 
-  <div class="card">
-    <h2>🧮 Filtrar por categoría</h2>
-    <form method="get" action="{{ url_for('task_bp.filter_by_category') }}" class="form">
-      <label for="categoria">Categoría</label>
-      <input type="text" name="categoria" id="categoria" placeholder="p.ej. trabajo, personal" value="{{ selected_category or '' }}">
-      <button type="submit" class="submit">Filtrar</button>
+  <!-- Hero Section -->
+  <div class="panel-hero">
+    <div class="panel-hero-content">
+      <p class="panel-subtitle">Gestión de tareas</p>
+      <h2 class="panel-hero-title">Mis Tareas</h2>
+      <p class="panel-hero-desc">Organiza, filtra y gestiona todas tus tareas de forma eficiente.</p>
+    </div>
+    <div class="panel-kpis">
+      <div class="panel-kpi">
+        <div class="panel-kpi-label">Total</div>
+        <div class="panel-kpi-value">{{ tasks|length if tasks else 0 }}</div>
+      </div>
+      <div class="panel-kpi">
+        <div class="panel-kpi-label">Categoría</div>
+        <div class="panel-kpi-value">{{ selected_category if selected_category else "Todas" }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="panel-section panel-accent">
+    <div class="panel-header">
+      <h3 class="panel-title">
+        <span class="panel-title-icon">🔍</span>
+        Filtrar tareas
+      </h3>
+    </div>
+    <form method="get" action="{{ url_for('task_bp.filter_by_category') }}" class="filter-section">
+      <div class="panel-form-group">
+        <label class="panel-form-label" for="categoria">Categoría</label>
+        <input type="text"
+               name="categoria"
+               id="categoria"
+               class="panel-form-input"
+               placeholder="p.ej. trabajo, personal"
+               value="{{ selected_category or '' }}">
+      </div>
+      <button type="submit" class="panel-action-btn primary">Filtrar</button>
     </form>
   </div>
 
-  <h2>Mis tareas</h2>
-
-  <div class="bulk-actions">
+  <!-- Acciones en lote -->
+  <div class="bulk-actions-bar">
     <label>
-      <input type="checkbox" id="selectAllTasks">
+      <input type="checkbox" id="selectAllTasks" class="item-checkbox">
       Seleccionar todo
     </label>
 
-    <form id="bulkDeleteForm" action="{{ url_for('task_bp.bulk_delete_tasks') }}" method="post" onsubmit="return confirm('¿Eliminar las tareas seleccionadas?');" style="display:inline-block; margin-left: 1rem;">
-      <button type="submit" class="btn btn-danger" disabled id="bulkDeleteBtn">Eliminar seleccionadas</button>
+    <form id="bulkDeleteForm"
+          action="{{ url_for('task_bp.bulk_delete_tasks') }}"
+          method="post"
+          onsubmit="return confirm('¿Eliminar las tareas seleccionadas?');">
+      <button type="submit"
+              class="panel-action-btn danger"
+              disabled
+              id="bulkDeleteBtn">
+        🗑️ Eliminar seleccionadas
+      </button>
     </form>
   </div>
 
-  {% if tasks and tasks|length > 0 %}
-  <ul class="tasks-list" id="taskList">
-    {% for task in tasks %}
-    <li class="task-item" data-task-id="{{ task['_id'] }}">
-      
-      <!-- ✅ Formulario oculto de borrado (no anidado) -->
-      <form id="delete-{{ task['_id'] }}"
-            action="{{ url_for('task_bp.delete_task', task_id=task['_id']) }}"
-            method="post"
-            onsubmit="return confirm('¿Eliminar esta tarea?');"
-            style="display:none;">
-        {% if csrf_token is defined %}{{ csrf_token() }}{% endif %}
-      </form>
+  <!-- Lista de tareas -->
+  <div class="panel-section panel-accent">
+    <div class="panel-header">
+      <h3 class="panel-title">
+        <span class="panel-title-icon">📋</span>
+        Lista de tareas
+      </h3>
+      <div class="panel-actions">
+        <span class="panel-badge accent">{{ tasks|length if tasks else 0 }} tareas</span>
+      </div>
+    </div>
 
-      <div class="task-row">
-        <!-- checkbox para selección múltiple -->
-        <input class="task-select" type="checkbox" name="selected_tasks" value="{{ task['_id'] }}" form="bulkDeleteForm" aria-label="Seleccionar tarea">
-        
-        <div class="task-summary">
-          <div class="task-content">
-            <p class="task-title">{{ task['contenido'] }}</p>
-            <p class="task-subtitle">
-              Objetivo:
-              {% if task['objetivo_id'] %}
-                {{ task['objetivo_id'] }}
-              {% else %}
-                (sin objetivo)
+    {% if tasks and tasks|length > 0 %}
+    <ul class="item-list" id="taskList">
+      {% for task in tasks %}
+      {% set prioridad = task.get('prioridad', 'media')|lower %}
+      <li class="item-card priority-{{ prioridad }}" data-task-id="{{ task['_id'] }}">
+
+        <!-- Formulario oculto de borrado -->
+        <form id="delete-{{ task['_id'] }}"
+              action="{{ url_for('task_bp.delete_task', task_id=task['_id']) }}"
+              method="post"
+              onsubmit="return confirm('¿Eliminar esta tarea?');"
+              style="display:none;">
+          {% if csrf_token is defined %}{{ csrf_token() }}{% endif %}
+        </form>
+
+        <div class="item-card-header">
+          <input class="item-checkbox"
+                 type="checkbox"
+                 name="selected_tasks"
+                 value="{{ task['_id'] }}"
+                 form="bulkDeleteForm"
+                 aria-label="Seleccionar tarea">
+
+          <div class="item-content">
+            <h4 class="item-title">{{ task['contenido'] }}</h4>
+            <div class="item-meta">
+              <span class="item-meta-tag">
+                📁 {% if task['objetivo_id'] %}{{ task['objetivo_id'] }}{% else %}Sin objetivo{% endif %}
+              </span>
+              {% if task['fecha_limite'] %}
+              <span class="item-meta-tag deadline">
+                📅 {{ task['fecha_limite'] }}
+              </span>
               {% endif %}
-            </p>
-            {% if task['fecha_limite'] %}
-            <p class="task-deadline">
-              Fecha límite: {{ task['fecha_limite'] }}
-            </p>
-            {% endif %}
+              {% set estado = task.get('estado', 'pendiente')|lower %}
+              <span class="item-meta-tag status-{{ estado|replace(' ', '-') }}">
+                {{ task['estado'] }}
+              </span>
+              <span class="item-meta-tag">
+                ⚡ {{ task.get('prioridad', 'media') }}
+              </span>
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- 🔹 DETALLE (bloque expandible) -->
-      <div class="task-details" aria-hidden="true">
-        <form class="task-edit-form" action="{{ url_for('task_bp.update_task', task_id=task['_id']) }}" method="post">
-          
-          <div class="task-fields-view">
-            <div class="task-info-left">
-              <p><strong>Descripción:</strong> <span class="task-desc-text">{{ task['descripcion'] or "(sin descripción)" }}</span></p>
-              <p><strong>Estado:</strong> <span class="task-est-text">{{ task['estado'] }}</span></p>
-              <p><strong>Categoría:</strong> <span class="task-cat-text">{{ task['categoria'] or "—" }}</span></p>
-              <p><strong>Prioridad:</strong> <span class="task-prio-text">{{ task['prioridad'] or "media" }}</span></p>
-              <p><strong>Fecha límite:</strong> <span class="task-date-text">{{ task['fecha_limite'] or "—" }}</span></p>
+        <!-- Detalles expandibles -->
+        <div class="item-details" aria-hidden="true">
+          <form class="task-edit-form"
+                action="{{ url_for('task_bp.update_task', task_id=task['_id']) }}"
+                method="post">
+
+            <!-- Vista de solo lectura -->
+            <div class="task-fields-view">
+              <div class="item-details-grid">
+                <div class="item-detail-row">
+                  <span class="item-detail-label">Descripción</span>
+                  <span class="item-detail-value task-desc-text">{{ task['descripcion'] or "(sin descripción)" }}</span>
+                </div>
+                <div class="item-detail-row">
+                  <span class="item-detail-label">Estado</span>
+                  <span class="item-detail-value task-est-text">{{ task['estado'] }}</span>
+                </div>
+                <div class="item-detail-row">
+                  <span class="item-detail-label">Categoría</span>
+                  <span class="item-detail-value task-cat-text">{{ task['categoria'] or "—" }}</span>
+                </div>
+                <div class="item-detail-row">
+                  <span class="item-detail-label">Prioridad</span>
+                  <span class="item-detail-value task-prio-text">{{ task['prioridad'] or "media" }}</span>
+                </div>
+                <div class="item-detail-row">
+                  <span class="item-detail-label">Fecha límite</span>
+                  <span class="item-detail-value task-date-text">{{ task['fecha_limite'] or "—" }}</span>
+                </div>
+              </div>
             </div>
-          </div>
 
-          <!-- MODO EDICIÓN -->
-          <div class="task-fields-edit" style="display:none;">
-            <div class="task-info-left">
-              <label>Título</label>
-              <input type="text" name="contenido" value="{{ task['contenido'] }}" required>
+            <!-- Modo edición -->
+            <div class="task-fields-edit panel-form" style="display:none;">
+              <div class="panel-form-group">
+                <label class="panel-form-label">Título</label>
+                <input type="text" name="contenido" class="panel-form-input" value="{{ task['contenido'] }}" required>
+              </div>
 
-              <label>Descripción</label>
-              <textarea name="descripcion" rows="3">{{ task['descripcion'] }}</textarea>
+              <div class="panel-form-group">
+                <label class="panel-form-label">Descripción</label>
+                <textarea name="descripcion" class="panel-form-textarea" rows="3">{{ task['descripcion'] }}</textarea>
+              </div>
 
-              <label>Fecha límite</label>
-              <input type="date" name="fecha_limite" value="{{ task['fecha_limite']|default('') }}">
+              <div class="panel-form-row">
+                <div class="panel-form-group">
+                  <label class="panel-form-label">Fecha límite</label>
+                  <input type="date" name="fecha_limite" class="panel-form-input" value="{{ task['fecha_limite']|default('') }}">
+                </div>
+                <div class="panel-form-group">
+                  <label class="panel-form-label">Estado</label>
+                  <select name="estado" class="panel-form-select">
+                    <option value="pendiente" {% if task['estado']=="pendiente" %}selected{% endif %}>Pendiente</option>
+                    <option value="en curso" {% if task['estado']=="en curso" %}selected{% endif %}>En curso</option>
+                    <option value="completada" {% if task['estado']=="completada" %}selected{% endif %}>Completada</option>
+                  </select>
+                </div>
+              </div>
 
-              <label>Estado</label>
-              <select name="estado">
-                <option value="pendiente" {% if task['estado']=="pendiente" %}selected{% endif %}>Pendiente</option>
-                <option value="en curso" {% if task['estado']=="en curso" %}selected{% endif %}>En curso</option>
-                <option value="completada" {% if task['estado']=="completada" %}selected{% endif %}>Completada</option>
-              </select>
-
-              <label>Categoría</label>
-              <input type="text" name="categoria" value="{{ task['categoria'] or '' }}">
-
-              <label>Prioridad</label>
-              <select name="prioridad">
-                <option value="baja" {% if task['prioridad']=="baja" %}selected{% endif %}>Baja</option>
-                <option value="media" {% if task['prioridad']=="media" %}selected{% endif %}>Media</option>
-                <option value="alta" {% if task['prioridad']=="alta" %}selected{% endif %}>Alta</option>
-              </select>
+              <div class="panel-form-row">
+                <div class="panel-form-group">
+                  <label class="panel-form-label">Categoría</label>
+                  <input type="text" name="categoria" class="panel-form-input" value="{{ task['categoria'] or '' }}">
+                </div>
+                <div class="panel-form-group">
+                  <label class="panel-form-label">Prioridad</label>
+                  <select name="prioridad" class="panel-form-select">
+                    <option value="baja" {% if task['prioridad']=="baja" %}selected{% endif %}>Baja</option>
+                    <option value="media" {% if task['prioridad']=="media" %}selected{% endif %}>Media</option>
+                    <option value="alta" {% if task['prioridad']=="alta" %}selected{% endif %}>Alta</option>
+                  </select>
+                </div>
+              </div>
             </div>
-          </div>
 
-          <!-- 🔹 BOTONES (parte derecha inferior) -->
-          <div class="task-buttons-right">
-            <button type="button" class="btn-edit">✏️ Editar</button>
-            <button type="submit" class="btn-confirm" style="display:none;">✅ Confirmar</button>
-            <button type="button" class="btn-cancel" style="display:none;">❌ Cancelar</button>
+            <!-- Botones de acción -->
+            <div class="item-actions">
+              <button type="button" class="panel-action-btn btn-edit">✏️ Editar</button>
+              <button type="submit" class="panel-action-btn success btn-confirm" style="display:none;">✅ Confirmar</button>
+              <button type="button" class="panel-action-btn btn-cancel" style="display:none;">❌ Cancelar</button>
+              <button type="submit"
+                      class="panel-action-btn danger task-delete-btn"
+                      title="Eliminar"
+                      form="delete-{{ task['_id'] }}">🗑️ Eliminar</button>
+            </div>
 
-            <!-- ✅ Botón eliminar conectado con el formulario de borrado -->
-            <button type="submit"
-                    class="btn btn-danger task-delete-btn"
-                    title="Eliminar"
-                    form="delete-{{ task['_id'] }}">🗑️ Eliminar</button>
-          </div>
+          </form>
+        </div>
 
-        </form>
-      </div>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <div class="empty-state">
+      <div class="empty-state-icon">📝</div>
+      <h4 class="empty-state-title">No hay tareas registradas</h4>
+      <p class="empty-state-desc">Crea tu primera tarea usando el panel de la derecha.</p>
+    </div>
+    {% endif %}
+  </div>
 
-    </li>
-    {% endfor %}
-  </ul>
-  {% else %}
-  <p>No hay tareas registradas todavía.</p>
-  {% endif %}
 </section>
