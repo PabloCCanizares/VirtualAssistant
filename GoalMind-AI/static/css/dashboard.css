@@ -358,28 +358,75 @@
 .dashboard-stats-cell {
   background: linear-gradient(135deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
   border: 1px solid var(--border);
-  border-left: 4px solid var(--accent);
   border-radius: var(--radius);
   padding: 20px;
   min-height: 180px;
   transition: all 0.3s ease;
 }
 
+/* Tamaño fijo cuando está cargado */
+.dashboard-stats-cell.loaded {
+  width: 600px;
+  height: 580px;
+  min-height: 580px;
+  max-height: 580px;
+  overflow: hidden;
+}
+
+/* ===== STAT GOALS PROGRESS LAYOUT ===== */
+.stat-goals-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.stat-goals-title {
+  flex-shrink: 0;
+  margin: 0 0 12px 0;
+}
+
+.stat-goals-chart {
+  flex: 0 0 50%;
+  width: 100%;
+  min-height: 0;
+  position: relative;
+}
+
+.stat-goals-chart canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.stat-goals-table-wrapper {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  margin-top: 12px;
+  min-height: 0;
+}
+
+.stat-goals-table-wrapper::-webkit-scrollbar {
+  width: 6px;
+}
+
+.stat-goals-table-wrapper::-webkit-scrollbar-track {
+  background: rgba(255,255,255,.04);
+  border-radius: 3px;
+}
+
+.stat-goals-table-wrapper::-webkit-scrollbar-thumb {
+  background: rgba(108,243,255,.3);
+  border-radius: 3px;
+}
+
+.stat-goals-table-wrapper::-webkit-scrollbar-thumb:hover {
+  background: rgba(108,243,255,.5);
+}
+
 .dashboard-stats-cell:hover {
   transform: translateY(-4px);
   box-shadow: 0 12px 32px rgba(0,0,0,.3), 0 0 24px rgba(108,243,255,.15);
-}
-
-.dashboard-stats-cell:nth-child(2) {
-  border-left-color: var(--accent-2);
-}
-
-.dashboard-stats-cell:nth-child(3) {
-  border-left-color: var(--good);
-}
-
-.dashboard-stats-cell:nth-child(4) {
-  border-left-color: var(--warn);
 }
 
 /* Day Headers */
@@ -455,7 +502,6 @@
 .dashboard-card {
   background: linear-gradient(135deg, rgba(16,24,43,.95), rgba(11,15,26,.9));
   border: 1px solid var(--border);
-  border-left: 4px solid var(--accent);
   border-radius: var(--radius);
   box-shadow: 0 8px 32px rgba(0,0,0,.3);
   overflow: hidden;
@@ -485,11 +531,6 @@
 .dashboard-side:not(.has-locked) .dashboard-card:hover {
   box-shadow: 0 16px 48px rgba(0,0,0,.4), 0 0 32px rgba(108,243,255,.15);
   border-color: rgba(108,243,255,.25);
-}
-
-/* Indicador de estado locked */
-.dashboard-card.locked {
-  border-left-color: var(--accent-2);
 }
 
 .dashboard-card-header {

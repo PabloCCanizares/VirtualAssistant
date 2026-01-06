@@ -1,12 +1,12 @@
 {# templates/partials/stats_templates/stat_goals_progress_panel.html #}
-<div class="panel stat-panel" role="region" aria-label="{{ title }}">
-  <h2>{{ title }}</h2>
+<div class="panel stat-panel stat-goals-layout" role="region" aria-label="{{ title }}">
+  <h2 class="stat-goals-title">{{ title }}</h2>
 
-  <div class="chart-container">
+  <div class="stat-goals-chart">
     <canvas id="chart-goals-{{ data.uid }}"></canvas>
   </div>
 
-  <div style="margin-top:12px;">
+  <div class="stat-goals-table-wrapper">
     <table class="stats-table">
       <thead><tr><th>Objetivo</th><th>Progreso (%)</th><th>#Tareas</th></tr></thead>
       <tbody>
