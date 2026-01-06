@@ -33,30 +33,53 @@ PALETTE = {
 def _utc_now():
     return datetime.now(timezone.utc)
 
-def _month_year_now():
+def _year_now():
     dt = _utc_now()
-    return dt.year, dt.month
+    return dt.year
 
-def _is_in_ym(dt_obj, year, month):
+def _parse_date(dt_obj):
+    """Convierte cualquier formato de fecha a datetime UTC."""
     if not dt_obj:
-        return False
+        return None
     from datetime import datetime as _dt
     try:
-        if isinstance(dt_obj, dict) and "$date" in dt_obj:
-            d = _dt.fromisoformat(dt_obj["$date"].replace("Z", "+00:00"))
+        # Objeto datetime nativo de PyMongo
+        if isinstance(dt_obj, _dt):
+            d = dt_obj
+        # Formato JSON extendido de MongoDB: {"$date": "..."}
+        elif isinstance(dt_obj, dict) and "$date" in dt_obj:
+            date_val = dt_obj["$date"]
+            if isinstance(date_val, (int, float)):
+                # Timestamp en milisegundos
+                d = _dt.fromtimestamp(date_val / 1000, tz=timezone.utc)
+            else:
+                d = _dt.fromisoformat(str(date_val).replace("Z", "+00:00"))
+        # String ISO
         elif isinstance(dt_obj, str):
             d = _dt.fromisoformat(dt_obj.replace("Z", "+00:00"))
-        elif isinstance(dt_obj, _dt):
-            d = dt_obj
         else:
-            return False
+            return None
+
+        # Normalizar a UTC
+        if d.tzinfo is None:
+            d = d.replace(tzinfo=timezone.utc)
+        else:
+            d = d.astimezone(timezone.utc)
+        return d
     except Exception:
+        return None
+
+def _date_to_iso(dt_obj):
+    """Convierte fecha a string ISO para serialización JSON."""
+    d = _parse_date(dt_obj)
+    return d.isoformat() if d else None
+
+def _is_in_ym(dt_obj, year):
+    """Verifica si una fecha está en el año/mes especificado."""
+    d = _parse_date(dt_obj)
+    if not d:
         return False
-    if d.tzinfo is None:
-        d = d.replace(tzinfo=timezone.utc)
-    else:
-        d = d.astimezone(timezone.utc)
-    return d.year == year and d.month == month
+    return d.year == year
 
 def _load_all_tasks():
     tasks = TaskModel.get_all_tasks()
@@ -116,9 +139,10 @@ def _estado_to_value(estado: str) -> int:
 # Estadísticas (mismas funciones que antes, pero devolviendo uid y palette)
 def stats_tasks_completed_month():
     tasks = _load_all_tasks()
-    year, month = _month_year_now()
-    month_tasks = [t for t in tasks if _is_in_ym(t.get("fecha_limite"), year, month)]
+    year = _year_now()
+    month_tasks = [t for t in tasks if _is_in_ym(t.get("fecha_limite"), year)]
     total = len(month_tasks)
+    print("PR: MONTH_TASKS: " + str(month_tasks))
     completed = sum(1 for t in month_tasks if (t.get("estado") or "").strip().lower() == "completada")
     pct = round((completed / total * 100.0) if total else 0.0, 2)
     return {
@@ -128,7 +152,7 @@ def stats_tasks_completed_month():
         "completed": completed,
         "percentage_completed": pct,
         "items": month_tasks,
-        "meta": {"year": year, "month": month},
+        "meta": {"year": year},
     }
 
 def stats_goals_progress():
@@ -164,25 +188,25 @@ def stats_goals_progress():
 def stats_tasks_relevance_month():
     PRIOR_POINTS = {"alta":3, "media":2, "baja":1, "high":3, "medium":2, "low":1}
     tasks = _load_all_tasks()
-    year, month = _month_year_now()
+    year = _year_now()
     def priority_points(t):
         p = (t.get("prioridad") or "").strip().lower()
         return PRIOR_POINTS.get(p, 0)
     total_points = sum(priority_points(t) for t in tasks)
-    month_tasks = [t for t in tasks if _is_in_ym(t.get("fecha_limite"), year, month)]
+    month_tasks = [t for t in tasks if _is_in_ym(t.get("fecha_limite"), year)]
     month_points = sum(priority_points(t) for t in month_tasks)
     pct = round((month_points / total_points * 100.0) if total_points else 0.0, 2)
     table = [{"id": t.get("_id"), "contenido": t.get("contenido"), "prioridad": t.get("prioridad"),
-              "points": priority_points(t), "estado": t.get("estado"), "fecha_limite": t.get("fecha_limite")}
+              "points": priority_points(t), "estado": t.get("estado"), "fecha_limite": _date_to_iso(t.get("fecha_limite"))}
              for t in month_tasks]
     return {"uid": uuid.uuid4().hex, "palette": PALETTE, "total_points": total_points,
             "month_points": month_points, "percentage_of_relevance": pct, "month_tasks": table,
-            "meta": {"year": year, "month": month}}
+            "meta": {"year": year}}
 
 def stats_events_by_type_month():
     events = _load_all_events()
-    year, month = _month_year_now()
-    month_events = [e for e in events if _is_in_ym(e.get("fecha_inicio"), year, month)]
+    year = _year_now()
+    month_events = [e for e in events if _is_in_ym(e.get("fecha_inicio"), year)]
     total = len(month_events)
     counts = {}
     for e in month_events:
@@ -192,7 +216,7 @@ def stats_events_by_type_month():
                     for tipo, cnt in counts.items()]
     distribution.sort(key=lambda x: x["count"], reverse=True)
     return {"uid": uuid.uuid4().hex, "palette": PALETTE, "total": total, "distribution": distribution, "items": month_events,
-            "meta": {"year": year, "month": month}}
+            "meta": {"year": year}}
 
 # Mapa de rutas -> template parcial (autónomo)
 _STAT_MAP = {

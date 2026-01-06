@@ -149,7 +149,6 @@ main{
   padding:0;
   background:transparent;
   border:none;
-  border-left:none;
   box-shadow:none;
 }
 
@@ -172,7 +171,6 @@ main{
 .card{
   background: linear-gradient(135deg, var(--panel), rgba(255,255,255,.06));
   border:1px solid var(--border);
-  border-left:6px solid var(--accent);
   border-radius: var(--radius);
   padding:24px;
   box-shadow: var(--shadow);
@@ -385,7 +383,6 @@ main{
   margin-top: 6px;
   font-size: 13px;
   padding-left: 20px;
-  border-left: 1px solid rgba(255,255,255,.06);
 }
 
 /* Campos en modo edición */
@@ -569,7 +566,6 @@ main{
 .day-col{
   position:relative; overflow:auto;
   background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
-  border-left:1px solid var(--border);
   border-radius: 8px;
   box-shadow: inset 0 2px 10px rgba(0,0,0,.25);
 }
@@ -604,7 +600,6 @@ main{
   position:absolute; left:6px; right:6px;
   border:1px solid var(--event-border);
   background: var(--event-bg);
-  border-left:4px solid var(--event-border);
   border-radius:12px; padding:8px 10px; font-size:12px; line-height:1.25;
   cursor:pointer; overflow:hidden;
   display:flex; flex-direction:column; gap:4px;
@@ -636,7 +631,6 @@ main{
   width:min(520px, 92vw);
   background: linear-gradient(180deg, rgba(108,243,255,.08), rgba(139,123,255,.06));
   border:1px solid var(--border);
-  border-left:4px solid var(--accent);
   border-radius:16px; box-shadow:0 20px 60px rgba(0,0,0,.5);
   padding:16px; display:flex; flex-direction:column; gap:10px; color:var(--text);
 }

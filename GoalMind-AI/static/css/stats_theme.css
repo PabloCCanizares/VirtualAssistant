@@ -18,8 +18,8 @@
 body { background: linear-gradient(180deg,var(--bg),var(--bg2)); color:var(--text); font-family: system-ui, Arial, sans-serif; }
 .panel.stat-panel{
   background: linear-gradient(135deg,var(--panel), rgba(255,255,255,.06));
+  height: 100%;
   border: 1px solid var(--border);
-  border-left: 6px solid var(--accent);
   border-radius: var(--radius);
   padding: 20px;
   box-shadow: var(--shadow);
@@ -68,7 +68,6 @@ body { background: linear-gradient(180deg,var(--bg),var(--bg2)); color:var(--tex
 .stats-cell {
     background: linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0.06));
     border: 1px solid rgba(255,255,255,0.06);
-    border-left: 6px solid var(--accent, #6cf3ff);
     border-radius: 20px;
     padding: 0;
     box-shadow: 0 12px 36px rgba(0,0,0,0.55);

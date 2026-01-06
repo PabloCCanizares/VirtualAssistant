@@ -201,7 +201,6 @@
 /* ====== Eventos ====== */
 #calendar-container .fc-event {
   border-radius: 10px !important;
-  border-left: 4px solid var(--accent) !important;
   padding: 6px 10px;
   font-size: 12px;
   background: linear-gradient(180deg, rgba(108,243,255,.14), rgba(139,123,255,.10)) !important;
@@ -230,27 +229,22 @@
 
 /* ====== Colores por tipo de evento ====== */
 #calendar-container .fc-event[data-tipo="reunion"] {
-  border-left-color: #6cf3ff !important;
   background: linear-gradient(180deg, rgba(108,243,255,.18), rgba(108,243,255,.08)) !important;
 }
 
 #calendar-container .fc-event[data-tipo="tarea"] {
-  border-left-color: #f59e0b !important;
   background: linear-gradient(180deg, rgba(245,158,11,.18), rgba(245,158,11,.08)) !important;
 }
 
 #calendar-container .fc-event[data-tipo="recordatorio"] {
-  border-left-color: #36e59f !important;
   background: linear-gradient(180deg, rgba(54,229,159,.18), rgba(54,229,159,.08)) !important;
 }
 
 #calendar-container .fc-event[data-tipo="entrega"] {
-  border-left-color: #ff6b88 !important;
   background: linear-gradient(180deg, rgba(255,107,136,.18), rgba(255,107,136,.08)) !important;
 }
 
 #calendar-container .fc-event[data-tipo="formacion"] {
-  border-left-color: #8b7bff !important;
   background: linear-gradient(180deg, rgba(139,123,255,.18), rgba(139,123,255,.08)) !important;
 }
 
@@ -338,7 +332,6 @@
   width: min(520px, 92vw);
   background: linear-gradient(135deg, rgba(16,24,43,.98), rgba(11,15,26,.95));
   border: 1px solid var(--border);
-  border-left: 4px solid var(--accent);
   border-radius: var(--panel-radius);
   box-shadow: 0 20px 60px rgba(0,0,0,.5), var(--panel-glow);
   padding: 24px;

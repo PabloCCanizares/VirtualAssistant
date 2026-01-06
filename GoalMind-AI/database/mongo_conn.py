@@ -100,7 +100,6 @@ def sync_from_remote(collection_name, obj):
     local_col, remote_col = get_collection(collection_name)
 
     if not remote_col:
-        print("⚠️ No hay conexión remota para sincronizar desde la nube.")
         return
 
     filtro = {"_id": obj["_id"]} if "_id" in obj else obj
@@ -145,7 +144,6 @@ def sync_all_collections():
 
     remote = current_app.mongo_remote
     if remote is None:
-        print("⚠️ No hay conexión remota. No se sincronizan datos desde la nube.")
         return
 
     for col in collections:
@@ -167,7 +165,6 @@ def sync_local_to_remote():
     remote = current_app.mongo_remote
 
     if remote is None:
-        print("⚠️ No hay conexión remota → no se puede sincronizar hacia la nube.")
         return
 
     for col in collections:
