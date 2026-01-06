@@ -46,6 +46,11 @@
   cursor: pointer;
 }
 
+.form_goal {
+  position: relative;
+  width: 100%;
+}
+
 .task-item:hover {
   transform: translateX(4px);
   background: linear-gradient(180deg, rgba(108,243,255,.10), rgba(139,123,255,.08));

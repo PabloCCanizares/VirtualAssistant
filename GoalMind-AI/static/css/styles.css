@@ -263,12 +263,23 @@ main{
 /* Quick forms */
 .form{display:grid;gap:10px}
 .form label{font-size:12px;color:#cfe3ff}
+.form_goal label{font-size:12px;color:#cfe3ff}
 .form input, .form select, .form textarea{
+  width:100%;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,.10);
+  background:#0c1324;color:var(--text)
+}
+.form_goal input, .form_goal select, .form_goal textarea{
   width:100%;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,.10);
   background:#0c1324;color:var(--text)
 }
 .form .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .form .submit{
+  border:1px solid rgba(255,255,255,.12);background:linear-gradient(180deg, rgba(108,243,255,.20), rgba(139,123,255,.18));
+  padding:10px;border-radius:10px;color:#08101f;font-weight:800;text-shadow:0 1px 0 rgba(255,255,255,.35);
+  cursor:default;
+}
+.form_goal .submit{
+  margin-top: 10px;
   border:1px solid rgba(255,255,255,.12);background:linear-gradient(180deg, rgba(108,243,255,.20), rgba(139,123,255,.18));
   padding:10px;border-radius:10px;color:#08101f;font-weight:800;text-shadow:0 1px 0 rgba(255,255,255,.35);
   cursor:default;
