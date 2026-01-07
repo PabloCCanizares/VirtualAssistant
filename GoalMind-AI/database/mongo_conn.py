@@ -26,6 +26,7 @@ with CONFIG_PATH.open("r", encoding="utf-8") as f:
     username = file["username"]
     pswd = file["pswd"]
     collections = file["collections"]
+    print("user: " + str(username) + "pswd: "+ str(pswd) + "Collections: " + str(collections))
 
 # Objetos de conexión
 mongo_local = PyMongo()
@@ -99,7 +100,7 @@ def sync_from_remote(collection_name, obj):
     """Comprueba si un documento existe en local; si no, lo descarga desde remoto."""
     local_col, remote_col = get_collection(collection_name)
 
-    if not remote_col:
+    if remote_col is None:
         return
 
     filtro = {"_id": obj["_id"]} if "_id" in obj else obj
@@ -108,34 +109,22 @@ def sync_from_remote(collection_name, obj):
         remoto = remote_col.find_one(filtro)
         if remoto:
             local_col.insert_one(remoto)
-            print(f"⬇️ Documento {filtro} descargado desde la nube.")
-        else:
-            print("ℹ️ No existe en la nube.")
 
 
 def sync_to_remote(collection_name, obj):
     """Sube o actualiza un documento en la base remota."""
     local_col, remote_col = get_collection(collection_name)
 
-    if not remote_col:
-        print("⚠️ No hay conexión remota para subir datos.")
+    if remote_col is None:
         return
 
     if "_id" not in obj:
-        print("⚠️ El documento no tiene _id, no se puede sincronizar.")
         return
 
     filtro = {"_id": obj["_id"]}
 
     # Usar replace_one con upsert=True para insertar o actualizar
-    result = remote_col.replace_one(filtro, obj, upsert=True)
-
-    if result.upserted_id:
-        print(f"⬆️ Documento {filtro} subido a la nube.")
-    elif result.modified_count > 0:
-        print(f"🔄 Documento {filtro} actualizado en la nube.")
-    else:
-        print(f"ℹ️ Documento {filtro} sin cambios en la nube.")
+    remote_col.replace_one(filtro, obj, upsert=True)
 
 
 def sync_all_collections():
@@ -154,9 +143,6 @@ def sync_all_collections():
                 # Descargar solo si no existe en local
                 if not local_col.find_one({"_id": doc["_id"]}):
                     local_col.insert_one(doc)
-                    print(f"⬇️ Sincronizado desde la nube → {col}: {doc['_id']}")
-        else:
-            print(f"⚠️ No hay DB remota para sincronizar colección: {col}")
 
 
 def sync_local_to_remote():
@@ -171,12 +157,6 @@ def sync_local_to_remote():
         local_col, remote_col = get_collection(col)
 
         if remote_col is None:
-            print(f"⚠️ No hay colección remota para: {col}")
             continue
-
-        print(f"🔼 Comprobando sincronización local → remoto para '{col}'...\n")
-
         for local_doc in local_col.find():
             sync_to_remote(col, local_doc)
-
-    print("\n✅ Sincronización local → remoto completada ✅")
