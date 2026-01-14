@@ -1,0 +1,65 @@
+<section class="panel-container">
+
+  <div class="panel-hero">
+    <div class="panel-hero-content">
+      <p class="panel-subtitle">Capa superior</p>
+      <h2 class="panel-hero-title">Panel de Proyectos</h2>
+      <p class="panel-hero-desc">Agrupa objetivos, adjunta documentos y mantén una vista clara del avance.</p>
+    </div>
+    <div class="panel-kpis">
+      <div class="panel-kpi">
+        <div class="panel-kpi-label">Proyectos</div>
+        <div class="panel-kpi-value">{{ projects|length if projects else 0 }}</div>
+      </div>
+      <div class="panel-kpi">
+        <div class="panel-kpi-label">Objetivos</div>
+        <div class="panel-kpi-value">{{ goal_counts.values()|sum if goal_counts else 0 }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel-section panel-accent">
+    <div class="panel-header">
+      <h3 class="panel-title">
+        <span class="panel-title-icon">🗂️</span>
+        Proyectos activos
+      </h3>
+      <div class="panel-actions">
+        <span class="panel-badge accent">{{ projects|length if projects else 0 }} proyectos</span>
+      </div>
+    </div>
+
+    {% if projects and projects|length > 0 %}
+    <div class="cards-grid">
+      {% for project in projects %}
+      <div class="grid-card">
+        <h4 class="grid-card-title">{{ project.get('titulo','(sin titulo)') }}</h4>
+        <div class="grid-card-meta">
+          <span class="panel-badge">{{ project.get('categoria','Sin categoria') }}</span>
+          <span class="panel-badge accent">{{ project.get('estado','Activo') }}</span>
+          <span class="panel-badge">{{ project.get('prioridad','Media') }}</span>
+        </div>
+        <div class="grid-card-footer">
+          {{ project.get('descripcion','Sin descripcion') }}
+        </div>
+        <div class="grid-card-footer">
+          Objetivos: {{ goal_counts.get(project['_id'], 0) }} · Documentos: {{ doc_counts.get(project['_id'], 0) }}
+        </div>
+        <div class="panel-actions">
+          <a class="panel-action-btn" href="{{ url_for('project_bp.view_project', project_id=project['_id']) }}">
+            Abrir proyecto
+          </a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <div class="empty-state-icon">🗂️</div>
+      <h4 class="empty-state-title">No hay proyectos registrados</h4>
+      <p class="empty-state-desc">Crea tu primer proyecto usando el panel de la derecha.</p>
+    </div>
+    {% endif %}
+  </div>
+
+</section>

@@ -111,6 +111,9 @@
         </div>
         <div class="grid-card-meta">
           <span class="panel-badge">{{ goal.get('categoria','Sin categoria') }}</span>
+          <span class="panel-badge">
+            {{ project_titles.get(goal.get('project_id'), 'Sin proyecto') }}
+          </span>
           {% set estado = goal.get('estado','En progreso') %}
           <span class="panel-badge {% if estado == 'Completado' %}success{% elif estado == 'En progreso' %}accent{% else %}warning{% endif %}">
             {{ estado }}
@@ -214,6 +217,9 @@
               <span class="item-meta-tag">
                 📁 {{ goal.get('categoria','—') }}
               </span>
+              <span class="item-meta-tag">
+                🧭 {{ project_titles.get(goal.get('project_id'), 'Sin proyecto') }}
+              </span>
               {% set inicio = (goal.get('fecha_inicio') or '')[:10] %}
               {% set fin = (goal.get('fecha_fin') or '')[:10] %}
               <span class="item-meta-tag">
@@ -245,6 +251,10 @@
                 <div class="item-detail-row">
                   <span class="item-detail-label">Descripcion</span>
                   <span class="item-detail-value task-desc-text">{{ goal.get('descripcion','(sin descripcion)') }}</span>
+                </div>
+                <div class="item-detail-row">
+                  <span class="item-detail-label">Proyecto</span>
+                  <span class="item-detail-value">{{ project_titles.get(goal.get('project_id'), 'Sin proyecto') }}</span>
                 </div>
                 <div class="item-detail-row">
                   <span class="item-detail-label">Ambito</span>
@@ -295,6 +305,22 @@
               <div class="panel-form-group">
                 <label class="panel-form-label">Categoria</label>
                 <input type="text" name="categoria" class="panel-form-input" value="{{ goal.get('categoria','') }}">
+              </div>
+
+              <div class="panel-form-group">
+                <label class="panel-form-label">Proyecto</label>
+                {% set current_project_id = goal.get('project_id') %}
+                <select name="project_id" class="panel-form-select" required>
+                  {% if projects and projects|length > 0 %}
+                    {% for project in projects %}
+                      <option value="{{ project['_id'] }}" {% if project['_id'] == current_project_id %}selected{% endif %}>
+                        {{ project.get('titulo','(sin titulo)') }}
+                      </option>
+                    {% endfor %}
+                  {% else %}
+                    <option disabled selected>⚠️ No hay proyectos creados</option>
+                  {% endif %}
+                </select>
               </div>
 
               <div class="panel-form-row">

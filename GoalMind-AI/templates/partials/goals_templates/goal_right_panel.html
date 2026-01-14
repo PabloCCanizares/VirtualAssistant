@@ -7,9 +7,23 @@
       <h3 class="side-panel-title">Nuevo objetivo</h3>
     </div>
 
+    {% set projects_available = projects and projects|length > 0 %}
     <form method="post"
           action="{{ url_for('goal_bp.add_goal') }}"
           class="panel-form">
+
+      <div class="panel-form-group">
+        <label class="panel-form-label" for="project_id">Proyecto</label>
+        <select name="project_id" id="project_id" class="panel-form-select" required>
+          {% if projects_available %}
+            {% for project in projects %}
+              <option value="{{ project['_id'] }}">{{ project.get('titulo','(sin titulo)') }}</option>
+            {% endfor %}
+          {% else %}
+            <option disabled selected>⚠️ No hay proyectos creados</option>
+          {% endif %}
+        </select>
+      </div>
 
       <div class="panel-form-group">
         <label class="panel-form-label" for="titulo">Titulo</label>
@@ -102,7 +116,7 @@
         </select>
       </div>
 
-      <button type="submit" class="panel-form-submit">Crear objetivo ✨</button>
+      <button type="submit" class="panel-form-submit" {% if not projects_available %}disabled{% endif %}>Crear objetivo ✨</button>
     </form>
   </div>
 

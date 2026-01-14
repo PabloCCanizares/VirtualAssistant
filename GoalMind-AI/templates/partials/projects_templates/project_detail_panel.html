@@ -1,0 +1,107 @@
+<section class="panel-container">
+
+  <div class="panel-hero">
+    <div class="panel-hero-content">
+      <p class="panel-subtitle">Proyecto activo</p>
+      <h2 class="panel-hero-title">{{ project.get('titulo','(sin titulo)') }}</h2>
+      <p class="panel-hero-desc">{{ project.get('descripcion','Sin descripcion') }}</p>
+      <div class="grid-card-meta">
+        <span class="panel-badge">{{ project.get('categoria','Sin categoria') }}</span>
+        <span class="panel-badge accent">{{ project.get('estado','Activo') }}</span>
+        <span class="panel-badge">{{ project.get('prioridad','Media') }}</span>
+      </div>
+    </div>
+    <div class="panel-kpis">
+      <div class="panel-kpi">
+        <div class="panel-kpi-label">Objetivos</div>
+        <div class="panel-kpi-value">{{ goals|length if goals else 0 }}</div>
+      </div>
+      <div class="panel-kpi">
+        <div class="panel-kpi-label">Documentos</div>
+        <div class="panel-kpi-value">{{ documents|length if documents else 0 }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel-section panel-accent">
+    <div class="panel-header">
+      <h3 class="panel-title">
+        <span class="panel-title-icon">🎯</span>
+        Objetivos del proyecto
+      </h3>
+    </div>
+
+    {% if goals and goals|length > 0 %}
+    <ul class="item-list">
+      {% for goal in goals %}
+      {% set progreso = goal.get('progreso', 0) %}
+      <li class="item-card">
+        <div class="item-card-header">
+          <div class="item-content">
+            <h4 class="item-title">{{ goal.get('titulo','(sin titulo)') }}</h4>
+            <div class="item-meta">
+              <span class="item-meta-tag">📊 {{ progreso }}%</span>
+              <span class="item-meta-tag">⚡ {{ goal.get('prioridad','Media') }}</span>
+              <span class="item-meta-tag">{{ goal.get('estado','En progreso') }}</span>
+            </div>
+          </div>
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <div class="empty-state">
+      <div class="empty-state-icon">🎯</div>
+      <h4 class="empty-state-title">Sin objetivos asociados</h4>
+      <p class="empty-state-desc">Crea objetivos en la sección de Objetivos y asignalos a este proyecto.</p>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="panel-section panel-accent">
+    <div class="panel-header">
+      <h3 class="panel-title">
+        <span class="panel-title-icon">📎</span>
+        Documentos del proyecto
+      </h3>
+    </div>
+
+    {% if documents and documents|length > 0 %}
+    <ul class="item-list">
+      {% for doc in documents %}
+      <li class="item-card">
+        <div class="item-card-header">
+          <div class="item-content">
+            <h4 class="item-title">{{ doc.get('original_name', doc.get('filename')) }}</h4>
+            <div class="item-meta">
+              {% if doc.get('goal_id') %}
+              <span class="item-meta-tag">🎯 {{ goal_titles.get(doc.get('goal_id'), 'Objetivo') }}</span>
+              {% endif %}
+              <span class="item-meta-tag">🧾 {{ doc.get('content_type','') }}</span>
+              <span class="item-meta-tag">📦 {{ (doc.get('size', 0) / 1024) | round(1) }} KB</span>
+            </div>
+          </div>
+          <div class="panel-actions">
+            <a class="panel-action-btn" href="{{ url_for('project_bp.download_document', doc_id=doc['_id']) }}">
+              Descargar
+            </a>
+            <form method="post"
+                  action="{{ url_for('project_bp.delete_document', doc_id=doc['_id']) }}"
+                  onsubmit="return confirm('¿Eliminar este documento?');">
+              <button type="submit" class="panel-action-btn danger">Eliminar</button>
+            </form>
+          </div>
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <div class="empty-state">
+      <div class="empty-state-icon">📎</div>
+      <h4 class="empty-state-title">No hay documentos</h4>
+      <p class="empty-state-desc">Sube archivos desde el panel derecho para adjuntarlos al proyecto.</p>
+    </div>
+    {% endif %}
+  </div>
+
+</section>

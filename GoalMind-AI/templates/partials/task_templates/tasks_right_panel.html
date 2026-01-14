@@ -30,7 +30,7 @@
             {% for goal in goals %}
               {% set gid = (goal['_id'] | string) %}
               <option value="{{ gid }}" {% if gid == current_goal_id %}selected{% endif %}>
-                {{ goal.get('titulo', '(sin titulo)') }}
+                {{ goal.get('titulo', '(sin titulo)') }}{% if goal_project_titles.get(gid) %} · {{ goal_project_titles.get(gid) }}{% endif %}
               </option>
             {% endfor %}
           {% else %}
@@ -87,6 +87,7 @@
       <h3 class="side-panel-title">Nueva tarea</h3>
     </div>
 
+    {% set goals_available = goals and goals|length > 0 %}
     <form method="post"
           action="{{ url_for('task_bp.add_task') }}"
           class="panel-form">
@@ -104,9 +105,12 @@
       <div class="panel-form-group">
         <label class="panel-form-label" for="objetivo_id">Objetivo asociado</label>
         <select name="objetivo_id" id="objetivo_id" class="panel-form-select" required>
-          {% if goals and goals|length > 0 %}
+          {% if goals_available %}
             {% for goal in goals %}
-              <option value="{{ goal['_id'] }}">{{ goal.get('titulo', '(sin titulo)') }}</option>
+              {% set gid = (goal['_id'] | string) %}
+              <option value="{{ goal['_id'] }}">
+                {{ goal.get('titulo', '(sin titulo)') }}{% if goal_project_titles.get(gid) %} · {{ goal_project_titles.get(gid) }}{% endif %}
+              </option>
             {% endfor %}
           {% else %}
             <option disabled selected>⚠️ No hay objetivos definidos</option>
@@ -163,7 +167,7 @@
         </div>
       </div>
 
-      <button type="submit" class="panel-form-submit">Crear tarea ✨</button>
+      <button type="submit" class="panel-form-submit" {% if not goals_available %}disabled{% endif %}>Crear tarea ✨</button>
     </form>
   </div>
   {% endif %}

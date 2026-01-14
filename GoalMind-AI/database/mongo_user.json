@@ -1,5 +1,5 @@
 {
     "username" : "shared_user",
     "pswd" : "Ws5GnoquZHBvmoT6",
-    "collections" : ["Tasks" , "Goals", "Events"]
+    "collections" : ["Tasks" , "Goals", "Projects", "ProjectDocuments", "Events"]
 }

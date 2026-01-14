@@ -1,8 +1,32 @@
 # controllers/goal_controller.py
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from model.goal_model import GoalModel
+from model.project_model import ProjectModel
 
 goal_bp = Blueprint("goal_bp", __name__, url_prefix="/goals")
+
+
+def _serialize_goal(goal):
+    goal_view = dict(goal)
+    if "_id" in goal_view:
+        goal_view["_id"] = str(goal_view["_id"])
+    if goal_view.get("project_id"):
+        goal_view["project_id"] = str(goal_view["project_id"])
+    return goal_view
+
+
+def _load_projects():
+    projects = ProjectModel.get_all_projects()
+    projects_view = []
+    project_titles = {}
+    for project in projects:
+        project_view = dict(project)
+        if "_id" in project_view:
+            pid = str(project_view["_id"])
+            project_view["_id"] = pid
+            project_titles[pid] = project_view.get("titulo", "(sin titulo)")
+        projects_view.append(project_view)
+    return projects_view, project_titles
 
 # -------------------------------------------------------------
 # 📋 LISTAR TODOS LOS OBJETIVOS
@@ -12,13 +36,18 @@ def list_goals():
     """Muestra todos los objetivos."""
     try:
         goals = GoalModel.get_all_goals()
+        goals_view = [_serialize_goal(g) for g in goals]
+        projects, project_titles = _load_projects()
 
     except Exception as e:
         flash(f"❌ No se pudieron cargar los objetivos: {e}", "danger")
-        goals = []
+        goals_view = []
+        projects, project_titles = [], {}
     return render_template(
         "partials/goals_templates/goal_menu.html",
-        goals=goals,
+        goals=goals_view,
+        projects=projects,
+        project_titles=project_titles,
         selected_category=None,
         page="goals",
     )
@@ -35,6 +64,8 @@ def filter_by_category():
             flash(f"Filtro aplicado: categoría = {categoria}", "info")
         else:
             goals = GoalModel.get_all_goals()
+        goals_view = [_serialize_goal(g) for g in goals]
+        projects, project_titles = _load_projects()
 
     except Exception as e:
         flash(f"❌ Error al filtrar: {e}", "danger")
@@ -42,7 +73,9 @@ def filter_by_category():
 
     return render_template(
         "partials/goals_templates/goal_menu.html",
-        goals=goals,
+        goals=goals_view,
+        projects=projects,
+        project_titles=project_titles,
         selected_category=categoria,
         page="goals",
     )
@@ -54,8 +87,14 @@ def filter_by_category():
 def add_goal():
     """Inserta un nuevo objetivo en la base local (y sincroniza con la nube)."""
     try:
+        project_id = request.form.get("project_id")
+        if not project_id:
+            flash("⚠️ Debes seleccionar un proyecto antes de crear un objetivo.", "warning")
+            return redirect(url_for("goal_bp.list_goals"))
+
         data = {
             "id_usuario": request.form.get("id_usuario"),
+            "project_id": project_id,
             "titulo": request.form.get("titulo"),
             "descripcion": request.form.get("descripcion"),
             "fecha_inicio": request.form.get("fecha_inicio"),
@@ -101,6 +140,8 @@ def update_goal(goal_id):
                 pass
         if request.form.get("id_usuario"):
             updates["id_usuario"] = request.form.get("id_usuario")
+        if request.form.get("project_id"):
+            updates["project_id"] = request.form.get("project_id")
 
         GoalModel.update_goal(goal_id, updates)
         flash("✅ Objetivo actualizado correctamente", "success")
@@ -153,11 +194,15 @@ def list_goals_by_user(user_id):
         if user_id == "0":  # Cambié 0 por "0" ya que user_id es string
             user_id = "66ffbbbbbbbbbbbbbbbb0100"
         goals = GoalModel.get_by_user_id(user_id)
+        goals_view = [_serialize_goal(g) for g in goals]
+        projects, project_titles = _load_projects()
         if not goals:
             flash("Este usuario aún no tiene objetivos.", "info")
         return render_template(
             "partials/goals_templates/goal_menu.html",
-            goals=goals,
+            goals=goals_view,
+            projects=projects,
+            project_titles=project_titles,
             page="objetivos",
             user_id=user_id
         )
