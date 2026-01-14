@@ -99,9 +99,15 @@
           <div class="item-content">
             <h4 class="item-title">{{ task['contenido'] }}</h4>
             <div class="item-meta">
+              {% set goal_id = task.get('objetivo_id') %}
               <span class="item-meta-tag">
-                📁 {% if task['objetivo_id'] %}{{ task['objetivo_id'] }}{% else %}Sin objetivo{% endif %}
+                🎯 {{ goal_titles.get(goal_id, 'Sin objetivo') }}
               </span>
+              {% if goal_project_titles.get(goal_id) %}
+              <span class="item-meta-tag">
+                🧭 {{ goal_project_titles.get(goal_id) }}
+              </span>
+              {% endif %}
               {% if task['fecha_limite'] %}
               <span class="item-meta-tag deadline">
                 📅 {{ task['fecha_limite'] }}

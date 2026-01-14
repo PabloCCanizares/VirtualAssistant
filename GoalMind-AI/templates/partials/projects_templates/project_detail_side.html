@@ -1,0 +1,141 @@
+<aside class="side-panel">
+
+  <div class="side-panel-card">
+    <div class="side-panel-header">
+      <span class="side-panel-icon">✏️</span>
+      <h3 class="side-panel-title">Editar proyecto</h3>
+    </div>
+
+    <form method="post"
+          action="{{ url_for('project_bp.update_project', project_id=project['_id']) }}"
+          class="panel-form">
+
+      <div class="panel-form-group">
+        <label class="panel-form-label" for="titulo">Titulo</label>
+        <input type="text"
+               name="titulo"
+               id="titulo"
+               class="panel-form-input"
+               value="{{ project.get('titulo','') }}"
+               required>
+      </div>
+
+      <div class="panel-form-group">
+        <label class="panel-form-label" for="descripcion">Descripcion</label>
+        <textarea name="descripcion"
+                  id="descripcion"
+                  class="panel-form-textarea"
+                  rows="3">{{ project.get('descripcion','') }}</textarea>
+      </div>
+
+      <div class="panel-form-row">
+        <div class="panel-form-group">
+          <label class="panel-form-label" for="fecha_inicio">Fecha inicio</label>
+          <input type="date"
+                 name="fecha_inicio"
+                 id="fecha_inicio"
+                 class="panel-form-input"
+                 value="{{ ((project.get('fecha_inicio') or '')|string)[:10] }}">
+        </div>
+        <div class="panel-form-group">
+          <label class="panel-form-label" for="fecha_fin">Fecha fin</label>
+          <input type="date"
+                 name="fecha_fin"
+                 id="fecha_fin"
+                 class="panel-form-input"
+                 value="{{ ((project.get('fecha_fin') or '')|string)[:10] }}">
+        </div>
+      </div>
+
+      <div class="panel-form-row">
+        <div class="panel-form-group">
+          <label class="panel-form-label" for="categoria">Categoria</label>
+          {% set cat = project.get('categoria','Investigacion') %}
+          <select name="categoria" id="categoria" class="panel-form-select">
+            <option value="Investigacion" {% if cat == 'Investigacion' %}selected{% endif %}>Investigacion</option>
+            <option value="Trabajo" {% if cat == 'Trabajo' %}selected{% endif %}>Trabajo</option>
+            <option value="Personal" {% if cat == 'Personal' %}selected{% endif %}>Personal</option>
+            <option value="Estudios" {% if cat == 'Estudios' %}selected{% endif %}>Estudios</option>
+            <option value="Otros" {% if cat == 'Otros' %}selected{% endif %}>Otros</option>
+          </select>
+        </div>
+        <div class="panel-form-group">
+          <label class="panel-form-label" for="prioridad">Prioridad</label>
+          {% set pr = project.get('prioridad','Media') %}
+          <select name="prioridad" id="prioridad" class="panel-form-select">
+            <option value="Baja" {% if pr == 'Baja' %}selected{% endif %}>Baja</option>
+            <option value="Media" {% if pr == 'Media' %}selected{% endif %}>Media</option>
+            <option value="Alta" {% if pr == 'Alta' %}selected{% endif %}>Alta</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="panel-form-row">
+        <div class="panel-form-group">
+          <label class="panel-form-label" for="estado">Estado</label>
+          {% set st = project.get('estado','Activo') %}
+          <select name="estado" id="estado" class="panel-form-select">
+            <option value="Activo" {% if st == 'Activo' %}selected{% endif %}>Activo</option>
+            <option value="En pausa" {% if st == 'En pausa' %}selected{% endif %}>En pausa</option>
+            <option value="Completado" {% if st == 'Completado' %}selected{% endif %}>Completado</option>
+          </select>
+        </div>
+        <div class="panel-form-group">
+          <label class="panel-form-label" for="id_usuario">ID Usuario</label>
+          <input type="text"
+                 name="id_usuario"
+                 id="id_usuario"
+                 class="panel-form-input"
+                 value="{{ project.get('id_usuario','') }}">
+        </div>
+      </div>
+
+      <button type="submit" class="panel-form-submit">Guardar cambios ✅</button>
+    </form>
+  </div>
+
+  <div class="side-panel-card">
+    <div class="side-panel-header">
+      <span class="side-panel-icon">📎</span>
+      <h3 class="side-panel-title">Subir documento</h3>
+    </div>
+
+    <form method="post"
+          action="{{ url_for('project_bp.upload_document', project_id=project['_id']) }}"
+          class="panel-form"
+          enctype="multipart/form-data">
+
+      <div class="panel-form-group">
+        <label class="panel-form-label" for="document">Archivo</label>
+        <input type="file" name="document" id="document" class="panel-form-input" required>
+      </div>
+
+      <div class="panel-form-group">
+        <label class="panel-form-label" for="goal_id">Asociar a objetivo (opcional)</label>
+        <select name="goal_id" id="goal_id" class="panel-form-select">
+          <option value="">Sin objetivo</option>
+          {% if goals and goals|length > 0 %}
+            {% for goal in goals %}
+              <option value="{{ goal['_id'] }}">{{ goal.get('titulo','(sin titulo)') }}</option>
+            {% endfor %}
+          {% endif %}
+        </select>
+      </div>
+
+      <button type="submit" class="panel-form-submit">Subir documento ⬆️</button>
+    </form>
+  </div>
+
+  <div class="side-panel-card">
+    <div class="side-panel-header">
+      <span class="side-panel-icon">🗑️</span>
+      <h3 class="side-panel-title">Eliminar proyecto</h3>
+    </div>
+    <form method="post"
+          action="{{ url_for('project_bp.delete_project', project_id=project['_id']) }}"
+          onsubmit="return confirm('¿Eliminar este proyecto?');">
+      <button type="submit" class="panel-action-btn danger">Eliminar proyecto</button>
+    </form>
+  </div>
+
+</aside>

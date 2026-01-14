@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/panels.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/task_menu.css') }}">
+
+<section class="mission-shell">
+  {% include "partials/projects_templates/project_detail_header.html" %}
+
+  <div class="mission-grid">
+    <section class="mission-main">
+      {% include "partials/projects_templates/project_detail_panel.html" %}
+    </section>
+    <aside class="mission-side-panel">
+      {% include "partials/projects_templates/project_detail_side.html" %}
+    </aside>
+  </div>
+</section>
+{% endblock %}

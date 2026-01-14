@@ -32,7 +32,16 @@ class GoalModel:
         (No descarga desde remoto automáticamente.)
         """
         local_col, _ = get_collection(GoalModel.COLLECTION)
-        return list(local_col.find())
+        return list(local_col.find().sort("created_at", -1))
+
+    @staticmethod
+    def get_by_project(project_id):
+        """
+        Devuelve todos los objetivos asociados a un proyecto.
+        """
+        local_col, _ = get_collection(GoalModel.COLLECTION)
+        pid = ObjectId(project_id) if not isinstance(project_id, ObjectId) else project_id
+        return list(local_col.find({"project_id": pid}).sort("created_at", -1))
     
     @staticmethod
     def insert_goal(goal_data):
@@ -40,6 +49,18 @@ class GoalModel:
         Inserta un objetivo en la base local y lo sincroniza con la remota si está disponible.
         """
         local_col, _ = get_collection(GoalModel.COLLECTION)
+
+        if "created_at" not in goal_data:
+            goal_data["created_at"] = datetime.utcnow()
+
+        if goal_data.get("project_id") and not isinstance(goal_data["project_id"], ObjectId):
+            goal_data["project_id"] = ObjectId(str(goal_data["project_id"]))
+
+        if goal_data.get("id_usuario") and not isinstance(goal_data["id_usuario"], ObjectId):
+            try:
+                goal_data["id_usuario"] = ObjectId(str(goal_data["id_usuario"]))
+            except Exception:
+                pass
 
         # Insertar en local
         result = local_col.insert_one(goal_data)
@@ -85,6 +106,13 @@ class GoalModel:
                 norm["id_usuario"] = ObjectId(str(norm["id_usuario"]))
             except Exception:
                 norm["id_usuario"] = None  
+
+        # project_id → ObjectId si viene
+        if "project_id" in norm and norm["project_id"]:
+            try:
+                norm["project_id"] = ObjectId(str(norm["project_id"]))
+            except Exception:
+                norm["project_id"] = None
 
         # progreso → int si viene
         if "progreso" in norm and norm["progreso"] is not None:

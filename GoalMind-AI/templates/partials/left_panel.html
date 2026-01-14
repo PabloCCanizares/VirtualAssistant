@@ -22,6 +22,12 @@
       <span class="sidebar-nav-icon">📅</span>
       Agenda
     </a>
+    <a href="{{ url_for('project_bp.list_projects') }}"
+       class="sidebar-nav-item"
+       {% if page == 'projects' %}aria-current="page"{% endif %}>
+      <span class="sidebar-nav-icon">🗂️</span>
+      Proyectos
+    </a>
     <a href="{{ url_for('goal_bp.list_goals_by_user', user_id=0) }}"
        class="sidebar-nav-item"
        {% if page == 'objetivos' %}aria-current="page"{% endif %}>
