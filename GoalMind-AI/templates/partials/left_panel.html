@@ -28,7 +28,7 @@
       <span class="sidebar-nav-icon">🗂️</span>
       Proyectos
     </a>
-    <a href="{{ url_for('goal_bp.list_goals_by_user', user_id=0) }}"
+    <a href="{{ url_for('goal_bp.list_goals') }}"
        class="sidebar-nav-item"
        {% if page == 'objetivos' %}aria-current="page"{% endif %}>
       <span class="sidebar-nav-icon">🎯</span>
@@ -46,12 +46,22 @@
       <span class="sidebar-nav-icon">📈</span>
       Estadisticas
     </a>
+
+     <a href="{{ url_for('upload_bp.list_uploads') }}"
+       class="sidebar-nav-item"
+       {% if page == 'uploads' %}aria-current="page"{% endif %}>
+      <span class="sidebar-nav-icon">📥</span>
+      Mis documentos
+    </a>
+
+
     <a href="{{ url_for('dashboard_bp.config') }}"
        class="sidebar-nav-item"
        {% if page == 'config' %}aria-current="page"{% endif %}>
       <span class="sidebar-nav-icon">⚙️</span>
       Configuracion
     </a>
+
   </nav>
 
   <!-- Sistema multi-agente -->
