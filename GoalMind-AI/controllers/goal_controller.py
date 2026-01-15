@@ -49,7 +49,7 @@ def list_goals():
         projects=projects,
         project_titles=project_titles,
         selected_category=None,
-        page="goals",
+        page="objetivos",
     )
 
 # -------------------------------------------------------------
@@ -77,7 +77,7 @@ def filter_by_category():
         projects=projects,
         project_titles=project_titles,
         selected_category=categoria,
-        page="goals",
+        page="objetivos",
     )
 
 # -------------------------------------------------------------

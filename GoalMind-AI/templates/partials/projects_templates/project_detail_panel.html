@@ -39,6 +39,15 @@
         <div class="item-card-header">
           <div class="item-content">
             <h4 class="item-title">{{ goal.get('titulo','(sin titulo)') }}</h4>
+            {% set goal_docs = goal_documents.get(goal['_id'], []) if goal_documents else [] %}
+            {% if goal_docs %}
+            <div class="item-meta">
+              <span class="item-meta-tag">Archivos:</span>
+              {% for doc in goal_docs %}
+              <span class="item-meta-tag">{{ doc.name }}</span>
+              {% endfor %}
+            </div>
+            {% endif %}
             <div class="item-meta">
               <span class="item-meta-tag">📊 {{ progreso }}%</span>
               <span class="item-meta-tag">⚡ {{ goal.get('prioridad','Media') }}</span>

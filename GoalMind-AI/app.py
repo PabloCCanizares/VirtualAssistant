@@ -21,6 +21,7 @@ from controllers.goal_controller import goal_bp
 from controllers.project_controller import project_bp
 from controllers.calendar_controller import calendar_bp
 from controllers.stats_controller import stats_bp
+from controllers.upload_controller import upload_bp
 
 ################ Aplicacion Flask ##################
 app = Flask(__name__)
@@ -35,6 +36,25 @@ app.mongo_remote = remote
 # 3. Configuracion de almacenamiento local de documentos
 app.config["UPLOAD_ROOT"] = str(Path(__file__).resolve().parent / "uploads")
 Path(app.config["UPLOAD_ROOT"]).mkdir(parents=True, exist_ok=True)
+app.config["UPLOAD_ALLOWED_EXTENSIONS"] = {
+    "pdf",
+    "doc",
+    "docx",
+    "txt",
+    "png",
+    "jpg",
+    "jpeg",
+    "csv",
+    "xlsx",
+    "pptx",
+    "zip",
+}
+app.config["MAX_CONTENT_LENGTH"] = 25 * 1024 * 1024
+
+
+
+
+
 # 4. Activar y registrar los blueprints
 app.register_blueprint(task_bp)
 app.register_blueprint(dashboard_bp)
@@ -42,6 +62,7 @@ app.register_blueprint(goal_bp)
 app.register_blueprint(project_bp)
 app.register_blueprint(calendar_bp) 
 app.register_blueprint(stats_bp)
+app.register_blueprint(upload_bp)
 
 ################ Inicialización del Scheduler ##################
 # Solo inicializar si no estamos en el proceso de recarga de Flask (evita duplicados en modo debug)

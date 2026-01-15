@@ -9,6 +9,7 @@ from werkzeug.utils import secure_filename
 from model.goal_model import GoalModel
 from model.project_document_model import ProjectDocumentModel
 from model.project_model import ProjectModel
+from model.upload_model import Upload_model
 
 project_bp = Blueprint("project_bp", __name__, url_prefix="/projects")
 
@@ -41,7 +42,20 @@ def _serialize_document(doc):
         doc_view["project_id"] = _serialize_id(doc_view["project_id"])
     if doc_view.get("goal_id"):
         doc_view["goal_id"] = _serialize_id(doc_view["goal_id"])
+    if doc_view.get("upload_id"):
+        doc_view["upload_id"] = _serialize_id(doc_view["upload_id"])
     return doc_view
+
+
+def _format_size(size_bytes):
+    if size_bytes is None:
+        return "0 B"
+    size = float(size_bytes)
+    for unit in ["B", "KB", "MB", "GB", "TB"]:
+        if size < 1024.0:
+            return f"{size:.1f} {unit}" if unit != "B" else f"{int(size)} {unit}"
+        size /= 1024.0
+    return f"{size:.1f} PB"
 
 
 # -------------------------------------------------------------
@@ -123,18 +137,46 @@ def view_project(project_id):
 
     goals = GoalModel.get_by_project(project_id)
     docs = ProjectDocumentModel.get_by_project(project_id)
+    uploads = Upload_model.get_all_uploads()
 
     goals_view = [_serialize_goal(g) for g in goals]
     docs_view = [_serialize_document(d) for d in docs]
+    upload_views = []
+    linked_upload_ids = {d.get("upload_id") for d in docs_view if d.get("upload_id")}
+
+    for upload in uploads:
+        upload_id = _serialize_id(upload.get("_id"))
+        if upload_id in linked_upload_ids:
+            continue
+        upload_views.append(
+            {
+                "_id": upload_id,
+                "title": upload.get("title") or upload.get("original_name") or "(sin nombre)",
+                "original_name": upload.get("original_name") or "",
+                "size_label": _format_size(upload.get("size", 0) or 0),
+            }
+        )
 
     goal_titles = {g["_id"]: g.get("titulo", "(sin titulo)") for g in goals_view}
+    goal_documents = {g["_id"]: [] for g in goals_view}
+    for doc in docs_view:
+        gid = doc.get("goal_id")
+        if gid and gid in goal_documents:
+            goal_documents[gid].append(
+                {
+                    "_id": doc.get("_id"),
+                    "name": doc.get("original_name") or doc.get("filename"),
+                }
+            )
 
     return render_template(
         "partials/projects_templates/project_detail.html",
         project=_serialize_project(project),
         goals=goals_view,
         documents=docs_view,
+        uploads=upload_views,
         goal_titles=goal_titles,
+        goal_documents=goal_documents,
         page="projects",
     )
 
@@ -166,6 +208,45 @@ def update_project(project_id):
 
 
 # -------------------------------------------------------------
+# ÐY"Z ASOCIAR DOCUMENTO EXISTENTE
+# -------------------------------------------------------------
+@project_bp.route("/<project_id>/documents/link", methods=["POST"])
+def link_upload_document(project_id):
+    project = ProjectModel.get_project_by_id(project_id)
+    if not project:
+        flash("ƒsÿ‹÷? Proyecto no encontrado.", "warning")
+        return redirect(url_for("project_bp.list_projects"))
+
+    upload_id = request.form.get("upload_id")
+    if not upload_id:
+        flash("ƒsÿ‹÷? Selecciona un documento para asociar.", "warning")
+        return redirect(url_for("project_bp.view_project", project_id=project_id))
+
+    upload_doc = Upload_model.get_upload_by_id(upload_id)
+    if not upload_doc:
+        flash("ƒsÿ‹÷? Documento no encontrado en la biblioteca.", "warning")
+        return redirect(url_for("project_bp.view_project", project_id=project_id))
+
+    goal_id = request.form.get("goal_id") or None
+
+    doc_data = {
+        "project_id": project_id,
+        "goal_id": goal_id,
+        "upload_id": upload_id,
+        "filename": upload_doc.get("filename"),
+        "original_name": upload_doc.get("original_name"),
+        "content_type": upload_doc.get("content_type"),
+        "size": upload_doc.get("size"),
+        "local_path": upload_doc.get("local_path"),
+    }
+
+    ProjectDocumentModel.insert_document(doc_data)
+    flash("Documento asociado correctamente", "success")
+
+    return redirect(url_for("project_bp.view_project", project_id=project_id))
+
+
+# -------------------------------------------------------------
 # 🗑️ ELIMINAR PROYECTO
 # -------------------------------------------------------------
 @project_bp.route("/delete/<project_id>", methods=["POST"])
@@ -178,12 +259,13 @@ def delete_project(project_id):
 
         docs = ProjectDocumentModel.get_by_project(project_id)
         for doc in docs:
-            local_path = doc.get("local_path")
-            if local_path:
-                try:
-                    Path(local_path).unlink(missing_ok=True)
-                except Exception:
-                    pass
+            if not doc.get("upload_id"):
+                local_path = doc.get("local_path")
+                if local_path:
+                    try:
+                        Path(local_path).unlink(missing_ok=True)
+                    except Exception:
+                        pass
             ProjectDocumentModel.delete_document(doc["_id"])
 
         ProjectModel.delete_project(project_id)
@@ -273,12 +355,13 @@ def delete_document(doc_id):
         flash("⚠️ Documento no encontrado.", "warning")
         return redirect(url_for("project_bp.list_projects"))
 
-    local_path = doc.get("local_path")
-    if local_path:
-        try:
-            Path(local_path).unlink(missing_ok=True)
-        except Exception:
-            pass
+    if not doc.get("upload_id"):
+        local_path = doc.get("local_path")
+        if local_path:
+            try:
+                Path(local_path).unlink(missing_ok=True)
+            except Exception:
+                pass
 
     ProjectDocumentModel.delete_document(doc_id)
     flash("🗑️ Documento eliminado", "success")

@@ -96,6 +96,52 @@
 
   <div class="side-panel-card">
     <div class="side-panel-header">
+      <span class="side-panel-icon">ÐY"Z</span>
+      <h3 class="side-panel-title">Asociar documento</h3>
+    </div>
+
+    {% if uploads and uploads|length > 0 %}
+    <form method="post"
+          action="{{ url_for('project_bp.link_upload_document', project_id=project['_id']) }}"
+          class="panel-form">
+
+      <div class="panel-form-group">
+        <label class="panel-form-label" for="upload_id">Documento en biblioteca</label>
+        <select name="upload_id" id="upload_id" class="panel-form-select" required>
+          <option value="">Selecciona un documento</option>
+          {% for upload in uploads %}
+            <option value="{{ upload['_id'] }}">
+              {{ upload.title }} ({{ upload.size_label }})
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="panel-form-group">
+        <label class="panel-form-label" for="goal_id_link">Asociar a objetivo (opcional)</label>
+        <select name="goal_id" id="goal_id_link" class="panel-form-select">
+          <option value="">Sin objetivo</option>
+          {% if goals and goals|length > 0 %}
+            {% for goal in goals %}
+              <option value="{{ goal['_id'] }}">{{ goal.get('titulo','(sin titulo)') }}</option>
+            {% endfor %}
+          {% endif %}
+        </select>
+      </div>
+
+      <button type="submit" class="panel-form-submit">Asociar documento</button>
+    </form>
+    {% else %}
+    <div class="empty-state">
+      <div class="empty-state-icon">DOC</div>
+      <h4 class="empty-state-title">Sin documentos disponibles</h4>
+      <p class="empty-state-desc">Sube archivos en "Mis documentos" para asociarlos.</p>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="side-panel-card">
+    <div class="side-panel-header">
       <span class="side-panel-icon">📎</span>
       <h3 class="side-panel-title">Subir documento</h3>
     </div>
