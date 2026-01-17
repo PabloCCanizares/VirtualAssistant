@@ -1,17 +1,16 @@
 <section class="dashboard-center">
 
-  <!-- Calendar Toolbar -->
-  <header class="calendar-toolbar">
-    <div class="calendar-toolbar-left">
-      <button id="btn-today" class="calendar-toolbar-btn primary">Hoy</button>
-      <div class="calendar-toolbar-nav">
-        <button id="btn-prev">⟨</button>
-        <button id="btn-next">⟩</button>
-      </div>
-      <span id="week-label" class="calendar-toolbar-label"></span>
+  <!-- Mini Calendario Dashboard -->
+  <div class="dashboard-mini-calendar">
+    <div class="dashboard-mini-calendar-header">
+      <button class="dashboard-mini-calendar-btn" type="button" id="mini-cal-prev">&#8249;</button>
+      <h3 class="dashboard-mini-calendar-title" id="mini-cal-month"></h3>
+      <button class="dashboard-mini-calendar-btn" type="button" id="mini-cal-next">&#8250;</button>
     </div>
-    <div class="calendar-toolbar-right">Vista semanal</div>
-  </header>
+    <div class="dashboard-mini-calendar-grid" id="mini-cal-grid">
+      <!-- Headers y dias se generan dinamicamente via JS -->
+    </div>
+  </div>
 
   <!-- Stats Grid 2x2 -->
   <div class="dashboard-stats-grid">

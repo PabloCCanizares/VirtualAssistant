@@ -23,10 +23,16 @@
     </main>
   </div>
 
+  <!-- AI Chat Overlay -->
+  {% include "partials/magicbox_templates/ai_chat.html" %}
+
   <!-- Chart.js OFFLINE -->
   <script src="{{ url_for('static', filename='js/chart.umd.js') }}"></script>
 
   <!-- Script general de la app -->
   <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+
+  <!-- AI Chat Script -->
+  <script src="{{ url_for('static', filename='js/ai_chat.js') }}"></script>
 </body>
 </html>
