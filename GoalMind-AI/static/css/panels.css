@@ -626,11 +626,6 @@
   transition: all 0.35s ease;
 }
 
-.grid-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 20px 50px rgba(0,0,0,.5), var(--panel-glow);
-}
-
 .grid-card-title {
   margin: 0;
   font-size: 16px;
