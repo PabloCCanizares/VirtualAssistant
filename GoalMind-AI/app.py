@@ -1,4 +1,5 @@
 from pathlib import Path
+from datetime import datetime
 
 #Clase principal de la aplicacion para crear la aplicacion en Flask
 from flask import Flask
@@ -42,6 +43,12 @@ app.register_blueprint(goal_bp)
 app.register_blueprint(project_bp)
 app.register_blueprint(calendar_bp) 
 app.register_blueprint(stats_bp)
+
+################ Context Processor - Variables globales para templates ##################
+@app.context_processor
+def inject_now():
+    """Inyecta la función now() en todas las plantillas Jinja2."""
+    return {'now': datetime.now}
 
 ################ Inicialización del Scheduler ##################
 # Solo inicializar si no estamos en el proceso de recarga de Flask (evita duplicados en modo debug)
