@@ -1,4 +1,4 @@
-<div class="topbar">
+<div class="topbar" id="main-topbar">
   <div class="topbar-breadcrumbs">
     <span class="topbar-breadcrumbs-current">
       {% if page == 'dashboard' %}Dashboard
@@ -10,18 +10,10 @@
       {% else %}Dashboard{% endif %}
     </span>
     <span class="topbar-breadcrumbs-separator">▸</span>
-    <span>Semana actual</span>
+    <span>{{ now().strftime('%d/%m/%Y') }}</span>
   </div>
 
   <div class="topbar-actions">
-    <button type="button" class="topbar-chip" data-action="new-appointment">
-      📅 Nueva cita
-    </button>
-    <button type="button" class="topbar-chip" data-action="new-goal">
-      🎯 Nuevo objetivo
-    </button>
-    <button type="button" class="topbar-chip primary" data-action="new-task">
-      ➕ Nueva tarea
-    </button>
+
   </div>
 </div>

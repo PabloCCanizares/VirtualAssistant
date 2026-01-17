@@ -959,3 +959,37 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ===== MAIN TOPBAR - Estilos específicos ===== */
+#main-topbar {
+  position: relative;
+  margin: 16px 0;
+  padding: 20px 32px;
+  width: 100%;
+  height: 30px;
+  box-sizing: border-box;
+}
+
+/* Botón orbe decorativo difuminado */
+.topbar-orb {
+  position: absolute;
+  right: 40px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  color: darkblue;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.topbar-orb:hover {
+  width: 90px;
+  height: 90px;
+}
+
+.topbar-orb:focus {
+  outline: none;
+}
