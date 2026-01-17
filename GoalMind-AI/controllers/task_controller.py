@@ -1,6 +1,7 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from model.task_model import TaskModel
 from bson import ObjectId
+from datetime import datetime
 
 from model.goal_model import GoalModel
 from model.project_model import ProjectModel
@@ -261,3 +262,55 @@ def bulk_delete_tasks():
         flash("No se pudieron eliminar las tareas seleccionadas.", "danger")
 
     return redirect(url_for("task_bp.list_tasks"))
+
+
+# -------------------------------------------------------------
+# 📅 API: TAREAS POR RANGO DE FECHAS (para mini calendario)
+# -------------------------------------------------------------
+@task_bp.route("/api/by-date-range", methods=["GET"])
+def get_tasks_by_date_range():
+    """
+    Devuelve tareas agrupadas por fecha para el mini calendario.
+    Params: start (YYYY-MM-DD), end (YYYY-MM-DD)
+    Response: { "2026-01-15": [{"titulo": "...", ...}, ...], ... }
+    """
+    try:
+        start_str = request.args.get("start", "")
+        end_str = request.args.get("end", "")
+
+        if not start_str or not end_str:
+            return jsonify({}), 200
+
+        # Obtener todas las tareas
+        tasks = TaskModel.get_all_tasks()
+
+        # Agrupar por fecha_limite
+        tasks_by_date = {}
+        for task in tasks:
+            fecha = task.get("fecha_limite")
+            if not fecha:
+                continue
+
+            # Normalizar fecha a string YYYY-MM-DD
+            if isinstance(fecha, datetime):
+                date_key = fecha.strftime("%Y-%m-%d")
+            elif isinstance(fecha, str):
+                date_key = fecha[:10]
+            else:
+                continue
+
+            # Verificar que esta en el rango
+            if start_str <= date_key <= end_str:
+                if date_key not in tasks_by_date:
+                    tasks_by_date[date_key] = []
+                tasks_by_date[date_key].append({
+                    "titulo": task.get("contenido") or task.get("titulo") or "(Sin titulo)",
+                    "estado": task.get("estado", "pendiente"),
+                    "prioridad": task.get("prioridad", "media")
+                })
+
+        return jsonify(tasks_by_date), 200
+
+    except Exception as e:
+        print(f"Error en get_tasks_by_date_range: {e}")
+        return jsonify({}), 200

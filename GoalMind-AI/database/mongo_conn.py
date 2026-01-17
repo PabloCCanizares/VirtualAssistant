@@ -26,7 +26,6 @@ with CONFIG_PATH.open("r", encoding="utf-8") as f:
     username = file["username"]
     pswd = file["pswd"]
     collections = file["collections"]
-    print("user: " + str(username) + "pswd: "+ str(pswd) + "Collections: " + str(collections))
 
 # Objetos de conexión
 mongo_local = PyMongo()
