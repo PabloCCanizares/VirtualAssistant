@@ -9,6 +9,7 @@ from werkzeug.utils import secure_filename
 from model.goal_model import GoalModel
 from model.project_document_model import ProjectDocumentModel
 from model.project_model import ProjectModel
+from model.task_model import TaskModel
 from model.upload_model import Upload_model
 
 project_bp = Blueprint("project_bp", __name__, url_prefix="/projects")
@@ -72,11 +73,21 @@ def list_projects():
         projects, goals, documents = [], [], []
 
     goal_counts = {}
+    goal_progress_sums = {}  # Suma de progresos por proyecto
     for goal in goals:
         project_id = goal.get("project_id")
         if project_id:
             key = str(project_id)
             goal_counts[key] = goal_counts.get(key, 0) + 1
+            goal_progress_sums[key] = goal_progress_sums.get(key, 0) + (goal.get("progreso", 0) or 0)
+
+    # Calcular progreso promedio por proyecto
+    project_progress = {}
+    for key, count in goal_counts.items():
+        if count > 0:
+            project_progress[key] = round(goal_progress_sums.get(key, 0) / count)
+        else:
+            project_progress[key] = 0
 
     doc_counts = {}
     for doc in documents:
@@ -92,6 +103,7 @@ def list_projects():
         projects=projects_view,
         goal_counts=goal_counts,
         doc_counts=doc_counts,
+        project_progress=project_progress,
         page="projects",
     )
 
@@ -169,6 +181,21 @@ def view_project(project_id):
                 }
             )
 
+    # Cargar tareas por objetivo
+    goal_tasks = {}
+    for goal in goals_view:
+        goal_id = goal["_id"]
+        tasks = TaskModel.get_tasks_by_goal(goal_id)
+        goal_tasks[goal_id] = [
+            {
+                "_id": _serialize_id(t.get("_id")),
+                "titulo": t.get("titulo", "(sin titulo)"),
+                "estado": t.get("estado", "Pendiente"),
+                "prioridad": t.get("prioridad", "Media"),
+            }
+            for t in tasks
+        ]
+
     return render_template(
         "partials/projects_templates/project_detail.html",
         project=_serialize_project(project),
@@ -177,6 +204,7 @@ def view_project(project_id):
         uploads=upload_views,
         goal_titles=goal_titles,
         goal_documents=goal_documents,
+        goal_tasks=goal_tasks,
         page="projects",
     )
 

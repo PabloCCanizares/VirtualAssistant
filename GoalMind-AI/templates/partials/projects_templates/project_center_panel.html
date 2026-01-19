@@ -1,10 +1,11 @@
 <section class="panel-container">
 
+  <!-- Hero Section -->
   <div class="panel-hero">
     <div class="panel-hero-content">
-      <p class="panel-subtitle">Capa superior</p>
+      <p class="panel-subtitle">Vision general</p>
       <h2 class="panel-hero-title">Panel de Proyectos</h2>
-      <p class="panel-hero-desc">Agrupa objetivos, adjunta documentos y mantén una vista clara del avance.</p>
+      <p class="panel-hero-desc">Gestiona tus proyectos, objetivos y tareas con un layout visual estilo Mission Control.</p>
     </div>
     <div class="panel-kpis">
       <div class="panel-kpi">
@@ -18,6 +19,7 @@
     </div>
   </div>
 
+  <!-- Tarjetas de proyectos con progress rings -->
   <div class="panel-section panel-accent">
     <div class="panel-header">
       <h3 class="panel-title">
@@ -32,21 +34,78 @@
     {% if projects and projects|length > 0 %}
     <div class="cards-grid">
       {% for project in projects %}
-      <div class="grid-card">
+      {% set progreso = project_progress.get(project['_id'], 0) if project_progress else 0 %}
+      <div class="grid-card" data-project-id="{{ project['_id'] }}">
+        <!-- Menu de 3 puntos -->
+        <div class="grid-card-menu">
+          <button class="grid-card-menu-btn" type="button" aria-label="Opciones del proyecto">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+              <circle cx="8" cy="3" r="1.5"/>
+              <circle cx="8" cy="8" r="1.5"/>
+              <circle cx="8" cy="13" r="1.5"/>
+            </svg>
+          </button>
+          
+          <!-- Dropdown principal -->
+          <div class="grid-card-dropdown" data-dropdown="main">
+            <button type="button" class="dropdown-item" data-action="rename">
+              <span class="dropdown-icon">✏️</span>
+              Cambiar nombre
+            </button>
+            <button type="button" class="dropdown-item dropdown-item-danger" data-action="delete">
+              <span class="dropdown-icon">🗑️</span>
+              Borrar proyecto
+            </button>
+          </div>
+          
+          <!-- Submenu de confirmacion para borrar -->
+          <div class="grid-card-dropdown grid-card-dropdown-confirm" data-dropdown="confirm-delete">
+            <p class="dropdown-confirm-text">¿Estas seguro de eliminar este proyecto?</p>
+            <div class="dropdown-confirm-actions">
+              <form action="{{ url_for('project_bp.delete_project', project_id=project['_id']) }}" method="post" class="dropdown-confirm-form">
+                <button type="submit" class="dropdown-btn dropdown-btn-danger">Si</button>
+              </form>
+              <button type="button" class="dropdown-btn dropdown-btn-cancel" data-action="cancel-delete">No</button>
+            </div>
+          </div>
+          
+          <!-- Submenu para renombrar -->
+          <div class="grid-card-dropdown grid-card-dropdown-rename" data-dropdown="rename">
+            <form action="{{ url_for('project_bp.update_project', project_id=project['_id']) }}" method="post" class="dropdown-rename-form">
+              <div class="dropdown-rename-field">
+                <label class="dropdown-rename-label">Nuevo nombre</label>
+                <input type="text" name="titulo" class="dropdown-rename-input" placeholder="Nombre del proyecto" value="{{ project.get('titulo','') }}">
+              </div>
+              <div class="dropdown-rename-actions">
+                <button type="button" class="dropdown-btn dropdown-btn-cancel" data-action="cancel-rename">Cancelar</button>
+                <button type="submit" class="dropdown-btn dropdown-btn-primary">Actualizar</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
         <h4 class="grid-card-title">{{ project.get('titulo','(sin titulo)') }}</h4>
+        
+        <!-- Progress Ring -->
+        <div class="progress-ring" style="--progress:{{ progreso }}%">
+          <span class="progress-ring-value">{{ progreso }}%</span>
+        </div>
+        
         <div class="grid-card-meta">
           <span class="panel-badge">{{ project.get('categoria','Sin categoria') }}</span>
-          <span class="panel-badge accent">{{ project.get('estado','Activo') }}</span>
-          <span class="panel-badge">{{ project.get('prioridad','Media') }}</span>
+          {% set estado = project.get('estado','Activo') %}
+          <span class="panel-badge {% if estado == 'Completado' %}success{% elif estado == 'Activo' %}accent{% else %}warning{% endif %}">
+            {{ estado }}
+          </span>
         </div>
         <div class="grid-card-footer">
-          {{ project.get('descripcion','Sin descripcion') }}
+          {{ project.get('descripcion','Sin descripcion')[:80] }}{% if project.get('descripcion','')|length > 80 %}...{% endif %}
         </div>
         <div class="grid-card-footer">
-          Objetivos: {{ goal_counts.get(project['_id'], 0) }} · Documentos: {{ doc_counts.get(project['_id'], 0) }}
+          🎯 {{ goal_counts.get(project['_id'], 0) }} objetivos · 📄 {{ doc_counts.get(project['_id'], 0) }} documentos
         </div>
         <div class="panel-actions">
-          <a class="panel-action-btn" href="{{ url_for('project_bp.view_project', project_id=project['_id']) }}">
+          <a class="panel-action-btn primary" href="{{ url_for('project_bp.view_project', project_id=project['_id']) }}">
             Abrir proyecto
           </a>
         </div>
@@ -62,4 +121,111 @@
     {% endif %}
   </div>
 
+  <!-- Snackbar para notificaciones -->
+  <div id="snackbar" class="snackbar"></div>
+
 </section>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Cerrar todos los dropdowns
+  function closeAllDropdowns() {
+    document.querySelectorAll('.grid-card-dropdown.active').forEach(dropdown => {
+      dropdown.classList.remove('active');
+    });
+    document.querySelectorAll('.grid-card-menu-btn.active').forEach(btn => {
+      btn.classList.remove('active');
+    });
+  }
+
+  // Mostrar snackbar
+  function showSnackbar(message, type = 'error') {
+    const snackbar = document.getElementById('snackbar');
+    snackbar.textContent = message;
+    snackbar.className = 'snackbar snackbar-' + type + ' snackbar-show';
+    setTimeout(() => {
+      snackbar.className = 'snackbar';
+    }, 3000);
+  }
+
+  // Manejar click en boton de menu (3 puntos)
+  document.querySelectorAll('.grid-card-menu-btn').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      const menu = this.closest('.grid-card-menu');
+      const mainDropdown = menu.querySelector('[data-dropdown="main"]');
+      const isActive = mainDropdown.classList.contains('active');
+      
+      closeAllDropdowns();
+      
+      if (!isActive) {
+        mainDropdown.classList.add('active');
+        this.classList.add('active');
+      }
+    });
+  });
+
+  // Manejar acciones del dropdown
+  document.querySelectorAll('.dropdown-item').forEach(item => {
+    item.addEventListener('click', function(e) {
+      e.stopPropagation();
+      const action = this.dataset.action;
+      const menu = this.closest('.grid-card-menu');
+      const mainDropdown = menu.querySelector('[data-dropdown="main"]');
+      
+      if (action === 'delete') {
+        mainDropdown.classList.remove('active');
+        menu.querySelector('[data-dropdown="confirm-delete"]').classList.add('active');
+      } else if (action === 'rename') {
+        mainDropdown.classList.remove('active');
+        menu.querySelector('[data-dropdown="rename"]').classList.add('active');
+        setTimeout(() => {
+          menu.querySelector('.dropdown-rename-input').focus();
+        }, 100);
+      }
+    });
+  });
+
+  // Cancelar borrado
+  document.querySelectorAll('[data-action="cancel-delete"]').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      closeAllDropdowns();
+    });
+  });
+
+  // Cancelar renombrar
+  document.querySelectorAll('[data-action="cancel-rename"]').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      closeAllDropdowns();
+    });
+  });
+
+  // Validar formulario de renombrar antes de enviar
+  document.querySelectorAll('.dropdown-rename-form').forEach(form => {
+    form.addEventListener('submit', function(e) {
+      const input = this.querySelector('.dropdown-rename-input');
+      if (!input.value.trim()) {
+        e.preventDefault();
+        showSnackbar('El nombre del proyecto no puede estar vacio', 'error');
+        input.focus();
+      }
+    });
+  });
+
+  // Cerrar dropdowns al hacer click fuera
+  document.addEventListener('click', function(e) {
+    if (!e.target.closest('.grid-card-menu')) {
+      closeAllDropdowns();
+    }
+  });
+
+  // Cerrar dropdowns con Escape
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      closeAllDropdowns();
+    }
+  });
+});
+</script>

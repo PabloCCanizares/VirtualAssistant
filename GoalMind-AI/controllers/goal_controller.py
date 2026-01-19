@@ -117,6 +117,33 @@ def add_goal():
 
 
 # -------------------------------------------------------------
+# 🔎 VER DETALLE DE UN OBJETIVO
+# -------------------------------------------------------------
+@goal_bp.route("/<goal_id>", methods=["GET"])
+def view_goal(goal_id):
+    """Muestra el detalle de un objetivo específico."""
+    try:
+        goal = GoalModel.get_goal_by_id(goal_id)
+        if not goal:
+            flash("⚠️ Objetivo no encontrado.", "warning")
+            return redirect(url_for("goal_bp.list_goals"))
+
+        goal_view = _serialize_goal(goal)
+        projects, project_titles = _load_projects()
+
+        return render_template(
+            "partials/goals_templates/goal_detail.html",
+            goal=goal_view,
+            projects=projects,
+            project_titles=project_titles,
+            page="objetivos",
+        )
+    except Exception as e:
+        flash(f"❌ Error al cargar el objetivo: {e}", "danger")
+        return redirect(url_for("goal_bp.list_goals"))
+
+
+# -------------------------------------------------------------
 # ✏️ ACTUALIZAR OBJETIVO (edición inline)
 # -------------------------------------------------------------
 @goal_bp.route("/<goal_id>", methods=["POST"])
