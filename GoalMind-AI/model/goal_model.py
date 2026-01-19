@@ -34,6 +34,18 @@ class GoalModel:
         local_col, _ = get_collection(GoalModel.COLLECTION)
         return list(local_col.find().sort("created_at", -1))
 
+    # -------------------------------------------------------------
+    #  OBTENER UNA POR ID
+    # -------------------------------------------------------------
+    @staticmethod
+    def get_goal_by_id(goal_id):
+        """
+        Devuelve un objetivo por su _id.
+        """
+        local_col, _ = get_collection(GoalModel.COLLECTION)
+        _id = ObjectId(goal_id) if not isinstance(goal_id, ObjectId) else goal_id
+        return local_col.find_one({"_id": _id})
+
     @staticmethod
     def get_by_project(project_id):
         """

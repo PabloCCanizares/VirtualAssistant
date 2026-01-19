@@ -97,6 +97,18 @@ class TaskModel:
         return list(local_col.find({"usuario_id": _id}))
 
     # -------------------------------------------------------------
+    #  OBTENER POR OBJETIVO (GOAL)
+    # -------------------------------------------------------------
+    @staticmethod
+    def get_tasks_by_goal(goal_id):
+        """
+        Devuelve todas las tareas asociadas a un objetivo específico.
+        """
+        local_col, _ = get_collection(TaskModel.COLLECTION)
+        _id = ObjectId(goal_id) if not isinstance(goal_id, ObjectId) else goal_id
+        return list(local_col.find({"goal_id": _id}).sort("fecha_creacion", -1))
+
+    # -------------------------------------------------------------
     #  ELIMINAR
     # -------------------------------------------------------------
     @staticmethod

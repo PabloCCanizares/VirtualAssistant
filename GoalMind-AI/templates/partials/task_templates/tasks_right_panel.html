@@ -1,178 +1,184 @@
 <aside class="side-panel">
 
   {% if selected_task %}
-  <!-- Modo edicion de tarea existente -->
-  <div class="side-panel-card">
+  <!-- Modo edicion de tarea existente (colapsable) -->
+  <div class="side-panel-card collapsible">
     <div class="side-panel-header">
       <span class="side-panel-icon">✏️</span>
       <h3 class="side-panel-title">Editar tarea</h3>
+      <span class="side-panel-toggle"></span>
     </div>
 
-    <form method="post"
-          action="{{ url_for('task_bp.update_task', task_id=selected_task['_id']) }}"
-          class="panel-form">
+    <div class="side-panel-card-content">
+      <form method="post"
+            action="{{ url_for('task_bp.update_task', task_id=selected_task['_id']) }}"
+            class="panel-form">
 
-      <div class="panel-form-group">
-        <label class="panel-form-label" for="contenido">Titulo</label>
-        <input type="text"
-               name="contenido"
-               id="contenido"
-               class="panel-form-input"
-               value="{{ selected_task['contenido'] }}"
-               required>
-      </div>
-
-      <div class="panel-form-group">
-        <label class="panel-form-label" for="objetivo_id">Objetivo asociado</label>
-        <select name="objetivo_id" id="objetivo_id" class="panel-form-select" required>
-          {% if goals and goals|length > 0 %}
-            {% set current_goal_id = (selected_task.get('objetivo_id') | string) %}
-            {% for goal in goals %}
-              {% set gid = (goal['_id'] | string) %}
-              <option value="{{ gid }}" {% if gid == current_goal_id %}selected{% endif %}>
-                {{ goal.get('titulo', '(sin titulo)') }}{% if goal_project_titles.get(gid) %} · {{ goal_project_titles.get(gid) }}{% endif %}
-              </option>
-            {% endfor %}
-          {% else %}
-            <option disabled selected>⚠️ No hay objetivos definidos</option>
-          {% endif %}
-        </select>
-      </div>
-
-      <div class="panel-form-group">
-        <label class="panel-form-label" for="descripcion">Descripcion</label>
-        <textarea name="descripcion"
-                  id="descripcion"
-                  class="panel-form-textarea"
-                  rows="3">{{ selected_task['descripcion'] }}</textarea>
-      </div>
-
-      <div class="panel-form-group">
-        <label class="panel-form-label" for="fecha_limite">Fecha limite</label>
-        <input type="date"
-               name="fecha_limite"
-               id="fecha_limite"
-               class="panel-form-input"
-               value="{{ selected_task['fecha_limite']|default('') }}">
-      </div>
-
-      <div class="panel-form-row">
         <div class="panel-form-group">
-          <label class="panel-form-label" for="estado">Estado</label>
-          <select name="estado" id="estado" class="panel-form-select">
-            <option value="pendiente" {% if selected_task['estado'] == "pendiente" %}selected{% endif %}>Pendiente</option>
-            <option value="en curso" {% if selected_task['estado'] == "en curso" %}selected{% endif %}>En curso</option>
-            <option value="completada" {% if selected_task['estado'] == "completada" %}selected{% endif %}>Completada</option>
+          <label class="panel-form-label" for="contenido">Titulo</label>
+          <input type="text"
+                 name="contenido"
+                 id="contenido"
+                 class="panel-form-input"
+                 value="{{ selected_task['contenido'] }}"
+                 required>
+        </div>
+
+        <div class="panel-form-group">
+          <label class="panel-form-label" for="objetivo_id">Objetivo asociado</label>
+          <select name="objetivo_id" id="objetivo_id" class="panel-form-select" required>
+            {% if goals and goals|length > 0 %}
+              {% set current_goal_id = (selected_task.get('objetivo_id') | string) %}
+              {% for goal in goals %}
+                {% set gid = (goal['_id'] | string) %}
+                <option value="{{ gid }}" {% if gid == current_goal_id %}selected{% endif %}>
+                  {{ goal.get('titulo', '(sin titulo)') }}{% if goal_project_titles.get(gid) %} - {{ goal_project_titles.get(gid) }}{% endif %}
+                </option>
+              {% endfor %}
+            {% else %}
+              <option disabled selected>No hay objetivos definidos</option>
+            {% endif %}
           </select>
         </div>
-        <div class="panel-form-group">
-          <label class="panel-form-label" for="prioridad">Prioridad</label>
-          <select name="prioridad" id="prioridad" class="panel-form-select">
-            <option value="baja" {% if selected_task['prioridad'] == "baja" %}selected{% endif %}>Baja</option>
-            <option value="media" {% if selected_task['prioridad'] == "media" %}selected{% endif %}>Media</option>
-            <option value="alta" {% if selected_task['prioridad'] == "alta" %}selected{% endif %}>Alta</option>
-          </select>
-        </div>
-      </div>
 
-      <button type="submit" class="panel-form-submit">Guardar cambios ✅</button>
-    </form>
+        <div class="panel-form-group">
+          <label class="panel-form-label" for="descripcion">Descripcion</label>
+          <textarea name="descripcion"
+                    id="descripcion"
+                    class="panel-form-textarea"
+                    rows="3">{{ selected_task['descripcion'] }}</textarea>
+        </div>
+
+        <div class="panel-form-group">
+          <label class="panel-form-label" for="fecha_limite">Fecha limite</label>
+          <input type="date"
+                 name="fecha_limite"
+                 id="fecha_limite"
+                 class="panel-form-input"
+                 value="{{ selected_task['fecha_limite']|default('') }}">
+        </div>
+
+        <div class="panel-form-row">
+          <div class="panel-form-group">
+            <label class="panel-form-label" for="estado">Estado</label>
+            <select name="estado" id="estado" class="panel-form-select">
+              <option value="pendiente" {% if selected_task['estado'] == "pendiente" %}selected{% endif %}>Pendiente</option>
+              <option value="en curso" {% if selected_task['estado'] == "en curso" %}selected{% endif %}>En curso</option>
+              <option value="completada" {% if selected_task['estado'] == "completada" %}selected{% endif %}>Completada</option>
+            </select>
+          </div>
+          <div class="panel-form-group">
+            <label class="panel-form-label" for="prioridad">Prioridad</label>
+            <select name="prioridad" id="prioridad" class="panel-form-select">
+              <option value="baja" {% if selected_task['prioridad'] == "baja" %}selected{% endif %}>Baja</option>
+              <option value="media" {% if selected_task['prioridad'] == "media" %}selected{% endif %}>Media</option>
+              <option value="alta" {% if selected_task['prioridad'] == "alta" %}selected{% endif %}>Alta</option>
+            </select>
+          </div>
+        </div>
+
+        <button type="submit" class="panel-form-submit">Guardar cambios</button>
+      </form>
+    </div>
   </div>
 
   {% else %}
-  <!-- Modo creacion de nueva tarea -->
-  <div class="side-panel-card">
+  <!-- Modo creacion de nueva tarea (colapsable) -->
+  <div class="side-panel-card collapsible">
     <div class="side-panel-header">
       <span class="side-panel-icon">➕</span>
       <h3 class="side-panel-title">Nueva tarea</h3>
+      <span class="side-panel-toggle"></span>
     </div>
 
-    {% set goals_available = goals and goals|length > 0 %}
-    <form method="post"
-          action="{{ url_for('task_bp.add_task') }}"
-          class="panel-form">
+    <div class="side-panel-card-content">
+      {% set goals_available = goals and goals|length > 0 %}
+      <form method="post"
+            action="{{ url_for('task_bp.add_task') }}"
+            class="panel-form">
 
-      <div class="panel-form-group">
-        <label class="panel-form-label" for="contenido">Titulo</label>
-        <input type="text"
-               name="contenido"
-               id="contenido"
-               class="panel-form-input"
-               placeholder="Titulo de la tarea"
-               required>
-      </div>
-
-      <div class="panel-form-group">
-        <label class="panel-form-label" for="objetivo_id">Objetivo asociado</label>
-        <select name="objetivo_id" id="objetivo_id" class="panel-form-select" required>
-          {% if goals_available %}
-            {% for goal in goals %}
-              {% set gid = (goal['_id'] | string) %}
-              <option value="{{ goal['_id'] }}">
-                {{ goal.get('titulo', '(sin titulo)') }}{% if goal_project_titles.get(gid) %} · {{ goal_project_titles.get(gid) }}{% endif %}
-              </option>
-            {% endfor %}
-          {% else %}
-            <option disabled selected>⚠️ No hay objetivos definidos</option>
-          {% endif %}
-        </select>
-      </div>
-
-      <div class="panel-form-group">
-        <label class="panel-form-label" for="categoria">Categoria</label>
-        <select name="categoria" id="categoria" class="panel-form-select">
-          <option value="trabajo">Trabajo</option>
-          <option value="personal" selected>Personal</option>
-          <option value="estudio">Estudio</option>
-          <option value="salud">Salud</option>
-          <option value="hogar">Hogar</option>
-          <option value="otros">Otros</option>
-        </select>
-      </div>
-
-      <div class="panel-form-group">
-        <label class="panel-form-label" for="descripcion">Descripcion</label>
-        <textarea name="descripcion"
-                  id="descripcion"
-                  class="panel-form-textarea"
-                  rows="3"
-                  placeholder="Detalles de la tarea"></textarea>
-      </div>
-
-      <div class="panel-form-group">
-        <label class="panel-form-label" for="fecha_limite">Fecha limite</label>
-        <input type="date"
-               name="fecha_limite"
-               id="fecha_limite"
-               class="panel-form-input">
-      </div>
-
-      <div class="panel-form-row">
         <div class="panel-form-group">
-          <label class="panel-form-label" for="estado">Estado</label>
-          <select name="estado" id="estado" class="panel-form-select">
-            <option value="pendiente" selected>Pendiente</option>
-            <option value="en curso">En curso</option>
-            <option value="completada">Completada</option>
+          <label class="panel-form-label" for="contenido">Titulo</label>
+          <input type="text"
+                 name="contenido"
+                 id="contenido"
+                 class="panel-form-input"
+                 placeholder="Titulo de la tarea"
+                 required>
+        </div>
+
+        <div class="panel-form-group">
+          <label class="panel-form-label" for="objetivo_id">Objetivo asociado</label>
+          <select name="objetivo_id" id="objetivo_id" class="panel-form-select" required>
+            {% if goals_available %}
+              {% for goal in goals %}
+                {% set gid = (goal['_id'] | string) %}
+                <option value="{{ goal['_id'] }}">
+                  {{ goal.get('titulo', '(sin titulo)') }}{% if goal_project_titles.get(gid) %} - {{ goal_project_titles.get(gid) }}{% endif %}
+                </option>
+              {% endfor %}
+            {% else %}
+              <option disabled selected>No hay objetivos definidos</option>
+            {% endif %}
           </select>
         </div>
 
         <div class="panel-form-group">
-          <label class="panel-form-label" for="prioridad">Prioridad</label>
-          <select name="prioridad" id="prioridad" class="panel-form-select">
-            <option value="baja">Baja</option>
-            <option value="media" selected>Media</option>
-            <option value="alta">Alta</option>
+          <label class="panel-form-label" for="categoria">Categoria</label>
+          <select name="categoria" id="categoria" class="panel-form-select">
+            <option value="trabajo">Trabajo</option>
+            <option value="personal" selected>Personal</option>
+            <option value="estudio">Estudio</option>
+            <option value="salud">Salud</option>
+            <option value="hogar">Hogar</option>
+            <option value="otros">Otros</option>
           </select>
         </div>
-      </div>
 
-      <button type="submit" class="panel-form-submit" {% if not goals_available %}disabled{% endif %}>Crear tarea ✨</button>
-    </form>
+        <div class="panel-form-group">
+          <label class="panel-form-label" for="descripcion">Descripcion</label>
+          <textarea name="descripcion"
+                    id="descripcion"
+                    class="panel-form-textarea"
+                    rows="3"
+                    placeholder="Detalles de la tarea"></textarea>
+        </div>
+
+        <div class="panel-form-group">
+          <label class="panel-form-label" for="fecha_limite">Fecha limite</label>
+          <input type="date"
+                 name="fecha_limite"
+                 id="fecha_limite"
+                 class="panel-form-input">
+        </div>
+
+        <div class="panel-form-row">
+          <div class="panel-form-group">
+            <label class="panel-form-label" for="estado">Estado</label>
+            <select name="estado" id="estado" class="panel-form-select">
+              <option value="pendiente" selected>Pendiente</option>
+              <option value="en curso">En curso</option>
+              <option value="completada">Completada</option>
+            </select>
+          </div>
+
+          <div class="panel-form-group">
+            <label class="panel-form-label" for="prioridad">Prioridad</label>
+            <select name="prioridad" id="prioridad" class="panel-form-select">
+              <option value="baja">Baja</option>
+              <option value="media" selected>Media</option>
+              <option value="alta">Alta</option>
+            </select>
+          </div>
+        </div>
+
+        <button type="submit" class="panel-form-submit" {% if not goals_available %}disabled{% endif %}>Crear tarea</button>
+      </form>
+    </div>
   </div>
   {% endif %}
 
-  <!-- Seccion de ayuda rapida -->
+  <!-- Seccion de ayuda rapida (no colapsable - sin form) -->
   <div class="side-panel-card">
     <div class="side-panel-header">
       <span class="side-panel-icon">💡</span>
@@ -189,3 +195,5 @@
   </div>
 
 </aside>
+
+<script src="{{ url_for('static', filename='js/side_panel_collapsible.js') }}"></script>

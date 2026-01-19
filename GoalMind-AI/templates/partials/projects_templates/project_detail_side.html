@@ -1,164 +1,232 @@
 <aside class="side-panel">
 
-  <div class="side-panel-card">
+  <!-- Editar proyecto (colapsable) -->
+  <div class="side-panel-card collapsible">
     <div class="side-panel-header">
       <span class="side-panel-icon">✏️</span>
       <h3 class="side-panel-title">Editar proyecto</h3>
+      <span class="side-panel-toggle"></span>
     </div>
 
-    <form method="post"
-          action="{{ url_for('project_bp.update_project', project_id=project['_id']) }}"
-          class="panel-form">
+    <div class="side-panel-card-content">
+      <form method="post"
+            action="{{ url_for('project_bp.update_project', project_id=project['_id']) }}"
+            class="panel-form">
 
-      <div class="panel-form-group">
-        <label class="panel-form-label" for="titulo">Titulo</label>
-        <input type="text"
-               name="titulo"
-               id="titulo"
-               class="panel-form-input"
-               value="{{ project.get('titulo','') }}"
-               required>
-      </div>
-
-      <div class="panel-form-group">
-        <label class="panel-form-label" for="descripcion">Descripcion</label>
-        <textarea name="descripcion"
-                  id="descripcion"
-                  class="panel-form-textarea"
-                  rows="3">{{ project.get('descripcion','') }}</textarea>
-      </div>
-
-      <div class="panel-form-row">
         <div class="panel-form-group">
-          <label class="panel-form-label" for="fecha_inicio">Fecha inicio</label>
-          <input type="date"
-                 name="fecha_inicio"
-                 id="fecha_inicio"
-                 class="panel-form-input"
-                 value="{{ ((project.get('fecha_inicio') or '')|string)[:10] }}">
-        </div>
-        <div class="panel-form-group">
-          <label class="panel-form-label" for="fecha_fin">Fecha fin</label>
-          <input type="date"
-                 name="fecha_fin"
-                 id="fecha_fin"
-                 class="panel-form-input"
-                 value="{{ ((project.get('fecha_fin') or '')|string)[:10] }}">
-        </div>
-      </div>
-
-      <div class="panel-form-row">
-        <div class="panel-form-group">
-          <label class="panel-form-label" for="categoria">Categoria</label>
-          {% set cat = project.get('categoria','Investigacion') %}
-          <select name="categoria" id="categoria" class="panel-form-select">
-            <option value="Investigacion" {% if cat == 'Investigacion' %}selected{% endif %}>Investigacion</option>
-            <option value="Trabajo" {% if cat == 'Trabajo' %}selected{% endif %}>Trabajo</option>
-            <option value="Personal" {% if cat == 'Personal' %}selected{% endif %}>Personal</option>
-            <option value="Estudios" {% if cat == 'Estudios' %}selected{% endif %}>Estudios</option>
-            <option value="Otros" {% if cat == 'Otros' %}selected{% endif %}>Otros</option>
-          </select>
-        </div>
-        <div class="panel-form-group">
-          <label class="panel-form-label" for="prioridad">Prioridad</label>
-          {% set pr = project.get('prioridad','Media') %}
-          <select name="prioridad" id="prioridad" class="panel-form-select">
-            <option value="Baja" {% if pr == 'Baja' %}selected{% endif %}>Baja</option>
-            <option value="Media" {% if pr == 'Media' %}selected{% endif %}>Media</option>
-            <option value="Alta" {% if pr == 'Alta' %}selected{% endif %}>Alta</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="panel-form-row">
-        <div class="panel-form-group">
-          <label class="panel-form-label" for="estado">Estado</label>
-          {% set st = project.get('estado','Activo') %}
-          <select name="estado" id="estado" class="panel-form-select">
-            <option value="Activo" {% if st == 'Activo' %}selected{% endif %}>Activo</option>
-            <option value="En pausa" {% if st == 'En pausa' %}selected{% endif %}>En pausa</option>
-            <option value="Completado" {% if st == 'Completado' %}selected{% endif %}>Completado</option>
-          </select>
-        </div>
-        <div class="panel-form-group">
-          <label class="panel-form-label" for="id_usuario">ID Usuario</label>
+          <label class="panel-form-label" for="titulo">Titulo</label>
           <input type="text"
-                 name="id_usuario"
-                 id="id_usuario"
+                 name="titulo"
+                 id="titulo"
                  class="panel-form-input"
-                 value="{{ project.get('id_usuario','') }}">
+                 value="{{ project.get('titulo','') }}"
+                 required>
         </div>
-      </div>
 
-      <button type="submit" class="panel-form-submit">Guardar cambios ✅</button>
-    </form>
+        <div class="panel-form-group">
+          <label class="panel-form-label" for="descripcion">Descripcion</label>
+          <textarea name="descripcion"
+                    id="descripcion"
+                    class="panel-form-textarea"
+                    rows="3">{{ project.get('descripcion','') }}</textarea>
+        </div>
+
+        <div class="panel-form-row">
+          <div class="panel-form-group">
+            <label class="panel-form-label" for="fecha_inicio">Fecha inicio</label>
+            <input type="date"
+                   name="fecha_inicio"
+                   id="fecha_inicio"
+                   class="panel-form-input"
+                   value="{{ ((project.get('fecha_inicio') or '')|string)[:10] }}">
+          </div>
+          <div class="panel-form-group">
+            <label class="panel-form-label" for="fecha_fin">Fecha fin</label>
+            <input type="date"
+                   name="fecha_fin"
+                   id="fecha_fin"
+                   class="panel-form-input"
+                   value="{{ ((project.get('fecha_fin') or '')|string)[:10] }}">
+          </div>
+        </div>
+
+        <div class="panel-form-row">
+          <div class="panel-form-group">
+            <label class="panel-form-label" for="categoria">Categoria</label>
+            {% set cat = project.get('categoria','Investigacion') %}
+            <select name="categoria" id="categoria" class="panel-form-select">
+              <option value="Investigacion" {% if cat == 'Investigacion' %}selected{% endif %}>Investigacion</option>
+              <option value="Trabajo" {% if cat == 'Trabajo' %}selected{% endif %}>Trabajo</option>
+              <option value="Personal" {% if cat == 'Personal' %}selected{% endif %}>Personal</option>
+              <option value="Estudios" {% if cat == 'Estudios' %}selected{% endif %}>Estudios</option>
+              <option value="Otros" {% if cat == 'Otros' %}selected{% endif %}>Otros</option>
+            </select>
+          </div>
+          <div class="panel-form-group">
+            <label class="panel-form-label" for="prioridad">Prioridad</label>
+            {% set pr = project.get('prioridad','Media') %}
+            <select name="prioridad" id="prioridad" class="panel-form-select">
+              <option value="Baja" {% if pr == 'Baja' %}selected{% endif %}>Baja</option>
+              <option value="Media" {% if pr == 'Media' %}selected{% endif %}>Media</option>
+              <option value="Alta" {% if pr == 'Alta' %}selected{% endif %}>Alta</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="panel-form-row">
+          <div class="panel-form-group">
+            <label class="panel-form-label" for="estado">Estado</label>
+            {% set st = project.get('estado','Activo') %}
+            <select name="estado" id="estado" class="panel-form-select">
+              <option value="Activo" {% if st == 'Activo' %}selected{% endif %}>Activo</option>
+              <option value="En pausa" {% if st == 'En pausa' %}selected{% endif %}>En pausa</option>
+              <option value="Completado" {% if st == 'Completado' %}selected{% endif %}>Completado</option>
+            </select>
+          </div>
+          <div class="panel-form-group">
+            <label class="panel-form-label" for="id_usuario">ID Usuario</label>
+            <input type="text"
+                   name="id_usuario"
+                   id="id_usuario"
+                   class="panel-form-input"
+                   value="{{ project.get('id_usuario','') }}">
+          </div>
+        </div>
+
+        <button type="submit" class="panel-form-submit">Guardar cambios</button>
+      </form>
+    </div>
   </div>
 
-  <div class="side-panel-card">
-    <div class="side-panel-header">
-      <span class="side-panel-icon">ÐY"Z</span>
-      <h3 class="side-panel-title">Asociar documento</h3>
-    </div>
-
-    {% if uploads and uploads|length > 0 %}
-    <form method="post"
-          action="{{ url_for('project_bp.link_upload_document', project_id=project['_id']) }}"
-          class="panel-form">
-
-      <div class="panel-form-group">
-        <label class="panel-form-label" for="upload_id">Documento en biblioteca</label>
-        <select name="upload_id" id="upload_id" class="panel-form-select" required>
-          <option value="">Selecciona un documento</option>
-          {% for upload in uploads %}
-            <option value="{{ upload['_id'] }}">
-              {{ upload.title }} ({{ upload.size_label }})
-            </option>
-          {% endfor %}
-        </select>
-      </div>
-
-      <div class="panel-form-group">
-        <label class="panel-form-label" for="goal_id_link">Asociar a objetivo (opcional)</label>
-        <select name="goal_id" id="goal_id_link" class="panel-form-select">
-          <option value="">Sin objetivo</option>
-          {% if goals and goals|length > 0 %}
-            {% for goal in goals %}
-              <option value="{{ goal['_id'] }}">{{ goal.get('titulo','(sin titulo)') }}</option>
-            {% endfor %}
-          {% endif %}
-        </select>
-      </div>
-
-      <button type="submit" class="panel-form-submit">Asociar documento</button>
-    </form>
-    {% else %}
-    <div class="empty-state">
-      <div class="empty-state-icon">DOC</div>
-      <h4 class="empty-state-title">Sin documentos disponibles</h4>
-      <p class="empty-state-desc">Sube archivos en "Mis documentos" para asociarlos.</p>
-    </div>
-    {% endif %}
-  </div>
-
-  <div class="side-panel-card">
+  <!-- Asociar documento - Drag & Drop (colapsable) -->
+  <div class="side-panel-card collapsible" id="documentDropCard">
     <div class="side-panel-header">
       <span class="side-panel-icon">📎</span>
-      <h3 class="side-panel-title">Subir documento</h3>
+      <h3 class="side-panel-title">Asociar documento</h3>
+      <span class="side-panel-toggle"></span>
+    </div>
+
+    <div class="side-panel-card-content">
+      <!-- Zona de drag & drop -->
+      <div class="dropzone" id="documentDropzone">
+        <div class="dropzone-icon">📄</div>
+        <p class="dropzone-text">
+          <strong>Arrastra un documento aqui</strong>
+          o haz click para seleccionar
+        </p>
+        <p class="dropzone-hint">PDF, Word, Excel, imagenes...</p>
+        <input type="file" id="dropzoneFileInput" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.md,.png,.jpg,.jpeg,.gif,.webp">
+      </div>
+
+      <!-- Separador -->
+      <div style="display: flex; align-items: center; gap: 12px; margin: 16px 0; color: var(--muted); font-size: 12px;">
+        <div style="flex: 1; height: 1px; background: rgba(255,255,255,.1);"></div>
+        <span>o selecciona de la biblioteca</span>
+        <div style="flex: 1; height: 1px; background: rgba(255,255,255,.1);"></div>
+      </div>
+
+      <!-- Seleccionar de biblioteca existente -->
+      {% if uploads and uploads|length > 0 %}
+      <form method="post"
+            action="{{ url_for('project_bp.link_upload_document', project_id=project['_id']) }}"
+            class="panel-form">
+
+        <div class="panel-form-group">
+          <label class="panel-form-label" for="upload_id">Documento en biblioteca</label>
+          <select name="upload_id" id="upload_id" class="panel-form-select" required>
+            <option value="">Selecciona un documento</option>
+            {% for upload in uploads %}
+              <option value="{{ upload['_id'] }}">
+                {{ upload.title }} ({{ upload.size_label }})
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="panel-form-group">
+          <label class="panel-form-label" for="goal_id_link">Asociar a objetivo (opcional)</label>
+          <select name="goal_id" id="goal_id_link" class="panel-form-select">
+            <option value="">Sin objetivo</option>
+            {% if goals and goals|length > 0 %}
+              {% for goal in goals %}
+                <option value="{{ goal['_id'] }}">{{ goal.get('titulo','(sin titulo)') }}</option>
+              {% endfor %}
+            {% endif %}
+          </select>
+        </div>
+
+        <button type="submit" class="panel-form-submit">Asociar documento</button>
+      </form>
+      {% else %}
+      <div class="empty-state" style="padding: 16px 0;">
+        <div class="empty-state-icon" style="font-size: 32px;">📚</div>
+        <p class="empty-state-desc" style="font-size: 12px;">No hay documentos en la biblioteca. Arrastra un archivo arriba para subir uno nuevo.</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Eliminar proyecto (colapsable) -->
+  <div class="side-panel-card collapsible">
+    <div class="side-panel-header">
+      <span class="side-panel-icon">🗑️</span>
+      <h3 class="side-panel-title">Eliminar proyecto</h3>
+      <span class="side-panel-toggle"></span>
+    </div>
+
+    <div class="side-panel-card-content">
+      <p style="font-size: 13px; color: var(--muted); margin: 0 0 16px;">
+        Esta accion eliminara el proyecto y todos sus datos asociados. Esta accion no se puede deshacer.
+      </p>
+      <form method="post"
+            action="{{ url_for('project_bp.delete_project', project_id=project['_id']) }}"
+            onsubmit="return confirm('¿Estas seguro de que quieres eliminar este proyecto? Esta accion no se puede deshacer.');">
+        <button type="submit" class="panel-action-btn danger" style="width: 100%; justify-content: center;">
+          Eliminar proyecto
+        </button>
+      </form>
+    </div>
+  </div>
+
+</aside>
+
+<!-- Modal para subir documento con drag & drop -->
+<div class="upload-modal-overlay" id="uploadModalOverlay">
+  <div class="upload-modal" id="uploadModal">
+    <div class="upload-modal-header">
+      <h3 class="upload-modal-title">
+        <span>📤</span> Subir documento
+      </h3>
+      <button type="button" class="upload-modal-close">&times;</button>
+    </div>
+
+    <div class="upload-modal-file-preview">
+      <span class="upload-modal-file-icon">📄</span>
+      <div class="upload-modal-file-info">
+        <div class="upload-modal-file-name">documento.pdf</div>
+        <div class="upload-modal-file-size">0 KB</div>
+      </div>
     </div>
 
     <form method="post"
           action="{{ url_for('project_bp.upload_document', project_id=project['_id']) }}"
-          class="panel-form"
-          enctype="multipart/form-data">
+          class="upload-modal-form"
+          enctype="multipart/form-data"
+          id="uploadModalForm">
 
       <div class="panel-form-group">
-        <label class="panel-form-label" for="document">Archivo</label>
-        <input type="file" name="document" id="document" class="panel-form-input" required>
+        <label class="panel-form-label" for="document_title">Nombre del documento</label>
+        <input type="text"
+               name="document_title"
+               id="document_title"
+               class="panel-form-input"
+               placeholder="Nombre con el que se guardara"
+               required>
       </div>
 
       <div class="panel-form-group">
-        <label class="panel-form-label" for="goal_id">Asociar a objetivo (opcional)</label>
-        <select name="goal_id" id="goal_id" class="panel-form-select">
+        <label class="panel-form-label" for="modal_goal_id">Asociar a objetivo (opcional)</label>
+        <select name="goal_id" id="modal_goal_id" class="panel-form-select">
           <option value="">Sin objetivo</option>
           {% if goals and goals|length > 0 %}
             {% for goal in goals %}
@@ -168,20 +236,80 @@
         </select>
       </div>
 
-      <button type="submit" class="panel-form-submit">Subir documento ⬆️</button>
+      <!-- Input oculto para el archivo -->
+      <input type="file" name="document" id="modalFileInput" style="display: none;" required>
+
+      <div class="upload-modal-actions">
+        <button type="button" class="panel-action-btn secondary" data-action="cancel">Cancelar</button>
+        <button type="submit" class="panel-action-btn primary">Subir documento</button>
+      </div>
     </form>
   </div>
+</div>
 
-  <div class="side-panel-card">
-    <div class="side-panel-header">
-      <span class="side-panel-icon">🗑️</span>
-      <h3 class="side-panel-title">Eliminar proyecto</h3>
-    </div>
-    <form method="post"
-          action="{{ url_for('project_bp.delete_project', project_id=project['_id']) }}"
-          onsubmit="return confirm('¿Eliminar este proyecto?');">
-      <button type="submit" class="panel-action-btn danger">Eliminar proyecto</button>
-    </form>
-  </div>
+<script src="{{ url_for('static', filename='js/side_panel_collapsible.js') }}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const dropzone = document.getElementById('documentDropzone');
+  const modalOverlay = document.getElementById('uploadModalOverlay');
+  const modal = document.getElementById('uploadModal');
+  const form = document.getElementById('uploadModalForm');
+  const fileInput = document.getElementById('modalFileInput');
+  const titleInput = document.getElementById('document_title');
+  
+  // Inicializar el modal
+  const uploadModal = new UploadModal(modal, {
+    onSubmit: function(formData, file) {
+      // El form se enviara normalmente con el archivo
+      form.submit();
+    },
+    onCancel: function() {
+      // Reset
+      fileInput.value = '';
+      titleInput.value = '';
+    }
+  });
 
-</aside>
+  // Inicializar dropzone
+  initDropzone(dropzone, {
+    onDrop: function(file) {
+      // Actualizar el input de archivo oculto
+      const dataTransfer = new DataTransfer();
+      dataTransfer.items.add(file);
+      fileInput.files = dataTransfer.files;
+      
+      // Sugerir nombre basado en el archivo (sin extension)
+      const suggestedName = file.name.replace(/\.[^/.]+$/, '');
+      titleInput.value = suggestedName;
+      
+      // Abrir modal
+      uploadModal.open(file);
+    }
+  });
+
+  // Tambien manejar click en el input file del dropzone
+  const dropzoneInput = document.getElementById('dropzoneFileInput');
+  if (dropzoneInput) {
+    dropzoneInput.addEventListener('change', function(e) {
+      if (e.target.files.length > 0) {
+        const file = e.target.files[0];
+        
+        // Actualizar el input de archivo del modal
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(file);
+        fileInput.files = dataTransfer.files;
+        
+        // Sugerir nombre
+        const suggestedName = file.name.replace(/\.[^/.]+$/, '');
+        titleInput.value = suggestedName;
+        
+        // Abrir modal
+        uploadModal.open(file);
+        
+        // Reset el input del dropzone para permitir seleccionar el mismo archivo
+        dropzoneInput.value = '';
+      }
+    });
+  }
+});
+</script>
