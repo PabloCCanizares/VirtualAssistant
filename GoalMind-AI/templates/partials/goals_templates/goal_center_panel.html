@@ -121,8 +121,10 @@
           <span class="panel-badge">{{ goal.get('prioridad','Media') }}</span>
         </div>
         <div class="grid-card-footer">
-          {% set inicio = (goal.get('fecha_inicio') or '')[:10] %}
-          {% set fin = (goal.get('fecha_fin') or '')[:10] %}
+          {% set inicio_raw = goal.get('fecha_inicio') %}
+          {% set fin_raw = goal.get('fecha_fin') %}
+          {% set inicio = inicio_raw.strftime('%Y-%m-%d') if inicio_raw and inicio_raw is not string else (inicio_raw or '')[:10] if inicio_raw else '' %}
+          {% set fin = fin_raw.strftime('%Y-%m-%d') if fin_raw and fin_raw is not string else (fin_raw or '')[:10] if fin_raw else '' %}
           Periodo: {% if inicio %}{{ inicio }}{% else %}—{% endif %}{% if fin %} → {{ fin }}{% endif %}
         </div>
       </div>
@@ -220,8 +222,10 @@
               <span class="item-meta-tag">
                 🧭 {{ project_titles.get(goal.get('project_id'), 'Sin proyecto') }}
               </span>
-              {% set inicio = (goal.get('fecha_inicio') or '')[:10] %}
-              {% set fin = (goal.get('fecha_fin') or '')[:10] %}
+              {% set inicio_raw2 = goal.get('fecha_inicio') %}
+              {% set fin_raw2 = goal.get('fecha_fin') %}
+              {% set inicio = inicio_raw2.strftime('%Y-%m-%d') if inicio_raw2 and inicio_raw2 is not string else (inicio_raw2 or '')[:10] if inicio_raw2 else '' %}
+              {% set fin = fin_raw2.strftime('%Y-%m-%d') if fin_raw2 and fin_raw2 is not string else (fin_raw2 or '')[:10] if fin_raw2 else '' %}
               <span class="item-meta-tag">
                 📅 {% if inicio %}{{ inicio }}{% else %}—{% endif %}{% if fin %} → {{ fin }}{% endif %}
               </span>
@@ -294,11 +298,13 @@
               <div class="panel-form-row">
                 <div class="panel-form-group">
                   <label class="panel-form-label">Fecha inicio</label>
-                  <input type="date" name="fecha_inicio" class="panel-form-input" value="{{ (goal.get('fecha_inicio') or '')[:10] }}">
+                  {% set fi = goal.get('fecha_inicio') %}
+                  <input type="date" name="fecha_inicio" class="panel-form-input" value="{{ fi.strftime('%Y-%m-%d') if fi and fi is not string else (fi or '')[:10] if fi else '' }}">
                 </div>
                 <div class="panel-form-group">
                   <label class="panel-form-label">Fecha fin</label>
-                  <input type="date" name="fecha_fin" class="panel-form-input" value="{{ (goal.get('fecha_fin') or '')[:10] }}">
+                  {% set ff = goal.get('fecha_fin') %}
+                  <input type="date" name="fecha_fin" class="panel-form-input" value="{{ ff.strftime('%Y-%m-%d') if ff and ff is not string else (ff or '')[:10] if ff else '' }}">
                 </div>
               </div>
 
