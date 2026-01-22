@@ -1,35 +1,53 @@
 <div class="dashboard-side" id="dashboardSide">
 
-  <!-- Crear objetivo -->
-  <section class="dashboard-card" data-card="goal-form">
+  <!-- Crear proyecto -->
+  <section class="dashboard-card" data-card="project-form">
     <div class="dashboard-card-header">
-      <span class="dashboard-card-icon">🎯</span>
-      <h2 class="dashboard-card-title">Crear objetivo</h2>
+      <span class="dashboard-card-icon">🗂️</span>
+      <h2 class="dashboard-card-title">Crear proyecto</h2>
       <span class="dashboard-card-toggle">▼</span>
     </div>
     <div class="dashboard-card-content">
-      <form id="quickGoalForm" class="dashboard-form">
+      <form id="quickProjectForm" class="dashboard-form">
         <div class="dashboard-form-group">
-          <label class="dashboard-form-label" for="goal_title">Objetivo</label>
-          <input id="goal_title"
+          <label class="dashboard-form-label" for="project_title">Proyecto</label>
+          <input id="project_title"
                  name="title"
                  class="dashboard-form-input"
-                 placeholder="Definir objetivo"
+                 placeholder="Nombre del proyecto"
                  required>
         </div>
 
         <div class="dashboard-form-row">
           <div class="dashboard-form-group">
-            <label class="dashboard-form-label" for="goal_scope">Plazo</label>
-            <select id="goal_scope" name="scope" class="dashboard-form-select" required>
-              <option value="short">Corto</option>
-              <option value="medium">Medio</option>
-              <option value="long">Largo</option>
+            <label class="dashboard-form-label" for="project_category">Categoria</label>
+            <input id="project_category"
+                   name="category"
+                   class="dashboard-form-input"
+                   placeholder="p. ej., Investigacion">
+          </div>
+          <div class="dashboard-form-group">
+            <label class="dashboard-form-label" for="project_priority">Prioridad</label>
+            <select id="project_priority" name="priority" class="dashboard-form-select">
+              <option value="low">Baja</option>
+              <option value="medium" selected>Media</option>
+              <option value="high">Alta</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="dashboard-form-row">
+          <div class="dashboard-form-group">
+            <label class="dashboard-form-label" for="project_status">Estado</label>
+            <select id="project_status" name="status" class="dashboard-form-select">
+              <option value="active" selected>Activo</option>
+              <option value="paused">En pausa</option>
+              <option value="done">Completado</option>
             </select>
           </div>
           <div class="dashboard-form-group">
-            <label class="dashboard-form-label" for="goal_deadline">Fecha limite</label>
-            <input id="goal_deadline"
+            <label class="dashboard-form-label" for="project_deadline">Fecha limite</label>
+            <input id="project_deadline"
                    name="deadline"
                    type="date"
                    class="dashboard-form-input">
@@ -37,38 +55,18 @@
         </div>
 
         <div class="dashboard-form-group">
-          <label class="dashboard-form-label" for="goal_desc">Descripcion</label>
-          <textarea id="goal_desc"
+          <label class="dashboard-form-label" for="project_desc">Descripcion</label>
+          <textarea id="project_desc"
                     name="description"
                     class="dashboard-form-textarea"
                     rows="2"
-                    placeholder="Descripcion del objetivo..."></textarea>
+                    placeholder="Resumen del proyecto..."></textarea>
         </div>
 
-        <div class="dashboard-form-row">
-          <div class="dashboard-form-group">
-            <label class="dashboard-form-label" for="goal_category">Categoria</label>
-            <input id="goal_category"
-                   name="category"
-                   class="dashboard-form-input"
-                   placeholder="p. ej., Docencia">
-          </div>
-          <div class="dashboard-form-group">
-            <label class="dashboard-form-label" for="goal_progress">Progreso (%)</label>
-            <input id="goal_progress"
-                   name="progress"
-                   type="number"
-                   min="0"
-                   max="100"
-                   class="dashboard-form-input"
-                   placeholder="0-100">
-          </div>
-        </div>
-
-        <button type="submit" class="dashboard-form-submit">Guardar objetivo</button>
+        <button type="submit" class="dashboard-form-submit">Guardar proyecto</button>
       </form>
-      <p id="goalMessage" class="muted" style="margin-top:8px;font-size:12px;"></p>
-      <ul id="goalList" class="muted" style="margin-top:10px;font-size:12px;"></ul>
+      <p id="projectMessage" class="muted" style="margin-top:8px;font-size:12px;"></p>
+      <ul id="projectList" class="muted" style="margin-top:10px;font-size:12px;"></ul>
     </div>
   </section>
 
@@ -88,6 +86,23 @@
                  class="dashboard-form-input"
                  placeholder="p. ej., Revision bibliografica"
                  required>
+        </div>
+
+        <div class="dashboard-form-row">
+          <div class="dashboard-form-group">
+            <label class="dashboard-form-label" for="task_goal">Objetivo asociado</label>
+            <input id="task_goal"
+                   name="goal"
+                   class="dashboard-form-input"
+                   placeholder="Objetivo del proyecto">
+          </div>
+          <div class="dashboard-form-group">
+            <label class="dashboard-form-label" for="task_project">Proyecto</label>
+            <input id="task_project"
+                   name="project"
+                   class="dashboard-form-input"
+                   placeholder="Proyecto relacionado">
+          </div>
         </div>
 
         <div class="dashboard-form-row">
@@ -112,131 +127,6 @@
       </form>
       <p id="taskMessage" class="muted" style="margin-top:8px;font-size:12px;"></p>
       <ul id="taskList" class="muted" style="margin-top:10px;font-size:12px;"></ul>
-    </div>
-  </section>
-
-  <!-- Objetivos -->
-  <section class="dashboard-card" data-card="goals-list">
-    <div class="dashboard-card-header">
-      <span class="dashboard-card-icon">🎯</span>
-      <h2 class="dashboard-card-title">Objetivos</h2>
-      <span class="dashboard-card-toggle">▼</span>
-    </div>
-    <div class="dashboard-card-content">
-      <div class="dashboard-goal">
-        <div class="dashboard-goal-header">
-          <div class="dashboard-goal-title">Largo plazo · <span>Libro "Fog Testing"</span></div>
-          <div class="dashboard-goal-deadline">📅 30/06</div>
-        </div>
-        <div class="dashboard-goal-bar"><span style="width:42%"></span></div>
-        <ul class="dashboard-goal-subgoals">
-          <li>Cap. 1-2 redactados ✔️</li>
-          <li>Cap. 3 en progreso (30%)</li>
-        </ul>
-      </div>
-
-      <div class="dashboard-goal">
-        <div class="dashboard-goal-header">
-          <div class="dashboard-goal-title">Medio plazo · <span>Paper "CloudEvolve"</span></div>
-          <div class="dashboard-goal-deadline">📅 15/12</div>
-        </div>
-        <div class="dashboard-goal-bar"><span style="width:68%"></span></div>
-        <ul class="dashboard-goal-subgoals">
-          <li>Experimentos completados ✔️</li>
-          <li>Discusion pendiente</li>
-        </ul>
-      </div>
-
-      <div class="dashboard-goal">
-        <div class="dashboard-goal-header">
-          <div class="dashboard-goal-title">Corto plazo · <span>Preparar slides de clase</span></div>
-          <div class="dashboard-goal-deadline">📅 02/10</div>
-        </div>
-        <div class="dashboard-goal-bar"><span style="width:80%"></span></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Tareas -->
-  <section class="dashboard-card" data-card="tasks-list">
-    <div class="dashboard-card-header">
-      <span class="dashboard-card-icon">🧩</span>
-      <h2 class="dashboard-card-title">Tareas</h2>
-      <span class="dashboard-card-toggle">▼</span>
-    </div>
-    <div class="dashboard-card-content">
-      <div class="dashboard-task">
-        <div class="dashboard-task-content">
-          <div class="dashboard-task-title">Exportar agenda mensual a .ics</div>
-          <div class="dashboard-task-meta">Objetivo: "Organizacion docente"</div>
-        </div>
-        <span class="dashboard-task-badge pending">pendiente</span>
-      </div>
-
-      <div class="dashboard-task">
-        <div class="dashboard-task-content">
-          <div class="dashboard-task-title">Revision bibliografica semanal</div>
-          <div class="dashboard-task-meta">Objetivo: "Paper CloudEvolve"</div>
-        </div>
-        <span class="dashboard-task-badge in-progress">en curso</span>
-      </div>
-
-      <div class="dashboard-task">
-        <div class="dashboard-task-content">
-          <div class="dashboard-task-title">Bloquear franja 15-17 para escritura</div>
-          <div class="dashboard-task-meta">Automatica por asistente</div>
-        </div>
-        <span class="dashboard-task-badge">programada</span>
-      </div>
-    </div>
-  </section>
-
-  <!-- Alarmas -->
-  <section class="dashboard-card" data-card="alarms">
-    <div class="dashboard-card-header">
-      <span class="dashboard-card-icon">⏰</span>
-      <h2 class="dashboard-card-title">Alarmas</h2>
-      <span class="dashboard-card-toggle">▼</span>
-    </div>
-    <div class="dashboard-card-content">
-      <div class="dashboard-alarm warn">
-        <div class="dashboard-alarm-content">
-          <div class="dashboard-alarm-title">Objetivo medio plazo con riesgo</div>
-          <div class="dashboard-alarm-meta">"Paper CloudEvolve" — progreso <b>68%</b>, faltan 3 semanas</div>
-        </div>
-        <div class="dashboard-alarm-status">⚠️</div>
-      </div>
-
-      <div class="dashboard-alarm danger">
-        <div class="dashboard-alarm-content">
-          <div class="dashboard-alarm-title">Objetivo no cumplido</div>
-          <div class="dashboard-alarm-meta">"Entregar borrador beca" — vencido hace 2 dias</div>
-        </div>
-        <div class="dashboard-alarm-status">❗</div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Estadisticas -->
-  <section class="dashboard-card" data-card="stats">
-    <div class="dashboard-card-header">
-      <span class="dashboard-card-icon">📈</span>
-      <h2 class="dashboard-card-title">Estadisticas</h2>
-      <span class="dashboard-card-toggle">▼</span>
-    </div>
-    <div class="dashboard-card-content">
-      <div class="dashboard-kpis">
-        <div class="dashboard-kpi">
-          <div class="dashboard-kpi-label">Tareas completadas (7 dias)</div>
-          <div class="dashboard-kpi-value">18</div>
-          <div class="dashboard-kpi-bar"><span style="width:72%"></span></div>
-        </div>
-        <div class="dashboard-kpi">
-          <div class="dashboard-kpi-label">Objetivos cumplidos (30 dias)</div>
-          <div class="dashboard-kpi-value">4</div>
-          <div class="dashboard-kpi-bar"><span style="width:40%"></span></div>
-        </div>
-      </div>
     </div>
   </section>
 
