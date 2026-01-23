@@ -14,6 +14,143 @@
 
   <!-- Tus estilos -->
   <link rel="stylesheet" href="/static/css/calendar.css">
+  
+  <style>
+    /* Estilos para el campo Asociar a */
+    .association-field {
+      position: relative;
+    }
+    
+    .association-input-wrapper {
+      position: relative;
+    }
+    
+    .association-results {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      max-height: 280px;
+      overflow-y: auto;
+      background: linear-gradient(135deg, rgba(16,24,43,.98), rgba(11,15,26,.95));
+      border: 1px solid rgba(108,243,255,.25);
+      border-radius: 8px;
+      margin-top: 4px;
+      z-index: 1000;
+      box-shadow: 0 8px 24px rgba(0,0,0,.4);
+    }
+    
+    .association-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      cursor: pointer;
+      transition: background 0.2s ease;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+    
+    .association-item:last-child {
+      border-bottom: none;
+    }
+    
+    .association-item:hover {
+      background: rgba(108,243,255,.1);
+    }
+    
+    .association-item-type {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      flex-shrink: 0;
+    }
+    
+    .association-item-type.tarea {
+      background: rgba(55,225,143,.15);
+      color: #37e18f;
+      border: 1px solid rgba(55,225,143,.3);
+    }
+    
+    .association-item-type.objetivo {
+      background: rgba(139,123,255,.15);
+      color: #8b7bff;
+      border: 1px solid rgba(139,123,255,.3);
+    }
+    
+    .association-item-title {
+      flex: 1;
+      font-size: 13px;
+      color: var(--text, #e8edf5);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .association-selected {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    
+    .association-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    
+    .association-badge.tarea {
+      background: rgba(55,225,143,.15);
+      color: #37e18f;
+      border: 1px solid rgba(55,225,143,.3);
+    }
+    
+    .association-badge.objetivo {
+      background: rgba(139,123,255,.15);
+      color: #8b7bff;
+      border: 1px solid rgba(139,123,255,.3);
+    }
+    
+    .association-clear {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(255,107,136,.2);
+      color: #ff6b88;
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+    
+    .association-clear:hover {
+      background: rgba(255,107,136,.35);
+    }
+    
+    .association-no-results {
+      padding: 14px;
+      text-align: center;
+      color: rgba(159,176,215,.6);
+      font-size: 13px;
+    }
+    
+    .association-loading {
+      padding: 14px;
+      text-align: center;
+      color: rgba(108,243,255,.7);
+      font-size: 13px;
+    }
+  </style>
 </head>
 <body>
   <div id="calendar-container">
@@ -56,6 +193,22 @@
         <div class="field">
           <label for="fecha_fin">Fin *</label>
           <input type="datetime-local" id="fecha_fin" required>
+        </div>
+
+        <div class="field association-field">
+          <label for="asociar_a">Asociar a</label>
+          <div class="association-input-wrapper">
+            <input type="text" id="asociar_a" placeholder="Buscar tarea u objetivo..." autocomplete="off">
+            <input type="hidden" id="asociar_tipo" value="">
+            <input type="hidden" id="asociar_id" value="">
+            <div class="association-results" id="associationResults" style="display: none;">
+              <!-- Los resultados se cargan dinámicamente -->
+            </div>
+          </div>
+          <div class="association-selected" id="associationSelected" style="display: none;">
+            <span class="association-badge" id="associationBadge"></span>
+            <button type="button" class="association-clear" id="clearAssociation" title="Quitar asociación">&times;</button>
+          </div>
         </div>
 
         <div class="actions">
@@ -103,6 +256,105 @@
     const btnNew = document.getElementById('btn-new');
     const btnToday = document.getElementById('btn-today');
     const modalTitle = document.getElementById('modalTitle');
+    
+    // Campos para asociación
+    const inputAsociar = document.getElementById('asociar_a');
+    const inputAsociarTipo = document.getElementById('asociar_tipo');
+    const inputAsociarId = document.getElementById('asociar_id');
+    const associationResults = document.getElementById('associationResults');
+    const associationSelected = document.getElementById('associationSelected');
+    const associationBadge = document.getElementById('associationBadge');
+    const clearAssociationBtn = document.getElementById('clearAssociation');
+    
+    let searchTimeout = null;
+
+    // ---------- Funciones de asociación ----------
+    async function searchAssociations(query) {
+      if (!query || query.length < 2) {
+        associationResults.style.display = 'none';
+        return;
+      }
+      
+      associationResults.innerHTML = '<div class="association-loading">Buscando...</div>';
+      associationResults.style.display = 'block';
+      
+      try {
+        const res = await fetch(`/api/search/associations?q=${encodeURIComponent(query)}&limit=10`);
+        if (!res.ok) throw new Error('Error en búsqueda');
+        const data = await res.json();
+        
+        if (data.length === 0) {
+          associationResults.innerHTML = '<div class="association-no-results">No se encontraron resultados</div>';
+          return;
+        }
+        
+        let html = '';
+        data.forEach(item => {
+          const tipoLabel = item.tipo === 'tarea' ? 'Tarea' : 'Objetivo';
+          html += `
+            <div class="association-item" data-id="${item._id}" data-tipo="${item.tipo}" data-titulo="${item.titulo}">
+              <span class="association-item-type ${item.tipo}">${tipoLabel}</span>
+              <span class="association-item-title">${item.titulo}</span>
+            </div>
+          `;
+        });
+        associationResults.innerHTML = html;
+        
+        // Agregar event listeners a los items
+        associationResults.querySelectorAll('.association-item').forEach(item => {
+          item.addEventListener('click', () => {
+            selectAssociation(item.dataset.id, item.dataset.tipo, item.dataset.titulo);
+          });
+        });
+      } catch (err) {
+        console.error(err);
+        associationResults.innerHTML = '<div class="association-no-results">Error al buscar</div>';
+      }
+    }
+    
+    function selectAssociation(id, tipo, titulo) {
+      inputAsociarId.value = id;
+      inputAsociarTipo.value = tipo;
+      inputAsociar.value = '';
+      inputAsociar.style.display = 'none';
+      associationResults.style.display = 'none';
+      
+      const tipoLabel = tipo === 'tarea' ? 'Tarea' : 'Objetivo';
+      associationBadge.className = `association-badge ${tipo}`;
+      associationBadge.textContent = `[${tipoLabel}] ${titulo}`;
+      associationSelected.style.display = 'flex';
+    }
+    
+    function clearAssociation() {
+      inputAsociarId.value = '';
+      inputAsociarTipo.value = '';
+      inputAsociar.value = '';
+      inputAsociar.style.display = 'block';
+      associationSelected.style.display = 'none';
+      associationResults.style.display = 'none';
+    }
+    
+    // Event listeners para el campo de asociación
+    inputAsociar.addEventListener('input', (e) => {
+      clearTimeout(searchTimeout);
+      const query = e.target.value.trim();
+      searchTimeout = setTimeout(() => searchAssociations(query), 300);
+    });
+    
+    inputAsociar.addEventListener('focus', () => {
+      if (inputAsociar.value.trim().length >= 2) {
+        searchAssociations(inputAsociar.value.trim());
+      }
+    });
+    
+    clearAssociationBtn.addEventListener('click', clearAssociation);
+    
+    // Cerrar resultados al hacer clic fuera
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.association-field')) {
+        associationResults.style.display = 'none';
+      }
+    });
 
     function openModal(mode, data = {}) {
       modalTitle.textContent = mode === 'edit' ? 'Editar evento' : 'Nuevo evento';
@@ -113,7 +365,47 @@
       inputInicio.value = isoToLocalInputValue(data.fecha_inicio || data.start);
       inputFin.value = isoToLocalInputValue(data.fecha_fin || data.end);
       btnDelete.style.display = mode === 'edit' ? 'inline-block' : 'none';
+      
+      // Limpiar y configurar asociación
+      clearAssociation();
+      
+      // Si es edición y hay asociación previa, mostrarla
+      const rawData = data.extendedProps?.raw || data;
+      if (rawData.id_tarea) {
+        // Cargar info de la tarea asociada
+        loadAssociationInfo(rawData.id_tarea, 'tarea');
+      } else if (rawData.id_objetivo) {
+        // Cargar info del objetivo asociado
+        loadAssociationInfo(rawData.id_objetivo, 'objetivo');
+      }
+      
       modalBackdrop.style.display = 'flex';
+    }
+    
+    async function loadAssociationInfo(id, tipo) {
+      // Mostrar la asociación existente
+      inputAsociarId.value = id;
+      inputAsociarTipo.value = tipo;
+      inputAsociar.style.display = 'none';
+      
+      const tipoLabel = tipo === 'tarea' ? 'Tarea' : 'Objetivo';
+      associationBadge.className = `association-badge ${tipo}`;
+      associationBadge.textContent = `[${tipoLabel}] Cargando...`;
+      associationSelected.style.display = 'flex';
+      
+      // Intentar obtener el título real (opcional, para mejor UX)
+      try {
+        const endpoint = tipo === 'tarea' ? `/tasks/search?id=${id}` : `/goals/${id}`;
+        const res = await fetch(endpoint);
+        if (res.ok) {
+          const data = await res.json();
+          const titulo = tipo === 'tarea' ? (data.contenido || 'Sin título') : (data.titulo || 'Sin título');
+          associationBadge.textContent = `[${tipoLabel}] ${titulo}`;
+        }
+      } catch (err) {
+        // Si falla, mantener el texto genérico
+        associationBadge.textContent = `[${tipoLabel}] (ID: ${id.substring(0, 8)}...)`;
+      }
     }
     function closeModal() {
       modalBackdrop.style.display = 'none';
@@ -266,8 +558,22 @@
           descripcion: inputDescripcion.value.trim(),
           tipo_evento: inputTipo.value.trim() || null,
           fecha_inicio: localInputValueToISO(inputInicio.value),
-          fecha_fin: localInputValueToISO(inputFin.value)
+          fecha_fin: localInputValueToISO(inputFin.value),
+          // Asociaciones - limpiar las anteriores y establecer la nueva
+          id_objetivo: null,
+          id_tarea: null
         };
+        
+        // Establecer la asociación según el tipo seleccionado
+        const asociarTipo = inputAsociarTipo.value;
+        const asociarId = inputAsociarId.value;
+        if (asociarId) {
+          if (asociarTipo === 'objetivo') {
+            payload.id_objetivo = asociarId;
+          } else if (asociarTipo === 'tarea') {
+            payload.id_tarea = asociarId;
+          }
+        }
 
         if (!payload.titulo) {
           alert('El título es obligatorio.');
