@@ -9,12 +9,20 @@
     </div>
     <div class="panel-kpis">
       <div class="panel-kpi">
-        <div class="panel-kpi-label">Total</div>
+        <div class="panel-kpi-label">Resultados</div>
         <div class="panel-kpi-value">{{ tasks|length if tasks else 0 }}</div>
       </div>
       <div class="panel-kpi">
-        <div class="panel-kpi-label">Categoría</div>
-        <div class="panel-kpi-value">{{ selected_category if selected_category else "Todas" }}</div>
+        <div class="panel-kpi-label">Filtros activos</div>
+        <div class="panel-kpi-value" style="font-size: 14px;">
+          {% if selected_nombre or selected_category %}
+            {% if selected_nombre %}"{{ selected_nombre }}"{% endif %}
+            {% if selected_nombre and selected_category %} · {% endif %}
+            {% if selected_category %}{{ selected_category }}{% endif %}
+          {% else %}
+            Ninguno
+          {% endif %}
+        </div>
       </div>
     </div>
   </div>
@@ -23,21 +31,35 @@
   <div class="panel-section panel-accent">
     <div class="panel-header">
       <h3 class="panel-title">
-        <span class="panel-title-icon">🔍</span>
-        Filtrar tareas
+        <span class="panel-title-icon"></span>
+        Buscar tareas
       </h3>
     </div>
     <form method="get" action="{{ url_for('task_bp.filter_by_category') }}" class="filter-section">
-      <div class="panel-form-group">
-        <label class="panel-form-label" for="categoria">Categoría</label>
-        <input type="text"
-               name="categoria"
-               id="categoria"
-               class="panel-form-input"
-               placeholder="p.ej. trabajo, personal"
-               value="{{ selected_category or '' }}">
+      <div class="panel-form-row">
+        <div class="panel-form-group">
+          <label class="panel-form-label" for="nombre">Nombre de tarea</label>
+          <input type="text"
+                 name="nombre"
+                 id="nombre"
+                 class="panel-form-input"
+                 placeholder="Buscar por nombre..."
+                 value="{{ selected_nombre or '' }}">
+        </div>
+        <div class="panel-form-group">
+          <label class="panel-form-label" for="categoria">Categoria</label>
+          <input type="text"
+                 name="categoria"
+                 id="categoria"
+                 class="panel-form-input"
+                 placeholder="p.ej. trabajo, personal"
+                 value="{{ selected_category or '' }}">
+        </div>
       </div>
-      <button type="submit" class="panel-action-btn primary">Filtrar</button>
+      <div class="panel-form-row" style="gap: 8px;">
+        <button type="submit" class="panel-action-btn primary">Buscar</button>
+        <a href="{{ url_for('task_bp.list_tasks') }}" class="panel-action-btn">Limpiar</a>
+      </div>
     </form>
   </div>
 
