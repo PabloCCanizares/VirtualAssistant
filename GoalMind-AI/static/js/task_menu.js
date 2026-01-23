@@ -526,4 +526,102 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
+  // ============================================================
+  // ===============  Ordenar lista de tareas  ==================
+  // ============================================================
+  const sortSelect = document.getElementById("sortTasks");
+  const taskListElement = document.getElementById("taskList");
+
+  if (sortSelect && taskListElement) {
+    sortSelect.addEventListener("change", () => {
+      const sortValue = sortSelect.value;
+      const tasks = Array.from(taskListElement.querySelectorAll(".item-card"));
+
+      if (tasks.length === 0) return;
+
+      // Obtener datos de cada tarea para ordenar
+      const taskData = tasks.map(task => {
+        const prioridadTag = task.querySelector(".item-meta-tag:last-child");
+        const prioridadText = prioridadTag ? prioridadTag.textContent.trim().toLowerCase() : "media";
+        
+        // Extraer prioridad (quitar el icono si existe)
+        let prioridad = prioridadText.replace(/[^a-z]/g, "").trim();
+        if (prioridad.includes("alta")) prioridad = "alta";
+        else if (prioridad.includes("baja")) prioridad = "baja";
+        else prioridad = "media";
+
+        const deadlineTag = task.querySelector(".item-meta-tag.deadline");
+        const fechaLimite = deadlineTag ? deadlineTag.textContent.trim().replace(/[^\d-]/g, "") : null;
+
+        const statusTags = task.querySelectorAll(".item-meta-tag");
+        let estado = "pendiente";
+        statusTags.forEach(tag => {
+          const classes = tag.className;
+          if (classes.includes("status-pendiente")) estado = "pendiente";
+          else if (classes.includes("status-en-curso") || classes.includes("status-en-progreso")) estado = "en curso";
+          else if (classes.includes("status-completada") || classes.includes("status-completado")) estado = "completada";
+        });
+
+        return {
+          element: task,
+          prioridad: prioridad,
+          fechaLimite: fechaLimite,
+          estado: estado
+        };
+      });
+
+      // Funciones de ordenamiento
+      const prioridadOrder = { "alta": 1, "media": 2, "baja": 3 };
+      const estadoOrder = { "pendiente": 1, "en curso": 2, "completada": 3 };
+
+      switch (sortValue) {
+        case "priority-desc":
+          taskData.sort((a, b) => prioridadOrder[a.prioridad] - prioridadOrder[b.prioridad]);
+          break;
+
+        case "deadline-asc":
+          taskData.sort((a, b) => {
+            if (!a.fechaLimite && !b.fechaLimite) return 0;
+            if (!a.fechaLimite) return 1;
+            if (!b.fechaLimite) return -1;
+            return new Date(a.fechaLimite) - new Date(b.fechaLimite);
+          });
+          break;
+
+        case "status-pending":
+          taskData.sort((a, b) => {
+            if (a.estado === "pendiente" && b.estado !== "pendiente") return -1;
+            if (a.estado !== "pendiente" && b.estado === "pendiente") return 1;
+            return 0;
+          });
+          break;
+
+        case "status-in-progress":
+          taskData.sort((a, b) => {
+            if (a.estado === "en curso" && b.estado !== "en curso") return -1;
+            if (a.estado !== "en curso" && b.estado === "en curso") return 1;
+            return 0;
+          });
+          break;
+
+        case "status-completed":
+          taskData.sort((a, b) => {
+            if (a.estado === "completada" && b.estado !== "completada") return -1;
+            if (a.estado !== "completada" && b.estado === "completada") return 1;
+            return 0;
+          });
+          break;
+
+        default:
+          // Por defecto: mantener orden original (recargar página)
+          return;
+      }
+
+      // Reordenar elementos en el DOM
+      taskData.forEach(item => {
+        taskListElement.appendChild(item.element);
+      });
+    });
+  }
+
 });

@@ -65,19 +65,28 @@
 
   <!-- Lista de tareas -->
   <div class="panel-section panel-accent">
+    <div class="panel-header" style="margin: 20px 10px;">
+      <h3 class="panel-title" style="margin: 0;">Lista de tareas</h3>
+      <div class="panel-sort-container">
+        <label class="panel-form-label" for="sortTasks" style="margin-right: 8px; white-space: nowrap;">Ordenar por</label>
+        <select id="sortTasks" class="panel-form-select" style="min-width: 180px; padding: 8px 12px;">
+          <option value="default">Por defecto</option>
+          <option value="priority-desc">Prioridad (mayor a menor)</option>
+          <option value="deadline-asc">Fecha limite (mas cercana)</option>
+          <option value="status-pending">Estado: Pendiente</option>
+          <option value="status-in-progress">Estado: En curso</option>
+          <option value="status-completed">Estado: Completada</option>
+        </select>
+      </div>
+    </div>
     <div class="panel-header">
       <div class="panel-header-left">
         <label class="select-all-label">
           <input type="checkbox" id="selectAllTasks" class="item-checkbox">
           <span class="select-all-text">Seleccionar todo</span>
         </label>
-        <h3 class="panel-title">
-          <span class="panel-title-icon">📋</span>
-          Lista de tareas
-        </h3>
       </div>
       <div class="panel-actions">
-        <span class="panel-badge accent">{{ tasks|length if tasks else 0 }} tareas</span>
         <!-- Botones dinámicos que aparecen al seleccionar tareas -->
         <div id="bulkActionsContainer" class="bulk-actions-inline" style="display: none;">
           <button type="button" id="assignGoalBtn" class="panel-action-btn primary">
@@ -87,6 +96,7 @@
             Eliminar
           </button>
         </div>
+        <span class="panel-badge accent">{{ tasks|length if tasks else 0 }} tareas</span>
       </div>
     </div>
 
