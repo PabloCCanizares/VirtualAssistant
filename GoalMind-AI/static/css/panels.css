@@ -55,14 +55,13 @@
 }
 
 .panel-title {
-  margin: 0;
+  margin: 10px 0px;
   font-size: 18px;
   font-weight: 700;
   color: var(--text);
   letter-spacing: 0.3px;
   display: flex;
   align-items: center;
-  gap: 10px;
 }
 
 .panel-title-icon {
@@ -215,7 +214,7 @@
   gap: 12px;
   max-height: 70vh;
   overflow-y: auto;
-  padding-right: 8px;
+  padding: 0px 8px;
   list-style-type: none;
 }
 
@@ -951,8 +950,26 @@
   cursor: pointer;
 }
 
+/* ===== SORT CONTAINER ===== */
+.panel-sort-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.panel-sort-container .panel-form-label {
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.panel-sort-container .panel-form-select {
+  font-size: 13px;
+}
+
 /* ===== FILTROS ===== */
 .filter-section {
+  margin: 10px;
   display: flex;
   gap: 12px;
   align-items: flex-end;
@@ -1328,11 +1345,6 @@
   max-height: 1500px;
   padding: 16px 20px 20px;
   opacity: 1;
-}
-
-/* Cards sin form (no colapsables) */
-.side-panel-card:not(.collapsible) {
-  /* Mantiene estilo original */
 }
 
 /* ===== DRAG & DROP ZONE ===== */
