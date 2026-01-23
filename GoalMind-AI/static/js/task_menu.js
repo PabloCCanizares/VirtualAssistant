@@ -1,44 +1,282 @@
 // task_menu.js
 document.addEventListener("DOMContentLoaded", () => {
   // ============================================================
-  // =======  Seleccionar todo / Eliminación múltiple  ===========
+  // =======  Seleccionar todo / Acciones en lote  ===========
   // ============================================================
   const selectAll = document.getElementById("selectAllTasks");
+  const bulkActionsContainer = document.getElementById("bulkActionsContainer");
+  const assignGoalBtn = document.getElementById("assignGoalBtn");
   const bulkDeleteBtn = document.getElementById("bulkDeleteBtn");
-  const bulkForm = document.getElementById("bulkDeleteForm");
+  const deleteConfirmModal = document.getElementById("deleteConfirmModal");
 
-  const getChecks = () => Array.from(document.querySelectorAll(".task-select"));
+  // Obtener todos los checkboxes de tareas
+  const getChecks = () => Array.from(document.querySelectorAll(".item-checkbox[name='selected_tasks']"));
 
-  function updateBulkButtonState() {
-    const anyChecked = getChecks().some(ch => ch.checked);
-    if (bulkDeleteBtn) bulkDeleteBtn.disabled = !anyChecked;
+  // Obtener IDs de tareas seleccionadas
+  function getSelectedTaskIds() {
+    return getChecks().filter(ch => ch.checked).map(ch => ch.value);
   }
 
+  // Actualizar visibilidad de botones de acciones
+  function updateBulkActionsVisibility() {
+    const selectedIds = getSelectedTaskIds();
+    const hasSelection = selectedIds.length > 0;
+    
+    if (bulkActionsContainer) {
+      bulkActionsContainer.style.display = hasSelection ? "flex" : "none";
+    }
+  }
+
+  // Actualizar estado del checkbox "Seleccionar todo"
+  function updateSelectAllState() {
+    if (!selectAll) return;
+    
+    const checks = getChecks();
+    if (checks.length === 0) {
+      selectAll.checked = false;
+      selectAll.indeterminate = false;
+      return;
+    }
+    
+    const allChecked = checks.every(ch => ch.checked);
+    const someChecked = checks.some(ch => ch.checked);
+    
+    selectAll.checked = allChecked;
+    selectAll.indeterminate = !allChecked && someChecked;
+  }
+
+  // Evento: Seleccionar todo
   if (selectAll) {
     selectAll.addEventListener("change", () => {
       getChecks().forEach(ch => { ch.checked = selectAll.checked; });
-      updateBulkButtonState();
+      updateBulkActionsVisibility();
     });
   }
 
   // Delegado global: cambio en cualquier checkbox de tarea
   document.addEventListener("change", (ev) => {
     const t = ev.target;
-    if (!t || !t.classList || !t.classList.contains("task-select")) return;
+    if (!t || !t.classList || !t.classList.contains("item-checkbox")) return;
+    if (t.id === "selectAllTasks") return; // Ignorar el checkbox de seleccionar todo
+    
+    updateSelectAllState();
+    updateBulkActionsVisibility();
+  });
 
-    updateBulkButtonState();
+  // Estado inicial
+  updateBulkActionsVisibility();
 
-    if (selectAll) {
-      const checks = getChecks();
-      const all = checks.length > 0 && checks.every(ch => ch.checked);
-      const some = checks.some(ch => ch.checked);
-      selectAll.checked = all;
-      selectAll.indeterminate = !all && some;
+  // ============================================================
+  // =======  Modal: Asignar objetivo  ==========================
+  // ============================================================
+  const goalAssignModal = document.getElementById("goalAssignModal");
+  let selectedGoalId = null;
+  let pendingTaskIds = []; // Tareas a asignar (puede ser múltiples o una sola)
+
+  // Abrir modal desde botón de acciones masivas
+  if (assignGoalBtn) {
+    assignGoalBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      pendingTaskIds = getSelectedTaskIds();
+      if (pendingTaskIds.length === 0) {
+        alert("No hay tareas seleccionadas.");
+        return;
+      }
+      showGoalModal();
+    });
+  }
+
+  // Abrir modal desde botón individual en cada tarea
+  document.querySelectorAll(".btn-assign-goal").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const taskId = btn.dataset.taskId;
+      if (taskId) {
+        pendingTaskIds = [taskId];
+        showGoalModal();
+      }
+    });
+  });
+
+  function showGoalModal() {
+    if (goalAssignModal) {
+      goalAssignModal.style.display = "flex";
+    }
+  }
+
+  function hideGoalModal() {
+    if (goalAssignModal) {
+      goalAssignModal.style.display = "none";
+    }
+    selectedGoalId = null;
+    pendingTaskIds = [];
+    // Deseleccionar opciones
+    document.querySelectorAll(".goal-option.selected").forEach(opt => {
+      opt.classList.remove("selected");
+    });
+    // Deshabilitar botón confirmar
+    const confirmBtn = document.getElementById("confirmAssignGoal");
+    if (confirmBtn) confirmBtn.disabled = true;
+  }
+
+  // Cerrar modal
+  const closeGoalModal = document.getElementById("closeGoalModal");
+  const cancelAssignGoal = document.getElementById("cancelAssignGoal");
+  
+  if (closeGoalModal) {
+    closeGoalModal.addEventListener("click", hideGoalModal);
+  }
+  if (cancelAssignGoal) {
+    cancelAssignGoal.addEventListener("click", hideGoalModal);
+  }
+
+  // Seleccionar objetivo
+  document.querySelectorAll(".goal-option").forEach(option => {
+    option.addEventListener("click", () => {
+      // Deseleccionar anterior
+      document.querySelectorAll(".goal-option.selected").forEach(opt => {
+        opt.classList.remove("selected");
+      });
+      // Seleccionar nuevo
+      option.classList.add("selected");
+      selectedGoalId = option.dataset.goalId;
+      
+      // Habilitar botón confirmar
+      const confirmBtn = document.getElementById("confirmAssignGoal");
+      if (confirmBtn) confirmBtn.disabled = false;
+    });
+  });
+
+  // Confirmar asignación de objetivo
+  const confirmAssignGoal = document.getElementById("confirmAssignGoal");
+  if (confirmAssignGoal) {
+    confirmAssignGoal.addEventListener("click", async () => {
+      if (!selectedGoalId) return;
+      
+      if (pendingTaskIds.length === 0) {
+        alert("No hay tareas seleccionadas.");
+        return;
+      }
+
+      try {
+        const response = await fetch("/tasks/bulk-assign-goal", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            selected_tasks: pendingTaskIds,
+            objetivo_id: selectedGoalId
+          })
+        });
+
+        const data = await response.json();
+        
+        if (data.success) {
+          alert(data.message);
+          // Recargar la página para ver los cambios
+          window.location.reload();
+        } else {
+          alert("Error: " + data.message);
+        }
+      } catch (error) {
+        alert("Error de red: " + error);
+      }
+
+      hideGoalModal();
+    });
+  }
+
+  // ============================================================
+  // =======  Modal: Confirmar eliminación  =====================
+  // ============================================================
+
+  // Abrir modal de eliminación
+  if (bulkDeleteBtn) {
+    bulkDeleteBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (deleteConfirmModal) {
+        deleteConfirmModal.style.display = "flex";
+      }
+    });
+  }
+
+  // Cerrar modal
+  const cancelDelete = document.getElementById("cancelDelete");
+  const closeDeleteModal = document.getElementById("closeDeleteModal");
+  
+  function hideDeleteModal() {
+    if (deleteConfirmModal) {
+      deleteConfirmModal.style.display = "none";
+    }
+  }
+
+  if (cancelDelete) {
+    cancelDelete.addEventListener("click", hideDeleteModal);
+  }
+  if (closeDeleteModal) {
+    closeDeleteModal.addEventListener("click", hideDeleteModal);
+  }
+
+  // Confirmar eliminación
+  const confirmDelete = document.getElementById("confirmDelete");
+  if (confirmDelete) {
+    confirmDelete.addEventListener("click", async () => {
+      const selectedTasks = getSelectedTaskIds();
+      if (selectedTasks.length === 0) {
+        alert("No hay tareas seleccionadas.");
+        hideDeleteModal();
+        return;
+      }
+
+      try {
+        const response = await fetch("/tasks/bulk-delete", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            selected_tasks: selectedTasks
+          })
+        });
+
+        const data = await response.json();
+        
+        if (data.success) {
+          alert(data.message);
+          // Recargar la página para ver los cambios
+          window.location.reload();
+        } else {
+          alert("Error: " + data.message);
+        }
+      } catch (error) {
+        alert("Error de red: " + error);
+      }
+
+      hideDeleteModal();
+    });
+  }
+
+  // Cerrar modales al hacer clic en el overlay
+  document.addEventListener("click", (e) => {
+    // Cerrar modal de asignar objetivo si se hace clic en el overlay
+    if (goalAssignModal && e.target === goalAssignModal) {
+      hideGoalModal();
+    }
+    
+    // Cerrar modal de eliminación si se hace clic en el overlay
+    if (deleteConfirmModal && e.target === deleteConfirmModal) {
+      hideDeleteModal();
     }
   });
 
-  // Estado inicial del botón
-  updateBulkButtonState();
+  // Cerrar con Escape
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      hideGoalModal();
+      hideDeleteModal();
+    }
+  });
 
 
   // ============================================================
@@ -58,13 +296,13 @@ document.addEventListener("DOMContentLoaded", () => {
   if (taskList) {
     // Click para expandir/colapsar
     taskList.addEventListener("click", (ev) => {
-      const li = ev.target.closest(".task-item");
+      const li = ev.target.closest(".item-card");
       if (!li) return;
       if (isInteractiveTarget(ev.target)) return; // no togglear si es control
       ev.stopPropagation();
 
       const already = li.classList.contains("expanded");
-      document.querySelectorAll(".task-item.expanded").forEach(item => {
+      document.querySelectorAll(".item-card.expanded").forEach(item => {
         if (item !== li) collapseItem(item);
       });
 
@@ -74,13 +312,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Teclado (Enter / Espacio) cuando el <li> está enfocado
     taskList.addEventListener("keydown", (ev) => {
-      const li = ev.target.closest(".task-item");
+      const li = ev.target.closest(".item-card");
       if (!li) return;
       if (ev.key === "Enter" || ev.key === " ") {
         ev.preventDefault();
         ev.stopPropagation();
         const already = li.classList.contains("expanded");
-        document.querySelectorAll(".task-item.expanded").forEach(item => {
+        document.querySelectorAll(".item-card.expanded").forEach(item => {
           if (item !== li) collapseItem(item);
         });
         if (!already) expandItem(li);
@@ -92,19 +330,16 @@ document.addEventListener("DOMContentLoaded", () => {
   // Cerrar al clicar fuera
   document.addEventListener("click", (ev) => {
     if (!expandedItem) return;
-    if (ev.target.closest(".task-item")) return;
-    document.querySelectorAll(".task-item.expanded").forEach(item => collapseItem(item));
+    if (ev.target.closest(".item-card")) return;
+    // No cerrar si se hace clic en modales
+    if (ev.target.closest(".modal-overlay") || ev.target.closest(".assign-goal-modal") || ev.target.closest(".delete-modal")) return;
+    document.querySelectorAll(".item-card.expanded").forEach(item => collapseItem(item));
   });
 
-  // Escape para cerrar
-  document.addEventListener("keydown", (ev) => {
-    if (ev.key === "Escape" && expandedItem) {
-      document.querySelectorAll(".task-item.expanded").forEach(item => collapseItem(item));
-    }
-  });
+  // Escape para cerrar (ya manejado arriba para modales)
 
   function expandItem(li) {
-    const details = li.querySelector(".task-details");
+    const details = li.querySelector(".item-details");
     if (details) {
       li.classList.add("expanded");
       li.setAttribute("aria-expanded", "true");
@@ -119,7 +354,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function collapseItem(li) {
-    const details = li.querySelector(".task-details");
+    const details = li.querySelector(".item-details");
     if (details) {
       const form = li.querySelector(".task-edit-form");
       if (form && typeof exitEditMode === "function") {
@@ -141,9 +376,9 @@ document.addEventListener("DOMContentLoaded", () => {
   function enterEditMode(form) {
     const view = form.querySelector(".task-fields-view");
     const edit = form.querySelector(".task-fields-edit");
-    const editBtn = form.closest(".task-item").querySelector(".btn-edit");
-    const confirmBtn = form.closest(".task-item").querySelector(".btn-confirm");
-    const cancelBtn = form.closest(".task-item").querySelector(".btn-cancel");
+    const editBtn = form.closest(".item-card").querySelector(".btn-edit");
+    const confirmBtn = form.closest(".item-card").querySelector(".btn-confirm");
+    const cancelBtn = form.closest(".item-card").querySelector(".btn-cancel");
 
     if (view) view.style.display = "none";
     if (edit) {
@@ -157,7 +392,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function exitEditMode(form, restore = true) {
-    const li = form.closest(".task-item");
+    const li = form.closest(".item-card");
     const view = form.querySelector(".task-fields-view");
     const edit = form.querySelector(".task-fields-edit");
     const editBtn = li.querySelector(".btn-edit");
@@ -189,7 +424,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function updateViewFromForm(form) {
-    const li = form.closest(".task-item");
+    const li = form.closest(".item-card");
     const contentInput = form.querySelector("input[name='contenido']");
     const descTextarea = form.querySelector("textarea[name='descripcion']");
     const fechaInput = form.querySelector("input[name='fecha_limite']");
@@ -198,7 +433,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const prioSel = form.querySelector("select[name='prioridad']");
 
     if (contentInput) {
-      const title = li.querySelector(".task-title");
+      const title = li.querySelector(".item-title");
       if (title) title.textContent = contentInput.value;
     }
     if (descTextarea) {
@@ -218,24 +453,17 @@ document.addEventListener("DOMContentLoaded", () => {
       if (el) el.textContent = prioSel.value;
     }
 
-    const contentBlock = li.querySelector(".task-content");
-    const deadlineEl = li.querySelector(".task-deadline");
+    const contentBlock = li.querySelector(".item-content");
+    const deadlineEl = li.querySelector(".item-meta-tag.deadline");
     if (fechaInput && fechaInput.value) {
       if (deadlineEl) {
-        deadlineEl.textContent = "Fecha límite: " + fechaInput.value;
-      } else if (contentBlock) {
-        const p = document.createElement("p");
-        p.className = "task-deadline";
-        p.textContent = "Fecha límite: " + fechaInput.value;
-        contentBlock.appendChild(p);
+        deadlineEl.textContent = fechaInput.value;
       }
-    } else if (deadlineEl) {
-      deadlineEl.remove();
     }
   }
 
   // Inicialización de formularios de edición en cada task
-  document.querySelectorAll(".task-item").forEach(li => {
+  document.querySelectorAll(".item-card").forEach(li => {
     const form = li.querySelector(".task-edit-form");
     if (!form) return;
 
@@ -254,7 +482,7 @@ document.addEventListener("DOMContentLoaded", () => {
       btn.addEventListener("click", (e) => e.stopPropagation());
     });
 
-    // 🖊️ Editar
+    // Editar
     if (editBtn) {
       editBtn.addEventListener("click", (e) => {
         e.stopPropagation();
@@ -262,7 +490,7 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
 
-    // ❌ Cancelar
+    // Cancelar
     if (cancelBtn) {
       cancelBtn.addEventListener("click", (e) => {
         e.stopPropagation();
@@ -270,7 +498,7 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
 
-    // ✅ Confirmar (submit via fetch)
+    // Confirmar (submit via fetch)
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
       e.stopPropagation();

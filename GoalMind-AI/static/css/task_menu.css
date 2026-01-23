@@ -337,3 +337,406 @@
   margin-top: 10px;
   text-align: center;
 }
+
+/* ===== HEADER DE LISTA CON ACCIONES ===== */
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.panel-header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.select-all-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--muted);
+  transition: color 0.2s;
+}
+
+.select-all-label:hover {
+  color: var(--text);
+}
+
+.select-all-text {
+  white-space: nowrap;
+}
+
+/* ===== BOTONES DE ACCIONES EN LÍNEA ===== */
+.bulk-actions-inline {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.bulk-actions-inline .panel-action-btn {
+  padding: 8px 16px;
+  font-size: 13px;
+}
+
+/* ===== MODAL OVERLAY COMÚN ===== */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+  z-index: 2000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  animation: modalFadeIn 0.2s ease;
+}
+
+@keyframes modalFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modalSlideIn {
+  from {
+    transform: scale(0.9) translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+/* ===== MODAL HEADER COMÚN ===== */
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  background: rgba(108, 243, 255, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.modal-header h4 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.modal-header.danger {
+  background: rgba(255, 107, 136, 0.08);
+}
+
+.modal-header.danger h4 {
+  color: var(--bad);
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 24px;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  transition: all 0.2s;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+}
+
+.modal-close:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* ===== MODAL BODY COMÚN ===== */
+.modal-body {
+  padding: 24px;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.modal-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+  background: rgba(108, 243, 255, 0.3);
+  border-radius: 6px;
+}
+
+.modal-body p {
+  margin: 0 0 12px;
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.modal-body p:last-child {
+  margin-bottom: 0;
+}
+
+.modal-description {
+  color: var(--muted);
+  margin-bottom: 20px !important;
+}
+
+.warning-text {
+  color: var(--warn);
+  font-weight: 600;
+  font-size: 14px;
+}
+
+/* ===== MODAL FOOTER COMÚN ===== */
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 24px;
+  background: rgba(255, 255, 255, 0.02);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.modal-footer .panel-action-btn {
+  padding: 10px 24px;
+  font-size: 14px;
+}
+
+.modal-footer .panel-action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ===== MODAL ASIGNAR OBJETIVO ===== */
+.assign-goal-modal {
+  background: linear-gradient(180deg, #0e1424 0%, #0a0f1a 100%);
+  border: 1px solid rgba(108, 243, 255, 0.2);
+  border-radius: 20px;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6), 0 0 40px rgba(108, 243, 255, 0.1);
+  max-width: 480px;
+  width: 90%;
+  overflow: hidden;
+  animation: modalSlideIn 0.25s ease;
+}
+
+/* Lista de proyectos y objetivos */
+.projects-goals-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.project-group {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.project-group-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: rgba(139, 123, 255, 0.08);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.project-icon {
+  font-size: 16px;
+}
+
+.project-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent-2);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.goals-list {
+  display: flex;
+  flex-direction: column;
+  padding: 8px;
+  gap: 4px;
+}
+
+.goal-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 2px solid transparent;
+  border-radius: 10px;
+  color: var(--text);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.goal-option:hover {
+  background: rgba(108, 243, 255, 0.08);
+  border-color: rgba(108, 243, 255, 0.3);
+  transform: translateX(4px);
+}
+
+.goal-option.selected {
+  background: rgba(108, 243, 255, 0.15);
+  border-color: var(--accent);
+}
+
+.goal-option.selected .goal-name {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.goal-icon {
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+.goal-name {
+  flex: 1;
+}
+
+/* Estado sin objetivos */
+.no-goals-state {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.no-goals-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.6;
+}
+
+.no-goals-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.no-goals-description {
+  font-size: 14px;
+  color: var(--muted);
+  max-width: 280px;
+  margin: 0 auto;
+  line-height: 1.5;
+}
+
+/* ===== MODAL DE ELIMINACIÓN ===== */
+.delete-modal {
+  background: linear-gradient(180deg, #0e1424 0%, #0a0f1a 100%);
+  border: 1px solid rgba(255, 107, 136, 0.3);
+  border-radius: 20px;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6), 0 0 40px rgba(255, 107, 136, 0.1);
+  max-width: 420px;
+  width: 90%;
+  overflow: hidden;
+  animation: modalSlideIn 0.25s ease;
+}
+
+/* ===== POSICIÓN RELATIVA PARA ACCIONES ===== */
+.panel-actions {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* ===== CHECKBOX PERSONALIZADO ===== */
+.item-checkbox {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  border: 2px solid rgba(108, 243, 255, 0.4);
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.item-checkbox:hover {
+  border-color: var(--accent);
+  background: rgba(108, 243, 255, 0.1);
+  box-shadow: 0 0 12px rgba(108, 243, 255, 0.2);
+}
+
+.item-checkbox:checked {
+  background: linear-gradient(135deg, var(--accent), #5ce1e6);
+  border-color: var(--accent);
+  box-shadow: 0 0 16px rgba(108, 243, 255, 0.4);
+}
+
+.item-checkbox:checked::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -60%) rotate(45deg);
+  width: 5px;
+  height: 10px;
+  border: solid #0a0f1a;
+  border-width: 0 2px 2px 0;
+}
+
+.item-checkbox:indeterminate {
+  background: linear-gradient(135deg, var(--accent), #5ce1e6);
+  border-color: var(--accent);
+}
+
+.item-checkbox:indeterminate::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 10px;
+  height: 2px;
+  background: #0a0f1a;
+  border-radius: 1px;
+}
+
+.item-checkbox:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(108, 243, 255, 0.3);
+}
+
+/* Checkbox en el header (seleccionar todo) */
+.select-all-label .item-checkbox {
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+}
+
+/* Animación al seleccionar */
+@keyframes checkPop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+.item-checkbox:checked {
+  animation: checkPop 0.2s ease;
+}

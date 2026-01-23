@@ -207,3 +207,43 @@ class TaskModel:
 
         print(f"♻️ Tarea {_id} actualizada y sincronizada.")
         return updated_task
+
+    # -------------------------------------------------------------
+    #  ASIGNAR OBJETIVO A MÚLTIPLES TAREAS
+    # -------------------------------------------------------------
+    @staticmethod
+    def assign_goal_to_tasks(task_ids, goal_id):
+        """
+        Asigna un objetivo (goal_id) a múltiples tareas.
+        Devuelve el número de tareas actualizadas.
+        """
+        local_col, remote_col = get_collection(TaskModel.COLLECTION)
+        
+        # Convertir IDs a ObjectId
+        object_ids = [
+            ObjectId(tid) if not isinstance(tid, ObjectId) else tid
+            for tid in task_ids if tid
+        ]
+        
+        objetivo_oid = ObjectId(goal_id) if not isinstance(goal_id, ObjectId) else goal_id
+        
+        # Actualizar en local
+        result = local_col.update_many(
+            {"_id": {"$in": object_ids}},
+            {"$set": {"objetivo_id": objetivo_oid}}
+        )
+        
+        # Sincronizar cada tarea actualizada con la nube
+        if remote_col is not None:
+            try:
+                remote_col.update_many(
+                    {"_id": {"$in": object_ids}},
+                    {"$set": {"objetivo_id": objetivo_oid}}
+                )
+                print(f"🎯 {result.modified_count} tareas asignadas al objetivo {goal_id} y sincronizadas.")
+            except Exception as e:
+                print(f"⚠️ Error al sincronizar asignación de objetivo: {e}")
+        else:
+            print(f"🎯 {result.modified_count} tareas asignadas al objetivo {goal_id} (solo local).")
+        
+        return result.modified_count
