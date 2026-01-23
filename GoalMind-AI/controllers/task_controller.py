@@ -23,9 +23,16 @@ def _load_goal_context():
     projects = ProjectModel.get_all_projects()
 
     project_titles = {}
+    project_dict = {}  # Para almacenar proyectos completos
     for project in projects:
         if "_id" in project:
-            project_titles[str(project["_id"])] = project.get("titulo", "(sin titulo)")
+            pid = str(project["_id"])
+            project_titles[pid] = project.get("titulo", "(sin titulo)")
+            project_dict[pid] = {
+                "_id": pid,
+                "titulo": project.get("titulo", "(sin titulo)"),
+                "goals": []
+            }
 
     goals_view = []
     goal_titles = {}
@@ -45,10 +52,19 @@ def _load_goal_context():
             goal_view["project_id"] = pid
             if pid in project_titles:
                 goal_project_titles[gid] = project_titles[pid]
+                # Añadir el objetivo al proyecto correspondiente
+                if pid in project_dict:
+                    project_dict[pid]["goals"].append({
+                        "_id": gid,
+                        "titulo": goal_view.get("titulo", "(sin titulo)")
+                    })
 
         goals_view.append(goal_view)
 
-    return goals_view, goal_titles, goal_project_titles
+    # Filtrar proyectos que tienen al menos un objetivo
+    projects_with_goals = [p for p in project_dict.values() if len(p["goals"]) > 0]
+
+    return goals_view, goal_titles, goal_project_titles, projects_with_goals
 
 
 # -------------------------------------------------------------
@@ -57,7 +73,7 @@ def _load_goal_context():
 @task_bp.route("/", methods=["GET"])
 def list_tasks():
     tasks = TaskModel.get_all_tasks()
-    goals_view, goal_titles, goal_project_titles = _load_goal_context()
+    goals_view, goal_titles, goal_project_titles, projects_with_goals = _load_goal_context()
     tasks_view = [_serialize_task(t) for t in tasks]
 
     return render_template(
@@ -66,6 +82,7 @@ def list_tasks():
         goals=goals_view,
         goal_titles=goal_titles,
         goal_project_titles=goal_project_titles,
+        projects_with_goals=projects_with_goals,
         selected_category=None,
         page="list"
     )
@@ -81,7 +98,7 @@ def view_task(task_id):
         if not task:
             flash("❌ Tarea no encontrada", "warning")
             return redirect(url_for("task_bp.list_tasks"))
-        goals_view, goal_titles, goal_project_titles = _load_goal_context()
+        goals_view, goal_titles, goal_project_titles, projects_with_goals = _load_goal_context()
         return render_template(
             "partials/task_templates/task_menu.html",
             selected_task=_serialize_task(task),
@@ -89,6 +106,7 @@ def view_task(task_id):
             goals=goals_view,
             goal_titles=goal_titles,
             goal_project_titles=goal_project_titles,
+            projects_with_goals=projects_with_goals,
             page="detail"
         )
     except Exception as e:
@@ -106,7 +124,7 @@ def list_tasks_by_user(user_id):
             user_id = "66ffbbbbbbbbbbbbbbbb0100"
         tasks = TaskModel.get_task_by_user(user_id)
         tasks_view = [_serialize_task(t) for t in tasks]
-        goals_view, goal_titles, goal_project_titles = _load_goal_context()
+        goals_view, goal_titles, goal_project_titles, projects_with_goals = _load_goal_context()
         if not tasks:
             flash("Este usuario aún no tiene tareas.", "info")
         return render_template(
@@ -115,6 +133,7 @@ def list_tasks_by_user(user_id):
             goals=goals_view,
             goal_titles=goal_titles,
             goal_project_titles=goal_project_titles,
+            projects_with_goals=projects_with_goals,
             page="tareas",
             user_id=user_id
         )
@@ -211,7 +230,7 @@ def filter_by_category():
     # Usar el nuevo método de búsqueda combinada
     tasks = TaskModel.search_tasks(nombre=nombre, categoria=categoria)
     tasks_view = [_serialize_task(t) for t in tasks]
-    goals_view, goal_titles, goal_project_titles = _load_goal_context()
+    goals_view, goal_titles, goal_project_titles, projects_with_goals = _load_goal_context()
     
     return render_template(
         "partials/task_templates/task_menu.html",
@@ -219,6 +238,7 @@ def filter_by_category():
         goals=goals_view,
         goal_titles=goal_titles,
         goal_project_titles=goal_project_titles,
+        projects_with_goals=projects_with_goals,
         selected_task=None,
         page="filter",
         selected_category=categoria,
@@ -241,13 +261,14 @@ def search_by_id():
         except Exception:
             flash("El ID proporcionado no es válido.", "danger")
     tasks = [_serialize_task(task)] if task else []
-    goals_view, goal_titles, goal_project_titles = _load_goal_context()
+    goals_view, goal_titles, goal_project_titles, projects_with_goals = _load_goal_context()
     return render_template(
         "partials/task_templates/task_menu.html",
         tasks=tasks,
         goals=goals_view,
         goal_titles=goal_titles,
         goal_project_titles=goal_project_titles,
+        projects_with_goals=projects_with_goals,
         selected_task=None,
         page="search",
         searched_id=task_id
@@ -259,18 +280,72 @@ def search_by_id():
 # -------------------------------------------------------------
 @task_bp.route("/bulk-delete", methods=["POST"])
 def bulk_delete_tasks():
-    ids = request.form.getlist("selected_tasks")
+    # Soportar tanto form data como JSON
+    if request.is_json:
+        data = request.get_json()
+        ids = data.get("selected_tasks", [])
+    else:
+        ids = request.form.getlist("selected_tasks")
+    
     if not ids:
+        if request.is_json:
+            return jsonify({"success": False, "message": "No has seleccionado ninguna tarea."}), 400
         flash("No has seleccionado ninguna tarea.", "warning")
         return redirect(url_for("task_bp.list_tasks"))
 
     try:
         deleted = TaskModel.delete_tasks_by_ids(ids)
+        if request.is_json:
+            return jsonify({"success": True, "message": f"Se eliminaron {deleted} tarea(s).", "deleted_count": deleted})
         flash(f"Se eliminaron {deleted} tarea(s).", "success")
-    except Exception:
+    except Exception as e:
+        if request.is_json:
+            return jsonify({"success": False, "message": "No se pudieron eliminar las tareas seleccionadas."}), 500
         flash("No se pudieron eliminar las tareas seleccionadas.", "danger")
 
     return redirect(url_for("task_bp.list_tasks"))
+
+
+# -------------------------------------------------------------
+# 🎯 ASIGNAR OBJETIVO A MÚLTIPLES TAREAS (POST)
+# -------------------------------------------------------------
+@task_bp.route("/bulk-assign-goal", methods=["POST"])
+def bulk_assign_goal():
+    """
+    Asigna un objetivo a múltiples tareas seleccionadas.
+    Espera JSON con: { "selected_tasks": [...], "objetivo_id": "..." }
+    """
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({"success": False, "message": "No se recibieron datos."}), 400
+        
+        task_ids = data.get("selected_tasks", [])
+        goal_id = data.get("objetivo_id")
+        
+        if not task_ids:
+            return jsonify({"success": False, "message": "No has seleccionado ninguna tarea."}), 400
+        
+        if not goal_id:
+            return jsonify({"success": False, "message": "No has seleccionado ningún objetivo."}), 400
+        
+        # Verificar que el objetivo existe
+        goal = GoalModel.get_goal_by_id(goal_id)
+        if not goal:
+            return jsonify({"success": False, "message": "El objetivo seleccionado no existe."}), 404
+        
+        # Asignar el objetivo a las tareas
+        updated_count = TaskModel.assign_goal_to_tasks(task_ids, goal_id)
+        
+        return jsonify({
+            "success": True,
+            "message": f"Se asignaron {updated_count} tarea(s) al objetivo '{goal.get('titulo', 'Sin título')}'.",
+            "updated_count": updated_count
+        })
+        
+    except Exception as e:
+        print(f"Error en bulk_assign_goal: {e}")
+        return jsonify({"success": False, "message": f"Error al asignar objetivo: {str(e)}"}), 500
 
 
 # -------------------------------------------------------------

@@ -63,37 +63,38 @@
     </form>
   </div>
 
-  <!-- Acciones en lote -->
-  <div class="bulk-actions-bar">
-    <label>
-      <input type="checkbox" id="selectAllTasks" class="item-checkbox">
-      Seleccionar todo
-    </label>
-
-    <form id="bulkDeleteForm"
-          action="{{ url_for('task_bp.bulk_delete_tasks') }}"
-          method="post"
-          onsubmit="return confirm('¿Eliminar las tareas seleccionadas?');">
-      <button type="submit"
-              class="panel-action-btn danger"
-              disabled
-              id="bulkDeleteBtn">
-        🗑️ Eliminar seleccionadas
-      </button>
-    </form>
-  </div>
-
   <!-- Lista de tareas -->
   <div class="panel-section panel-accent">
     <div class="panel-header">
-      <h3 class="panel-title">
-        <span class="panel-title-icon">📋</span>
-        Lista de tareas
-      </h3>
+      <div class="panel-header-left">
+        <label class="select-all-label">
+          <input type="checkbox" id="selectAllTasks" class="item-checkbox">
+          <span class="select-all-text">Seleccionar todo</span>
+        </label>
+        <h3 class="panel-title">
+          <span class="panel-title-icon">📋</span>
+          Lista de tareas
+        </h3>
+      </div>
       <div class="panel-actions">
         <span class="panel-badge accent">{{ tasks|length if tasks else 0 }} tareas</span>
+        <!-- Botones dinámicos que aparecen al seleccionar tareas -->
+        <div id="bulkActionsContainer" class="bulk-actions-inline" style="display: none;">
+          <button type="button" id="assignGoalBtn" class="panel-action-btn primary">
+            Asignar objetivo
+          </button>
+          <button type="button" id="bulkDeleteBtn" class="panel-action-btn danger">
+            Eliminar
+          </button>
+        </div>
       </div>
     </div>
+
+    <!-- Formulario oculto para operaciones masivas -->
+    <form id="bulkOperationsForm" style="display: none;">
+      <input type="hidden" name="selected_tasks" id="selectedTasksInput">
+      <input type="hidden" name="objetivo_id" id="selectedGoalInput">
+    </form>
 
     {% if tasks and tasks|length > 0 %}
     <ul class="item-list" id="taskList">
@@ -115,7 +116,6 @@
                  type="checkbox"
                  name="selected_tasks"
                  value="{{ task['_id'] }}"
-                 form="bulkDeleteForm"
                  aria-label="Seleccionar tarea">
 
           <div class="item-content">
@@ -223,13 +223,16 @@
 
             <!-- Botones de acción -->
             <div class="item-actions">
-              <button type="button" class="panel-action-btn btn-edit">✏️ Editar</button>
-              <button type="submit" class="panel-action-btn success btn-confirm" style="display:none;">✅ Confirmar</button>
-              <button type="button" class="panel-action-btn btn-cancel" style="display:none;">❌ Cancelar</button>
+              <button type="button" class="panel-action-btn primary btn-assign-goal" data-task-id="{{ task['_id'] }}">
+                Asignar objetivo
+              </button>
+              <button type="button" class="panel-action-btn btn-edit"> Editar</button>
+              <button type="submit" class="panel-action-btn success btn-confirm" style="display:none;">Confirmar</button>
+              <button type="button" class="panel-action-btn btn-cancel" style="display:none;">Cancelar</button>
               <button type="submit"
                       class="panel-action-btn danger task-delete-btn"
                       title="Eliminar"
-                      form="delete-{{ task['_id'] }}">🗑️ Eliminar</button>
+                      form="delete-{{ task['_id'] }}">Eliminar</button>
             </div>
 
           </form>
@@ -240,11 +243,82 @@
     </ul>
     {% else %}
     <div class="empty-state">
-      <div class="empty-state-icon">📝</div>
+      <div class="empty-state-icon"></div>
       <h4 class="empty-state-title">No hay tareas registradas</h4>
       <p class="empty-state-desc">Crea tu primera tarea usando el panel de la derecha.</p>
     </div>
     {% endif %}
+  </div>
+
+  <!-- Modal de asignación de objetivo (centrado con overlay) -->
+  <div id="goalAssignModal" class="modal-overlay" style="display: none;">
+    <div class="assign-goal-modal">
+      <div class="modal-header">
+        <h4>Asignar objetivo</h4>
+        <button type="button" class="modal-close" id="closeGoalModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        {% if projects_with_goals and projects_with_goals|length > 0 %}
+        <p class="modal-description">Selecciona el objetivo al que deseas asignar las tareas:</p>
+        <div class="projects-goals-list">
+          {% for project in projects_with_goals %}
+          <div class="project-group">
+            <div class="project-group-header">
+              <span class="project-icon">📁</span>
+              <span class="project-name">{{ project.titulo }}</span>
+            </div>
+            <div class="goals-list">
+              {% for goal in project.goals %}
+              <button type="button" class="goal-option" data-goal-id="{{ goal._id }}">
+                <span class="goal-icon">🎯</span>
+                <span class="goal-name">{{ goal.titulo }}</span>
+              </button>
+              {% endfor %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="no-goals-state">
+          <div class="no-goals-icon">📭</div>
+          <p class="no-goals-title">No hay objetivos disponibles</p>
+          <p class="no-goals-description">Para asignar tareas a un objetivo, primero debes crear objetivos dentro de un proyecto.</p>
+        </div>
+        {% endif %}
+      </div>
+      <div class="modal-footer">
+        {% if projects_with_goals and projects_with_goals|length > 0 %}
+        <button type="button" id="confirmAssignGoal" class="panel-action-btn success" disabled>
+          Aceptar
+        </button>
+        {% endif %}
+        <button type="button" id="cancelAssignGoal" class="panel-action-btn">
+          Cancelar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de confirmación de eliminación -->
+  <div id="deleteConfirmModal" class="modal-overlay" style="display: none;">
+    <div class="delete-modal">
+      <div class="modal-header danger">
+        <h4>Confirmar eliminación</h4>
+        <button type="button" class="modal-close" id="closeDeleteModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p>Esta acción eliminará las tareas seleccionadas de forma permanente.</p>
+        <p class="warning-text">Esta operación no se puede deshacer.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="confirmDelete" class="panel-action-btn danger">
+          Confirmar
+        </button>
+        <button type="button" id="cancelDelete" class="panel-action-btn">
+          Cancelar
+        </button>
+      </div>
+    </div>
   </div>
 
 </section>
