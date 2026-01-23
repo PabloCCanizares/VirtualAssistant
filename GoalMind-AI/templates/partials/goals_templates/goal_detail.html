@@ -3,6 +3,7 @@
 {% block content %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/panels.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/task_menu.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/goal_detail.css') }}">
 
 <section class="mission-shell">
   {% include "partials/goals_templates/goal_header.html" %}
@@ -26,8 +27,8 @@
           </div>
           <div class="panel-kpis">
             <div class="panel-kpi">
-              <div class="panel-kpi-label">Progreso</div>
-              <div class="panel-kpi-value">{{ goal.get('progreso', 0) }}%</div>
+              <div class="panel-kpi-label">Tareas</div>
+              <div class="panel-kpi-value">{{ tasks|length if tasks else 0 }}</div>
             </div>
             <div class="panel-kpi">
               <div class="panel-kpi-label">Proyecto</div>
@@ -36,200 +37,278 @@
           </div>
         </div>
 
-        <!-- Informacion detallada -->
+        <!-- Informacion del objetivo + Progreso visual -->
         <div class="panel-section panel-accent">
           <div class="panel-header">
             <h3 class="panel-title">
-              <span class="panel-title-icon">📋</span>
               Informacion del objetivo
             </h3>
             <div class="panel-actions">
-              <a href="{{ url_for('goal_bp.list_goals') }}" class="panel-action-btn">
-                ← Volver a objetivos
-              </a>
+              <button type="button" class="panel-action-btn primary" id="btnEditGoal">
+                Editar objetivo
+              </button>
             </div>
           </div>
 
-          <div class="item-details-grid" style="display: grid;">
-            <div class="item-detail-row">
-              <span class="item-detail-label">Titulo</span>
-              <span class="item-detail-value">{{ goal.get('titulo', '(sin titulo)') }}</span>
+          <div class="goal-info-section">
+            <!-- Columna izquierda: Informacion -->
+            <div class="goal-details-container">
+              <div class="goal-info-grid">
+                <div class="goal-info-item full-width">
+                  <div class="goal-info-item-label">Titulo</div>
+                  <div class="goal-info-item-value" id="goal-titulo">{{ goal.get('titulo', '(sin titulo)') }}</div>
+                </div>
+                <div class="goal-info-item full-width">
+                  <div class="goal-info-item-label">Descripcion</div>
+                  <div class="goal-info-item-value" id="goal-descripcion">{{ goal.get('descripcion', '(sin descripcion)') }}</div>
+                </div>
+                <div class="goal-info-item">
+                  <div class="goal-info-item-label">Categoria</div>
+                  <div class="goal-info-item-value" id="goal-categoria">{{ goal.get('categoria', 'Sin categoria') }}</div>
+                </div>
+                <div class="goal-info-item">
+                  <div class="goal-info-item-label">Estado</div>
+                  <div class="goal-info-item-value highlight" id="goal-estado">{{ goal.get('estado', 'En progreso') }}</div>
+                </div>
+                <div class="goal-info-item">
+                  <div class="goal-info-item-label">Prioridad</div>
+                  <div class="goal-info-item-value" id="goal-prioridad">{{ goal.get('prioridad', 'Media') }}</div>
+                </div>
+                <div class="goal-info-item">
+                  <div class="goal-info-item-label">Ambito</div>
+                  <div class="goal-info-item-value" id="goal-scope">{{ goal.get('scope', 'Personal') }}</div>
+                </div>
+                <div class="goal-info-item">
+                  <div class="goal-info-item-label">Fecha inicio</div>
+                  {% set fi = goal.get('fecha_inicio') %}
+                  <div class="goal-info-item-value" id="goal-fecha-inicio">{{ fi.strftime('%Y-%m-%d') if fi and fi is not string else (fi or '—') }}</div>
+                </div>
+                <div class="goal-info-item">
+                  <div class="goal-info-item-label">Fecha fin</div>
+                  {% set ff = goal.get('fecha_fin') %}
+                  <div class="goal-info-item-value" id="goal-fecha-fin">{{ ff.strftime('%Y-%m-%d') if ff and ff is not string else (ff or '—') }}</div>
+                </div>
+                <div class="goal-info-item">
+                  <div class="goal-info-item-label">Proyecto</div>
+                  <div class="goal-info-item-value" id="goal-proyecto">{{ project_titles.get(goal.get('project_id'), 'Sin proyecto') }}</div>
+                </div>
+                <div class="goal-info-item">
+                  <div class="goal-info-item-label">Progreso</div>
+                  <div class="goal-info-item-value highlight" id="goal-progreso-text">{{ goal.get('progreso', 0) }}%</div>
+                </div>
+              </div>
             </div>
-            <div class="item-detail-row">
-              <span class="item-detail-label">Descripcion</span>
-              <span class="item-detail-value">{{ goal.get('descripcion', '(sin descripcion)') }}</span>
-            </div>
-            <div class="item-detail-row">
-              <span class="item-detail-label">Categoria</span>
-              <span class="item-detail-value">{{ goal.get('categoria', 'Sin categoria') }}</span>
-            </div>
-            <div class="item-detail-row">
-              <span class="item-detail-label">Estado</span>
-              <span class="item-detail-value">{{ goal.get('estado', 'En progreso') }}</span>
-            </div>
-            <div class="item-detail-row">
-              <span class="item-detail-label">Prioridad</span>
-              <span class="item-detail-value">{{ goal.get('prioridad', 'Media') }}</span>
-            </div>
-            <div class="item-detail-row">
-              <span class="item-detail-label">Progreso</span>
-              <span class="item-detail-value">{{ goal.get('progreso', 0) }}%</span>
-            </div>
-            <div class="item-detail-row">
-              <span class="item-detail-label">Ambito</span>
-              <span class="item-detail-value">{{ goal.get('scope', 'Personal') }}</span>
-            </div>
-            <div class="item-detail-row">
-              <span class="item-detail-label">Proyecto</span>
-              <span class="item-detail-value">{{ project_titles.get(goal.get('project_id'), 'Sin proyecto') }}</span>
-            </div>
-            <div class="item-detail-row">
-              <span class="item-detail-label">Fecha inicio</span>
-              {% set fi = goal.get('fecha_inicio') %}
-              <span class="item-detail-value">{{ fi.strftime('%Y-%m-%d') if fi and fi is not string else (fi or '—') }}</span>
-            </div>
-            <div class="item-detail-row">
-              <span class="item-detail-label">Fecha fin</span>
-              {% set ff = goal.get('fecha_fin') %}
-              <span class="item-detail-value">{{ ff.strftime('%Y-%m-%d') if ff and ff is not string else (ff or '—') }}</span>
-            </div>
-            <div class="item-detail-row">
-              <span class="item-detail-label">ID Usuario</span>
-              <span class="item-detail-value">{{ goal.get('id_usuario', '—') }}</span>
-            </div>
-            <div class="item-detail-row">
-              <span class="item-detail-label">Alarma ID</span>
-              <span class="item-detail-value">{{ goal.get('alarma_id', '—') }}</span>
+
+            <!-- Columna derecha: Progreso visual -->
+            <div class="goal-progress-container">
+              {% set progreso = goal.get('progreso', 0) %}
+              <div class="progress-ring" id="goal-progress-ring" style="--progress:{{ progreso }}%; width: 140px; height: 140px;">
+                <span class="progress-ring-value" id="goal-progress-value" style="font-size: 32px;">{{ progreso }}%</span>
+              </div>
+              <div class="goal-progress-label">Progreso total</div>
             </div>
           </div>
         </div>
 
-        <!-- Progress ring visual -->
+        <!-- Lista de tareas asociadas -->
         <div class="panel-section panel-accent">
-          <div class="panel-header">
-            <h3 class="panel-title">
-              <span class="panel-title-icon">📊</span>
-              Progreso visual
-            </h3>
-          </div>
-          <div style="display: flex; justify-content: center; padding: 24px;">
-            {% set progreso = goal.get('progreso', 0) %}
-            <div class="progress-ring" style="--progress:{{ progreso }}%; width: 160px; height: 160px;">
-              <span class="progress-ring-value" style="font-size: 36px;">{{ progreso }}%</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Seccion de edicion rapida -->
-        <div class="panel-section panel-accent">
-          <div class="panel-header">
-            <h3 class="panel-title">
-              <span class="panel-title-icon">✏️</span>
-              Editar objetivo
-            </h3>
-          </div>
-
-          <form action="{{ url_for('goal_bp.update_goal', goal_id=goal['_id']) }}" method="post" class="panel-form">
-            <div class="panel-form-row">
-              <div class="panel-form-group">
-                <label class="panel-form-label">Titulo</label>
-                <input type="text" name="titulo" class="panel-form-input" value="{{ goal.get('titulo', '') }}" required>
-              </div>
-              <div class="panel-form-group">
-                <label class="panel-form-label">Categoria</label>
-                <input type="text" name="categoria" class="panel-form-input" value="{{ goal.get('categoria', '') }}">
-              </div>
-            </div>
-
-            <div class="panel-form-group">
-              <label class="panel-form-label">Descripcion</label>
-              <textarea name="descripcion" class="panel-form-textarea" rows="3">{{ goal.get('descripcion', '') }}</textarea>
-            </div>
-
-            <div class="panel-form-row">
-              <div class="panel-form-group">
-                <label class="panel-form-label">Fecha inicio</label>
-                {% set fi = goal.get('fecha_inicio') %}
-                <input type="date" name="fecha_inicio" class="panel-form-input" value="{{ fi.strftime('%Y-%m-%d') if fi and fi is not string else (fi or '')[:10] if fi else '' }}">
-              </div>
-              <div class="panel-form-group">
-                <label class="panel-form-label">Fecha fin</label>
-                {% set ff = goal.get('fecha_fin') %}
-                <input type="date" name="fecha_fin" class="panel-form-input" value="{{ ff.strftime('%Y-%m-%d') if ff and ff is not string else (ff or '')[:10] if ff else '' }}">
-              </div>
-            </div>
-
-            <div class="panel-form-group">
-              <label class="panel-form-label">Proyecto</label>
-              <select name="project_id" class="panel-form-select" required>
-                {% if projects and projects|length > 0 %}
-                  {% for project in projects %}
-                    <option value="{{ project['_id'] }}" {% if project['_id'] == goal.get('project_id') %}selected{% endif %}>
-                      {{ project.get('titulo', '(sin titulo)') }}
-                    </option>
-                  {% endfor %}
-                {% else %}
-                  <option disabled selected>No hay proyectos creados</option>
-                {% endif %}
+          <div class="panel-header" style="margin: 20px 10px 10px;">
+            <h3 class="panel-title" style="margin: 0;">Tareas del objetivo</h3>
+            <div class="panel-sort-container">
+              <label class="panel-form-label" for="sortGoalTasks" style="margin-right: 8px; white-space: nowrap;">Ordenar por</label>
+              <select id="sortGoalTasks" class="panel-form-select" style="min-width: 180px; padding: 8px 12px;">
+                <option value="default">Por defecto</option>
+                <option value="priority-desc">Prioridad (mayor a menor)</option>
+                <option value="deadline-asc">Fecha limite (mas cercana)</option>
+                <option value="status-pending">Estado: Pendiente</option>
+                <option value="status-in-progress">Estado: En curso</option>
+                <option value="status-completed">Estado: Completada</option>
               </select>
             </div>
-
-            <div class="panel-form-row">
-              <div class="panel-form-group">
-                <label class="panel-form-label">Estado</label>
-                {% set st = goal.get('estado', 'En progreso') %}
-                <select name="estado" class="panel-form-select">
-                  <option value="Pendiente" {% if st == 'Pendiente' %}selected{% endif %}>Pendiente</option>
-                  <option value="En progreso" {% if st == 'En progreso' %}selected{% endif %}>En progreso</option>
-                  <option value="Completado" {% if st == 'Completado' %}selected{% endif %}>Completado</option>
-                  <option value="Pausado" {% if st == 'Pausado' %}selected{% endif %}>Pausado</option>
-                </select>
-              </div>
-              <div class="panel-form-group">
-                <label class="panel-form-label">Prioridad</label>
-                {% set pr = goal.get('prioridad', 'Media')|lower %}
-                <select name="prioridad" class="panel-form-select">
-                  <option value="Baja" {% if pr == 'baja' %}selected{% endif %}>Baja</option>
-                  <option value="Media" {% if pr == 'media' %}selected{% endif %}>Media</option>
-                  <option value="Alta" {% if pr == 'alta' %}selected{% endif %}>Alta</option>
-                </select>
-              </div>
+          </div>
+          <div class="panel-header">
+            <div class="panel-header-left">
+              <label class="select-all-label">
+                <input type="checkbox" id="selectAllGoalTasks" class="item-checkbox">
+                <span class="select-all-text">Seleccionar todo</span>
+              </label>
             </div>
-
-            <div class="panel-form-row">
-              <div class="panel-form-group">
-                <label class="panel-form-label">Progreso (%)</label>
-                <input type="number" name="progreso" class="panel-form-input" min="0" max="100" value="{{ goal.get('progreso', 0) }}">
+            <div class="panel-actions">
+              <div id="bulkActionsContainerGoal" class="bulk-actions-inline" style="display: none;">
+                <button type="button" id="bulkDeleteBtnGoal" class="panel-action-btn danger">
+                  Eliminar seleccionadas
+                </button>
               </div>
-              <div class="panel-form-group">
-                <label class="panel-form-label">Ambito</label>
-                {% set sc = goal.get('scope', 'Personal') %}
-                <select name="scope" class="panel-form-select">
-                  <option value="Personal" {% if sc == 'Personal' %}selected{% endif %}>Personal</option>
-                  <option value="Trabajo" {% if sc == 'Trabajo' %}selected{% endif %}>Trabajo</option>
-                  <option value="Estudios" {% if sc == 'Estudios' %}selected{% endif %}>Estudios</option>
-                </select>
-              </div>
+              <span class="panel-badge accent">{{ tasks|length if tasks else 0 }} tareas</span>
             </div>
+          </div>
 
-            <div class="panel-form-row">
-              <div class="panel-form-group">
-                <label class="panel-form-label">ID Usuario</label>
-                <input type="text" name="id_usuario" class="panel-form-input" value="{{ goal.get('id_usuario', '') }}">
-              </div>
-              <div class="panel-form-group">
-                <label class="panel-form-label">Alarma ID (opcional)</label>
-                <input type="text" name="alarma_id" class="panel-form-input" value="{{ goal.get('alarma_id', '') }}">
-              </div>
-            </div>
+          {% if tasks and tasks|length > 0 %}
+          <ul class="item-list" id="goalTaskList">
+            {% for task in tasks %}
+            {% set prioridad = task.get('prioridad', 'media')|lower %}
+            <li class="item-card priority-{{ prioridad }}" data-task-id="{{ task['_id'] }}">
 
-            <div class="panel-actions" style="margin-top: 16px;">
-              <button type="submit" class="panel-action-btn primary">Guardar cambios</button>
-              <form action="{{ url_for('goal_bp.delete_goal', goal_id=goal['_id']) }}" method="post" style="display: inline;" onsubmit="return confirm('¿Eliminar este objetivo?');">
-                <button type="submit" class="panel-action-btn danger">Eliminar objetivo</button>
+              <!-- Formulario oculto de borrado -->
+              <form id="delete-goal-task-{{ task['_id'] }}"
+                    action="{{ url_for('task_bp.delete_task', task_id=task['_id']) }}"
+                    method="post"
+                    onsubmit="return confirm('¿Eliminar esta tarea?');"
+                    style="display:none;">
               </form>
+
+              <div class="item-card-header">
+                <input class="item-checkbox goal-task-checkbox"
+                       type="checkbox"
+                       name="selected_goal_tasks"
+                       value="{{ task['_id'] }}"
+                       aria-label="Seleccionar tarea">
+
+                <div class="item-content">
+                  <h4 class="item-title">{{ task['contenido'] }}</h4>
+                  <div class="item-meta">
+                    {% if task['fecha_limite'] %}
+                    <span class="item-meta-tag deadline">
+                      📅 {{ task['fecha_limite'] }}
+                    </span>
+                    {% endif %}
+                    {% set estado = task.get('estado', 'pendiente')|lower %}
+                    <span class="item-meta-tag status-{{ estado|replace(' ', '-') }}">
+                      {{ task['estado'] }}
+                    </span>
+                    <span class="item-meta-tag">
+                      {{ task.get('prioridad', 'media') }}
+                    </span>
+                    {% if task.get('categoria') %}
+                    <span class="item-meta-tag">
+                      {{ task['categoria'] }}
+                    </span>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Detalles expandibles -->
+              <div class="item-details" aria-hidden="true">
+                <form class="task-edit-form"
+                      action="{{ url_for('task_bp.update_task', task_id=task['_id']) }}"
+                      method="post">
+
+                  <!-- Vista de solo lectura -->
+                  <div class="task-fields-view">
+                    <div class="item-details-grid">
+                      <div class="item-detail-row">
+                        <span class="item-detail-label">Descripcion</span>
+                        <span class="item-detail-value task-desc-text">{{ task['descripcion'] or "(sin descripcion)" }}</span>
+                      </div>
+                      <div class="item-detail-row">
+                        <span class="item-detail-label">Estado</span>
+                        <span class="item-detail-value task-est-text">{{ task['estado'] }}</span>
+                      </div>
+                      <div class="item-detail-row">
+                        <span class="item-detail-label">Categoria</span>
+                        <span class="item-detail-value task-cat-text">{{ task['categoria'] or "—" }}</span>
+                      </div>
+                      <div class="item-detail-row">
+                        <span class="item-detail-label">Prioridad</span>
+                        <span class="item-detail-value task-prio-text">{{ task['prioridad'] or "media" }}</span>
+                      </div>
+                      <div class="item-detail-row">
+                        <span class="item-detail-label">Fecha limite</span>
+                        <span class="item-detail-value task-date-text">{{ task['fecha_limite'] or "—" }}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Modo edicion -->
+                  <div class="task-fields-edit panel-form" style="display:none;">
+                    <div class="panel-form-group">
+                      <label class="panel-form-label">Titulo</label>
+                      <input type="text" name="contenido" class="panel-form-input" value="{{ task['contenido'] }}" required>
+                    </div>
+
+                    <div class="panel-form-group">
+                      <label class="panel-form-label">Descripcion</label>
+                      <textarea name="descripcion" class="panel-form-textarea" rows="3">{{ task['descripcion'] }}</textarea>
+                    </div>
+
+                    <div class="panel-form-row">
+                      <div class="panel-form-group">
+                        <label class="panel-form-label">Fecha limite</label>
+                        <input type="date" name="fecha_limite" class="panel-form-input" value="{{ task['fecha_limite']|default('') }}">
+                      </div>
+                      <div class="panel-form-group">
+                        <label class="panel-form-label">Estado</label>
+                        <select name="estado" class="panel-form-select">
+                          <option value="pendiente" {% if task['estado']=="pendiente" %}selected{% endif %}>Pendiente</option>
+                          <option value="en curso" {% if task['estado']=="en curso" %}selected{% endif %}>En curso</option>
+                          <option value="completada" {% if task['estado']=="completada" %}selected{% endif %}>Completada</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div class="panel-form-row">
+                      <div class="panel-form-group">
+                        <label class="panel-form-label">Categoria</label>
+                        <input type="text" name="categoria" class="panel-form-input" value="{{ task['categoria'] or '' }}">
+                      </div>
+                      <div class="panel-form-group">
+                        <label class="panel-form-label">Prioridad</label>
+                        <select name="prioridad" class="panel-form-select">
+                          <option value="baja" {% if task['prioridad']=="baja" %}selected{% endif %}>Baja</option>
+                          <option value="media" {% if task['prioridad']=="media" %}selected{% endif %}>Media</option>
+                          <option value="alta" {% if task['prioridad']=="alta" %}selected{% endif %}>Alta</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Botones de accion -->
+                  <div class="item-actions">
+                    <button type="button" class="panel-action-btn btn-edit">Editar</button>
+                    <button type="submit" class="panel-action-btn success btn-confirm" style="display:none;">Confirmar</button>
+                    <button type="button" class="panel-action-btn btn-cancel" style="display:none;">Cancelar</button>
+                    <button type="submit"
+                            class="panel-action-btn danger task-delete-btn"
+                            title="Eliminar"
+                            form="delete-goal-task-{{ task['_id'] }}">Eliminar</button>
+                  </div>
+
+                </form>
+              </div>
+
+            </li>
+            {% endfor %}
+          </ul>
+          {% else %}
+          <div class="empty-state">
+            <div class="empty-state-icon">📝</div>
+            <h4 class="empty-state-title">No hay tareas asociadas</h4>
+            <p class="empty-state-desc">Este objetivo aun no tiene tareas. Puedes asignar tareas desde la seccion de Tareas.</p>
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- Modal de confirmacion de eliminacion masiva -->
+        <div id="deleteConfirmModalGoal" class="modal-overlay" style="display: none;">
+          <div class="delete-modal">
+            <div class="modal-header danger">
+              <h4>Confirmar eliminacion</h4>
+              <button type="button" class="modal-close" id="closeDeleteModalGoal">&times;</button>
             </div>
-          </form>
+            <div class="modal-body">
+              <p>Esta accion eliminara las tareas seleccionadas de forma permanente.</p>
+              <p class="warning-text">Esta operacion no se puede deshacer.</p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" id="confirmDeleteGoal" class="panel-action-btn danger">
+                Confirmar
+              </button>
+              <button type="button" id="cancelDeleteGoal" class="panel-action-btn">
+                Cancelar
+              </button>
+            </div>
+          </div>
         </div>
 
       </section>
@@ -241,5 +320,117 @@
   </div>
 </section>
 
+<!-- Modal de edicion de objetivo -->
+<div id="editGoalModal" class="modal-overlay" style="display: none;">
+  <div class="edit-goal-modal">
+    <button type="button" class="modal-close-btn" id="closeEditGoalModal">&times;</button>
+    <div class="panel-section panel-accent">
+      <div class="panel-header">
+        <h3 class="panel-title">
+          <span class="panel-title-icon">✏️</span>
+          Editar objetivo
+        </h3>
+      </div>
+
+      <form id="editGoalForm" class="panel-form">
+        <input type="hidden" id="editGoalId" value="{{ goal['_id'] }}">
+        
+        <div class="panel-form-row">
+          <div class="panel-form-group">
+            <label class="panel-form-label">Titulo</label>
+            <input type="text" name="titulo" id="editTitulo" class="panel-form-input" value="{{ goal.get('titulo', '') }}" required>
+          </div>
+          <div class="panel-form-group">
+            <label class="panel-form-label">Categoria</label>
+            <input type="text" name="categoria" id="editCategoria" class="panel-form-input" value="{{ goal.get('categoria', '') }}">
+          </div>
+        </div>
+
+        <div class="panel-form-group">
+          <label class="panel-form-label">Descripcion</label>
+          <textarea name="descripcion" id="editDescripcion" class="panel-form-textarea" rows="3">{{ goal.get('descripcion', '') }}</textarea>
+        </div>
+
+        <div class="panel-form-row">
+          <div class="panel-form-group">
+            <label class="panel-form-label">Fecha inicio</label>
+            {% set fi = goal.get('fecha_inicio') %}
+            <input type="date" name="fecha_inicio" id="editFechaInicio" class="panel-form-input" value="{{ fi.strftime('%Y-%m-%d') if fi and fi is not string else (fi or '')[:10] if fi else '' }}">
+          </div>
+          <div class="panel-form-group">
+            <label class="panel-form-label">Fecha fin</label>
+            {% set ff = goal.get('fecha_fin') %}
+            <input type="date" name="fecha_fin" id="editFechaFin" class="panel-form-input" value="{{ ff.strftime('%Y-%m-%d') if ff and ff is not string else (ff or '')[:10] if ff else '' }}">
+          </div>
+        </div>
+
+        <div class="panel-form-group">
+          <label class="panel-form-label">Proyecto</label>
+          <select name="project_id" id="editProjectId" class="panel-form-select" required>
+            {% if projects and projects|length > 0 %}
+              {% for project in projects %}
+                <option value="{{ project['_id'] }}" {% if project['_id'] == goal.get('project_id') %}selected{% endif %}>
+                  {{ project.get('titulo', '(sin titulo)') }}
+                </option>
+              {% endfor %}
+            {% else %}
+              <option disabled selected>No hay proyectos creados</option>
+            {% endif %}
+          </select>
+        </div>
+
+        <div class="panel-form-row">
+          <div class="panel-form-group">
+            <label class="panel-form-label">Estado</label>
+            {% set st = goal.get('estado', 'En progreso') %}
+            <select name="estado" id="editEstado" class="panel-form-select">
+              <option value="Pendiente" {% if st == 'Pendiente' %}selected{% endif %}>Pendiente</option>
+              <option value="En progreso" {% if st == 'En progreso' %}selected{% endif %}>En progreso</option>
+              <option value="Completado" {% if st == 'Completado' %}selected{% endif %}>Completado</option>
+              <option value="Pausado" {% if st == 'Pausado' %}selected{% endif %}>Pausado</option>
+            </select>
+          </div>
+          <div class="panel-form-group">
+            <label class="panel-form-label">Prioridad</label>
+            {% set pr = goal.get('prioridad', 'Media')|lower %}
+            <select name="prioridad" id="editPrioridad" class="panel-form-select">
+              <option value="Baja" {% if pr == 'baja' %}selected{% endif %}>Baja</option>
+              <option value="Media" {% if pr == 'media' %}selected{% endif %}>Media</option>
+              <option value="Alta" {% if pr == 'alta' %}selected{% endif %}>Alta</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="panel-form-row">
+          <div class="panel-form-group">
+            <label class="panel-form-label">Progreso (%)</label>
+            <input type="number" name="progreso" id="editProgreso" class="panel-form-input" min="0" max="100" value="{{ goal.get('progreso', 0) }}">
+          </div>
+          <div class="panel-form-group">
+            <label class="panel-form-label">Ambito</label>
+            {% set sc = goal.get('scope', 'Personal') %}
+            <select name="scope" id="editScope" class="panel-form-select">
+              <option value="Personal" {% if sc == 'Personal' %}selected{% endif %}>Personal</option>
+              <option value="Trabajo" {% if sc == 'Trabajo' %}selected{% endif %}>Trabajo</option>
+              <option value="Estudios" {% if sc == 'Estudios' %}selected{% endif %}>Estudios</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="panel-actions" style="margin-top: 16px; justify-content: space-between;">
+          <form action="{{ url_for('goal_bp.delete_goal', goal_id=goal['_id']) }}" method="post" style="display: inline;" onsubmit="return confirm('¿Eliminar este objetivo?');">
+            <button type="submit" class="panel-action-btn danger">Eliminar objetivo</button>
+          </form>
+          <div style="display: flex; gap: 10px;">
+            <button type="button" class="panel-action-btn" id="cancelEditGoal">Cancelar</button>
+            <button type="submit" class="panel-action-btn primary">Guardar cambios</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/goal_detail.js') }}"></script>
 <script src="{{ url_for('static', filename='js/goal_menu.js') }}"></script>
 {% endblock %}

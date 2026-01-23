@@ -1,7 +1,8 @@
 # controllers/goal_controller.py
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from model.goal_model import GoalModel
 from model.project_model import ProjectModel
+from model.task_model import TaskModel
 
 goal_bp = Blueprint("goal_bp", __name__, url_prefix="/goals")
 
@@ -131,11 +132,23 @@ def view_goal(goal_id):
         goal_view = _serialize_goal(goal)
         projects, project_titles = _load_projects()
 
+        # Obtener tareas asociadas a este objetivo
+        tasks = TaskModel.get_tasks_by_goal(goal_id)
+        tasks_view = []
+        for task in tasks:
+            task_view = dict(task)
+            if "_id" in task_view:
+                task_view["_id"] = str(task_view["_id"])
+            if task_view.get("objetivo_id"):
+                task_view["objetivo_id"] = str(task_view["objetivo_id"])
+            tasks_view.append(task_view)
+
         return render_template(
             "partials/goals_templates/goal_detail.html",
             goal=goal_view,
             projects=projects,
             project_titles=project_titles,
+            tasks=tasks_view,
             page="objetivos",
         )
     except Exception as e:
@@ -209,6 +222,43 @@ def bulk_delete_goals():
         flash(f"❌ No se pudieron eliminar los objetivos seleccionados: {e}", "danger")
 
     return redirect(url_for("goal_bp.list_goals"))
+
+# -------------------------------------------------------------
+# API: Actualizar objetivo via JSON (para modal)
+# -------------------------------------------------------------
+@goal_bp.route("/api/<goal_id>", methods=["PUT", "PATCH"])
+def api_update_goal(goal_id):
+    """Actualiza un objetivo via JSON y devuelve el resultado."""
+    try:
+        payload = request.get_json(silent=True) or {}
+        
+        updates = {}
+        for field in ["titulo", "descripcion", "fecha_inicio", "fecha_fin", 
+                      "categoria", "estado", "prioridad", "scope", "alarma_id", 
+                      "id_usuario", "project_id"]:
+            if field in payload:
+                updates[field] = payload[field]
+        
+        if "progreso" in payload:
+            try:
+                updates["progreso"] = int(payload["progreso"] or 0)
+            except ValueError:
+                pass
+
+        if not updates:
+            return jsonify({"error": "No hay campos para actualizar"}), 400
+
+        GoalModel.update_goal(goal_id, updates)
+        updated_goal = GoalModel.get_goal_by_id(goal_id)
+        
+        return jsonify({
+            "success": True,
+            "message": "Objetivo actualizado correctamente",
+            "goal": _serialize_goal(updated_goal)
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 # -------------------------------------------------------------
 # GET /goals/user/<user_id>
