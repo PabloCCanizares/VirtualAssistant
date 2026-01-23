@@ -1,0 +1,155 @@
+/* ============================================================
+   GOAL_DETAIL.CSS - Estilos específicos para la vista de detalle de objetivo
+   ============================================================ */
+
+/* ===== LAYOUT DE INFORMACIÓN DEL OBJETIVO ===== */
+.goal-info-section {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 24px;
+  flex-direction: row;
+  align-items: center;
+}
+
+@media (max-width: 900px) {
+  .goal-info-section {
+    grid-template-columns: 1fr;
+  }
+}
+
+.goal-details-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ===== GRID DE INFORMACIÓN ===== */
+.goal-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 600px) {
+  .goal-info-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ===== ITEMS DE INFORMACIÓN ===== */
+.goal-info-item {
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.06);
+  border-radius: 12px;
+  padding: 14px 16px;
+  transition: all 0.2s ease;
+}
+
+.goal-info-item:hover {
+  background: rgba(108,243,255,.05);
+  border-color: rgba(108,243,255,.15);
+}
+
+.goal-info-item-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted, #9fb0d7);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.goal-info-item-value {
+  font-size: 14px;
+  color: var(--text, #e8edf5);
+  font-weight: 500;
+}
+
+.goal-info-item-value.highlight {
+  color: var(--accent, #6cf3ff);
+}
+
+.goal-info-item.full-width {
+  grid-column: 1 / -1;
+}
+
+/* ===== CONTENEDOR DE PROGRESO VISUAL ===== */
+.goal-progress-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(108,243,255,.03);
+  border: 1px solid rgba(108,243,255,.1);
+  border-radius: 16px;
+  min-height: 400px;
+}
+
+.goal-progress-label {
+  margin-top: 16px;
+  font-size: 14px;
+  color: var(--muted, #9fb0d7);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ===== MODAL DE EDICIÓN DE OBJETIVO ===== */
+.edit-goal-modal {
+  background: linear-gradient(135deg, rgba(16,24,43,.98), rgba(11,15,26,.95));
+  border: 1px solid rgba(108,243,255,.2);
+  border-radius: 20px;
+  padding: 0;
+  width: 90%;
+  max-width: 700px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 24px 64px rgba(0,0,0,.5), 0 0 32px rgba(108,243,255,.1);
+  position: relative;
+}
+
+.edit-goal-modal .panel-section {
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  margin: 0;
+}
+
+.modal-close-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: none;
+  background: rgba(255,255,255,.05);
+  color: var(--muted, #9fb0d7);
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.modal-close-btn:hover {
+  background: rgba(255,107,136,.15);
+  color: var(--bad, #ff6b88);
+}
+
+/* ===== SCROLLBAR DEL MODAL ===== */
+.edit-goal-modal::-webkit-scrollbar {
+  width: 6px;
+}
+
+.edit-goal-modal::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--accent, #6cf3ff), var(--accent-2, #8b7bff));
+  border-radius: 6px;
+}
+
+.edit-goal-modal::-webkit-scrollbar-track {
+  background: rgba(255,255,255,.04);
+  border-radius: 6px;
+}
