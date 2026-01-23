@@ -156,6 +156,21 @@ class GoalModel:
         return list(local_col.find({"categoria": categoria}).sort("created_at", -1))
 
     @staticmethod
+    def search_by_name(nombre: str, limit: int = 10):
+        """
+        Busca objetivos cuyo título contenga el texto dado (case-insensitive).
+        Devuelve hasta 'limit' resultados.
+        """
+        local_col, _ = get_collection(GoalModel.COLLECTION)
+        if not nombre or not nombre.strip():
+            return []
+        
+        import re
+        regex = re.compile(re.escape(nombre.strip()), re.IGNORECASE)
+        cursor = local_col.find({"titulo": {"$regex": regex}}).sort("created_at", -1).limit(limit)
+        return list(cursor)
+
+    @staticmethod
     def delete_goal(goal_id):
         """
         Elimina un objetivo tanto en la base local como remota (si está disponible).

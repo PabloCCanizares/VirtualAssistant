@@ -4,8 +4,8 @@ from bson import ObjectId
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple
 
-from model.task_model import TaskModel  # si no lo usas aquí, puedes quitar este import
-from model.goal_model import GoalModel  # si no lo usas aquí, puedes quitar este import
+from model.task_model import TaskModel
+from model.goal_model import GoalModel
 
 from database.mongo_conn import get_collection
 
@@ -98,7 +98,7 @@ def api_list_events():
         for key in ("fecha_inicio", "fecha_fin", "created_at", "updated_at", "start", "end"):
             out[key] = _iso_utc(out.get(key))
         # IDs relacionados → str
-        for key in ("id_usuario", "usuario_id", "id_objetivo"):
+        for key in ("id_usuario", "usuario_id", "id_objetivo", "id_tarea"):
             if isinstance(out.get(key), ObjectId):
                 out[key] = str(out[key])
         events.append(out)
@@ -133,6 +133,7 @@ def api_create_event():
         "id_usuario": ObjectId(payload["id_usuario"]) if payload.get("id_usuario") else None,
         "usuario_id": ObjectId(payload["usuario_id"]) if payload.get("usuario_id") else None,
         "id_objetivo": ObjectId(payload["id_objetivo"]) if payload.get("id_objetivo") else None,
+        "id_tarea": ObjectId(payload["id_tarea"]) if payload.get("id_tarea") else None,
         "created_at": datetime.now(timezone.utc),
         "updated_at": datetime.now(timezone.utc),
     }
@@ -146,7 +147,7 @@ def api_create_event():
     for key in ("fecha_inicio", "fecha_fin", "created_at", "updated_at"):
         out[key] = _iso_utc(out.get(key))
     # IDs relacionados → str
-    for key in ("id_usuario", "usuario_id", "id_objetivo"):
+    for key in ("id_usuario", "usuario_id", "id_objetivo", "id_tarea"):
         if isinstance(out.get(key), ObjectId):
             out[key] = str(out[key])
 
@@ -186,6 +187,8 @@ def api_update_event(event_id: str):
         updates["usuario_id"] = ObjectId(payload["usuario_id"]) if payload.get("usuario_id") else None
     if "id_objetivo" in payload:
         updates["id_objetivo"] = ObjectId(payload["id_objetivo"]) if payload.get("id_objetivo") else None
+    if "id_tarea" in payload:
+        updates["id_tarea"] = ObjectId(payload["id_tarea"]) if payload.get("id_tarea") else None
 
     if not updates:
         return jsonify({"error": "No hay campos para actualizar."}), 400
@@ -204,7 +207,7 @@ def api_update_event(event_id: str):
     for key in ("fecha_inicio", "fecha_fin", "created_at", "updated_at"):
         out[key] = _iso_utc(out.get(key))
     # IDs relacionados → str
-    for key in ("id_usuario", "usuario_id", "id_objetivo"):
+    for key in ("id_usuario", "usuario_id", "id_objetivo", "id_tarea"):
         if isinstance(out.get(key), ObjectId):
             out[key] = str(out[key])
 
@@ -224,3 +227,66 @@ def api_delete_event(event_id: str):
         return jsonify({"error": "Evento no encontrado."}), 404
 
     return jsonify({"deleted": True, "_id": event_id})
+
+
+# -----------------------------
+# Busqueda mixta de tareas y objetivos
+# -----------------------------
+@calendar_bp.route("/api/search/associations", methods=["GET"])
+def api_search_associations():
+    """
+    Busca tareas y objetivos por nombre para asociar a un evento.
+    Parámetros:
+    - q: texto a buscar (mínimo 2 caracteres)
+    - limit: número máximo de resultados (por defecto 10, max 20)
+    
+    Devuelve una lista mixta de tareas y objetivos, cada uno con:
+    - _id: ID del elemento
+    - titulo: título/contenido del elemento
+    - tipo: "tarea" o "objetivo"
+    """
+    query = request.args.get("q", "").strip()
+    try:
+        limit = min(int(request.args.get("limit", 10)), 20)
+    except (ValueError, TypeError):
+        limit = 10
+
+    if len(query) < 2:
+        return jsonify([])
+
+    results: List[Dict[str, Any]] = []
+    
+    # Buscar tareas (usando el campo 'contenido' como título)
+    tasks = TaskModel.search_tasks(nombre=query)
+    for task in tasks[:limit]:
+        results.append({
+            "_id": str(task.get("_id")),
+            "titulo": task.get("contenido", "Sin título"),
+            "tipo": "tarea"
+        })
+
+    # Buscar objetivos
+    goals = GoalModel.search_by_name(nombre=query, limit=limit)
+    for goal in goals:
+        results.append({
+            "_id": str(goal.get("_id")),
+            "titulo": goal.get("titulo", "Sin título"),
+            "tipo": "objetivo"
+        })
+
+    # Mezclar y limitar resultados totales
+    # Ordenar alternando tipos para mejor distribución visual
+    tareas = [r for r in results if r["tipo"] == "tarea"]
+    objetivos = [r for r in results if r["tipo"] == "objetivo"]
+    
+    mixed: List[Dict[str, Any]] = []
+    i, j = 0, 0
+    while len(mixed) < limit and (i < len(tareas) or j < len(objetivos)):
+        if i < len(tareas):
+            mixed.append(tareas[i])
+            i += 1
+        if len(mixed) < limit and j < len(objetivos):
+            mixed.append(objetivos[j])
+            j += 1
+
+    return jsonify(mixed[:limit])

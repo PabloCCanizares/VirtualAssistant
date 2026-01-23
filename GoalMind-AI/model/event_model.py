@@ -10,6 +10,26 @@ class eventModel:
         return list(local_col.find().sort("fecha_inicio", 1))
 
     @staticmethod
+    def get_events_by_task(task_id):
+        """Obtiene todos los eventos asociados a una tarea específica."""
+        local_col, _ = get_collection(eventModel.COLLECTION)
+        try:
+            oid = ObjectId(task_id) if not isinstance(task_id, ObjectId) else task_id
+        except Exception:
+            return []
+        return list(local_col.find({"id_tarea": oid}).sort("fecha_inicio", 1))
+
+    @staticmethod
+    def get_events_by_goal(goal_id):
+        """Obtiene todos los eventos asociados a un objetivo específico."""
+        local_col, _ = get_collection(eventModel.COLLECTION)
+        try:
+            oid = ObjectId(goal_id) if not isinstance(goal_id, ObjectId) else goal_id
+        except Exception:
+            return []
+        return list(local_col.find({"id_objetivo": oid}).sort("fecha_inicio", 1))
+
+    @staticmethod
     def get_event_by_id(event_id):
         local_col, _ = get_collection(eventModel.COLLECTION)
         try:
