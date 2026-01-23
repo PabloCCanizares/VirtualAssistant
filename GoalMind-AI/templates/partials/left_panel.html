@@ -13,25 +13,25 @@
     <a href="{{ url_for('dashboard_bp.dashboard') }}"
        class="sidebar-nav-item"
        {% if page == 'dashboard' %}aria-current="page"{% endif %}>
-      <span class="sidebar-nav-icon">🏠</span>
+      <span class="sidebar-nav-icon"></span>
       Dashboard
     </a>
     <a href="{{ url_for('calendar_bp.calendar_page') }}"
        class="sidebar-nav-item"
        {% if page == 'agenda' %}aria-current="page"{% endif %}>
-      <span class="sidebar-nav-icon">📅</span>
+      <span class="sidebar-nav-icon"></span>
       Agenda
     </a>
     <a href="{{ url_for('project_bp.list_projects') }}"
        class="sidebar-nav-item"
        {% if page == 'projects' %}aria-current="page"{% endif %}>
-      <span class="sidebar-nav-icon">🗂️</span>
+      <span class="sidebar-nav-icon"></span>
       Proyectos
     </a>
     <a href="{{ url_for('task_bp.list_tasks_by_user', user_id=0) }}"
        class="sidebar-nav-item"
        {% if page == 'tareas' %}aria-current="page"{% endif %}>
-      <span class="sidebar-nav-icon">🧩</span>
+      <span class="sidebar-nav-icon"></span>
       Tareas
     </a>
     <a href="{{ url_for('dashboard_bp.estadisticas') }}"

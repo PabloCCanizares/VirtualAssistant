@@ -196,15 +196,23 @@ def delete_task(task_id):
     return redirect(url_for("task_bp.list_tasks"))
 
     # -------------------------------------------------------------
-# 🧮 FILTRAR POR CATEGORÍA (07-11-2025)
+# BUSCAR TAREAS POR NOMBRE Y/O CATEGORÍA
 # -------------------------------------------------------------
 @task_bp.route("/filter", methods=["GET"])
 def filter_by_category():
-    """Filtra las tareas por una categoría dada (?categoria=...)."""
-    category = request.args.get("categoria", "").strip()
-    tasks = TaskModel.get_tasks_by_category(category)
+    """
+    Busca tareas por nombre y/o categoría.
+    Parámetros: ?nombre=...&categoria=...
+    Busca en todas las tareas sin importar el usuario dueño.
+    """
+    nombre = request.args.get("nombre", "").strip()
+    categoria = request.args.get("categoria", "").strip()
+    
+    # Usar el nuevo método de búsqueda combinada
+    tasks = TaskModel.search_tasks(nombre=nombre, categoria=categoria)
     tasks_view = [_serialize_task(t) for t in tasks]
     goals_view, goal_titles, goal_project_titles = _load_goal_context()
+    
     return render_template(
         "partials/task_templates/task_menu.html",
         tasks=tasks_view,
@@ -213,7 +221,8 @@ def filter_by_category():
         goal_project_titles=goal_project_titles,
         selected_task=None,
         page="filter",
-        selected_category=category
+        selected_category=categoria,
+        selected_nombre=nombre
     )
 
 # -------------------------------------------------------------

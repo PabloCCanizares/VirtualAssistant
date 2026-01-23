@@ -53,7 +53,7 @@ class TaskModel:
 
         return task
     
-        # -------------------------------------------------------------
+    # -------------------------------------------------------------
     #  OBTENER POR CATEGORÍA
     # -------------------------------------------------------------
     @staticmethod
@@ -71,6 +71,42 @@ class TaskModel:
         
         # Buscar tareas por categoría, ordenadas por fecha de creación descendente
         return list(local_col.find({"categoria": categoria}).sort("fecha_creacion", -1))
+
+    # -------------------------------------------------------------
+    #  BUSCAR TAREAS POR NOMBRE Y/O CATEGORÍA
+    # -------------------------------------------------------------
+    @staticmethod
+    def search_tasks(nombre=None, categoria=None):
+        """
+        Busca tareas por nombre (contenido) y/o categoría.
+        La búsqueda por nombre es case-insensitive y parcial (regex).
+        No filtra por usuario, devuelve todas las tareas que coincidan.
+        
+        Args:
+            nombre (str): Texto a buscar en el campo 'contenido' (opcional)
+            categoria (str): Categoría exacta a filtrar (opcional)
+            
+        Returns:
+            list: Lista de tareas que coinciden con los criterios
+        """
+        local_col, _ = get_collection(TaskModel.COLLECTION)
+        
+        # Construir query dinámicamente
+        query = {}
+        
+        # Filtro por nombre (búsqueda parcial case-insensitive)
+        if nombre and nombre.strip():
+            query["contenido"] = {"$regex": nombre.strip(), "$options": "i"}
+        
+        # Filtro por categoría (búsqueda parcial case-insensitive)
+        if categoria and categoria.strip():
+            query["categoria"] = {"$regex": categoria.strip(), "$options": "i"}
+        
+        # Si no hay filtros, devolver todas las tareas
+        if not query:
+            return list(local_col.find().sort("fecha_creacion", -1))
+        
+        return list(local_col.find(query).sort("fecha_creacion", -1))
 
     # -------------------------------------------------------------
     #  OBTENER TODAS
