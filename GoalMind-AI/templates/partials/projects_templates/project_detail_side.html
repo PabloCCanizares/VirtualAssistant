@@ -50,27 +50,22 @@
           </div>
         </div>
 
-        <div class="panel-form-row">
-          <div class="panel-form-group">
-            <label class="panel-form-label" for="categoria">Categoria</label>
-            {% set cat = project.get('categoria','Investigacion') %}
-            <select name="categoria" id="categoria" class="panel-form-select">
-              <option value="Investigacion" {% if cat == 'Investigacion' %}selected{% endif %}>Investigacion</option>
-              <option value="Trabajo" {% if cat == 'Trabajo' %}selected{% endif %}>Trabajo</option>
-              <option value="Personal" {% if cat == 'Personal' %}selected{% endif %}>Personal</option>
-              <option value="Estudios" {% if cat == 'Estudios' %}selected{% endif %}>Estudios</option>
-              <option value="Otros" {% if cat == 'Otros' %}selected{% endif %}>Otros</option>
-            </select>
-          </div>
-          <div class="panel-form-group">
-            <label class="panel-form-label" for="prioridad">Prioridad</label>
-            {% set pr = project.get('prioridad','Media') %}
-            <select name="prioridad" id="prioridad" class="panel-form-select">
-              <option value="Baja" {% if pr == 'Baja' %}selected{% endif %}>Baja</option>
-              <option value="Media" {% if pr == 'Media' %}selected{% endif %}>Media</option>
-              <option value="Alta" {% if pr == 'Alta' %}selected{% endif %}>Alta</option>
-            </select>
-          </div>
+        <div class="panel-form-group">
+          <label class="panel-form-label">Categorias</label>
+          <div data-category-selector 
+               data-name="categorias" 
+               data-selected="{{ project.get('categorias', [])|join(',') }}"
+               data-allow-create="true"></div>
+        </div>
+
+        <div class="panel-form-group">
+          <label class="panel-form-label" for="prioridad">Prioridad</label>
+          {% set pr = project.get('prioridad','Media') %}
+          <select name="prioridad" id="prioridad" class="panel-form-select">
+            <option value="Baja" {% if pr == 'Baja' %}selected{% endif %}>Baja</option>
+            <option value="Media" {% if pr == 'Media' %}selected{% endif %}>Media</option>
+            <option value="Alta" {% if pr == 'Alta' %}selected{% endif %}>Alta</option>
+          </select>
         </div>
 
         <div class="panel-form-row">
@@ -248,6 +243,7 @@
 </div>
 
 <script src="{{ url_for('static', filename='js/side_panel_collapsible.js') }}"></script>
+<script src="{{ url_for('static', filename='js/category_selector.js') }}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   const dropzone = document.getElementById('documentDropzone');

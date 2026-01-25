@@ -5,6 +5,7 @@ from datetime import datetime
 
 from model.goal_model import GoalModel
 from model.project_model import ProjectModel
+from model.category_model import CategoryModel
 
 task_bp = Blueprint("task_bp", __name__, url_prefix="/tasks")
 
@@ -15,7 +16,34 @@ def _serialize_task(task):
         task_view["_id"] = str(task_view["_id"])
     if task_view.get("objetivo_id"):
         task_view["objetivo_id"] = str(task_view["objetivo_id"])
+    # Serializar categorias (array de ObjectIds)
+    if task_view.get("categorias"):
+        task_view["categorias"] = [str(cid) for cid in task_view["categorias"]]
     return task_view
+
+
+def _load_categories():
+    """Carga todas las categorias y las serializa para los templates."""
+    categories = CategoryModel.get_all_categories()
+    return [{
+        "_id": str(c["_id"]),
+        "name": c.get("name", "")
+    } for c in categories]
+
+
+def _build_category_names(categories):
+    """Construye un diccionario {id: nombre} para lookup rapido en templates."""
+    return {cat["_id"]: cat["name"] for cat in categories}
+
+
+def _get_category_names(category_ids):
+    """
+    Dado un array de category_ids, devuelve un dict {id: nombre}.
+    """
+    if not category_ids:
+        return {}
+    categories = CategoryModel.get_categories_by_ids(category_ids)
+    return {str(c["_id"]): c.get("name", "") for c in categories}
 
 
 def _load_goal_context():
@@ -75,6 +103,8 @@ def list_tasks():
     tasks = TaskModel.get_all_tasks()
     goals_view, goal_titles, goal_project_titles, projects_with_goals = _load_goal_context()
     tasks_view = [_serialize_task(t) for t in tasks]
+    categories = _load_categories()
+    category_names = _build_category_names(categories)
 
     return render_template(
         "partials/task_templates/task_menu.html",  # o tu plantilla de tareas principal
@@ -83,6 +113,8 @@ def list_tasks():
         goal_titles=goal_titles,
         goal_project_titles=goal_project_titles,
         projects_with_goals=projects_with_goals,
+        categories=categories,
+        category_names=category_names,
         selected_category=None,
         page="list"
     )
@@ -96,9 +128,11 @@ def view_task(task_id):
     try:
         task = TaskModel.get_task_by_id(task_id)
         if not task:
-            flash("❌ Tarea no encontrada", "warning")
+            flash("Tarea no encontrada", "warning")
             return redirect(url_for("task_bp.list_tasks"))
         goals_view, goal_titles, goal_project_titles, projects_with_goals = _load_goal_context()
+        categories = _load_categories()
+        category_names = _build_category_names(categories)
         return render_template(
             "partials/task_templates/task_menu.html",
             selected_task=_serialize_task(task),
@@ -107,6 +141,8 @@ def view_task(task_id):
             goal_titles=goal_titles,
             goal_project_titles=goal_project_titles,
             projects_with_goals=projects_with_goals,
+            categories=categories,
+            category_names=category_names,
             page="detail"
         )
     except Exception as e:
@@ -125,8 +161,10 @@ def list_tasks_by_user(user_id):
         tasks = TaskModel.get_task_by_user(user_id)
         tasks_view = [_serialize_task(t) for t in tasks]
         goals_view, goal_titles, goal_project_titles, projects_with_goals = _load_goal_context()
+        categories = _load_categories()
+        category_names = _build_category_names(categories)
         if not tasks:
-            flash("Este usuario aún no tiene tareas.", "info")
+            flash("Este usuario aun no tiene tareas.", "info")
         return render_template(
             "partials/task_templates/task_menu.html",
             tasks=tasks_view,
@@ -134,12 +172,14 @@ def list_tasks_by_user(user_id):
             goal_titles=goal_titles,
             goal_project_titles=goal_project_titles,
             projects_with_goals=projects_with_goals,
+            categories=categories,
+            category_names=category_names,
             page="tareas",
             user_id=user_id
         )
 
     except Exception as e:
-        flash(f" Error al obtener las tareas del usuario: {e}", "danger")
+        flash(f"Error al obtener las tareas del usuario: {e}", "danger")
         return redirect(url_for("task_bp.list_tasks"))
 # -------------------------------------------------------------
 # ➕ CREAR UNA NUEVA TAREA
@@ -150,8 +190,24 @@ def add_task():
     try:
         goal_id = request.form.get("objetivo_id")
         if not goal_id:
-            flash("⚠️ Debes seleccionar un objetivo para crear una tarea.", "warning")
+            flash("Debes seleccionar un objetivo para crear una tarea.", "warning")
             return redirect(url_for("task_bp.list_tasks"))
+
+        # Procesar categorias (pueden venir como lista o string separado por comas)
+        categorias_raw = request.form.getlist("categorias")
+        if not categorias_raw:
+            # Intentar como string separado por comas
+            cat_str = request.form.get("categorias", "")
+            if cat_str:
+                categorias_raw = [c.strip() for c in cat_str.split(",") if c.strip()]
+        
+        # Convertir a ObjectIds
+        categorias = []
+        for cat_id in categorias_raw:
+            try:
+                categorias.append(ObjectId(cat_id))
+            except Exception:
+                pass
 
         data = {
             "usuario_id": request.form.get("usuario_id"),
@@ -159,15 +215,15 @@ def add_task():
             "descripcion": request.form.get("descripcion"),
             "fecha_limite": request.form.get("fecha_limite"),
             "estado": request.form.get("estado") or "pendiente",
-            "categoria": request.form.get("categoria"),
+            "categorias": categorias,
             "prioridad": request.form.get("prioridad") or "media",
             "objetivo_id": ObjectId(goal_id),
             "alarma_id": None,
         }
         TaskModel.insert_task(data)
-        flash("✅ Tarea creada y sincronizada correctamente", "success")
+        flash("Tarea creada y sincronizada correctamente", "success")
     except Exception as e:
-        flash(f"❌ Error al crear la tarea: {e}", "danger")
+        flash(f"Error al crear la tarea: {e}", "danger")
 
     return redirect(url_for("task_bp.list_tasks"))
 
@@ -179,23 +235,42 @@ def add_task():
 def update_task(task_id):
     """Actualiza una tarea existente y la sincroniza."""
     try:
+        # Procesar categorias
+        categorias_raw = request.form.getlist("categorias")
+        if not categorias_raw:
+            cat_str = request.form.get("categorias", "")
+            if cat_str:
+                categorias_raw = [c.strip() for c in cat_str.split(",") if c.strip()]
+        
+        categorias = []
+        for cat_id in categorias_raw:
+            try:
+                categorias.append(ObjectId(cat_id))
+            except Exception:
+                pass
+
         updates = {
             "contenido": request.form.get("contenido"),
             "descripcion": request.form.get("descripcion"),
             "estado": request.form.get("estado"),
-            "categoria": request.form.get("categoria"),
             "prioridad": request.form.get("prioridad"),
             "fecha_limite": request.form.get("fecha_limite"),
         }
+        
+        # Solo actualizar categorias si se enviaron
+        if categorias_raw:
+            updates["categorias"] = categorias
+            
         if request.form.get("objetivo_id"):
             updates["objetivo_id"] = ObjectId(request.form.get("objetivo_id"))
-        # Limpieza de valores vacíos
+        
+        # Limpieza de valores vacios (pero mantener arrays vacios si se enviaron)
         updates = {k: v for k, v in updates.items() if v not in [None, ""]}
 
         TaskModel.update_task(task_id, updates)
-        flash("♻️ Tarea actualizada correctamente", "success")
+        flash("Tarea actualizada correctamente", "success")
     except Exception as e:
-        flash(f"❌ Error al actualizar la tarea: {e}", "danger")
+        flash(f"Error al actualizar la tarea: {e}", "danger")
 
     return redirect(url_for("task_bp.view_task", task_id=task_id))
 
@@ -220,17 +295,19 @@ def delete_task(task_id):
 @task_bp.route("/filter", methods=["GET"])
 def filter_by_category():
     """
-    Busca tareas por nombre y/o categoría.
-    Parámetros: ?nombre=...&categoria=...
-    Busca en todas las tareas sin importar el usuario dueño.
+    Busca tareas por nombre y/o categoria.
+    Parametros: ?nombre=...&categoria=... (categoria ahora es un ID o lista de IDs)
+    Busca en todas las tareas sin importar el usuario dueno.
     """
     nombre = request.args.get("nombre", "").strip()
-    categoria = request.args.get("categoria", "").strip()
+    categoria_ids = request.args.getlist("categoria")
     
-    # Usar el nuevo método de búsqueda combinada
-    tasks = TaskModel.search_tasks(nombre=nombre, categoria=categoria)
+    # Usar el nuevo metodo de busqueda combinada
+    tasks = TaskModel.search_tasks(nombre=nombre, category_ids=categoria_ids if categoria_ids else None)
     tasks_view = [_serialize_task(t) for t in tasks]
     goals_view, goal_titles, goal_project_titles, projects_with_goals = _load_goal_context()
+    categories = _load_categories()
+    category_names = _build_category_names(categories)
     
     return render_template(
         "partials/task_templates/task_menu.html",
@@ -239,9 +316,11 @@ def filter_by_category():
         goal_titles=goal_titles,
         goal_project_titles=goal_project_titles,
         projects_with_goals=projects_with_goals,
+        categories=categories,
+        category_names=category_names,
         selected_task=None,
         page="filter",
-        selected_category=categoria,
+        selected_categories=categoria_ids,
         selected_nombre=nombre
     )
 
@@ -257,11 +336,13 @@ def search_by_id():
         try:
             task = TaskModel.get_task_by_id(task_id)
             if task is None:
-                flash("No se encontró ninguna tarea con ese ID.", "warning")
+                flash("No se encontro ninguna tarea con ese ID.", "warning")
         except Exception:
-            flash("El ID proporcionado no es válido.", "danger")
+            flash("El ID proporcionado no es valido.", "danger")
     tasks = [_serialize_task(task)] if task else []
     goals_view, goal_titles, goal_project_titles, projects_with_goals = _load_goal_context()
+    categories = _load_categories()
+    category_names = _build_category_names(categories)
     return render_template(
         "partials/task_templates/task_menu.html",
         tasks=tasks,
@@ -269,6 +350,8 @@ def search_by_id():
         goal_titles=goal_titles,
         goal_project_titles=goal_project_titles,
         projects_with_goals=projects_with_goals,
+        categories=categories,
+        category_names=category_names,
         selected_task=None,
         page="search",
         searched_id=task_id

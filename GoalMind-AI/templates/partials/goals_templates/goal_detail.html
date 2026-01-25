@@ -19,7 +19,16 @@
             <h2 class="panel-hero-title">{{ goal.get('titulo', '(sin titulo)') }}</h2>
             <p class="panel-hero-desc">{{ goal.get('descripcion', 'Sin descripcion') }}</p>
             <div class="grid-card-meta" style="margin-top: 12px;">
-              <span class="panel-badge">{{ goal.get('categoria', 'Sin categoria') }}</span>
+              {% if goal.get('categorias') and goal.categorias|length > 0 %}
+                {% for cat_id in goal.categorias[:3] %}
+                  <span class="panel-badge">{{ category_names.get(cat_id, 'Categoria') }}</span>
+                {% endfor %}
+                {% if goal.categorias|length > 3 %}
+                  <span class="panel-badge">+{{ goal.categorias|length - 3 }}</span>
+                {% endif %}
+              {% else %}
+                <span class="panel-badge">Sin categoria</span>
+              {% endif %}
               <span class="panel-badge accent">{{ goal.get('estado', 'En progreso') }}</span>
               <span class="panel-badge">{{ goal.get('prioridad', 'Media') }}</span>
               <span class="panel-badge">{{ goal.get('scope', 'Personal') }}</span>
@@ -63,8 +72,16 @@
                   <div class="goal-info-item-value" id="goal-descripcion">{{ goal.get('descripcion', '(sin descripcion)') }}</div>
                 </div>
                 <div class="goal-info-item">
-                  <div class="goal-info-item-label">Categoria</div>
-                  <div class="goal-info-item-value" id="goal-categoria">{{ goal.get('categoria', 'Sin categoria') }}</div>
+                  <div class="goal-info-item-label">Categorias</div>
+                  <div class="goal-info-item-value" id="goal-categoria">
+                    {% if goal.get('categorias') and goal.categorias|length > 0 %}
+                      {% for cat_id in goal.categorias %}
+                        <span class="category-tag-inline">{{ category_names.get(cat_id, 'Categoria') }}</span>
+                      {% endfor %}
+                    {% else %}
+                      Sin categoria
+                    {% endif %}
+                  </div>
                 </div>
                 <div class="goal-info-item">
                   <div class="goal-info-item-label">Estado</div>
@@ -335,15 +352,18 @@
       <form id="editGoalForm" class="panel-form">
         <input type="hidden" id="editGoalId" value="{{ goal['_id'] }}">
         
-        <div class="panel-form-row">
-          <div class="panel-form-group">
-            <label class="panel-form-label">Titulo</label>
-            <input type="text" name="titulo" id="editTitulo" class="panel-form-input" value="{{ goal.get('titulo', '') }}" required>
-          </div>
-          <div class="panel-form-group">
-            <label class="panel-form-label">Categoria</label>
-            <input type="text" name="categoria" id="editCategoria" class="panel-form-input" value="{{ goal.get('categoria', '') }}">
-          </div>
+        <div class="panel-form-group">
+          <label class="panel-form-label">Titulo</label>
+          <input type="text" name="titulo" id="editTitulo" class="panel-form-input" value="{{ goal.get('titulo', '') }}" required>
+        </div>
+
+        <div class="panel-form-group">
+          <label class="panel-form-label">Categorias</label>
+          <div id="editCategoriaSelector" 
+               data-category-selector 
+               data-name="categorias" 
+               data-selected="{{ goal.get('categorias', [])|join(',') }}"
+               data-allow-create="true"></div>
         </div>
 
         <div class="panel-form-group">
@@ -433,4 +453,5 @@
 
 <script src="{{ url_for('static', filename='js/goal_detail.js') }}"></script>
 <script src="{{ url_for('static', filename='js/goal_menu.js') }}"></script>
+<script src="{{ url_for('static', filename='js/category_selector.js') }}"></script>
 {% endblock %}

@@ -217,8 +217,11 @@
 
               <div class="panel-form-row">
                 <div class="panel-form-group">
-                  <label class="panel-form-label">Categoría</label>
-                  <input type="text" name="categoria" class="panel-form-input" value="{{ task['categoria'] or '' }}">
+                  <label class="panel-form-label">Categorias</label>
+                  <div data-category-selector 
+                       data-name="categorias" 
+                       data-selected="{{ task.get('categorias', [])|join(',') }}"
+                       data-allow-create="true"></div>
                 </div>
                 <div class="panel-form-group">
                   <label class="panel-form-label">Prioridad</label>
@@ -332,3 +335,5 @@
   </div>
 
 </section>
+
+<script src="{{ url_for('static', filename='js/category_selector.js') }}"></script>

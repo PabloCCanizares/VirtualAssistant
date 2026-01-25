@@ -23,6 +23,7 @@ from controllers.project_controller import project_bp
 from controllers.calendar_controller import calendar_bp
 from controllers.stats_controller import stats_bp
 from controllers.upload_controller import upload_bp
+from controllers.category_controller import category_bp
 
 ################ Aplicacion Flask ##################
 app = Flask(__name__)
@@ -64,6 +65,7 @@ app.register_blueprint(project_bp)
 app.register_blueprint(calendar_bp) 
 app.register_blueprint(stats_bp)
 app.register_blueprint(upload_bp)
+app.register_blueprint(category_bp)
 
 ################ Context Processor - Variables globales para templates ##################
 @app.context_processor

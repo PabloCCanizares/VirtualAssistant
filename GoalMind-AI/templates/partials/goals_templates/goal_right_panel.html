@@ -63,19 +63,15 @@
           </div>
         </div>
 
-        <div class="panel-form-row">
-          <div class="panel-form-group">
-            <label class="panel-form-label" for="categoria">Categoria</label>
-            <select name="categoria" id="categoria" class="panel-form-select">
-              <option value="Educacion" selected>Educacion</option>
-              <option value="Trabajo">Trabajo</option>
-              <option value="Personal">Personal</option>
-              <option value="Estudios">Estudios</option>
-              <option value="Salud">Salud</option>
-              <option value="Otros">Otros</option>
-            </select>
-          </div>
+        <div class="panel-form-group">
+          <label class="panel-form-label">Categorias</label>
+          <div data-category-selector 
+               data-name="categorias" 
+               data-selected=""
+               data-allow-create="true"></div>
+        </div>
 
+        <div class="panel-form-row">
           <div class="panel-form-group">
             <label class="panel-form-label" for="progreso">Progreso (%)</label>
             <input type="number"
@@ -161,3 +157,4 @@
 </aside>
 
 <script src="{{ url_for('static', filename='js/side_panel_collapsible.js') }}"></script>
+<script src="{{ url_for('static', filename='js/category_selector.js') }}"></script>

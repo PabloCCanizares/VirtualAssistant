@@ -5,12 +5,14 @@ from uuid import uuid4
 
 from flask import Blueprint, current_app, flash, redirect, render_template, request, send_file, url_for
 from werkzeug.utils import secure_filename
+from bson import ObjectId
 
 from model.goal_model import GoalModel
 from model.project_document_model import ProjectDocumentModel
 from model.project_model import ProjectModel
 from model.task_model import TaskModel
 from model.upload_model import Upload_model
+from model.category_model import CategoryModel
 
 project_bp = Blueprint("project_bp", __name__, url_prefix="/projects")
 
@@ -23,7 +25,24 @@ def _serialize_project(project):
     project_view = dict(project)
     if "_id" in project_view:
         project_view["_id"] = _serialize_id(project_view["_id"])
+    # Serializar categorias (array de ObjectIds)
+    if project_view.get("categorias"):
+        project_view["categorias"] = [str(cid) for cid in project_view["categorias"]]
     return project_view
+
+
+def _load_categories():
+    """Carga todas las categorias y las serializa para los templates."""
+    categories = CategoryModel.get_all_categories()
+    return [{
+        "_id": str(c["_id"]),
+        "name": c.get("name", "")
+    } for c in categories]
+
+
+def _build_category_names(categories):
+    """Construye un diccionario {id: nombre} para lookup rapido en templates."""
+    return {cat["_id"]: cat["name"] for cat in categories}
 
 
 def _serialize_goal(goal):
@@ -68,9 +87,11 @@ def list_projects():
         projects = ProjectModel.get_all_projects()
         goals = GoalModel.get_all_goals()
         documents = ProjectDocumentModel.get_all_documents()
+        categories = _load_categories()
     except Exception as e:
-        flash(f"❌ No se pudieron cargar los proyectos: {e}", "danger")
+        flash(f"No se pudieron cargar los proyectos: {e}", "danger")
         projects, goals, documents = [], [], []
+        categories = []
 
     goal_counts = {}
     goal_progress_sums = {}  # Suma de progresos por proyecto
@@ -97,6 +118,7 @@ def list_projects():
             doc_counts[key] = doc_counts.get(key, 0) + 1
 
     projects_view = [_serialize_project(p) for p in projects]
+    category_names = _build_category_names(categories)
 
     return render_template(
         "partials/projects_templates/project_menu.html",
@@ -104,6 +126,8 @@ def list_projects():
         goal_counts=goal_counts,
         doc_counts=doc_counts,
         project_progress=project_progress,
+        categories=categories,
+        category_names=category_names,
         page="projects",
     )
 
@@ -114,10 +138,25 @@ def list_projects():
 @project_bp.route("/add", methods=["POST"])
 def add_project():
     try:
+        # Procesar categorias (pueden venir como lista o string separado por comas)
+        categorias_raw = request.form.getlist("categorias")
+        if not categorias_raw:
+            cat_str = request.form.get("categorias", "")
+            if cat_str:
+                categorias_raw = [c.strip() for c in cat_str.split(",") if c.strip()]
+        
+        # Convertir a ObjectIds
+        categorias = []
+        for cat_id in categorias_raw:
+            try:
+                categorias.append(ObjectId(cat_id))
+            except Exception:
+                pass
+
         data = {
             "titulo": request.form.get("titulo"),
             "descripcion": request.form.get("descripcion"),
-            "categoria": request.form.get("categoria"),
+            "categorias": categorias,
             "estado": request.form.get("estado") or "Activo",
             "prioridad": request.form.get("prioridad") or "Media",
             "fecha_inicio": request.form.get("fecha_inicio"),
@@ -126,13 +165,13 @@ def add_project():
         }
 
         if not data["titulo"]:
-            flash("⚠️ El proyecto necesita un título.", "warning")
+            flash("El proyecto necesita un titulo.", "warning")
             return redirect(url_for("project_bp.list_projects"))
 
         ProjectModel.insert_project(data)
-        flash("✅ Proyecto creado correctamente", "success")
+        flash("Proyecto creado correctamente", "success")
     except Exception as e:
-        flash(f"❌ Error al crear el proyecto: {e}", "danger")
+        flash(f"Error al crear el proyecto: {e}", "danger")
 
     return redirect(url_for("project_bp.list_projects"))
 
@@ -144,12 +183,13 @@ def add_project():
 def view_project(project_id):
     project = ProjectModel.get_project_by_id(project_id)
     if not project:
-        flash("⚠️ Proyecto no encontrado.", "warning")
+        flash("Proyecto no encontrado.", "warning")
         return redirect(url_for("project_bp.list_projects"))
 
     goals = GoalModel.get_by_project(project_id)
     docs = ProjectDocumentModel.get_by_project(project_id)
     uploads = Upload_model.get_all_uploads()
+    categories = _load_categories()
 
     goals_view = [_serialize_goal(g) for g in goals]
     docs_view = [_serialize_document(d) for d in docs]
@@ -196,6 +236,8 @@ def view_project(project_id):
             for t in tasks
         ]
 
+    category_names = _build_category_names(categories)
+
     return render_template(
         "partials/projects_templates/project_detail.html",
         project=_serialize_project(project),
@@ -205,6 +247,8 @@ def view_project(project_id):
         goal_titles=goal_titles,
         goal_documents=goal_documents,
         goal_tasks=goal_tasks,
+        categories=categories,
+        category_names=category_names,
         page="projects",
     )
 
@@ -215,22 +259,40 @@ def view_project(project_id):
 @project_bp.route("/update/<project_id>", methods=["POST"])
 def update_project(project_id):
     try:
+        # Procesar categorias
+        categorias_raw = request.form.getlist("categorias")
+        if not categorias_raw:
+            cat_str = request.form.get("categorias", "")
+            if cat_str:
+                categorias_raw = [c.strip() for c in cat_str.split(",") if c.strip()]
+        
+        categorias = []
+        for cat_id in categorias_raw:
+            try:
+                categorias.append(ObjectId(cat_id))
+            except Exception:
+                pass
+
         updates = {
             "titulo": request.form.get("titulo"),
             "descripcion": request.form.get("descripcion"),
-            "categoria": request.form.get("categoria"),
             "estado": request.form.get("estado"),
             "prioridad": request.form.get("prioridad"),
             "fecha_inicio": request.form.get("fecha_inicio"),
             "fecha_fin": request.form.get("fecha_fin"),
             "id_usuario": request.form.get("id_usuario") or "",
         }
+        
+        # Solo actualizar categorias si se enviaron
+        if categorias_raw:
+            updates["categorias"] = categorias
+            
         updates = {k: v for k, v in updates.items() if v not in [None, ""]}
 
         ProjectModel.update_project(project_id, updates)
-        flash("✅ Proyecto actualizado correctamente", "success")
+        flash("Proyecto actualizado correctamente", "success")
     except Exception as e:
-        flash(f"❌ Error al actualizar el proyecto: {e}", "danger")
+        flash(f"Error al actualizar el proyecto: {e}", "danger")
 
     return redirect(url_for("project_bp.view_project", project_id=project_id))
 

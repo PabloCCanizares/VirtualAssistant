@@ -309,8 +309,11 @@
               </div>
 
               <div class="panel-form-group">
-                <label class="panel-form-label">Categoria</label>
-                <input type="text" name="categoria" class="panel-form-input" value="{{ goal.get('categoria','') }}">
+                <label class="panel-form-label">Categorias</label>
+                <div data-category-selector 
+                     data-name="categorias" 
+                     data-selected="{{ goal.get('categorias', [])|join(',') }}"
+                     data-allow-create="true"></div>
               </div>
 
               <div class="panel-form-group">
@@ -425,3 +428,6 @@
   </div>
 
 </section>
+
+<script src="{{ url_for('static', filename='js/category_selector.js') }}"></script>
+
