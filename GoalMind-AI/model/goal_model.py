@@ -150,10 +150,52 @@ class GoalModel:
     
 
     @staticmethod
-    def find_by_category(categoria: str):
+    def find_by_category(category_id):
+        """
+        Devuelve todos los objetivos que contengan una categoría específica.
+        
+        Args:
+            category_id: ObjectId o string del ID de la categoría
+            
+        Returns:
+            list: Lista de objetivos que pertenecen a la categoría especificada
+        """
         local_col, _ = get_collection(GoalModel.COLLECTION)
-        # Busca por coincidencia exacta; si prefieres regex/insensitive, adáptalo
-        return list(local_col.find({"categoria": categoria}).sort("created_at", -1))
+        _id = ObjectId(category_id) if not isinstance(category_id, ObjectId) else category_id
+        # Buscar objetivos que contengan esta categoría en su array de categorías
+        return list(local_col.find({"categorias": _id}).sort("created_at", -1))
+    
+    @staticmethod
+    def search_by_categories(category_ids: list):
+        """
+        Busca objetivos que contengan al menos una de las categorías especificadas.
+        
+        Args:
+            category_ids (list): Lista de IDs de categorías
+            
+        Returns:
+            list: Lista de objetivos que coinciden con los criterios
+        """
+        local_col, _ = get_collection(GoalModel.COLLECTION)
+        
+        if not category_ids:
+            return list(local_col.find().sort("created_at", -1))
+        
+        # Convertir a ObjectIds si es necesario
+        cat_oids = []
+        for cid in category_ids:
+            try:
+                if isinstance(cid, ObjectId):
+                    cat_oids.append(cid)
+                else:
+                    cat_oids.append(ObjectId(str(cid)))
+            except Exception:
+                continue
+        
+        if not cat_oids:
+            return list(local_col.find().sort("created_at", -1))
+        
+        return list(local_col.find({"categorias": {"$in": cat_oids}}).sort("created_at", -1))
 
     @staticmethod
     def search_by_name(nombre: str, limit: int = 10):

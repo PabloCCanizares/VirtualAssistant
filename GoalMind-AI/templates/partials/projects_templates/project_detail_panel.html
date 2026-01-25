@@ -7,7 +7,13 @@
       <h2 class="panel-hero-title">{{ project.get('titulo','(sin titulo)') }}</h2>
       <p class="panel-hero-desc">{{ project.get('descripcion','Sin descripcion') }}</p>
       <div class="grid-card-meta" style="margin-top: 12px;">
-        <span class="panel-badge">{{ project.get('categoria','Sin categoria') }}</span>
+        {% if project.get('categorias') and project.categorias|length > 0 %}
+          {% for cat_id in project.categorias %}
+            <span class="panel-badge">{{ category_names.get(cat_id, 'Categoria') }}</span>
+          {% endfor %}
+        {% else %}
+          <span class="panel-badge">Sin categoria</span>
+        {% endif %}
         <span class="panel-badge accent">{{ project.get('estado','Activo') }}</span>
         <span class="panel-badge">{{ project.get('prioridad','Media') }}</span>
       </div>
@@ -147,12 +153,21 @@
             <div class="item-content">
               <h4 class="item-title">{{ goal.get('titulo','(sin titulo)') }}</h4>
               <div class="item-meta">
-                <span class="item-meta-tag">📁 {{ goal.get('categoria','Sin categoria') }}</span>
+                {% if goal.get('categorias') and goal.categorias|length > 0 %}
+                  {% for cat_id in goal.categorias[:2] %}
+                    <span class="item-meta-tag">{{ category_names.get(cat_id, 'Categoria') }}</span>
+                  {% endfor %}
+                  {% if goal.categorias|length > 2 %}
+                    <span class="item-meta-tag">+{{ goal.categorias|length - 2 }}</span>
+                  {% endif %}
+                {% else %}
+                  <span class="item-meta-tag">Sin categoria</span>
+                {% endif %}
                 {% set estado = goal.get('estado','En progreso') %}
                 <span class="item-meta-tag status-{{ estado|lower|replace(' ', '-') }}">{{ estado }}</span>
-                <span class="item-meta-tag">⚡ {{ goal.get('prioridad','Media') }}</span>
+                <span class="item-meta-tag">{{ goal.get('prioridad','Media') }}</span>
                 {% set num_tasks = (goal_tasks.get(goal['_id'], [])|length) if goal_tasks else 0 %}
-                <span class="item-meta-tag">📋 {{ num_tasks }} tareas</span>
+                <span class="item-meta-tag">{{ num_tasks }} tareas</span>
               </div>
             </div>
             <div class="item-card-arrow">→</div>

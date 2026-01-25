@@ -57,26 +57,27 @@ class TaskModel:
     #  OBTENER POR CATEGORÍA
     # -------------------------------------------------------------
     @staticmethod
-    def get_tasks_by_category(categoria):
+    def get_tasks_by_category(category_id):
         """
-        Devuelve todas las tareas de una categoría específica.
+        Devuelve todas las tareas que contengan una categoría específica.
         
         Args:
-            categoria (str): Categoría a filtrar (ej: "trabajo", "personal", "estudio")
+            category_id: ObjectId o string del ID de la categoría
             
         Returns:
             list: Lista de tareas que pertenecen a la categoría especificada
         """
         local_col, _ = get_collection(TaskModel.COLLECTION)
+        _id = ObjectId(category_id) if not isinstance(category_id, ObjectId) else category_id
         
-        # Buscar tareas por categoría, ordenadas por fecha de creación descendente
-        return list(local_col.find({"categoria": categoria}).sort("fecha_creacion", -1))
+        # Buscar tareas que contengan esta categoría en su array de categorías
+        return list(local_col.find({"categorias": _id}).sort("fecha_creacion", -1))
 
     # -------------------------------------------------------------
     #  BUSCAR TAREAS POR NOMBRE Y/O CATEGORÍA
     # -------------------------------------------------------------
     @staticmethod
-    def search_tasks(nombre=None, categoria=None):
+    def search_tasks(nombre=None, categoria=None, category_ids=None):
         """
         Busca tareas por nombre (contenido) y/o categoría.
         La búsqueda por nombre es case-insensitive y parcial (regex).
@@ -84,7 +85,8 @@ class TaskModel:
         
         Args:
             nombre (str): Texto a buscar en el campo 'contenido' (opcional)
-            categoria (str): Categoría exacta a filtrar (opcional)
+            categoria (str): Texto para buscar en nombres de categorías - DEPRECADO, usar category_ids
+            category_ids (list): Lista de IDs de categorías para filtrar (opcional)
             
         Returns:
             list: Lista de tareas que coinciden con los criterios
@@ -98,9 +100,21 @@ class TaskModel:
         if nombre and nombre.strip():
             query["contenido"] = {"$regex": nombre.strip(), "$options": "i"}
         
-        # Filtro por categoría (búsqueda parcial case-insensitive)
-        if categoria and categoria.strip():
-            query["categoria"] = {"$regex": categoria.strip(), "$options": "i"}
+        # Filtro por categorías (array de ObjectIds)
+        if category_ids and len(category_ids) > 0:
+            # Convertir a ObjectIds si es necesario
+            cat_oids = []
+            for cid in category_ids:
+                try:
+                    if isinstance(cid, ObjectId):
+                        cat_oids.append(cid)
+                    else:
+                        cat_oids.append(ObjectId(str(cid)))
+                except Exception:
+                    continue
+            if cat_oids:
+                # Buscar tareas que tengan al menos una de las categorías
+                query["categorias"] = {"$in": cat_oids}
         
         # Si no hay filtros, devolver todas las tareas
         if not query:

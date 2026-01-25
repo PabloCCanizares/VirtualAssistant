@@ -130,6 +130,58 @@
     </div>
   </section>
 
+  <!-- Gestionar categorias -->
+  <section class="dashboard-card" data-card="category-form">
+    <div class="dashboard-card-header">
+      <span class="dashboard-card-icon"></span>
+      <h2 class="dashboard-card-title">Gestionar categorias</h2>
+      <span class="dashboard-card-toggle">▼</span>
+    </div>
+    <div class="dashboard-card-content">
+      <!-- Buscador de categorias -->
+      <div class="dashboard-form-group">
+        <label class="dashboard-form-label" for="category_search">Buscar categoria</label>
+        <input id="category_search"
+               type="text"
+               class="dashboard-form-input"
+               placeholder="Escribe para buscar...">
+      </div>
+
+      <!-- Lista de categorias -->
+      <div class="category-list-container">
+        <ul id="categoryList" class="category-list">
+          <!-- Las categorias se cargan dinamicamente via JS -->
+          <li class="category-list-empty">Cargando categorias...</li>
+        </ul>
+      </div>
+
+      <!-- Input para nombre de categoria -->
+      <div class="dashboard-form-group">
+        <label class="dashboard-form-label" for="category_name">Nombre de categoria</label>
+        <input id="category_name"
+               type="text"
+               class="dashboard-form-input"
+               placeholder="Nueva categoria">
+      </div>
+
+      <!-- Botones de accion -->
+      <div class="category-actions">
+        <button type="button" id="insertCategoryBtn" class="category-action-btn category-btn-insert">
+          Insertar
+        </button>
+        <button type="button" id="editCategoryBtn" class="category-action-btn category-btn-edit" disabled>
+          Editar
+        </button>
+        <button type="button" id="deleteCategoryBtn" class="category-action-btn category-btn-delete" disabled>
+          Borrar
+        </button>
+      </div>
+
+      <p id="categoryMessage" class="category-message"></p>
+    </div>
+  </section>
+
 </div>
 
 <script src="{{ url_for('static', filename='js/right_panel.js') }}"></script>
+<script src="{{ url_for('static', filename='js/category_manager.js') }}"></script>

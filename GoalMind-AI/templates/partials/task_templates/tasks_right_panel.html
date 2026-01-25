@@ -124,15 +124,11 @@
         </div>
 
         <div class="panel-form-group">
-          <label class="panel-form-label" for="categoria">Categoria</label>
-          <select name="categoria" id="categoria" class="panel-form-select">
-            <option value="trabajo">Trabajo</option>
-            <option value="personal" selected>Personal</option>
-            <option value="estudio">Estudio</option>
-            <option value="salud">Salud</option>
-            <option value="hogar">Hogar</option>
-            <option value="otros">Otros</option>
-          </select>
+          <label class="panel-form-label">Categorias</label>
+          <div data-category-selector 
+               data-name="categorias" 
+               data-selected=""
+               data-allow-create="true"></div>
         </div>
 
         <div class="panel-form-group">
@@ -197,3 +193,4 @@
 </aside>
 
 <script src="{{ url_for('static', filename='js/side_panel_collapsible.js') }}"></script>
+<script src="{{ url_for('static', filename='js/category_selector.js') }}"></script>
