@@ -183,5 +183,30 @@
 
 </div>
 
+<!-- Modal de confirmación para eliminar categoría -->
+<div id="deleteCategoryModal" class="modal-overlay" style="display: none;">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 class="modal-title">Confirmar eliminación</h3>
+    </div>
+    <div class="modal-body">
+      <p id="deleteCategoryModalMessage">
+        <!-- El mensaje se genera dinámicamente -->
+      </p>
+      <div id="deleteCategoryUsageDetails" class="modal-usage-details">
+        <!-- Los detalles de uso se generan dinámicamente -->
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" id="cancelDeleteCategoryBtn" class="modal-btn modal-btn-cancel">
+        Cancelar
+      </button>
+      <button type="button" id="confirmDeleteCategoryBtn" class="modal-btn modal-btn-confirm">
+        Eliminar
+      </button>
+    </div>
+  </div>
+</div>
+
 <script src="{{ url_for('static', filename='js/right_panel.js') }}"></script>
 <script src="{{ url_for('static', filename='js/category_manager.js') }}"></script>

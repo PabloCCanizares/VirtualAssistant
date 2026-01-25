@@ -195,6 +195,39 @@ def api_update_category(category_id):
 
 
 # -------------------------------------------------------------
+# API: VERIFICAR USO DE CATEGORIA
+# -------------------------------------------------------------
+@category_bp.route("/api/usage/<category_id>", methods=["GET"])
+def api_get_category_usage(category_id):
+    """
+    API JSON que devuelve el número de objetivos, tareas y proyectos
+    que tienen asignada esta categoría.
+    Response: { "success": true, "usage": { "goals": N, "tasks": N, "projects": N, "total": N } }
+    """
+    try:
+        # Verificar que la categoría existe
+        category = CategoryModel.get_category_by_id(category_id)
+        if not category:
+            return jsonify({
+                "success": False,
+                "message": "Categoria no encontrada"
+            }), 404
+
+        usage = CategoryModel.get_category_usage(category_id)
+        return jsonify({
+            "success": True,
+            "category": _serialize_category(category),
+            "usage": usage
+        })
+
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "message": f"Error al verificar uso de categoria: {str(e)}"
+        }), 500
+
+
+# -------------------------------------------------------------
 # API: ELIMINAR CATEGORIA
 # -------------------------------------------------------------
 @category_bp.route("/api/delete/<category_id>", methods=["POST", "DELETE"])
@@ -204,27 +237,38 @@ def api_delete_category(category_id):
     Response: { "success": true, "message": "..." }
     """
     try:
+        print(f"[DELETE CATEGORY] Iniciando eliminación de categoria: {category_id}")
+
         # Verificar que existe
         existing = CategoryModel.get_category_by_id(category_id)
         if not existing:
+            print(f"[DELETE CATEGORY] Categoria no encontrada: {category_id}")
             return jsonify({
                 "success": False,
                 "message": "Categoria no encontrada"
             }), 404
 
+        print(f"[DELETE CATEGORY] Categoria encontrada, procediendo a eliminar: {existing.get('name', 'N/A')}")
+
         deleted = CategoryModel.delete_category(category_id)
+
         if not deleted:
+            print(f"[DELETE CATEGORY] delete_category retornó False para: {category_id}")
             return jsonify({
                 "success": False,
                 "message": "No se pudo eliminar la categoria"
             }), 500
 
+        print(f"[DELETE CATEGORY] Categoria eliminada exitosamente: {category_id}")
         return jsonify({
             "success": True,
             "message": "Categoria eliminada correctamente"
         })
 
     except Exception as e:
+        print(f"[DELETE CATEGORY] Excepción al eliminar categoria {category_id}: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return jsonify({
             "success": False,
             "message": f"Error al eliminar categoria: {str(e)}"

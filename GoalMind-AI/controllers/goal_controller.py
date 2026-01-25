@@ -297,35 +297,61 @@ def bulk_delete_goals():
 @goal_bp.route("/api/<goal_id>", methods=["PUT", "PATCH"])
 def api_update_goal(goal_id):
     """Actualiza un objetivo via JSON y devuelve el resultado."""
+    from bson import ObjectId
+
     try:
         payload = request.get_json(silent=True) or {}
-        
+
         updates = {}
-        for field in ["titulo", "descripcion", "fecha_inicio", "fecha_fin", 
-                      "categoria", "estado", "prioridad", "scope", "alarma_id", 
-                      "id_usuario", "project_id"]:
+        for field in ["titulo", "descripcion", "fecha_inicio", "fecha_fin",
+                      "estado", "prioridad", "alarma_id", "id_usuario", "project_id"]:
             if field in payload:
                 updates[field] = payload[field]
-        
+
+        # Manejar progreso
         if "progreso" in payload:
             try:
                 updates["progreso"] = int(payload["progreso"] or 0)
             except ValueError:
                 pass
 
+        # Manejar categorias (array de IDs)
+        if "categorias" in payload:
+            categorias_raw = payload["categorias"]
+            if isinstance(categorias_raw, list):
+                categorias_oids = []
+                for cat_id in categorias_raw:
+                    if cat_id:
+                        try:
+                            categorias_oids.append(ObjectId(str(cat_id)))
+                        except Exception:
+                            pass
+                updates["categorias"] = categorias_oids
+            elif isinstance(categorias_raw, str) and categorias_raw.strip():
+                # Si viene como string separado por comas
+                categorias_oids = []
+                for cat_id in categorias_raw.split(','):
+                    cat_id = cat_id.strip()
+                    if cat_id:
+                        try:
+                            categorias_oids.append(ObjectId(cat_id))
+                        except Exception:
+                            pass
+                updates["categorias"] = categorias_oids
+
         if not updates:
-            return jsonify({"error": "No hay campos para actualizar"}), 400
+            return jsonify({"success": False, "message": "No hay campos para actualizar"}), 400
 
         GoalModel.update_goal(goal_id, updates)
         updated_goal = GoalModel.get_goal_by_id(goal_id)
-        
+
         return jsonify({
             "success": True,
             "message": "Objetivo actualizado correctamente",
             "goal": _serialize_goal(updated_goal)
         })
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"success": False, "message": str(e)}), 500
 
 
 # -------------------------------------------------------------
