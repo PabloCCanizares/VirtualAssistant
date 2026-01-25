@@ -38,18 +38,25 @@ document.addEventListener("DOMContentLoaded", () => {
     editGoalForm.addEventListener("submit", async (e) => {
       e.preventDefault();
       const goalId = document.getElementById("editGoalId").value;
-      
+
+      // Obtener categorías del componente selector (input hidden dentro del contenedor)
+      const categoriaSelectorContainer = document.getElementById("editCategoriaSelector");
+      const categoriaInput = categoriaSelectorContainer ? categoriaSelectorContainer.querySelector('input[name="categorias"]') : null;
+      const categoriasValue = categoriaInput ? categoriaInput.value : "";
+
+      // Convertir string de IDs separados por coma a array
+      const categorias = categoriasValue ? categoriasValue.split(',').filter(id => id.trim()) : [];
+
       const payload = {
         titulo: document.getElementById("editTitulo").value,
         descripcion: document.getElementById("editDescripcion").value,
-        categoria: document.getElementById("editCategoria").value,
+        categorias: categorias,
         fecha_inicio: document.getElementById("editFechaInicio").value || null,
         fecha_fin: document.getElementById("editFechaFin").value || null,
         project_id: document.getElementById("editProjectId").value,
         estado: document.getElementById("editEstado").value,
         prioridad: document.getElementById("editPrioridad").value,
-        progreso: parseInt(document.getElementById("editProgreso").value) || 0,
-        scope: document.getElementById("editScope").value
+        progreso: parseInt(document.getElementById("editProgreso").value) || 0
       };
 
       try {
@@ -60,14 +67,14 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         const data = await res.json();
-        
+
         if (data.success) {
           // Actualizar la UI con los nuevos valores
           updateGoalDetailUI(payload);
           closeEditModal();
           alert("Objetivo actualizado correctamente");
         } else {
-          alert("Error: " + (data.error || "No se pudo actualizar"));
+          alert("Error: " + (data.message || data.error || "No se pudo actualizar"));
         }
       } catch (err) {
         console.error(err);
@@ -85,10 +92,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     updateText("goal-titulo", payload.titulo, "(sin titulo)");
     updateText("goal-descripcion", payload.descripcion, "(sin descripcion)");
-    updateText("goal-categoria", payload.categoria, "Sin categoria");
     updateText("goal-estado", payload.estado);
     updateText("goal-prioridad", payload.prioridad);
-    updateText("goal-scope", payload.scope);
     updateText("goal-fecha-inicio", payload.fecha_inicio);
     updateText("goal-fecha-fin", payload.fecha_fin);
     updateText("goal-progreso-text", payload.progreso + "%");

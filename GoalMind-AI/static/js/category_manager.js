@@ -10,6 +10,7 @@
   let categories = [];
   let selectedCategoryId = null;
   let searchTimeout = null;
+  let pendingDeleteCategoryId = null;
 
   // Elementos del DOM
   const elements = {
@@ -19,7 +20,13 @@
     insertBtn: null,
     editBtn: null,
     deleteBtn: null,
-    messageEl: null
+    messageEl: null,
+    // Modal de confirmación
+    deleteModal: null,
+    deleteModalMessage: null,
+    deleteModalUsageDetails: null,
+    cancelDeleteBtn: null,
+    confirmDeleteBtn: null
   };
 
   /**
@@ -34,6 +41,13 @@
     elements.editBtn = document.getElementById('editCategoryBtn');
     elements.deleteBtn = document.getElementById('deleteCategoryBtn');
     elements.messageEl = document.getElementById('categoryMessage');
+
+    // Elementos del modal de confirmación
+    elements.deleteModal = document.getElementById('deleteCategoryModal');
+    elements.deleteModalMessage = document.getElementById('deleteCategoryModalMessage');
+    elements.deleteModalUsageDetails = document.getElementById('deleteCategoryUsageDetails');
+    elements.cancelDeleteBtn = document.getElementById('cancelDeleteCategoryBtn');
+    elements.confirmDeleteBtn = document.getElementById('confirmDeleteCategoryBtn');
 
     // Verificar que los elementos existen
     if (!elements.categoryList) {
@@ -100,6 +114,32 @@
         }
       });
     }
+
+    // Event listeners para el modal de confirmación
+    if (elements.cancelDeleteBtn) {
+      elements.cancelDeleteBtn.addEventListener('click', hideDeleteModal);
+    }
+
+    if (elements.confirmDeleteBtn) {
+      elements.confirmDeleteBtn.addEventListener('click', confirmDeleteCategory);
+    }
+
+    // Cerrar modal al hacer click fuera
+    if (elements.deleteModal) {
+      elements.deleteModal.addEventListener('click', function(e) {
+        if (e.target === elements.deleteModal) {
+          hideDeleteModal();
+        }
+      });
+    }
+
+    // Cerrar modal con tecla Escape
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && elements.deleteModal &&
+          elements.deleteModal.style.display === 'flex') {
+        hideDeleteModal();
+      }
+    });
   }
 
   /**
@@ -286,7 +326,7 @@
   }
 
   /**
-   * Elimina la categoria seleccionada
+   * Inicia el proceso de eliminación de categoría (verifica uso y muestra modal)
    */
   async function deleteCategory() {
     if (!selectedCategoryId) {
@@ -294,16 +334,109 @@
       return;
     }
 
-    // Confirmar eliminacion
     const category = categories.find(c => c._id === selectedCategoryId);
-    if (!confirm(`¿Estas seguro de eliminar la categoria "${category?.name}"?`)) {
+    console.log('Checking usage for category:', selectedCategoryId);
+
+    try {
+      // Verificar si la categoría está siendo usada
+      const response = await fetch(`/categories/api/usage/${selectedCategoryId}`);
+      const data = await response.json();
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          showMessage('La categoria ya no existe', 'error');
+          clearSelection();
+          loadCategories();
+          return;
+        }
+        throw new Error(data.message || 'Error al verificar uso de categoria');
+      }
+
+      const usage = data.usage;
+
+      // Si tiene items asociados, mostrar modal de confirmación
+      if (usage.total > 0) {
+        showDeleteModal(category, usage);
+      } else {
+        // Si no tiene items asociados, confirmar con un simple confirm
+        if (confirm(`¿Estas seguro de eliminar la categoria "${category?.name}"?`)) {
+          pendingDeleteCategoryId = selectedCategoryId;
+          await confirmDeleteCategory();
+        }
+      }
+    } catch (error) {
+      console.error('Error checking category usage:', error);
+      showMessage('Error al verificar uso de categoria', 'error');
+    }
+  }
+
+  /**
+   * Muestra el modal de confirmación de eliminación
+   */
+  function showDeleteModal(category, usage) {
+    if (!elements.deleteModal) return;
+
+    pendingDeleteCategoryId = category._id;
+
+    // Actualizar mensaje del modal
+    if (elements.deleteModalMessage) {
+      elements.deleteModalMessage.innerHTML = `
+        La categoria <strong>"${escapeHtml(category.name)}"</strong> está asignada a elementos que se quedarán sin categoria:
+      `;
+    }
+
+    // Actualizar detalles de uso
+    if (elements.deleteModalUsageDetails) {
+      elements.deleteModalUsageDetails.innerHTML = `
+        <div class="modal-usage-item">
+          <span class="modal-usage-item-label">Objetivos</span>
+          <span class="modal-usage-item-value ${usage.goals > 0 ? 'has-items' : ''}">${usage.goals}</span>
+        </div>
+        <div class="modal-usage-item">
+          <span class="modal-usage-item-label">Tareas</span>
+          <span class="modal-usage-item-value ${usage.tasks > 0 ? 'has-items' : ''}">${usage.tasks}</span>
+        </div>
+        <div class="modal-usage-item">
+          <span class="modal-usage-item-label">Proyectos</span>
+          <span class="modal-usage-item-value ${usage.projects > 0 ? 'has-items' : ''}">${usage.projects}</span>
+        </div>
+        <div class="modal-usage-total">
+          <span class="modal-usage-total-label">Total de elementos afectados</span>
+          <span class="modal-usage-total-value">${usage.total}</span>
+        </div>
+      `;
+    }
+
+    // Mostrar modal
+    elements.deleteModal.style.display = 'flex';
+  }
+
+  /**
+   * Oculta el modal de confirmación
+   */
+  function hideDeleteModal() {
+    if (elements.deleteModal) {
+      elements.deleteModal.style.display = 'none';
+    }
+    pendingDeleteCategoryId = null;
+  }
+
+  /**
+   * Confirma y ejecuta la eliminación de la categoría
+   */
+  async function confirmDeleteCategory() {
+    const categoryIdToDelete = pendingDeleteCategoryId;
+    hideDeleteModal();
+
+    if (!categoryIdToDelete) {
+      showMessage('Error: No hay categoria pendiente de eliminar', 'error');
       return;
     }
 
-    console.log('Deleting category:', selectedCategoryId);
-    
+    console.log('Deleting category:', categoryIdToDelete);
+
     try {
-      const response = await fetch(`/categories/api/delete/${selectedCategoryId}`, {
+      const response = await fetch(`/categories/api/delete/${categoryIdToDelete}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -312,14 +445,10 @@
 
       console.log('Delete response status:', response.status);
 
-      // Verificar si la respuesta es válida antes de parsear JSON
       if (!response.ok) {
         if (response.status === 404) {
           showMessage('La categoria ya no existe', 'error');
-          // Limpiar estado local ya que no existe en el servidor
-          elements.nameInput.value = '';
-          selectedCategoryId = null;
-          updateButtonStates();
+          clearSelection();
           loadCategories();
           return;
         }
@@ -331,51 +460,38 @@
         data = await response.json();
       } catch (jsonError) {
         console.error('Error parsing JSON response:', jsonError);
-        console.error('Response text:', await response.text());
         throw new Error('Respuesta del servidor no es JSON válido');
       }
 
-      // Validar que la respuesta tenga la estructura esperada
-      if (!data || typeof data !== 'object') {
-        throw new Error('Respuesta del servidor inválida');
-      }
-
-      // Manejar el caso donde data.success pueda ser booleano o undefined/null
       if (data.success === true) {
         showMessage('Categoria eliminada correctamente', 'success');
-        elements.nameInput.value = '';
-        selectedCategoryId = null;
-        updateButtonStates();
+        clearSelection();
         loadCategories();
-        
+
         // Disparar evento personalizado
         document.dispatchEvent(new CustomEvent('categoriesUpdated'));
       } else {
-        // Manejar caso donde success es false, null, undefined o booleano false
-        const errorMsg = (data && data.message) ? data.message : 'Error al eliminar categoria';
+        const errorMsg = data.message || 'Error al eliminar categoria';
         showMessage(errorMsg, 'error');
-        
-        // Si el servidor indica que no existe o hay un 404, limpiar el estado local
-        if (response.status === 404 || (data.message && data.message.toLowerCase().includes('no encontrada'))) {
-          elements.nameInput.value = '';
-          selectedCategoryId = null;
-          updateButtonStates();
+
+        if (data.message && data.message.toLowerCase().includes('no encontrada')) {
+          clearSelection();
           loadCategories();
         }
       }
     } catch (error) {
       console.error('Error deleting category:', error);
-      
-      // Si hay error de JSON o conexión, limpiar estado local para evitar intentos múltiples
-      if (error.message.includes('JSON') || error.message.includes('conexion')) {
-        elements.nameInput.value = '';
-        selectedCategoryId = null;
-        updateButtonStates();
-        loadCategories();
-      }
-      
       showMessage('Error de conexion', 'error');
     }
+  }
+
+  /**
+   * Limpia la selección actual
+   */
+  function clearSelection() {
+    if (elements.nameInput) elements.nameInput.value = '';
+    selectedCategoryId = null;
+    updateButtonStates();
   }
 
   /**

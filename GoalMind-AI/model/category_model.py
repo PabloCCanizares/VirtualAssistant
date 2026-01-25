@@ -152,20 +152,30 @@ class CategoryModel:
         Devuelve True si se elimino, False si no se encontro.
         """
         local_col, remote_col = get_collection(CategoryModel.COLLECTION)
-        _id = ObjectId(category_id) if not isinstance(category_id, ObjectId) else category_id
 
+        try:
+            _id = ObjectId(category_id) if not isinstance(category_id, ObjectId) else category_id
+        except Exception as e:
+            print(f"Error al convertir category_id a ObjectId: {e}")
+            return False
+
+        # Eliminar de la base local primero
         result = local_col.delete_one({"_id": _id})
+        deleted_locally = result.deleted_count > 0
 
-        if remote_col:
+        if deleted_locally:
+            print(f"Categoria eliminada localmente: {_id}")
+
+        # Intentar eliminar de remoto de forma independiente (no afecta el resultado)
+        if remote_col is not None:
             try:
                 remote_col.delete_one({"_id": _id})
-                print(f"Categoria eliminada en local y remoto: {_id}")
-            except Exception:
-                pass
-        else:
-            print(f"Categoria eliminada solo localmente: {_id}")
+                print(f"Categoria eliminada en remoto: {_id}")
+            except Exception as e:
+                # Error en remoto no debe afectar la operación local
+                print(f"Error al eliminar categoria de remoto (no crítico): {e}")
 
-        return result.deleted_count > 0
+        return deleted_locally
 
     # -------------------------------------------------------------
     #  VERIFICAR SI EXISTE POR NOMBRE
@@ -178,3 +188,34 @@ class CategoryModel:
         local_col, _ = get_collection(CategoryModel.COLLECTION)
         existing = local_col.find_one({"name": {"$regex": f"^{name}$", "$options": "i"}})
         return existing is not None
+
+    # -------------------------------------------------------------
+    #  CONTAR USO DE CATEGORIA
+    # -------------------------------------------------------------
+    @staticmethod
+    def get_category_usage(category_id):
+        """
+        Cuenta cuántos objetivos, tareas y proyectos tienen asignada esta categoría.
+        Devuelve un diccionario con los conteos.
+        """
+        try:
+            _id = ObjectId(category_id) if not isinstance(category_id, ObjectId) else category_id
+        except Exception:
+            return {"goals": 0, "tasks": 0, "projects": 0, "total": 0}
+
+        # Obtener colecciones
+        goals_col, _ = get_collection("Goals")
+        tasks_col, _ = get_collection("Tasks")
+        projects_col, _ = get_collection("Projects")
+
+        # Contar documentos que tienen esta categoría en su array "categorias"
+        goals_count = goals_col.count_documents({"categorias": _id})
+        tasks_count = tasks_col.count_documents({"categorias": _id})
+        projects_count = projects_col.count_documents({"categorias": _id})
+
+        return {
+            "goals": goals_count,
+            "tasks": tasks_count,
+            "projects": projects_count,
+            "total": goals_count + tasks_count + projects_count
+        }
