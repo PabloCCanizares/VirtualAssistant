@@ -148,7 +148,6 @@ def add_goal():
             "progreso": int(request.form.get("progreso") or 0),
             "estado": request.form.get("estado") or "En progreso",
             "prioridad": request.form.get("prioridad") or "Media",
-            "scope": request.form.get("scope") or "Personal",
             "alarma_id": request.form.get("alarma_id") or "",
         }
 
@@ -233,7 +232,6 @@ def update_goal(goal_id):
             "fecha_fin": request.form.get("fecha_fin"),
             "estado": request.form.get("estado"),
             "prioridad": request.form.get("prioridad"),
-            "scope": request.form.get("scope"),
             "alarma_id": request.form.get("alarma_id"),
         }
         

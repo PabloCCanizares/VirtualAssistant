@@ -283,6 +283,7 @@
 .item-card.expanded {
   background: linear-gradient(180deg, rgba(108,243,255,.08), rgba(139,123,255,.05));
   border-color: rgba(108,243,255,.25);
+  z-index: 100;
 }
 
 /* Header del item */

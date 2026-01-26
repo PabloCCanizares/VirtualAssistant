@@ -261,10 +261,6 @@
                   <span class="item-detail-value">{{ project_titles.get(goal.get('project_id'), 'Sin proyecto') }}</span>
                 </div>
                 <div class="item-detail-row">
-                  <span class="item-detail-label">Ambito</span>
-                  <span class="item-detail-value task-scope-text">{{ goal.get('scope','Personal') }}</span>
-                </div>
-                <div class="item-detail-row">
                   <span class="item-detail-label">ID Usuario</span>
                   <span class="item-detail-value task-user-text">{{ goal.get('id_usuario','—') }}</span>
                 </div>
@@ -354,20 +350,9 @@
                 </div>
               </div>
 
-              <div class="panel-form-row">
-                <div class="panel-form-group">
-                  <label class="panel-form-label">Progreso (%)</label>
-                  <input type="number" name="progreso" class="panel-form-input" min="0" max="100" value="{{ goal.get('progreso', 0) }}">
-                </div>
-                <div class="panel-form-group">
-                  <label class="panel-form-label">Ambito</label>
-                  {% set sc = goal.get('scope','Personal') %}
-                  <select name="scope" class="panel-form-select">
-                    <option value="Personal" {% if sc == 'Personal' %}selected{% endif %}>Personal</option>
-                    <option value="Trabajo" {% if sc == 'Trabajo' %}selected{% endif %}>Trabajo</option>
-                    <option value="Estudios" {% if sc == 'Estudios' %}selected{% endif %}>Estudios</option>
-                  </select>
-                </div>
+              <div class="panel-form-group">
+                <label class="panel-form-label">Progreso (%)</label>
+                <input type="number" name="progreso" class="panel-form-input" min="0" max="100" value="{{ goal.get('progreso', 0) }}">
               </div>
 
               <div class="panel-form-row">

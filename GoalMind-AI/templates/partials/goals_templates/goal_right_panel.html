@@ -1,6 +1,74 @@
 <aside class="side-panel">
 
-  <!-- Formulario de nuevo objetivo (colapsable) -->
+  {% if goal %}
+  <!-- Vista de detalle: Formulario de nueva tarea con objetivo_id hardcodeado -->
+  <div class="side-panel-card collapsible">
+    <div class="side-panel-header">
+      <span class="side-panel-icon">➕</span>
+      <h3 class="side-panel-title">Nueva tarea</h3>
+      <span class="side-panel-toggle"></span>
+    </div>
+
+    <div class="side-panel-card-content">
+      <form method="post"
+            action="{{ url_for('task_bp.add_task') }}"
+            class="panel-form">
+        
+        <!-- objetivo_id hardcodeado -->
+        <input type="hidden" name="objetivo_id" value="{{ goal['_id'] }}">
+
+        <div class="panel-form-group">
+          <label class="panel-form-label" for="task_contenido">Titulo</label>
+          <input type="text" name="contenido" id="task_contenido" 
+                 class="panel-form-input" placeholder="Titulo de la tarea" required>
+        </div>
+
+        <div class="panel-form-group">
+          <label class="panel-form-label">Categorias</label>
+          <div data-category-selector 
+               data-name="categorias" 
+               data-selected=""
+               data-allow-create="true"></div>
+        </div>
+
+        <div class="panel-form-group">
+          <label class="panel-form-label" for="task_descripcion">Descripcion</label>
+          <textarea name="descripcion" id="task_descripcion" 
+                    class="panel-form-textarea" rows="3" 
+                    placeholder="Detalles de la tarea"></textarea>
+        </div>
+
+        <div class="panel-form-group">
+          <label class="panel-form-label" for="task_fecha_limite">Fecha limite</label>
+          <input type="date" name="fecha_limite" id="task_fecha_limite" class="panel-form-input">
+        </div>
+
+        <div class="panel-form-row">
+          <div class="panel-form-group">
+            <label class="panel-form-label" for="task_estado">Estado</label>
+            <select name="estado" id="task_estado" class="panel-form-select">
+              <option value="pendiente" selected>Pendiente</option>
+              <option value="en curso">En curso</option>
+              <option value="completada">Completada</option>
+            </select>
+          </div>
+          <div class="panel-form-group">
+            <label class="panel-form-label" for="task_prioridad">Prioridad</label>
+            <select name="prioridad" id="task_prioridad" class="panel-form-select">
+              <option value="baja">Baja</option>
+              <option value="media" selected>Media</option>
+              <option value="alta">Alta</option>
+            </select>
+          </div>
+        </div>
+
+        <button type="submit" class="panel-form-submit">Crear tarea</button>
+      </form>
+    </div>
+  </div>
+
+  {% else %}
+  <!-- Vista de lista: Formulario de nuevo objetivo (colapsable) -->
   <div class="side-panel-card collapsible">
     <div class="side-panel-header">
       <span class="side-panel-icon">➕</span>
@@ -105,19 +173,11 @@
           </div>
         </div>
 
-        <div class="panel-form-group">
-          <label class="panel-form-label" for="scope">Ambito</label>
-          <select name="scope" id="scope" class="panel-form-select">
-            <option value="corto">Corto plazo</option>
-            <option value="medio" selected>Medio plazo</option>
-            <option value="largo">Largo plazo</option>
-          </select>
-        </div>
-
         <button type="submit" class="panel-form-submit" {% if not projects_available %}disabled{% endif %}>Crear objetivo</button>
       </form>
     </div>
   </div>
+  {% endif %}
 
   <!-- Estadisticas rapidas (no colapsable - sin form) -->
   <div class="side-panel-card">
