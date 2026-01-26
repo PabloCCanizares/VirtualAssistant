@@ -1768,7 +1768,7 @@
   border: 1px solid rgba(108,243,255,.25);
   border-radius: 10px;
   box-shadow: 0 8px 32px rgba(0,0,0,.4);
-  z-index: 100;
+  z-index: 1000;
   display: none;
 }
 

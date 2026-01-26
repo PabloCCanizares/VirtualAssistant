@@ -31,7 +31,6 @@
               {% endif %}
               <span class="panel-badge accent">{{ goal.get('estado', 'En progreso') }}</span>
               <span class="panel-badge">{{ goal.get('prioridad', 'Media') }}</span>
-              <span class="panel-badge">{{ goal.get('scope', 'Personal') }}</span>
             </div>
           </div>
           <div class="panel-kpis">
@@ -72,6 +71,14 @@
                   <div class="goal-info-item-value" id="goal-descripcion">{{ goal.get('descripcion', '(sin descripcion)') }}</div>
                 </div>
                 <div class="goal-info-item">
+                  <div class="goal-info-item-label">Estado</div>
+                  <div class="goal-info-item-value highlight" id="goal-estado">{{ goal.get('estado', 'En progreso') }}</div>
+                </div>
+                <div class="goal-info-item">
+                  <div class="goal-info-item-label">Prioridad</div>
+                  <div class="goal-info-item-value" id="goal-prioridad">{{ goal.get('prioridad', 'Media') }}</div>
+                </div>
+                <div class="goal-info-item full-width">
                   <div class="goal-info-item-label">Categorias</div>
                   <div class="goal-info-item-value" id="goal-categoria">
                     {% if goal.get('categorias') and goal.categorias|length > 0 %}
@@ -82,18 +89,6 @@
                       Sin categoria
                     {% endif %}
                   </div>
-                </div>
-                <div class="goal-info-item">
-                  <div class="goal-info-item-label">Estado</div>
-                  <div class="goal-info-item-value highlight" id="goal-estado">{{ goal.get('estado', 'En progreso') }}</div>
-                </div>
-                <div class="goal-info-item">
-                  <div class="goal-info-item-label">Prioridad</div>
-                  <div class="goal-info-item-value" id="goal-prioridad">{{ goal.get('prioridad', 'Media') }}</div>
-                </div>
-                <div class="goal-info-item">
-                  <div class="goal-info-item-label">Ambito</div>
-                  <div class="goal-info-item-value" id="goal-scope">{{ goal.get('scope', 'Personal') }}</div>
                 </div>
                 <div class="goal-info-item">
                   <div class="goal-info-item-label">Fecha inicio</div>

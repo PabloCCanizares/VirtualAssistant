@@ -68,27 +68,90 @@
           </select>
         </div>
 
-        <div class="panel-form-row">
-          <div class="panel-form-group">
-            <label class="panel-form-label" for="estado">Estado</label>
-            {% set st = project.get('estado','Activo') %}
-            <select name="estado" id="estado" class="panel-form-select">
-              <option value="Activo" {% if st == 'Activo' %}selected{% endif %}>Activo</option>
-              <option value="En pausa" {% if st == 'En pausa' %}selected{% endif %}>En pausa</option>
-              <option value="Completado" {% if st == 'Completado' %}selected{% endif %}>Completado</option>
-            </select>
-          </div>
-          <div class="panel-form-group">
-            <label class="panel-form-label" for="id_usuario">ID Usuario</label>
-            <input type="text"
-                   name="id_usuario"
-                   id="id_usuario"
-                   class="panel-form-input"
-                   value="{{ project.get('id_usuario','') }}">
-          </div>
+        <div class="panel-form-group" style="max-width: 100%;">
+          <label class="panel-form-label" for="estado">Estado</label>
+          {% set st = project.get('estado','Activo') %}
+          <select name="estado" id="estado" class="panel-form-select">
+            <option value="Activo" {% if st == 'Activo' %}selected{% endif %}>Activo</option>
+            <option value="En pausa" {% if st == 'En pausa' %}selected{% endif %}>En pausa</option>
+            <option value="Completado" {% if st == 'Completado' %}selected{% endif %}>Completado</option>
+          </select>
         </div>
 
         <button type="submit" class="panel-form-submit">Guardar cambios</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Crear nuevo objetivo para este proyecto (colapsable) -->
+  <div class="side-panel-card collapsible">
+    <div class="side-panel-header">
+      <span class="side-panel-icon">🎯</span>
+      <h3 class="side-panel-title">Nuevo objetivo</h3>
+      <span class="side-panel-toggle"></span>
+    </div>
+
+    <div class="side-panel-card-content">
+      <form method="post"
+            action="{{ url_for('goal_bp.add_goal') }}"
+            class="panel-form">
+        
+        <!-- project_id hardcodeado -->
+        <input type="hidden" name="project_id" value="{{ project['_id'] }}">
+
+        <div class="panel-form-group">
+          <label class="panel-form-label" for="goal_titulo">Titulo</label>
+          <input type="text" name="titulo" id="goal_titulo" 
+                 class="panel-form-input" placeholder="Nombre del objetivo" required>
+        </div>
+
+        <div class="panel-form-group">
+          <label class="panel-form-label" for="goal_descripcion">Descripcion</label>
+          <textarea name="descripcion" id="goal_descripcion" 
+                    class="panel-form-textarea" rows="3" 
+                    placeholder="Descripcion del objetivo"></textarea>
+        </div>
+
+        <div class="panel-form-row">
+          <div class="panel-form-group">
+            <label class="panel-form-label" for="goal_fecha_inicio">Fecha inicio</label>
+            <input type="date" name="fecha_inicio" id="goal_fecha_inicio" class="panel-form-input">
+          </div>
+          <div class="panel-form-group">
+            <label class="panel-form-label" for="goal_fecha_fin">Fecha fin</label>
+            <input type="date" name="fecha_fin" id="goal_fecha_fin" class="panel-form-input">
+          </div>
+        </div>
+
+        <div class="panel-form-group">
+          <label class="panel-form-label">Categorias</label>
+          <div data-category-selector 
+               data-name="categorias" 
+               data-selected=""
+               data-allow-create="true"></div>
+        </div>
+
+        <div class="panel-form-row">
+          <div class="panel-form-group">
+            <label class="panel-form-label" for="goal_estado">Estado</label>
+            <select name="estado" id="goal_estado" class="panel-form-select">
+              <option value="Pendiente">Pendiente</option>
+              <option value="En progreso" selected>En progreso</option>
+              <option value="Completado">Completado</option>
+              <option value="Pausado">Pausado</option>
+            </select>
+          </div>
+          <div class="panel-form-group">
+            <label class="panel-form-label" for="goal_prioridad">Prioridad</label>
+            <select name="prioridad" id="goal_prioridad" class="panel-form-select">
+              <option value="Baja">Baja</option>
+              <option value="Media" selected>Media</option>
+              <option value="Alta">Alta</option>
+            </select>
+          </div>
+        </div>
+
+        <button type="submit" class="panel-form-submit">Crear objetivo</button>
       </form>
     </div>
   </div>
