@@ -1,8 +1,9 @@
 from pathlib import Path
+import sys
 from datetime import datetime
 
-#Clase principal de la aplicacion para crear la aplicacion en Flask
-from flask import Flask
+#Carga variables de entorno desde .env si existe
+from dotenv import load_dotenv
 #Modulo estandar de python para generar tokens seguros
 import secrets
 import os
@@ -14,6 +15,22 @@ try:
 except Exception as exc:
     init_scheduler = None
     print(f"⚠️ Scheduler deshabilitado (APScheduler no disponible): {exc}")
+################ Aplicacion Flask ##################
+env_root = Path(__file__).resolve().parent
+ai_root = env_root / "GoalMind-AI"
+if ai_root.exists():
+    sys.path.insert(0, str(ai_root))
+    try:
+        from config import load_env
+        load_env(ai_root)
+    except Exception:
+        load_dotenv(ai_root / ".env")
+else:
+    load_dotenv(env_root / ".env")
+
+#Clase principal de la aplicacion para crear la aplicacion en Flask
+from flask import Flask
+
 #Importacion de los blueprints de los controladores
 ## Un blueprint es una forma de organizar un grupo relacionado de rutas y funcionalidades ##
 from controllers.task_controller import task_bp
@@ -24,8 +41,8 @@ from controllers.calendar_controller import calendar_bp
 from controllers.stats_controller import stats_bp
 from controllers.upload_controller import upload_bp
 from controllers.category_controller import category_bp
+from controllers.ai_chat_controller import ai_chat_bp
 
-################ Aplicacion Flask ##################
 app = Flask(__name__)
 
 ################## Configuracion de la aplicacion ##################
@@ -66,6 +83,7 @@ app.register_blueprint(calendar_bp)
 app.register_blueprint(stats_bp)
 app.register_blueprint(upload_bp)
 app.register_blueprint(category_bp)
+app.register_blueprint(ai_chat_bp)
 
 ################ Context Processor - Variables globales para templates ##################
 @app.context_processor

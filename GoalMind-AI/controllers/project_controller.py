@@ -1,5 +1,6 @@
 # controllers/project_controller.py
 from datetime import datetime
+import os
 from pathlib import Path
 from uuid import uuid4
 
@@ -15,6 +16,7 @@ from model.upload_model import Upload_model
 from model.category_model import CategoryModel
 
 project_bp = Blueprint("project_bp", __name__, url_prefix="/projects")
+DEFAULT_USER_ID = os.getenv("DEFAULT_USER_ID", "66ffbbbbbbbbbbbbbbbb0100")
 
 
 def _serialize_id(value):
@@ -153,6 +155,7 @@ def add_project():
             except Exception:
                 pass
 
+        user_id = request.form.get("id_usuario") or DEFAULT_USER_ID
         data = {
             "titulo": request.form.get("titulo"),
             "descripcion": request.form.get("descripcion"),
@@ -161,7 +164,7 @@ def add_project():
             "prioridad": request.form.get("prioridad") or "Media",
             "fecha_inicio": request.form.get("fecha_inicio"),
             "fecha_fin": request.form.get("fecha_fin"),
-            "id_usuario": request.form.get("id_usuario") or "",
+            "id_usuario": user_id,
         }
 
         if not data["titulo"]:

@@ -28,7 +28,7 @@
       <span class="sidebar-nav-icon"></span>
       Proyectos
     </a>
-    <a href="{{ url_for('task_bp.list_tasks_by_user', user_id=0) }}"
+    <a href="{{ url_for('task_bp.list_tasks_by_user') }}"
        class="sidebar-nav-item"
        {% if page == 'tareas' %}aria-current="page"{% endif %}>
       <span class="sidebar-nav-icon"></span>

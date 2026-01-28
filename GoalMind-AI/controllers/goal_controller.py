@@ -1,4 +1,6 @@
 # controllers/goal_controller.py
+import os
+
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from model.goal_model import GoalModel
 from model.project_model import ProjectModel
@@ -7,6 +9,7 @@ from model.category_model import CategoryModel
 from bson import ObjectId
 
 goal_bp = Blueprint("goal_bp", __name__, url_prefix="/goals")
+DEFAULT_USER_ID = os.getenv("DEFAULT_USER_ID", "66ffbbbbbbbbbbbbbbbb0100")
 
 
 def _serialize_goal(goal):
@@ -137,8 +140,9 @@ def add_goal():
             except Exception:
                 pass
 
+        user_id = request.form.get("id_usuario") or DEFAULT_USER_ID
         data = {
-            "id_usuario": request.form.get("id_usuario"),
+            "id_usuario": user_id,
             "project_id": project_id,
             "titulo": request.form.get("titulo"),
             "descripcion": request.form.get("descripcion"),

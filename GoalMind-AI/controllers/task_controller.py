@@ -1,3 +1,5 @@
+import os
+
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from model.task_model import TaskModel
 from bson import ObjectId
@@ -8,6 +10,7 @@ from model.project_model import ProjectModel
 from model.category_model import CategoryModel
 
 task_bp = Blueprint("task_bp", __name__, url_prefix="/tasks")
+DEFAULT_USER_ID = os.getenv("DEFAULT_USER_ID", "66ffbbbbbbbbbbbbbbbb0100")
 
 
 def _serialize_task(task):
@@ -152,12 +155,13 @@ def view_task(task_id):
 # -------------------------------------------------------------
 # 🔍 OBTENER UNA TAREA POR USUARIO
 # -------------------------------------------------------------
+@task_bp.route("/user", methods=["GET"])
 @task_bp.route("/user/<user_id>", methods=["GET"])
-def list_tasks_by_user(user_id):
-    """Muestra todas las tareas creadas por un usuario específico."""
+def list_tasks_by_user(user_id=None):
+    """Muestra todas las tareas creadas por un usuario espec??fico."""
     try:
-        if user_id == 0:
-            user_id = "66ffbbbbbbbbbbbbbbbb0100"
+        if user_id in (None, "0", 0):
+            user_id = DEFAULT_USER_ID
         tasks = TaskModel.get_task_by_user(user_id)
         tasks_view = [_serialize_task(t) for t in tasks]
         goals_view, goal_titles, goal_project_titles, projects_with_goals = _load_goal_context()
@@ -209,8 +213,9 @@ def add_task():
             except Exception:
                 pass
 
+        user_id = request.form.get("usuario_id") or DEFAULT_USER_ID
         data = {
-            "usuario_id": request.form.get("usuario_id"),
+            "usuario_id": user_id,
             "contenido": request.form.get("contenido"),
             "descripcion": request.form.get("descripcion"),
             "fecha_limite": request.form.get("fecha_limite"),

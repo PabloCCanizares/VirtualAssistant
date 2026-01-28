@@ -14,11 +14,27 @@ class GoalModel:
         """
         local_col, _ = get_collection(GoalModel.COLLECTION)
 
-        uid = ObjectId(user_id) if not isinstance(user_id, ObjectId) else user_id
+        uid = None
+        if isinstance(user_id, ObjectId):
+            uid = user_id
+        else:
+            try:
+                uid = ObjectId(str(user_id))
+            except Exception:
+                uid = None
 
-        # La colección de ejemplo muestra id_usuario como ObjectId
-        # Orden sugerido: por fecha_inicio descendente (ajústalo si prefieres)
-        cursor = local_col.find({"id_usuario": uid}).sort("fecha_inicio", -1)
+        queries = []
+        if uid:
+            queries.append({"id_usuario": uid})
+        if user_id is not None:
+            queries.append({"id_usuario": str(user_id)})
+
+        if not queries:
+            return []
+
+        # La coleccion de ejemplo muestra id_usuario como ObjectId
+        # Orden sugerido: por fecha_inicio descendente (ajustalo si prefieres)
+        cursor = local_col.find({"$or": queries}).sort("fecha_inicio", -1)
         return list(cursor)
     
 
@@ -219,43 +235,76 @@ class GoalModel:
         Devuelve True si se eliminó, False si no se encontró.
         """
         local_col, remote_col = get_collection(GoalModel.COLLECTION)
-        _id = ObjectId(goal_id) if not isinstance(goal_id, ObjectId) else goal_id
-
-        # Eliminar local
-        res = local_col.delete_one({"_id": _id})
-
-        # Eliminar remoto (si hay conexión)
-        if remote_col:
+        queries = []
+        if isinstance(goal_id, ObjectId):
+            queries.append({"_id": goal_id})
+        else:
             try:
-                remote_col.delete_one({"_id": _id})
-                print(f"🗑️ Objetivo eliminado en local y remoto: {_id}")
+                if ObjectId.is_valid(str(goal_id)):
+                    queries.append({"_id": ObjectId(str(goal_id))})
             except Exception:
                 pass
-        else:
-            print(f"⚠️ Objetivo eliminado solo localmente (sin conexión remota): {_id}")
+        if goal_id is not None:
+            queries.append({"_id": str(goal_id)})
 
-        return res.deleted_count > 0
+        if not queries:
+            return False
+
+        deleted_local = 0
+        for query in queries:
+            res = local_col.delete_one(query)
+            deleted_local += res.deleted_count
+
+        deleted_remote = 0
+        if remote_col:
+            for query in queries:
+                try:
+                    res = remote_col.delete_one(query)
+                    deleted_remote += res.deleted_count
+                except Exception:
+                    pass
+            print("🗑️ Objetivo eliminado en local y remoto.")
+        else:
+            print("⚠️ Objetivo eliminado solo localmente (sin conexión remota).")
+
+        return (deleted_local + deleted_remote) > 0
 
     @staticmethod
     def delete_goals_by_ids(ids):
         """
         Elimina varios objetivos por sus _id. Devuelve el nº de documentos eliminados.
         """
-        object_ids = []
-        for s in ids:
-            try:
-                object_ids.append(ObjectId(s))
-            except Exception:
-                continue
-        if not object_ids:
-            return 0
         local_col, remote_col = get_collection(GoalModel.COLLECTION)
-        res = local_col.delete_many({"_id": {"$in": object_ids}})
+        object_ids = []
+        string_ids = []
+        for s in ids:
+            if not s:
+                continue
+            try:
+                if isinstance(s, ObjectId):
+                    object_ids.append(s)
+                elif ObjectId.is_valid(str(s)):
+                    object_ids.append(ObjectId(str(s)))
+                else:
+                    string_ids.append(str(s))
+            except Exception:
+                string_ids.append(str(s))
+
+        if not object_ids and not string_ids:
+            return 0
+
+        query = {"$or": []}
+        if object_ids:
+            query["$or"].append({"_id": {"$in": object_ids}})
+        if string_ids:
+            query["$or"].append({"_id": {"$in": string_ids}})
+
+        res = local_col.delete_many(query)
 
         # Eliminar en remoto también
         if remote_col:
             try:
-                remote_col.delete_many({"_id": {"$in": object_ids}})
+                remote_col.delete_many(query)
             except Exception:
                 pass
 
