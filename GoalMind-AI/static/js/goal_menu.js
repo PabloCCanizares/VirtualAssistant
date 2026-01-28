@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const goalList = document.getElementById("goalList");
 
   const getChecks = () =>
-    Array.from(document.querySelectorAll("#goalList .task-select"));
+    Array.from(document.querySelectorAll("#goalList .item-checkbox"));
 
   function updateBulkButtonState() {
     if (!bulkDeleteBtn) return;
@@ -28,7 +28,11 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   document.addEventListener("change", (e) => {
-    if (e.target && e.target.classList.contains("task-select")) {
+    if (
+      e.target &&
+      e.target.classList.contains("item-checkbox") &&
+      e.target.closest("#goalList")
+    ) {
       updateBulkButtonState();
     }
   });
@@ -49,6 +53,17 @@ document.addEventListener("DOMContentLoaded", () => {
   // Click en el resumen para alternar detalles
   if (goalList) {
     goalList.addEventListener("click", (e) => {
+      const deleteBtn = e.target.closest(".task-delete-btn");
+      if (deleteBtn) {
+        const formId = deleteBtn.getAttribute("form");
+        if (formId) {
+          const deleteForm = document.getElementById(formId);
+          if (deleteForm) {
+            deleteForm.submit();
+            return;
+          }
+        }
+      }
       const row = e.target.closest(".task-row");
       if (!row) return;
       // Evitar que botones dentro del row abran/cerren

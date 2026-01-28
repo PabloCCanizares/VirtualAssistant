@@ -143,8 +143,27 @@ class TaskModel:
         Devuelve todas las tareas de un usuario específico.
         """
         local_col, _ = get_collection(TaskModel.COLLECTION)
-        _id = ObjectId(usuario_id) if not isinstance(usuario_id, ObjectId) else usuario_id
-        return list(local_col.find({"usuario_id": _id}))
+        _id = None
+        if isinstance(usuario_id, ObjectId):
+            _id = usuario_id
+        else:
+            try:
+                _id = ObjectId(str(usuario_id))
+            except Exception:
+                _id = None
+
+        queries = []
+        if _id:
+            queries.append({"usuario_id": _id})
+            queries.append({"id_usuario": _id})
+        if usuario_id is not None:
+            queries.append({"usuario_id": str(usuario_id)})
+            queries.append({"id_usuario": str(usuario_id)})
+
+        if not queries:
+            return []
+
+        return list(local_col.find({"$or": queries}))
 
     # -------------------------------------------------------------
     #  OBTENER POR OBJETIVO (GOAL)

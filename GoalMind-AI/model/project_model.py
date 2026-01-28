@@ -16,6 +16,12 @@ class ProjectModel:
         return list(local_col.find().sort("created_at", -1))
 
     @staticmethod
+    def get_by_user_id(user_id):
+        local_col, _ = get_collection(ProjectModel.COLLECTION)
+        uid = ObjectId(user_id) if not isinstance(user_id, ObjectId) else user_id
+        return list(local_col.find({"id_usuario": uid}).sort("created_at", -1))
+
+    @staticmethod
     def get_project_by_id(project_id):
         local_col, _ = get_collection(ProjectModel.COLLECTION)
         _id = ObjectId(project_id) if not isinstance(project_id, ObjectId) else project_id
@@ -86,17 +92,36 @@ class ProjectModel:
     @staticmethod
     def delete_project(project_id):
         local_col, remote_col = get_collection(ProjectModel.COLLECTION)
-        _id = ObjectId(project_id) if not isinstance(project_id, ObjectId) else project_id
-
-        res = local_col.delete_one({"_id": _id})
-
-        if remote_col:
+        queries = []
+        if isinstance(project_id, ObjectId):
+            queries.append({"_id": project_id})
+        else:
             try:
-                remote_col.delete_one({"_id": _id})
+                if ObjectId.is_valid(str(project_id)):
+                    queries.append({"_id": ObjectId(str(project_id))})
             except Exception:
                 pass
+        if project_id is not None:
+            queries.append({"_id": str(project_id)})
 
-        return res.deleted_count > 0
+        if not queries:
+            return False
+
+        deleted_local = 0
+        for query in queries:
+            res = local_col.delete_one(query)
+            deleted_local += res.deleted_count
+
+        deleted_remote = 0
+        if remote_col:
+            for query in queries:
+                try:
+                    res = remote_col.delete_one(query)
+                    deleted_remote += res.deleted_count
+                except Exception:
+                    pass
+
+        return (deleted_local + deleted_remote) > 0
 
     @staticmethod
     def find_by_category(category_id):
