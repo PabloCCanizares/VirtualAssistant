@@ -27,6 +27,81 @@
         Proyectos activos
       </h3>
       <div class="panel-actions">
+        <div class="panel-search">
+          <button type="button" class="panel-search-btn-icon" aria-expanded="false" aria-controls="projectSearchDropdown" aria-label="Buscar">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
+              <path d="M10 4a6 6 0 104.472 10.02l4.254 4.254 1.414-1.414-4.254-4.254A6 6 0 0010 4zm0 2a4 4 0 110 8 4 4 0 010-8z"/>
+            </svg>
+            <span class="panel-search-tooltip" role="tooltip">Buscar</span>
+          </button>
+          <div id="projectSearchDropdown" class="panel-search-dropdown" role="menu">
+            <form method="get" action="{{ url_for('project_bp.list_projects') }}">
+              <label class="panel-form-label project-search-label" for="project_search">Buscar proyecto</label>
+              <input type="text" id="project_search" name="q" class="panel-search-input" placeholder="Nombre del proyecto..." value="{{ project_query or '' }}">
+              <input type="hidden" name="order" value="{{ project_sort }}">
+              <div class="panel-search-actions">
+                <button type="submit" class="panel-search-btn">Buscar</button>
+              </div>
+            </form>
+          </div>
+        </div>
+        <div class="panel-filter">
+          <button type="button" class="panel-filter-btn" aria-expanded="false" aria-controls="projectFilterDropdown" aria-label="Ordenar">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M8 4l-3 3m3-3l3 3m-3-3v16"/>
+              <path d="M16 20l3-3m-3 3l-3-3m3 3V4"/>
+            </svg>
+            <span class="panel-filter-tooltip" role="tooltip">Ordenar</span>
+          </button>
+          <div id="projectFilterDropdown" class="panel-filter-dropdown" role="menu">
+            <label class="panel-form-label project-sort-label" for="project_sort">Ordenar por importancia</label>
+            <select id="project_sort" class="panel-form-select project-sort-select">
+              <option value="importance-desc" {% if project_sort == 'importance-desc' %}selected{% endif %}>Importancia (mayor a menor)</option>
+              <option value="importance-asc" {% if project_sort == 'importance-asc' %}selected{% endif %}>Importancia (menor a mayor)</option>
+            </select>
+          </div>
+        </div>
+        <div class="panel-filter">
+          <button type="button" class="panel-filter-btn panel-filter-btn-alt" aria-expanded="false" aria-controls="projectAdvancedFilterDropdown" aria-label="Filtrar">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
+              <path d="M3 5h18v2H3zM6 11h12v2H6zM10 17h4v2h-4z"/>
+            </svg>
+            <span class="panel-filter-tooltip" role="tooltip">Filtrar</span>
+          </button>
+          <div id="projectAdvancedFilterDropdown" class="panel-filter-dropdown" role="menu">
+            <form method="get" action="{{ url_for('project_bp.list_projects') }}">
+              <label class="panel-form-label" for="project_filter_status">Estado</label>
+              <select id="project_filter_status" name="status" class="panel-form-select">
+                <option value="all" {% if project_status == 'all' %}selected{% endif %}>Todos</option>
+                <option value="Activo" {% if project_status == 'Activo' %}selected{% endif %}>Activo</option>
+                <option value="En pausa" {% if project_status == 'En pausa' %}selected{% endif %}>En pausa</option>
+                <option value="Completado" {% if project_status == 'Completado' %}selected{% endif %}>Completado</option>
+              </select>
+
+              <label class="panel-form-label" for="project_filter_category">Categoria</label>
+              <select id="project_filter_category" name="category" class="panel-form-select">
+                <option value="all" {% if project_category == 'all' %}selected{% endif %}>Todas</option>
+                {% for cat in categories %}
+                  <option value="{{ cat['_id'] }}" {% if project_category == cat['_id'] %}selected{% endif %}>{{ cat['name'] }}</option>
+                {% endfor %}
+              </select>
+
+              <label class="panel-form-label" for="project_filter_priority">Prioridad</label>
+              <select id="project_filter_priority" name="priority" class="panel-form-select">
+                <option value="all" {% if project_priority == 'all' %}selected{% endif %}>Todas</option>
+                <option value="Baja" {% if project_priority == 'Baja' %}selected{% endif %}>Baja</option>
+                <option value="Media" {% if project_priority == 'Media' %}selected{% endif %}>Media</option>
+                <option value="Alta" {% if project_priority == 'Alta' %}selected{% endif %}>Alta</option>
+              </select>
+
+              <input type="hidden" name="order" value="{{ project_sort }}">
+              <input type="hidden" name="q" value="{{ project_query or '' }}">
+              <div class="panel-search-actions">
+                <button type="submit" class="panel-search-btn">Aplicar</button>
+              </div>
+            </form>
+          </div>
+        </div>
         <span class="panel-badge accent">{{ projects|length if projects else 0 }} proyectos</span>
       </div>
     </div>
@@ -35,7 +110,7 @@
     <div class="cards-grid">
       {% for project in projects %}
       {% set progreso = project_progress.get(project['_id'], 0) if project_progress else 0 %}
-      <div class="grid-card" data-project-id="{{ project['_id'] }}">
+      <div class="grid-card" data-project-id="{{ project['_id'] }}" data-importance="{{ project.get('importancia', 0) }}">
         <!-- Menu de 3 puntos -->
         <div class="grid-card-menu">
           <button class="grid-card-menu-btn" type="button" aria-label="Opciones del proyecto">
@@ -92,7 +167,9 @@
         </div>
         
         <div class="grid-card-meta">
-          <span class="panel-badge">{{ project.get('categoria','Sin categoria') }}</span>
+          {% set cat_ids = project.get('categorias', []) %}
+          {% set first_cat = cat_ids[0] if cat_ids and cat_ids|length > 0 else None %}
+          <span class="panel-badge">{{ category_names.get(first_cat, 'Sin categoria') }}</span>
           {% set estado = project.get('estado','Activo') %}
           <span class="panel-badge {% if estado == 'Completado' %}success{% elif estado == 'Activo' %}accent{% else %}warning{% endif %}">
             {{ estado }}
@@ -214,10 +291,100 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
+  // Preferencia de orden (servidor)
+  const sortSelect = document.getElementById('project_sort');
+  if (sortSelect) {
+    sortSelect.addEventListener('change', () => {
+      const url = new URL(window.location.href);
+      url.searchParams.set('order', sortSelect.value);
+      window.location.href = url.toString();
+    });
+  }
+
+  const orderInput = document.querySelector('.panel-search input[name="order"]');
+  if (orderInput && sortSelect) {
+    orderInput.value = sortSelect.value;
+    sortSelect.addEventListener('change', () => {
+      orderInput.value = sortSelect.value;
+    });
+  }
+
+  // Dropdown de busqueda
+  const searchBtn = document.querySelector('.panel-search-btn-icon');
+  const searchDropdown = document.getElementById('projectSearchDropdown');
+  const closeSearchDropdown = () => {
+    if (!searchDropdown || !searchBtn) return;
+    searchDropdown.classList.remove('active');
+    searchBtn.setAttribute('aria-expanded', 'false');
+  };
+
+  if (searchBtn && searchDropdown) {
+    searchBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isOpen = searchDropdown.classList.contains('active');
+      closeSearchDropdown();
+      if (!isOpen) {
+        searchDropdown.classList.add('active');
+        searchBtn.setAttribute('aria-expanded', 'true');
+        const input = searchDropdown.querySelector('input[name="q"]');
+        if (input) input.focus();
+      }
+    });
+  }
+
+  // Dropdown de ordenar
+  const sortBtn = document.querySelector('.panel-filter-btn');
+  const sortDropdown = document.getElementById('projectFilterDropdown');
+  const closeSortDropdown = () => {
+    if (!sortDropdown || !sortBtn) return;
+    sortDropdown.classList.remove('active');
+    sortBtn.setAttribute('aria-expanded', 'false');
+  };
+
+  if (sortBtn && sortDropdown) {
+    sortBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isOpen = sortDropdown.classList.contains('active');
+      closeSortDropdown();
+      if (!isOpen) {
+        sortDropdown.classList.add('active');
+        sortBtn.setAttribute('aria-expanded', 'true');
+      }
+    });
+  }
+
+  // Dropdown de filtros
+  const filterBtn = document.querySelector('.panel-filter-btn-alt');
+  const filterDropdown = document.getElementById('projectAdvancedFilterDropdown');
+  const closeFilterDropdown = () => {
+    if (!filterDropdown || !filterBtn) return;
+    filterDropdown.classList.remove('active');
+    filterBtn.setAttribute('aria-expanded', 'false');
+  };
+
+  if (filterBtn && filterDropdown) {
+    filterBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isOpen = filterDropdown.classList.contains('active');
+      closeFilterDropdown();
+      if (!isOpen) {
+        filterDropdown.classList.add('active');
+        filterBtn.setAttribute('aria-expanded', 'true');
+      }
+    });
+  }
+
   // Cerrar dropdowns al hacer click fuera
   document.addEventListener('click', function(e) {
     if (!e.target.closest('.grid-card-menu')) {
       closeAllDropdowns();
+    }
+    if (!e.target.closest('.panel-filter')) {
+      closeSortDropdown();
+      closeFilterDropdown();
+    }
+    if (!e.target.closest('.panel-search')) {
+      closeSearchDropdown();
     }
   });
 
@@ -225,6 +392,9 @@ document.addEventListener('DOMContentLoaded', function() {
   document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
       closeAllDropdowns();
+      closeSortDropdown();
+      closeFilterDropdown();
+      closeSearchDropdown();
     }
   });
 });

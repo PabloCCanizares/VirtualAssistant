@@ -3,7 +3,7 @@
   <!-- Editar proyecto (colapsable) -->
   <div class="side-panel-card collapsible">
     <div class="side-panel-header">
-      <span class="side-panel-icon">✏️</span>
+    <span class="side-panel-icon">✏️</span>
       <h3 class="side-panel-title">Editar proyecto</h3>
       <span class="side-panel-toggle"></span>
     </div>
@@ -52,8 +52,8 @@
 
         <div class="panel-form-group">
           <label class="panel-form-label">Categorias</label>
-          <div data-category-selector 
-               data-name="categorias" 
+          <div data-category-selector
+               data-name="categorias"
                data-selected="{{ project.get('categorias', [])|join(',') }}"
                data-allow-create="true"></div>
         </div>
@@ -66,6 +66,11 @@
             <option value="Media" {% if pr == 'Media' %}selected{% endif %}>Media</option>
             <option value="Alta" {% if pr == 'Alta' %}selected{% endif %}>Alta</option>
           </select>
+        </div>
+
+        <div class="panel-form-group">
+          <label class="panel-form-label" for="importancia">Importancia (0-10)</label>
+          <input type="number" name="importancia" id="importancia" class="panel-form-input" min="0" max="10" step="1" value="{{ project.get('importancia', 5) }}">
         </div>
 
         <div class="panel-form-group" style="max-width: 100%;">
@@ -86,7 +91,7 @@
   <!-- Crear nuevo objetivo para este proyecto (colapsable) -->
   <div class="side-panel-card collapsible">
     <div class="side-panel-header">
-      <span class="side-panel-icon">🎯</span>
+     <span class="side-panel-icon">🎯</span>
       <h3 class="side-panel-title">Nuevo objetivo</h3>
       <span class="side-panel-toggle"></span>
     </div>
@@ -95,20 +100,20 @@
       <form method="post"
             action="{{ url_for('goal_bp.add_goal') }}"
             class="panel-form">
-        
+
         <!-- project_id hardcodeado -->
         <input type="hidden" name="project_id" value="{{ project['_id'] }}">
 
         <div class="panel-form-group">
           <label class="panel-form-label" for="goal_titulo">Titulo</label>
-          <input type="text" name="titulo" id="goal_titulo" 
+          <input type="text" name="titulo" id="goal_titulo"
                  class="panel-form-input" placeholder="Nombre del objetivo" required>
         </div>
 
         <div class="panel-form-group">
           <label class="panel-form-label" for="goal_descripcion">Descripcion</label>
-          <textarea name="descripcion" id="goal_descripcion" 
-                    class="panel-form-textarea" rows="3" 
+          <textarea name="descripcion" id="goal_descripcion"
+                    class="panel-form-textarea" rows="3"
                     placeholder="Descripcion del objetivo"></textarea>
         </div>
 
@@ -125,8 +130,8 @@
 
         <div class="panel-form-group">
           <label class="panel-form-label">Categorias</label>
-          <div data-category-selector 
-               data-name="categorias" 
+          <div data-category-selector
+               data-name="categorias"
                data-selected=""
                data-allow-create="true"></div>
         </div>
@@ -159,7 +164,7 @@
   <!-- Asociar documento - Drag & Drop (colapsable) -->
   <div class="side-panel-card collapsible" id="documentDropCard">
     <div class="side-panel-header">
-      <span class="side-panel-icon">📎</span>
+    <span class="side-panel-icon">📎</span>
       <h3 class="side-panel-title">Asociar documento</h3>
       <span class="side-panel-toggle"></span>
     </div>
@@ -167,7 +172,12 @@
     <div class="side-panel-card-content">
       <!-- Zona de drag & drop -->
       <div class="dropzone" id="documentDropzone">
-        <div class="dropzone-icon">📄</div>
+        <div class="dropzone-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 4h11l5 5v11a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/>
+            <path d="M15 4v5h5"/>
+          </svg>
+        </div>
         <p class="dropzone-text">
           <strong>Arrastra un documento aqui</strong>
           o haz click para seleccionar
@@ -217,7 +227,7 @@
       </form>
       {% else %}
       <div class="empty-state" style="padding: 16px 0;">
-        <div class="empty-state-icon" style="font-size: 32px;">📚</div>
+     <div class="empty-state-icon" style="font-size: 32px;">📚</div>
         <p class="empty-state-desc" style="font-size: 12px;">No hay documentos en la biblioteca. Arrastra un archivo arriba para subir uno nuevo.</p>
       </div>
       {% endif %}
@@ -247,6 +257,11 @@
   </div>
 
 </aside>
+
+
+    <div class="project-note-modal-body" id="projectNoteModalBody"></div>
+  </div>
+</div>
 
 <!-- Modal para subir documento con drag & drop -->
 <div class="upload-modal-overlay" id="uploadModalOverlay">
