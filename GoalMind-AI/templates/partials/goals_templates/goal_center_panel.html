@@ -196,15 +196,6 @@
       {% set prioridad = goal.get('prioridad', 'Media')|lower %}
       <li class="item-card priority-{{ prioridad }}" data-goal-id="{{ goal['_id'] }}">
 
-        <!-- Formulario oculto de borrado -->
-        <form id="delete-{{ goal['_id'] }}"
-              action="{{ url_for('goal_bp.delete_goal', goal_id=goal['_id']) }}"
-              method="post"
-              onsubmit="return confirm('¿Eliminar este objetivo?');"
-              style="display:none;">
-          {% if csrf_token is defined %}{{ csrf_token() }}{% endif %}
-        </form>
-
         <div class="item-card-header">
           <input class="item-checkbox"
                  type="checkbox"
@@ -372,7 +363,7 @@
               <button type="button" class="panel-action-btn btn-edit">✏️ Editar</button>
               <button type="submit" class="panel-action-btn success btn-confirm" style="display:none;">✅ Confirmar</button>
               <button type="button" class="panel-action-btn btn-cancel" style="display:none;">❌ Cancelar</button>
-              <button type="submit"
+              <button type="button"
                       class="panel-action-btn danger task-delete-btn"
                       title="Eliminar"
                       form="delete-{{ goal['_id'] }}">🗑️ Eliminar</button>
@@ -380,6 +371,15 @@
 
           </form>
         </div>
+
+        <!-- Formulario oculto de borrado -->
+        <form id="delete-{{ goal['_id'] }}"
+              action="{{ url_for('goal_bp.delete_goal', goal_id=goal['_id']) }}"
+              method="post"
+              onsubmit="return confirm('¿Eliminar este objetivo?');"
+              style="display:none;">
+          {% if csrf_token is defined %}{{ csrf_token() }}{% endif %}
+        </form>
 
       </li>
       {% endfor %}

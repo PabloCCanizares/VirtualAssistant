@@ -128,6 +128,50 @@
 
   </div>
 
+  <!-- ANOTACIONES DEL PROYECTO -->
+  <div class="panel-section panel-accent project-notes-section">
+    <div class="panel-header">
+      <h3 class="panel-title">
+        <span class="panel-title-icon">📝</span>
+        Anotaciones del proyecto
+      </h3>
+      <span class="panel-badge">{{ (project.get('notas', [])|length) if project else 0 }} notas</span>
+    </div>
+
+    <form method="post" action="{{ url_for('project_bp.add_project_note', project_id=project['_id']) }}" class="project-note-form">
+      <textarea name="note_text" class="project-note-input" rows="3" placeholder="Escribe una anotación..."></textarea>
+      <div class="project-note-actions">
+        <button type="submit" class="panel-action-btn primary">Agregar nota</button>
+      </div>
+    </form>
+
+    {% set notes = project.get('notas', []) %}
+    {% if notes and notes|length > 0 %}
+      <ul class="item-list project-notes-list">
+        {% for note in notes|reverse %}
+          <li class="item-card item-card-compact project-note-item" data-note-text="{{ note.get('text','')|e }}" data-note-date="{{ (note.get('created_at') or '')|string|replace('T',' ')|truncate(16, True, '') }}">
+            <div class="item-card-header">
+              <div class="item-content">
+                <div class="item-meta">
+                  <span class="item-meta-tag">{{ (note.get('created_at') or '')|string|replace('T',' ')|truncate(16, True, '') }}</span>
+                </div>
+                <p class="item-desc">{{ note.get('text','') }}</p>
+              </div>
+              <form method="post" action="{{ url_for('project_bp.delete_project_note', project_id=project['_id'], note_id=note.get('_id')) }}" onsubmit="return confirm('?Eliminar esta anotacion?');" class="project-note-delete-form">
+                <button type="submit" class="panel-action-btn panel-action-btn-small danger" title="Eliminar">Eliminar</button>
+              </form>
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <div class="empty-state">
+        <div class="empty-state-icon">??</div>
+        <p class="empty-state-desc">Aún no hay anotaciones.</p>
+      </div>
+    {% endif %}
+  </div>
+
   <!-- SEGUNDA FILA: Lista completa de objetivos (ancho completo) -->
   <div class="panel-section panel-accent">
     <div class="panel-header">
@@ -185,6 +229,20 @@
     {% endif %}
   </div>
 
+
+
+  <div class="project-note-modal" id="projectNoteModal" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="project-note-modal-overlay" data-action="close"></div>
+    <div class="project-note-modal-content" role="document">
+      <div class="project-note-modal-header">
+        <h4 class="project-note-modal-title">Nota</h4>
+        <button type="button" class="project-note-modal-close" data-action="close" aria-label="Cerrar">&times;</button>
+      </div>
+      <div class="project-note-modal-meta" id="projectNoteModalDate"></div>
+      <div class="project-note-modal-body" id="projectNoteModalBody"></div>
+    </div>
+  </div>
+
 </section>
 
 <script>
@@ -203,6 +261,45 @@ document.addEventListener('DOMContentLoaded', function() {
         this.classList.toggle('expanded', !isVisible);
       }
     });
+  });
+});
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const modal = document.getElementById('projectNoteModal');
+  const modalBody = document.getElementById('projectNoteModalBody');
+  const modalDate = document.getElementById('projectNoteModalDate');
+  const openNote = (noteEl) => {
+    if (!modal || !modalBody) return;
+    modalBody.textContent = noteEl.dataset.noteText || '';
+    if (modalDate) {
+      modalDate.textContent = noteEl.dataset.noteDate || '';
+    }
+    modal.classList.add('active');
+    modal.setAttribute('aria-hidden', 'false');
+  };
+  const closeModal = () => {
+    if (!modal) return;
+    modal.classList.remove('active');
+    modal.setAttribute('aria-hidden', 'true');
+  };
+
+  document.querySelectorAll('.project-note-item').forEach(item => {
+    item.addEventListener('click', (e) => {
+      if (e.target.closest('form') || e.target.closest('button')) return;
+      openNote(item);
+    });
+  });
+
+  if (modal) {
+    modal.querySelectorAll('[data-action="close"]').forEach(btn => {
+      btn.addEventListener('click', closeModal);
+    });
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeModal();
   });
 });
 </script>

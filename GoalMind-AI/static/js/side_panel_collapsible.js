@@ -1,13 +1,5 @@
-/**
+/*
  * Side Panel Collapsible - Sistema de menus desplegables para paneles laterales
- *
- * Comportamiento:
- * - Por defecto todos los bloques con forms estan colapsados
- * - Al hacer hover, el bloque se expande
- * - Si se hace click en un elemento del contenido, el bloque queda "locked"
- * - El bloque locked permanece expandido hasta que se haga click fuera de el
- * - Solo puede haber un bloque locked a la vez
- * - Los bloques sin forms permanecen siempre visibles (no colapsables)
  */
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -17,62 +9,11 @@ document.addEventListener('DOMContentLoaded', function() {
 function initCollapsiblePanels() {
   const sidePanels = document.querySelectorAll('.side-panel');
   
-  sidePanels.forEach(sidePanel => {
+ sidePanels.forEach(sidePanel => {
     const cards = sidePanel.querySelectorAll('.side-panel-card.collapsible');
-    let lockedCard = null;
-    let hoverTimeout = null;
 
-    /**
-     * Expande una card
-     */
-    function expandCard(card) {
-      card.classList.add('expanded');
-    }
-
-    /**
-     * Colapsa una card
-     */
-    function collapseCard(card) {
-      if (!card.classList.contains('locked')) {
-        card.classList.remove('expanded');
-      }
-    }
-
-    /**
-     * Bloquea una card (la mantiene expandida tras click)
-     */
-    function lockCard(card) {
-      // Si hay otra card bloqueada, desbloquearla primero
-      if (lockedCard && lockedCard !== card) {
-        unlockCard(lockedCard);
-      }
-
-      card.classList.add('locked');
-      card.classList.add('expanded');
-      lockedCard = card;
-    }
-
-    /**
-     * Desbloquea una card
-     */
-    function unlockCard(card) {
-      if (!card) return;
-      card.classList.remove('locked');
-      card.classList.remove('expanded');
-      if (lockedCard === card) {
-        lockedCard = null;
-      }
-    }
-
-    /**
-     * Desbloquea todas las cards
-     */
-    function unlockAll() {
-      cards.forEach(card => {
-        card.classList.remove('locked');
-        card.classList.remove('expanded');
-      });
-      lockedCard = null;
+    function toggleCard(card) {
+      card.classList.toggle('expanded');
     }
 
     // Configurar cada card colapsable
@@ -82,80 +23,10 @@ function initCollapsiblePanels() {
       
       if (!header || !content) return;
 
-      // Hover en la card -> expandir
-      card.addEventListener('mouseenter', function() {
-        clearTimeout(hoverTimeout);
-        if (!card.classList.contains('locked')) {
-          expandCard(card);
-        }
-      });
-
-      // Mouse leave -> colapsar (si no esta locked)
-      card.addEventListener('mouseleave', function() {
-        hoverTimeout = setTimeout(() => {
-          if (!card.classList.contains('locked')) {
-            collapseCard(card);
-          }
-        }, 150); // Pequeno delay para evitar colapsos accidentales
-      });
-
-      // Click en el header -> toggle lock
+      // Click en el header -> toggle expand/collapse
       header.addEventListener('click', function(e) {
         e.stopPropagation();
-        
-        if (card.classList.contains('locked')) {
-          unlockCard(card);
-        } else {
-          lockCard(card);
-        }
-      });
-
-      // Click en el contenido -> bloquear
-      content.addEventListener('click', function(e) {
-        e.stopPropagation();
-        lockCard(card);
-      });
-
-      // Click en inputs, selects, textareas, buttons -> bloquear
-      const interactiveElements = content.querySelectorAll('input, select, textarea, button, .dropzone');
-      interactiveElements.forEach(el => {
-        el.addEventListener('focus', function() {
-          lockCard(card);
-        });
-
-        el.addEventListener('click', function(e) {
-          e.stopPropagation();
-          lockCard(card);
-        });
-      });
-    });
-
-    // Click fuera del panel -> desbloquear todo
-    document.addEventListener('click', function(e) {
-      if (!sidePanel.contains(e.target)) {
-        // Verificar que no se haya hecho click en un modal
-        const modal = document.querySelector('.upload-modal-overlay.active');
-        if (modal && modal.contains(e.target)) return;
-        
-        unlockAll();
-      }
-    });
-
-    // Tecla Escape -> desbloquear todo
-    document.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape') {
-        unlockAll();
-      }
-    });
-
-    // Prevenir que el submit de forms desbloquee
-    const forms = sidePanel.querySelectorAll('form');
-    forms.forEach(form => {
-      form.addEventListener('submit', function(e) {
-        const card = form.closest('.side-panel-card.collapsible');
-        if (card) {
-          setTimeout(() => lockCard(card), 100);
-        }
+        toggleCard(card);
       });
     });
   });

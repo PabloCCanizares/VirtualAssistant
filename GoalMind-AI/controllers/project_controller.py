@@ -4,7 +4,7 @@ import os
 from pathlib import Path
 from uuid import uuid4
 
-from flask import Blueprint, current_app, flash, redirect, render_template, request, send_file, url_for
+from flask import Blueprint, current_app, flash, make_response, redirect, render_template, request, send_file, url_for
 from werkzeug.utils import secure_filename
 from bson import ObjectId
 
@@ -80,8 +80,25 @@ def _format_size(size_bytes):
     return f"{size:.1f} PB"
 
 
+def _parse_importance(value, default=None):
+    if value is None or value == "":
+        return default
+    try:
+        return max(0, min(10, int(value)))
+    except (TypeError, ValueError):
+        return default
+
+
+def _importance_value(project):
+    return _parse_importance(project.get("importancia"), default=0) or 0
+
+
+def _created_at_value(project):
+    return project.get("created_at") or datetime.min
+
+
 # -------------------------------------------------------------
-# 📋 LISTAR TODOS LOS PROYECTOS
+# LISTAR TODOS LOS PROYECTOS
 # -------------------------------------------------------------
 @project_bp.route("/", methods=["GET"])
 def list_projects():
@@ -119,10 +136,43 @@ def list_projects():
             key = str(project_id)
             doc_counts[key] = doc_counts.get(key, 0) + 1
 
-    projects_view = [_serialize_project(p) for p in projects]
+    sort_mode = request.args.get("order") or request.cookies.get("projects_sort") or "importance-desc"
+    if sort_mode not in {"importance-desc", "importance-asc"}:
+        sort_mode = "importance-desc"
+
+    search_term = (request.args.get("q") or "").strip()
+    if search_term:
+        lowered = search_term.lower()
+        projects = [p for p in projects if lowered in (p.get("titulo") or "").lower()]
+
+    status_filter = (request.args.get("status") or "").strip()
+    if status_filter and status_filter.lower() != "all":
+        projects = [p for p in projects if (p.get("estado") or "").strip().lower() == status_filter.lower()]
+
+    priority_filter = (request.args.get("priority") or "").strip()
+    if priority_filter and priority_filter.lower() != "all":
+        projects = [p for p in projects if (p.get("prioridad") or "").strip().lower() == priority_filter.lower()]
+
+    category_filter = (request.args.get("category") or "").strip()
+    if category_filter and category_filter.lower() != "all":
+        projects = [p for p in projects if category_filter in [str(cid) for cid in p.get("categorias", [])]]
+
+    active_projects = []
+    other_projects = []
+    for project in projects:
+        if (project.get("estado") or "").strip().lower() == "activo":
+            active_projects.append(project)
+        else:
+            other_projects.append(project)
+
+    reverse_importance = sort_mode == "importance-desc"
+    active_projects = sorted(active_projects, key=_created_at_value, reverse=True)
+    active_projects.sort(key=_importance_value, reverse=reverse_importance)
+    other_projects = sorted(other_projects, key=_created_at_value, reverse=True)
+    projects_view = [_serialize_project(p) for p in (active_projects + other_projects)]
     category_names = _build_category_names(categories)
 
-    return render_template(
+    response = make_response(render_template(
         "partials/projects_templates/project_menu.html",
         projects=projects_view,
         goal_counts=goal_counts,
@@ -131,11 +181,18 @@ def list_projects():
         categories=categories,
         category_names=category_names,
         page="projects",
-    )
+        project_sort=sort_mode,
+        project_query=search_term,
+        project_status=status_filter or "all",
+        project_priority=priority_filter or "all",
+        project_category=category_filter or "all",
+    ))
+    response.set_cookie("projects_sort", sort_mode, max_age=60 * 60 * 24 * 365)
+    return response
 
 
 # -------------------------------------------------------------
-# ➕ CREAR PROYECTO
+#CREAR PROYECTO
 # -------------------------------------------------------------
 @project_bp.route("/add", methods=["POST"])
 def add_project():
@@ -162,6 +219,7 @@ def add_project():
             "categorias": categorias,
             "estado": request.form.get("estado") or "Activo",
             "prioridad": request.form.get("prioridad") or "Media",
+            "importancia": _parse_importance(request.form.get("importancia"), default=5),
             "fecha_inicio": request.form.get("fecha_inicio"),
             "fecha_fin": request.form.get("fecha_fin"),
             "id_usuario": user_id,
@@ -180,7 +238,7 @@ def add_project():
 
 
 # -------------------------------------------------------------
-# 🔎 DETALLE DE PROYECTO
+# DETALLE DE PROYECTO
 # -------------------------------------------------------------
 @project_bp.route("/<project_id>", methods=["GET"])
 def view_project(project_id):
@@ -257,8 +315,57 @@ def view_project(project_id):
 
 
 # -------------------------------------------------------------
-# ✏️ ACTUALIZAR PROYECTO
+# ACTUALIZAR PROYECTO
 # -------------------------------------------------------------
+# -------------------------------------------------------------
+# ANOTACIONES DE PROYECTO
+# -------------------------------------------------------------
+@project_bp.route("/<project_id>/notes/add", methods=["POST"])
+def add_project_note(project_id):
+    try:
+        text = (request.form.get("note_text") or "").strip()
+        if not text:
+            flash("La anotacion no puede estar vacia.", "warning")
+            return redirect(url_for("project_bp.view_project", project_id=project_id))
+
+        project = ProjectModel.get_project_by_id(project_id)
+        if not project:
+            flash("Proyecto no encontrado.", "warning")
+            return redirect(url_for("project_bp.list_projects"))
+
+        note = {
+            "_id": uuid4().hex,
+            "text": text,
+            "created_at": datetime.utcnow(),
+        }
+        notes = project.get("notas", []) or []
+        notes.append(note)
+        ProjectModel.update_project(project_id, {"notas": notes})
+        flash("Anotacion agregada.", "success")
+    except Exception as e:
+        flash(f"Error al agregar anotacion: {e}", "danger")
+
+    return redirect(url_for("project_bp.view_project", project_id=project_id))
+
+
+@project_bp.route("/<project_id>/notes/<note_id>/delete", methods=["POST"])
+def delete_project_note(project_id, note_id):
+    try:
+        project = ProjectModel.get_project_by_id(project_id)
+        if not project:
+            flash("Proyecto no encontrado.", "warning")
+            return redirect(url_for("project_bp.list_projects"))
+
+        notes = project.get("notas", []) or []
+        notes = [n for n in notes if str(n.get("_id")) != str(note_id)]
+        ProjectModel.update_project(project_id, {"notas": notes})
+        flash("Anotacion eliminada.", "success")
+    except Exception as e:
+        flash(f"Error al eliminar anotacion: {e}", "danger")
+
+    return redirect(url_for("project_bp.view_project", project_id=project_id))
+
+
 @project_bp.route("/update/<project_id>", methods=["POST"])
 def update_project(project_id):
     try:
@@ -285,6 +392,9 @@ def update_project(project_id):
             "fecha_fin": request.form.get("fecha_fin"),
             "id_usuario": request.form.get("id_usuario") or "",
         }
+        importance_value = _parse_importance(request.form.get("importancia"))
+        if importance_value is not None:
+            updates["importancia"] = importance_value
         
         # Solo actualizar categorias si se enviaron
         if categorias_raw:
@@ -301,7 +411,7 @@ def update_project(project_id):
 
 
 # -------------------------------------------------------------
-# ÐY"Z ASOCIAR DOCUMENTO EXISTENTE
+# ASOCIAR DOCUMENTO EXISTENTE
 # -------------------------------------------------------------
 @project_bp.route("/<project_id>/documents/link", methods=["POST"])
 def link_upload_document(project_id):
@@ -340,7 +450,7 @@ def link_upload_document(project_id):
 
 
 # -------------------------------------------------------------
-# 🗑️ ELIMINAR PROYECTO
+# ELIMINAR PROYECTO
 # -------------------------------------------------------------
 @project_bp.route("/delete/<project_id>", methods=["POST"])
 def delete_project(project_id):
@@ -370,7 +480,7 @@ def delete_project(project_id):
 
 
 # -------------------------------------------------------------
-# 📎 SUBIR DOCUMENTO A PROYECTO
+# SUBIR DOCUMENTO A PROYECTO
 # -------------------------------------------------------------
 @project_bp.route("/<project_id>/documents", methods=["POST"])
 def upload_document(project_id):
@@ -416,7 +526,7 @@ def upload_document(project_id):
 
 
 # -------------------------------------------------------------
-# ⬇️ DESCARGAR DOCUMENTO
+# DESCARGAR DOCUMENTO
 # -------------------------------------------------------------
 @project_bp.route("/documents/<doc_id>/download", methods=["GET"])
 def download_document(doc_id):
@@ -439,7 +549,7 @@ def download_document(doc_id):
 
 
 # -------------------------------------------------------------
-# 🗑️ ELIMINAR DOCUMENTO
+# ELIMINAR DOCUMENTO
 # -------------------------------------------------------------
 @project_bp.route("/documents/<doc_id>/delete", methods=["POST"])
 def delete_document(doc_id):
