@@ -34,5 +34,3 @@ GoalMind-AI/uploads/
 GoalMind-AI/controllers/__pycache__/goal_controller.cpython-312.pyc
 GoalMind-AI/controllers/__pycache__/task_controller.cpython-312.pyc
 GoalMind-AI/database/__pycache__/mongo_conn.cpython-312.pyc
-GoalMind-AI/.env
-GoalMind-AI/GoalMind-AI/.env
