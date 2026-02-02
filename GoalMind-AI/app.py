@@ -42,6 +42,7 @@ from controllers.stats_controller import stats_bp
 from controllers.upload_controller import upload_bp
 from controllers.category_controller import category_bp
 from controllers.ai_chat_controller import ai_chat_bp
+from model.category_model import CategoryModel
 
 app = Flask(__name__)
 
@@ -89,7 +90,19 @@ app.register_blueprint(ai_chat_bp)
 @app.context_processor
 def inject_now():
     """Inyecta la función now() en todas las plantillas Jinja2."""
-    return {'now': datetime.now}
+    sidebar_categories = []
+    try:
+        categories = CategoryModel.get_all_categories()
+        sidebar_categories = [
+            {"_id": str(c["_id"]), "name": c.get("name", "")}
+            for c in categories
+        ]
+    except Exception:
+        sidebar_categories = []
+    return {
+        "now": datetime.now,
+        "sidebar_categories": sidebar_categories,
+    }
 
 ################ Inicialización del Scheduler ##################
 # Solo inicializar si no estamos en el proceso de recarga de Flask (evita duplicados en modo debug)
