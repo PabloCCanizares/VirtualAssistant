@@ -2,6 +2,7 @@
 # Módulo para gestionar la sincronización en background con APScheduler
 
 from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.executors.pool import ThreadPoolExecutor
 from apscheduler.triggers.interval import IntervalTrigger
 import atexit
 
@@ -23,7 +24,8 @@ def init_scheduler(app, sync_interval_minutes=1):
     if _scheduler is not None:
         return _scheduler
 
-    _scheduler = BackgroundScheduler()
+    executors = {"default": ThreadPoolExecutor(10)}
+    _scheduler = BackgroundScheduler(executors=executors)
 
     def sync_job():
         """Job que ejecuta la sincronización dentro del contexto de Flask."""

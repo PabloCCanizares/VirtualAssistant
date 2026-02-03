@@ -174,13 +174,27 @@ class TaskModel:
         Devuelve todas las tareas asociadas a un objetivo específico.
         """
         local_col, _ = get_collection(TaskModel.COLLECTION)
-        _id = ObjectId(goal_id) if not isinstance(goal_id, ObjectId) else goal_id
+        queries = []
+        if isinstance(goal_id, ObjectId):
+            queries.append({"objetivo_id": goal_id})
+            queries.append({"goal_id": goal_id})
+        else:
+            try:
+                if ObjectId.is_valid(str(goal_id)):
+                    oid = ObjectId(str(goal_id))
+                    queries.append({"objetivo_id": oid})
+                    queries.append({"goal_id": oid})
+            except Exception:
+                pass
+            if goal_id is not None:
+                queries.append({"objetivo_id": str(goal_id)})
+                queries.append({"goal_id": str(goal_id)})
+
+        if not queries:
+            return []
+
         # Compatibilidad: algunas tareas guardan "objetivo_id" y otras "goal_id"
-        return list(
-            local_col.find(
-                {"$or": [{"objetivo_id": _id}, {"goal_id": _id}]}
-            ).sort("fecha_creacion", -1)
-        )
+        return list(local_col.find({"$or": queries}).sort("fecha_creacion", -1))
 
     # -------------------------------------------------------------
     #  ELIMINAR
