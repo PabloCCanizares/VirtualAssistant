@@ -11,7 +11,8 @@ from model.task_model import TaskModel
 
 DEFAULT_USER_ID = "66ffbbbbbbbbbbbbbbbb0100"
 
-
+"""Convertir los objetos no seriablizables a formatos compatibles con JSON para meterlos en MongoDB.""
+"""
 def _serialize_value(value):
     if isinstance(value, ObjectId):
         return str(value)
@@ -24,6 +25,7 @@ def _serialize_value(value):
     return value
 
 
+"""Cargar contexto del usuario: tareas, objetivos y proyectos del usuario desde la base de datos y serializarlos a JSON."""
 def _load_user_context(user_id):
     tasks = TaskModel.get_task_by_user(user_id)
     goals = GoalModel.get_by_user_id(user_id)
@@ -37,6 +39,7 @@ def _load_user_context(user_id):
     }
 
 
+"""Construir el prompt, proporcionar el contexto del usuario y el historial de chat."""
 def _build_messages(user_message, history, context_json):
     system_prompt = (
         "Eres GoalMind AI, un asistente para ayudar con objetivos, tareas y "
@@ -61,6 +64,7 @@ def _build_messages(user_message, history, context_json):
     return messages
 
 
+"""Ejecutar el chat con el modelo LLM de OpenAI."""
 def run_chat(message, history):
     settings = get_settings()
     if not settings.openai_api_key:
