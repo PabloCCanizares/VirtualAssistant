@@ -28,10 +28,11 @@ def init_scheduler(app, sync_interval_minutes=1):
     def sync_job():
         """Job que ejecuta la sincronización dentro del contexto de Flask."""
         with app.app_context():
-            from database.mongo_conn import sync_all_collections, sync_local_to_remote
+            from database.mongo_conn import sync_all_collections, sync_local_to_remote, flush_deletion_queue
             try:
                 sync_all_collections()
                 sync_local_to_remote()
+                flush_deletion_queue()
             except Exception as e:
                 print(f"[Scheduler] Error en sincronización: {e}")
 
@@ -84,6 +85,7 @@ def trigger_sync_now(app):
         app: Instancia de Flask
     """
     with app.app_context():
-        from database.mongo_conn import sync_all_collections, sync_local_to_remote
+        from database.mongo_conn import sync_all_collections, sync_local_to_remote, flush_deletion_queue
         sync_all_collections()
         sync_local_to_remote()
+        flush_deletion_queue()
