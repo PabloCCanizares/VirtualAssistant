@@ -18,8 +18,22 @@ class ProjectDocumentModel:
     @staticmethod
     def get_by_project(project_id):
         local_col, _ = get_collection(ProjectDocumentModel.COLLECTION)
-        pid = ObjectId(project_id) if not isinstance(project_id, ObjectId) else project_id
-        return list(local_col.find({"project_id": pid}).sort("uploaded_at", -1))
+        queries = []
+        if isinstance(project_id, ObjectId):
+            queries.append({"project_id": project_id})
+        else:
+            try:
+                if ObjectId.is_valid(str(project_id)):
+                    queries.append({"project_id": ObjectId(str(project_id))})
+            except Exception:
+                pass
+            if project_id is not None:
+                queries.append({"project_id": str(project_id)})
+
+        if not queries:
+            return []
+
+        return list(local_col.find({"$or": queries}).sort("uploaded_at", -1))
 
     @staticmethod
     def get_document_by_id(doc_id):

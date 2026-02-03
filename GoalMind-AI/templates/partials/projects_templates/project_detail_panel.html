@@ -50,6 +50,14 @@
               <span class="tree-item-icon">🎯</span>
               <span class="tree-item-text">{{ goal.get('titulo','(sin titulo)') }}</span>
               <span class="tree-item-badge">{{ (goal_tasks.get(goal['_id'], [])|length) if goal_tasks else 0 }} tareas</span>
+              <form method="post"
+                    action="{{ url_for('goal_bp.delete_goal', goal_id=goal['_id']) }}"
+                    onsubmit="return confirm('¿Eliminar este objetivo?');"
+                    class="tree-item-action"
+                    style="display: inline;">
+                <input type="hidden" name="redirect_to" value="{{ url_for('project_bp.view_project', project_id=project['_id']) }}">
+                <button type="submit" class="panel-action-btn panel-action-btn-small danger tree-item-delete" title="Eliminar objetivo">🗑️</button>
+              </form>
             </div>
             <div class="tree-children tree-tasks-container" data-goal-id="{{ goal['_id'] }}" style="display: none;">
               {% set tasks = goal_tasks.get(goal['_id'], []) if goal_tasks else [] %}
@@ -185,38 +193,155 @@
     </div>
 
     {% if goals and goals|length > 0 %}
-    <ul class="item-list">
+    <ul class="item-list" id="projectGoalsList">
       {% for goal in goals %}
       {% set progreso = goal.get('progreso', 0) %}
-      <li class="item-card item-card-link">
-        <a href="{{ url_for('goal_bp.view_goal', goal_id=goal['_id']) }}" class="item-card-link-wrapper">
-          <div class="item-card-header">
-            <div class="progress-ring small" style="--progress:{{ progreso }}%">
-              <span class="progress-ring-value">{{ progreso }}%</span>
-            </div>
-            <div class="item-content">
-              <h4 class="item-title">{{ goal.get('titulo','(sin titulo)') }}</h4>
-              <div class="item-meta">
-                {% if goal.get('categorias') and goal.categorias|length > 0 %}
-                  {% for cat_id in goal.categorias[:2] %}
-                    <span class="item-meta-tag">{{ category_names.get(cat_id, 'Categoria') }}</span>
-                  {% endfor %}
-                  {% if goal.categorias|length > 2 %}
-                    <span class="item-meta-tag">+{{ goal.categorias|length - 2 }}</span>
-                  {% endif %}
-                {% else %}
-                  <span class="item-meta-tag">Sin categoria</span>
+      <li class="item-card project-goal-item" data-goal-id="{{ goal['_id'] }}">
+        <div class="item-card-header project-goal-header">
+          <div class="progress-ring small" style="--progress:{{ progreso }}%">
+            <span class="progress-ring-value">{{ progreso }}%</span>
+          </div>
+          <div class="item-content">
+            <h4 class="item-title">{{ goal.get('titulo','(sin titulo)') }}</h4>
+            <div class="item-meta">
+              {% if goal.get('categorias') and goal.categorias|length > 0 %}
+                {% for cat_id in goal.categorias[:2] %}
+                  <span class="item-meta-tag">{{ category_names.get(cat_id, 'Categoria') }}</span>
+                {% endfor %}
+                {% if goal.categorias|length > 2 %}
+                  <span class="item-meta-tag">+{{ goal.categorias|length - 2 }}</span>
                 {% endif %}
-                {% set estado = goal.get('estado','En progreso') %}
-                <span class="item-meta-tag status-{{ estado|lower|replace(' ', '-') }}">{{ estado }}</span>
-                <span class="item-meta-tag">{{ goal.get('prioridad','Media') }}</span>
-                {% set num_tasks = (goal_tasks.get(goal['_id'], [])|length) if goal_tasks else 0 %}
-                <span class="item-meta-tag">{{ num_tasks }} tareas</span>
+              {% else %}
+                <span class="item-meta-tag">Sin categoria</span>
+              {% endif %}
+              {% set estado = goal.get('estado','En progreso') %}
+              <span class="item-meta-tag status-{{ estado|lower|replace(' ', '-') }}">{{ estado }}</span>
+              <span class="item-meta-tag">{{ goal.get('prioridad','Media') }}</span>
+              {% set num_tasks = (goal_tasks.get(goal['_id'], [])|length) if goal_tasks else 0 %}
+              <span class="item-meta-tag">{{ num_tasks }} tareas</span>
+            </div>
+          </div>
+          <button type="button" class="item-card-arrow project-goal-toggle" aria-label="Ver detalles">▼</button>
+        </div>
+
+        <div class="item-details" aria-hidden="true">
+          <form class="goal-edit-form"
+                action="{{ url_for('goal_bp.update_goal', goal_id=goal['_id']) }}"
+                method="post">
+            <input type="hidden" name="project_id" value="{{ project['_id'] }}">
+            <input type="hidden" name="redirect_to" value="{{ url_for('project_bp.view_project', project_id=project['_id']) }}">
+
+            <div class="goal-fields-view">
+              <div class="item-details-grid">
+                <div class="item-detail-row">
+                  <span class="item-detail-label">Descripcion</span>
+                  <span class="item-detail-value">{{ goal.get('descripcion','(sin descripcion)') }}</span>
+                </div>
+                <div class="item-detail-row">
+                  <span class="item-detail-label">Estado</span>
+                  <span class="item-detail-value">{{ estado }}</span>
+                </div>
+                <div class="item-detail-row">
+                  <span class="item-detail-label">Prioridad</span>
+                  <span class="item-detail-value">{{ goal.get('prioridad','Media') }}</span>
+                </div>
+                <div class="item-detail-row">
+                  <span class="item-detail-label">Progreso</span>
+                  <span class="item-detail-value">{{ progreso }}%</span>
+                </div>
+                <div class="item-detail-row">
+                  <span class="item-detail-label">Inicio</span>
+                  {% set fi = goal.get('fecha_inicio') %}
+                  <span class="item-detail-value">{{ fi.strftime('%Y-%m-%d') if fi and fi is not string else (fi or '—')[:10] if fi else '—' }}</span>
+                </div>
+                <div class="item-detail-row">
+                  <span class="item-detail-label">Fin</span>
+                  {% set ff = goal.get('fecha_fin') %}
+                  <span class="item-detail-value">{{ ff.strftime('%Y-%m-%d') if ff and ff is not string else (ff or '—')[:10] if ff else '—' }}</span>
+                </div>
               </div>
             </div>
-            <div class="item-card-arrow">→</div>
-          </div>
-        </a>
+
+            <div class="goal-fields-edit panel-form" style="display:none;">
+              <div class="panel-form-group">
+                <label class="panel-form-label">Titulo</label>
+                <input type="text" name="titulo" class="panel-form-input" value="{{ goal.get('titulo','') }}" required>
+              </div>
+
+              <div class="panel-form-group">
+                <label class="panel-form-label">Descripcion</label>
+                <textarea name="descripcion" class="panel-form-textarea" rows="3">{{ goal.get('descripcion','') }}</textarea>
+              </div>
+
+              <div class="panel-form-row">
+                <div class="panel-form-group">
+                  <label class="panel-form-label">Fecha inicio</label>
+                  {% set fi = goal.get('fecha_inicio') %}
+                  <input type="date" name="fecha_inicio" class="panel-form-input" value="{{ fi.strftime('%Y-%m-%d') if fi and fi is not string else (fi or '')[:10] if fi else '' }}">
+                </div>
+                <div class="panel-form-group">
+                  <label class="panel-form-label">Fecha fin</label>
+                  {% set ff = goal.get('fecha_fin') %}
+                  <input type="date" name="fecha_fin" class="panel-form-input" value="{{ ff.strftime('%Y-%m-%d') if ff and ff is not string else (ff or '')[:10] if ff else '' }}">
+                </div>
+              </div>
+
+              <div class="panel-form-group">
+                <label class="panel-form-label">Categorias</label>
+                <div data-category-selector 
+                     data-name="categorias" 
+                     data-selected="{{ goal.get('categorias', [])|join(',') }}"
+                     data-allow-create="true"></div>
+              </div>
+
+              <div class="panel-form-row">
+                <div class="panel-form-group">
+                  <label class="panel-form-label">Estado</label>
+                  {% set st = goal.get('estado','En progreso') %}
+                  <select name="estado" class="panel-form-select">
+                    <option value="Pendiente" {% if st == 'Pendiente' %}selected{% endif %}>Pendiente</option>
+                    <option value="En progreso" {% if st == 'En progreso' %}selected{% endif %}>En progreso</option>
+                    <option value="Completado" {% if st == 'Completado' %}selected{% endif %}>Completado</option>
+                    <option value="Pausado" {% if st == 'Pausado' %}selected{% endif %}>Pausado</option>
+                  </select>
+                </div>
+                <div class="panel-form-group">
+                  <label class="panel-form-label">Prioridad</label>
+                  {% set pr = goal.get('prioridad','Media')|lower %}
+                  <select name="prioridad" class="panel-form-select">
+                    <option value="Baja" {% if pr == 'baja' %}selected{% endif %}>Baja</option>
+                    <option value="Media" {% if pr == 'media' %}selected{% endif %}>Media</option>
+                    <option value="Alta" {% if pr == 'alta' %}selected{% endif %}>Alta</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="panel-form-group">
+                <label class="panel-form-label">Progreso (%)</label>
+                <input type="number" name="progreso" class="panel-form-input" min="0" max="100" value="{{ progreso }}">
+              </div>
+            </div>
+
+            <div class="item-actions">
+              <a class="panel-action-btn" href="{{ url_for('goal_bp.view_goal', goal_id=goal['_id']) }}">Abrir objetivo</a>
+              <button type="button" class="panel-action-btn btn-edit">Editar</button>
+              <button type="submit" class="panel-action-btn success btn-confirm" style="display:none;">Confirmar</button>
+              <button type="button" class="panel-action-btn btn-cancel" style="display:none;">Cancelar</button>
+              <button type="submit"
+                      class="panel-action-btn danger goal-delete-btn"
+                      title="Eliminar"
+                      form="delete-{{ goal['_id'] }}">Eliminar</button>
+            </div>
+          </form>
+        </div>
+
+        <form id="delete-{{ goal['_id'] }}"
+              action="{{ url_for('goal_bp.delete_goal', goal_id=goal['_id']) }}"
+              method="post"
+              onsubmit="return confirm('¿Eliminar este objetivo?');"
+              style="display:none;">
+          <input type="hidden" name="redirect_to" value="{{ url_for('project_bp.view_project', project_id=project['_id']) }}">
+        </form>
       </li>
       {% endfor %}
     </ul>
@@ -249,7 +374,10 @@
 document.addEventListener('DOMContentLoaded', function() {
   // Toggle para expandir/colapsar tareas de cada objetivo en el arbol
   document.querySelectorAll('.tree-item-goal').forEach(item => {
-    item.addEventListener('click', function() {
+    item.addEventListener('click', function(e) {
+      if (e && e.target && e.target.closest('form, button')) {
+        return;
+      }
       const goalId = this.dataset.goalId;
       const tasksContainer = document.querySelector(`.tree-tasks-container[data-goal-id="${goalId}"]`);
       const toggle = this.querySelector('.tree-item-toggle');
@@ -264,6 +392,70 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 });
 </script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const goalItems = document.querySelectorAll('.project-goal-item');
+
+  goalItems.forEach(item => {
+    const header = item.querySelector('.project-goal-header');
+    const details = item.querySelector('.item-details');
+    const toggle = item.querySelector('.project-goal-toggle');
+    const form = item.querySelector('.goal-edit-form');
+
+    const view = form ? form.querySelector('.goal-fields-view') : null;
+    const edit = form ? form.querySelector('.goal-fields-edit') : null;
+    const btnEdit = form ? form.querySelector('.btn-edit') : null;
+    const btnConfirm = form ? form.querySelector('.btn-confirm') : null;
+    const btnCancel = form ? form.querySelector('.btn-cancel') : null;
+
+    function toggleExpand(forceOpen = null) {
+      if (!details) return;
+      const isOpen = item.classList.contains('expanded');
+      const shouldOpen = forceOpen === null ? !isOpen : forceOpen;
+      item.classList.toggle('expanded', shouldOpen);
+      details.setAttribute('aria-hidden', shouldOpen ? 'false' : 'true');
+      if (toggle) toggle.textContent = shouldOpen ? '▲' : '▼';
+    }
+
+    if (header) {
+      header.addEventListener('click', (e) => {
+        if (e.target.closest('button, a, input, textarea, select, form')) return;
+        toggleExpand();
+      });
+    }
+    if (toggle) {
+      toggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleExpand();
+      });
+    }
+
+    if (btnEdit) {
+      btnEdit.addEventListener('click', () => {
+        if (view) view.style.display = 'none';
+        if (edit) edit.style.display = 'flex';
+        if (btnEdit) btnEdit.style.display = 'none';
+        if (btnConfirm) btnConfirm.style.display = 'inline-flex';
+        if (btnCancel) btnCancel.style.display = 'inline-flex';
+        toggleExpand(true);
+      });
+    }
+
+    if (btnCancel) {
+      btnCancel.addEventListener('click', () => {
+        if (edit) edit.style.display = 'none';
+        if (view) view.style.display = 'block';
+        if (btnEdit) btnEdit.style.display = 'inline-flex';
+        if (btnConfirm) btnConfirm.style.display = 'none';
+        if (btnCancel) btnCancel.style.display = 'none';
+      });
+    }
+  });
+});
+</script>
+
+<script src="{{ url_for('static', filename='js/category_selector.js') }}"></script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {

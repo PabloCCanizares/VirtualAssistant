@@ -214,15 +214,14 @@ def queue_deletion(collection_name, target_id):
         # Asegurar que el documento se elimine localmente (por si se reinsertó)
         target_local, _ = get_collection(collection_name)
         queries = []
+        try:
+            if ObjectId.is_valid(str(tid)):
+                queries.append({"_id": ObjectId(str(tid))})
+        except Exception:
+            pass
+        queries.append({"_id": str(tid)})
         if isinstance(tid, ObjectId):
             queries.append({"_id": tid})
-        else:
-            try:
-                if ObjectId.is_valid(str(tid)):
-                    queries.append({"_id": ObjectId(str(tid))})
-            except Exception:
-                pass
-            queries.append({"_id": str(tid)})
         if queries:
             target_local.delete_many({"$or": queries})
         return True
@@ -281,25 +280,23 @@ def flush_deletion_queue():
 
         delete_query = {"$or": [{"_id": cid} for cid in unique_candidates]}
         deleted = 0
+        delete_error = False
         try:
             deleted = remote_col.delete_many(delete_query).deleted_count
         except Exception:
             deleted = 0
-
-        if deleted == 0:
-            # Si no se eliminó, comprobar si ya no existe en remoto
-            exists = None
-            try:
-                exists = remote_col.find_one(delete_query)
-            except Exception:
-                exists = None
-            if exists is None:
-                local_col.delete_one({"_id": item["_id"]})
-                removed += 1
-                continue
+            delete_error = True
 
         if deleted > 0:
             local_col.delete_one({"_id": item["_id"]})
             removed += 1
+            continue
+
+        # Si hubo error o no se pudo confirmar el borrado, mantener en cola
+        if delete_error:
+            continue
+
+        # Si no se eliminó, mantener en cola para reintentar más tarde
+        continue
 
     return removed

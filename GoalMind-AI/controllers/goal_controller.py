@@ -2,6 +2,7 @@
 import os
 
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
+from database.mongo_conn import queue_deletion, flush_deletion_queue
 from model.goal_model import GoalModel
 from model.project_model import ProjectModel
 from model.task_model import TaskModel
@@ -258,6 +259,10 @@ def update_goal(goal_id):
     except Exception as e:
         flash(f"Error al actualizar el objetivo: {e}", "danger")
 
+    redirect_to = (request.form.get("redirect_to") or "").strip()
+    if redirect_to.startswith("/"):
+        return redirect(redirect_to)
+
     return redirect(url_for("goal_bp.list_goals"))
 
 # -------------------------------------------------------------
@@ -266,13 +271,37 @@ def update_goal(goal_id):
 @goal_bp.route("/delete/<goal_id>", methods=["POST"])
 def delete_goal(goal_id):
     try:
+        task_ids = []
+        try:
+            tasks = TaskModel.get_tasks_by_goal(goal_id)
+            task_ids = [t.get("_id") for t in tasks if t.get("_id")]
+        except Exception:
+            task_ids = []
+
+        if task_ids:
+            try:
+                TaskModel.delete_tasks_by_ids(task_ids)
+            except Exception:
+                pass
+            for tid in task_ids:
+                queue_deletion("Tasks", tid)
+
         deleted = GoalModel.delete_goal(goal_id)
+        if deleted:
+            queue_deletion("Goals", goal_id)
+            try:
+                flush_deletion_queue()
+            except Exception:
+                pass
         if deleted:
             flash("🗑️ Objetivo eliminado correctamente", "success")
         else:
             flash("⚠️ No se encontró el objetivo a eliminar", "warning")
     except Exception as e:
         flash(f"❌ No se pudo eliminar el objetivo: {e}", "danger")
+    redirect_to = (request.form.get("redirect_to") or "").strip()
+    if redirect_to.startswith("/"):
+        return redirect(redirect_to)
     return redirect(url_for("goal_bp.list_goals"))
 
 # -------------------------------------------------------------
@@ -286,7 +315,28 @@ def bulk_delete_goals():
         return redirect(url_for("goal_bp.list_goals"))
 
     try:
+        task_ids = []
+        for gid in ids:
+            try:
+                tasks = TaskModel.get_tasks_by_goal(gid)
+                task_ids.extend([t.get("_id") for t in tasks if t.get("_id")])
+            except Exception:
+                continue
+        if task_ids:
+            try:
+                TaskModel.delete_tasks_by_ids(task_ids)
+            except Exception:
+                pass
+            for tid in task_ids:
+                queue_deletion("Tasks", tid)
+
         deleted = GoalModel.delete_goals_by_ids(ids)
+        for gid in ids:
+            queue_deletion("Goals", gid)
+        try:
+            flush_deletion_queue()
+        except Exception:
+            pass
         flash(f"Se eliminaron {deleted} objetivo(s).", "success")
     except Exception as e:
         flash(f"❌ No se pudieron eliminar los objetivos seleccionados: {e}", "danger")

@@ -455,30 +455,53 @@ def link_upload_document(project_id):
 # -------------------------------------------------------------
 @project_bp.route("/delete/<project_id>", methods=["POST"])
 def delete_project(project_id):
+    errors = []
+
+    # 1) Recolectar objetivos y tareas
+    goals = []
+    goal_ids = []
+    task_ids = []
     try:
-        # 1) Eliminar tareas vinculadas a los objetivos del proyecto
         goals = GoalModel.get_by_project(project_id)
         goal_ids = [g.get("_id") for g in goals if g.get("_id")]
+    except Exception as e:
+        errors.append(f"objetivos: {e}")
 
-        task_ids = []
+    if goal_ids:
         for gid in goal_ids:
-            tasks = TaskModel.get_tasks_by_goal(gid)
-            task_ids.extend([t.get("_id") for t in tasks if t.get("_id")])
+            try:
+                tasks = TaskModel.get_tasks_by_goal(gid)
+                task_ids.extend([t.get("_id") for t in tasks if t.get("_id")])
+            except Exception as e:
+                errors.append(f"tareas: {e}")
 
-        if task_ids:
+    # 2) Eliminar tareas vinculadas
+    if task_ids:
+        try:
             TaskModel.delete_tasks_by_ids(task_ids)
-            for tid in task_ids:
-                queue_deletion("Tasks", tid)
+        except Exception as e:
+            errors.append(f"borrado tareas: {e}")
+        for tid in task_ids:
+            queue_deletion("Tasks", tid)
 
-        # 2) Eliminar objetivos del proyecto
-        if goal_ids:
+    # 3) Eliminar objetivos
+    if goal_ids:
+        try:
             GoalModel.delete_goals_by_ids(goal_ids)
-            for gid in goal_ids:
-                queue_deletion("Goals", gid)
+        except Exception as e:
+            errors.append(f"borrado objetivos: {e}")
+        for gid in goal_ids:
+            queue_deletion("Goals", gid)
 
-        # 3) Eliminar documentos del proyecto (y ficheros locales si aplica)
+    # 4) Eliminar documentos del proyecto (y ficheros locales si aplica)
+    try:
         docs = ProjectDocumentModel.get_by_project(project_id)
-        for doc in docs:
+    except Exception as e:
+        docs = []
+        errors.append(f"documentos: {e}")
+
+    for doc in docs:
+        try:
             if not doc.get("upload_id"):
                 local_path = doc.get("local_path")
                 if local_path:
@@ -487,16 +510,27 @@ def delete_project(project_id):
                     except Exception:
                         pass
             ProjectDocumentModel.delete_document(doc["_id"])
-            queue_deletion("ProjectDocuments", doc.get("_id"))
+        except Exception as e:
+            errors.append(f"borrado documento: {e}")
+        queue_deletion("ProjectDocuments", doc.get("_id"))
 
-        # 4) Eliminar el proyecto en sí
+    # 5) Eliminar el proyecto en sí
+    try:
         ProjectModel.delete_project(project_id)
-        queue_deletion("Projects", project_id)
-        # Intentar borrar en remoto inmediatamente si hay conexión
-        flush_deletion_queue()
-        flash("🗑️ Proyecto eliminado correctamente", "success")
     except Exception as e:
-        flash(f"❌ No se pudo eliminar el proyecto: {e}", "danger")
+        errors.append(f"borrado proyecto: {e}")
+    queue_deletion("Projects", project_id)
+
+    # Intentar borrar en remoto inmediatamente si hay conexión
+    try:
+        flush_deletion_queue()
+    except Exception as e:
+        errors.append(f"sync remoto: {e}")
+
+    if errors:
+        flash("🗑️ Proyecto eliminado con advertencias. Revisa logs para detalles.", "warning")
+    else:
+        flash("🗑️ Proyecto eliminado correctamente", "success")
 
     return redirect(url_for("project_bp.list_projects"))
 
