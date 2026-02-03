@@ -5,6 +5,7 @@ from typing import Optional
 from dotenv import load_dotenv
 
 
+"""Cargar variables de entorno desde el archivo .env."""
 def load_env(env_dir: Optional[Path] = None) -> None:
     base_dir = env_dir or Path(__file__).resolve().parent
     env_path = base_dir / ".env"
@@ -24,6 +25,6 @@ class Settings:
 def get_settings() -> Settings:
     return Settings(
         openai_api_key=os.getenv("OPENAI_API_KEY"),
-        openai_model=os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
+        openai_model=os.getenv("OPENAI_MODEL", "gpt-5-nano"),
         default_user_id=os.getenv("DEFAULT_USER_ID"),
     )
