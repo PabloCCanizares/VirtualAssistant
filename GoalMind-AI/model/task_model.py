@@ -175,7 +175,12 @@ class TaskModel:
         """
         local_col, _ = get_collection(TaskModel.COLLECTION)
         _id = ObjectId(goal_id) if not isinstance(goal_id, ObjectId) else goal_id
-        return list(local_col.find({"goal_id": _id}).sort("fecha_creacion", -1))
+        # Compatibilidad: algunas tareas guardan "objetivo_id" y otras "goal_id"
+        return list(
+            local_col.find(
+                {"$or": [{"objetivo_id": _id}, {"goal_id": _id}]}
+            ).sort("fecha_creacion", -1)
+        )
 
     # -------------------------------------------------------------
     #  ELIMINAR
@@ -192,7 +197,7 @@ class TaskModel:
         local_col.delete_one({"_id": _id})
 
         # Eliminar remoto (si hay conexión)
-        if remote_col:
+        if remote_col is not None:
             remote_col.delete_one({"_id": _id})
             print(f"🗑️ Tarea eliminada en local y remoto: {_id}")
         else:

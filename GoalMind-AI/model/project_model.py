@@ -93,33 +93,33 @@ class ProjectModel:
     def delete_project(project_id):
         local_col, remote_col = get_collection(ProjectModel.COLLECTION)
         queries = []
+        oid = None
         if isinstance(project_id, ObjectId):
-            queries.append({"_id": project_id})
+            oid = project_id
         else:
             try:
                 if ObjectId.is_valid(str(project_id)):
-                    queries.append({"_id": ObjectId(str(project_id))})
+                    oid = ObjectId(str(project_id))
             except Exception:
-                pass
+                oid = None
+
+        if oid is not None:
+            queries.append({"_id": oid})
         if project_id is not None:
             queries.append({"_id": str(project_id)})
 
         if not queries:
             return False
 
-        deleted_local = 0
-        for query in queries:
-            res = local_col.delete_one(query)
-            deleted_local += res.deleted_count
+        delete_query = {"$or": queries}
+        deleted_local = local_col.delete_many(delete_query).deleted_count
 
         deleted_remote = 0
-        if remote_col:
-            for query in queries:
-                try:
-                    res = remote_col.delete_one(query)
-                    deleted_remote += res.deleted_count
-                except Exception:
-                    pass
+        if remote_col is not None:
+            try:
+                deleted_remote = remote_col.delete_many(delete_query).deleted_count
+            except Exception:
+                pass
 
         return (deleted_local + deleted_remote) > 0
 

@@ -14,6 +14,8 @@ import socket
 import json
 # Certificados raíz (para evitar problemas TLS/SSL con Atlas en macOS, etc.) [si da error ejecutar en comandos: pip install certifi]
 import certifi
+from datetime import datetime
+from bson import ObjectId
 
 ############################### Configuracion de la base de datos MongoDB #############################
 # Ruta al archivo JSON que contiene las credenciales de la base de datos remota
@@ -135,10 +137,33 @@ def sync_all_collections():
         return
 
     for col in collections:
+        pending_ids = get_pending_deletions(col)
         local_col, remote_col = get_collection(col)
         if remote_col is not None:
+            if pending_ids:
+                object_ids = []
+                string_ids = []
+                for pid in pending_ids:
+                    try:
+                        if ObjectId.is_valid(str(pid)):
+                            object_ids.append(ObjectId(str(pid)))
+                        else:
+                            string_ids.append(str(pid))
+                    except Exception:
+                        string_ids.append(str(pid))
+
+                delete_query = {"$or": []}
+                if object_ids:
+                    delete_query["$or"].append({"_id": {"$in": object_ids}})
+                if string_ids:
+                    delete_query["$or"].append({"_id": {"$in": string_ids}})
+                if delete_query["$or"]:
+                    local_col.delete_many(delete_query)
+
             remote_docs = remote_col.find()
             for doc in remote_docs:
+                if str(doc.get("_id")) in pending_ids:
+                    continue
                 # Descargar solo si no existe en local
                 if not local_col.find_one({"_id": doc["_id"]}):
                     local_col.insert_one(doc)
@@ -159,3 +184,122 @@ def sync_local_to_remote():
             continue
         for local_doc in local_col.find():
             sync_to_remote(col, local_doc)
+
+
+def queue_deletion(collection_name, target_id):
+    """Guarda en cola una eliminación para sincronizar cuando haya conexión remota."""
+    local_col, _ = get_collection("DeleteQueue")
+    if target_id is None:
+        return False
+
+    if isinstance(target_id, ObjectId):
+        tid = target_id
+    else:
+        try:
+            if ObjectId.is_valid(str(target_id)):
+                tid = ObjectId(str(target_id))
+            else:
+                tid = str(target_id)
+        except Exception:
+            tid = str(target_id)
+
+    payload = {
+        "_id": tid,
+        "collection": collection_name,
+        "deleted_at": datetime.utcnow(),
+    }
+
+    try:
+        local_col.update_one({"_id": tid}, {"$setOnInsert": payload}, upsert=True)
+        # Asegurar que el documento se elimine localmente (por si se reinsertó)
+        target_local, _ = get_collection(collection_name)
+        queries = []
+        if isinstance(tid, ObjectId):
+            queries.append({"_id": tid})
+        else:
+            try:
+                if ObjectId.is_valid(str(tid)):
+                    queries.append({"_id": ObjectId(str(tid))})
+            except Exception:
+                pass
+            queries.append({"_id": str(tid)})
+        if queries:
+            target_local.delete_many({"$or": queries})
+        return True
+    except Exception:
+        return False
+
+
+def get_pending_deletions(collection_name):
+    """Devuelve un set con los IDs pendientes de eliminar para una colección."""
+    local_col, _ = get_collection("DeleteQueue")
+    pending = set()
+    for doc in local_col.find({"collection": collection_name}):
+        pending.add(str(doc.get("_id")))
+    return pending
+
+
+def flush_deletion_queue():
+    """Intenta eliminar en remoto los documentos en cola y limpia los completados."""
+    local_col, _ = get_collection("DeleteQueue")
+    if mongo_remote is None:
+        return 0
+
+    removed = 0
+    for item in local_col.find().sort("deleted_at", 1):
+        collection = item.get("collection")
+        target_id = item.get("_id")
+        if not collection or target_id is None:
+            continue
+
+        _, remote_col = get_collection(collection)
+        if remote_col is None:
+            continue
+
+        # Intentar eliminar con ambas representaciones (ObjectId y string)
+        candidates = []
+        if isinstance(target_id, ObjectId):
+            candidates.append(target_id)
+            candidates.append(str(target_id))
+        else:
+            candidates.append(target_id)
+            try:
+                if ObjectId.is_valid(str(target_id)):
+                    candidates.append(ObjectId(str(target_id)))
+            except Exception:
+                pass
+
+        # Deduplicar manteniendo orden
+        seen = set()
+        unique_candidates = []
+        for cid in candidates:
+            key = str(cid)
+            if key in seen:
+                continue
+            seen.add(key)
+            unique_candidates.append(cid)
+
+        delete_query = {"$or": [{"_id": cid} for cid in unique_candidates]}
+        deleted = 0
+        try:
+            deleted = remote_col.delete_many(delete_query).deleted_count
+        except Exception:
+            deleted = 0
+
+        if deleted == 0:
+            # Si no se eliminó, comprobar si ya no existe en remoto
+            exists = None
+            try:
+                exists = remote_col.find_one(delete_query)
+            except Exception:
+                exists = None
+            if exists is None:
+                local_col.delete_one({"_id": item["_id"]})
+                removed += 1
+                continue
+
+        if deleted > 0:
+            local_col.delete_one({"_id": item["_id"]})
+            removed += 1
+
+    return removed

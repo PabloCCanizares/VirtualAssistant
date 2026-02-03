@@ -14,6 +14,7 @@ from model.project_model import ProjectModel
 from model.task_model import TaskModel
 from model.upload_model import Upload_model
 from model.category_model import CategoryModel
+from database.mongo_conn import queue_deletion, flush_deletion_queue
 
 project_bp = Blueprint("project_bp", __name__, url_prefix="/projects")
 DEFAULT_USER_ID = os.getenv("DEFAULT_USER_ID", "66ffbbbbbbbbbbbbbbbb0100")
@@ -455,11 +456,27 @@ def link_upload_document(project_id):
 @project_bp.route("/delete/<project_id>", methods=["POST"])
 def delete_project(project_id):
     try:
+        # 1) Eliminar tareas vinculadas a los objetivos del proyecto
         goals = GoalModel.get_by_project(project_id)
-        if goals:
-            flash("⚠️ Elimina primero los objetivos del proyecto.", "warning")
-            return redirect(url_for("project_bp.view_project", project_id=project_id))
+        goal_ids = [g.get("_id") for g in goals if g.get("_id")]
 
+        task_ids = []
+        for gid in goal_ids:
+            tasks = TaskModel.get_tasks_by_goal(gid)
+            task_ids.extend([t.get("_id") for t in tasks if t.get("_id")])
+
+        if task_ids:
+            TaskModel.delete_tasks_by_ids(task_ids)
+            for tid in task_ids:
+                queue_deletion("Tasks", tid)
+
+        # 2) Eliminar objetivos del proyecto
+        if goal_ids:
+            GoalModel.delete_goals_by_ids(goal_ids)
+            for gid in goal_ids:
+                queue_deletion("Goals", gid)
+
+        # 3) Eliminar documentos del proyecto (y ficheros locales si aplica)
         docs = ProjectDocumentModel.get_by_project(project_id)
         for doc in docs:
             if not doc.get("upload_id"):
@@ -470,8 +487,13 @@ def delete_project(project_id):
                     except Exception:
                         pass
             ProjectDocumentModel.delete_document(doc["_id"])
+            queue_deletion("ProjectDocuments", doc.get("_id"))
 
+        # 4) Eliminar el proyecto en sí
         ProjectModel.delete_project(project_id)
+        queue_deletion("Projects", project_id)
+        # Intentar borrar en remoto inmediatamente si hay conexión
+        flush_deletion_queue()
         flash("🗑️ Proyecto eliminado correctamente", "success")
     except Exception as e:
         flash(f"❌ No se pudo eliminar el proyecto: {e}", "danger")

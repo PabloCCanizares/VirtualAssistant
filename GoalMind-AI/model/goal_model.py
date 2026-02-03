@@ -68,8 +68,22 @@ class GoalModel:
         Devuelve todos los objetivos asociados a un proyecto.
         """
         local_col, _ = get_collection(GoalModel.COLLECTION)
-        pid = ObjectId(project_id) if not isinstance(project_id, ObjectId) else project_id
-        return list(local_col.find({"project_id": pid}).sort("created_at", -1))
+        queries = []
+        if isinstance(project_id, ObjectId):
+            queries.append({"project_id": project_id})
+        else:
+            try:
+                if ObjectId.is_valid(str(project_id)):
+                    queries.append({"project_id": ObjectId(str(project_id))})
+            except Exception:
+                pass
+            if project_id is not None:
+                queries.append({"project_id": str(project_id)})
+
+        if not queries:
+            return []
+
+        return list(local_col.find({"$or": queries}).sort("created_at", -1))
     
     @staticmethod
     def insert_goal(goal_data):
@@ -256,7 +270,7 @@ class GoalModel:
             deleted_local += res.deleted_count
 
         deleted_remote = 0
-        if remote_col:
+        if remote_col is not None:
             for query in queries:
                 try:
                     res = remote_col.delete_one(query)
@@ -302,7 +316,7 @@ class GoalModel:
         res = local_col.delete_many(query)
 
         # Eliminar en remoto también
-        if remote_col:
+        if remote_col is not None:
             try:
                 remote_col.delete_many(query)
             except Exception:
