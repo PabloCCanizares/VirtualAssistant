@@ -22,6 +22,11 @@ def _serialize_goal(goal):
     # Serializar categorias (array de ObjectIds)
     if goal_view.get("categorias"):
         goal_view["categorias"] = [str(cid) for cid in goal_view["categorias"]]
+    # Serializar event_ids (array de ObjectIds de eventos asociados)
+    if goal_view.get("event_ids"):
+        goal_view["event_ids"] = [str(eid) for eid in goal_view["event_ids"]]
+    else:
+        goal_view["event_ids"] = []
     return goal_view
 
 

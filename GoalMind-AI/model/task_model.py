@@ -22,6 +22,10 @@ class TaskModel:
         if "fecha_creacion" not in task_data:
             task_data["fecha_creacion"] = datetime.utcnow()
 
+        # Asegurar que tenga el array de eventos asociados
+        if "event_ids" not in task_data:
+            task_data["event_ids"] = []
+
         # Insertar en local
         result = local_col.insert_one(task_data)
         task_data["_id"] = result.inserted_id
@@ -259,6 +263,64 @@ class TaskModel:
 
         print(f"♻️ Tarea {_id} actualizada y sincronizada.")
         return updated_task
+
+    # -------------------------------------------------------------
+    #  EVENT_IDS: Añadir / Eliminar evento asociado
+    # -------------------------------------------------------------
+    @staticmethod
+    def add_event_to_task(task_id, event_id):
+        """
+        Añade un event_id al array event_ids de la tarea.
+        Usa $addToSet para evitar duplicados.
+        Si el documento no tiene el campo event_ids, MongoDB lo crea automáticamente.
+        """
+        local_col, remote_col = get_collection(TaskModel.COLLECTION)
+        _tid = ObjectId(task_id) if not isinstance(task_id, ObjectId) else task_id
+        _eid = ObjectId(event_id) if not isinstance(event_id, ObjectId) else event_id
+
+        local_col.update_one(
+            {"_id": _tid},
+            {"$addToSet": {"event_ids": _eid}},
+            upsert=False
+        )
+
+        if remote_col is not None:
+            try:
+                remote_col.update_one(
+                    {"_id": _tid},
+                    {"$addToSet": {"event_ids": _eid}},
+                    upsert=False
+                )
+            except Exception as e:
+                print(f"⚠️ Error al sincronizar add_event_to_task en remoto: {e}")
+
+        print(f"📅 Evento {_eid} asociado a tarea {_tid}.")
+
+    @staticmethod
+    def remove_event_from_task(task_id, event_id):
+        """
+        Elimina un event_id del array event_ids de la tarea.
+        Usa $pull para eliminarlo del array.
+        """
+        local_col, remote_col = get_collection(TaskModel.COLLECTION)
+        _tid = ObjectId(task_id) if not isinstance(task_id, ObjectId) else task_id
+        _eid = ObjectId(event_id) if not isinstance(event_id, ObjectId) else event_id
+
+        local_col.update_one(
+            {"_id": _tid},
+            {"$pull": {"event_ids": _eid}}
+        )
+
+        if remote_col is not None:
+            try:
+                remote_col.update_one(
+                    {"_id": _tid},
+                    {"$pull": {"event_ids": _eid}}
+                )
+            except Exception as e:
+                print(f"⚠️ Error al sincronizar remove_event_from_task en remoto: {e}")
+
+        print(f"🗑️ Evento {_eid} desasociado de tarea {_tid}.")
 
     # -------------------------------------------------------------
     #  ASIGNAR OBJETIVO A MÚLTIPLES TAREAS
