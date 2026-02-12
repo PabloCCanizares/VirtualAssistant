@@ -59,6 +59,37 @@ def _validate_required(payload: Dict[str, Any], fields: List[str]) -> Optional[s
     missing = [f for f in fields if payload.get(f) in (None, "", [])]
     return f"Faltan campos obligatorios: {', '.join(missing)}" if missing else None
 
+def _sync_event_association(event_id, old_ref_id, old_ref_tipo, new_ref_id, new_ref_tipo):
+    """
+    Gestiona la sincronización bidireccional del array event_ids
+    en tareas y objetivos cuando se crea, actualiza o elimina un evento.
+    
+    - Elimina event_id del array event_ids del item anterior (si lo había).
+    - Añade event_id al array event_ids del nuevo item (si lo hay).
+    """
+    eid = str(event_id)
+
+    # Desasociar del item anterior
+    if old_ref_id and old_ref_tipo:
+        try:
+            if old_ref_tipo == "tarea":
+                TaskModel.remove_event_from_task(str(old_ref_id), eid)
+            elif old_ref_tipo == "objetivo":
+                GoalModel.remove_event_from_goal(str(old_ref_id), eid)
+        except Exception as e:
+            print(f"⚠️ Error al desasociar evento {eid} del {old_ref_tipo} {old_ref_id}: {e}")
+
+    # Asociar al nuevo item
+    if new_ref_id and new_ref_tipo:
+        try:
+            if new_ref_tipo == "tarea":
+                TaskModel.add_event_to_task(str(new_ref_id), eid)
+            elif new_ref_tipo == "objetivo":
+                GoalModel.add_event_to_goal(str(new_ref_id), eid)
+        except Exception as e:
+            print(f"⚠️ Error al asociar evento {eid} al {new_ref_tipo} {new_ref_id}: {e}")
+
+
 @calendar_bp.route("/api/events", methods=["GET"])
 def api_list_events():
     """
@@ -97,8 +128,12 @@ def api_list_events():
         # Fechas → ISO UTC
         for key in ("fecha_inicio", "fecha_fin", "created_at", "updated_at", "start", "end"):
             out[key] = _iso_utc(out.get(key))
-        # IDs relacionados → str
-        for key in ("id_usuario", "usuario_id", "id_objetivo", "id_tarea"):
+        # IDs relacionados → str (nuevos campos unificados)
+        for key in ("id_usuario", "usuario_id", "referencia_id"):
+            if isinstance(out.get(key), ObjectId):
+                out[key] = str(out[key])
+        # Compatibilidad: si el evento todavía tiene id_tarea/id_objetivo (datos antiguos)
+        for key in ("id_objetivo", "id_tarea"):
             if isinstance(out.get(key), ObjectId):
                 out[key] = str(out[key])
         events.append(out)
@@ -110,8 +145,11 @@ def api_create_event():
     """
     Crea un evento. Espera JSON con:
     - Requeridos:  titulo, fecha_inicio (ISO), fecha_fin (ISO)
-    - Opcionales:  descripcion, tipo_evento, id_usuario, usuario_id, id_objetivo
+    - Opcionales:  descripcion, tipo_evento, id_usuario, usuario_id,
+                   referencia_id, referencia_tipo ('tarea'|'objetivo')
     Guarda y devuelve todo normalizado a UTC.
+    Sincroniza bidireccionalmente: añade el event_id al array event_ids
+    de la tarea u objetivo asociado.
     """
     payload = request.get_json(silent=True) or {}
     error = _validate_required(payload, ["titulo", "fecha_inicio", "fecha_fin"])
@@ -123,6 +161,17 @@ def api_create_event():
     if not start_dt or not end_dt:
         return jsonify({"error": "Formato de fecha inválido (usa ISO 8601)."}), 400
 
+    # Referencia unificada (reemplaza id_tarea / id_objetivo)
+    ref_id_raw = payload.get("referencia_id")
+    ref_tipo = (payload.get("referencia_tipo") or "").strip() or None
+    ref_id = None
+    if ref_id_raw and ref_tipo in ("tarea", "objetivo"):
+        try:
+            ref_id = ObjectId(ref_id_raw)
+        except Exception:
+            ref_id = None
+            ref_tipo = None
+
     doc: Dict[str, Any] = {
         "titulo": (payload.get("titulo") or "").strip(),
         "descripcion": (payload.get("descripcion") or "").strip(),
@@ -132,22 +181,28 @@ def api_create_event():
         # aceptamos ambas claves por compatibilidad
         "id_usuario": ObjectId(payload["id_usuario"]) if payload.get("id_usuario") else None,
         "usuario_id": ObjectId(payload["usuario_id"]) if payload.get("usuario_id") else None,
-        "id_objetivo": ObjectId(payload["id_objetivo"]) if payload.get("id_objetivo") else None,
-        "id_tarea": ObjectId(payload["id_tarea"]) if payload.get("id_tarea") else None,
+        # Referencia unificada
+        "referencia_id": ref_id,
+        "referencia_tipo": ref_tipo,
         "created_at": datetime.now(timezone.utc),
         "updated_at": datetime.now(timezone.utc),
     }
 
     col, _ = _events_col()
     res = col.insert_one(doc)
+    event_id = res.inserted_id
+
+    # Sincronización bidireccional: añadir event_id a la tarea/objetivo
+    if ref_id and ref_tipo:
+        _sync_event_association(event_id, None, None, ref_id, ref_tipo)
 
     out = dict(doc)
-    out["_id"] = str(res.inserted_id)
+    out["_id"] = str(event_id)
     # Serializa fechas a ISO UTC
     for key in ("fecha_inicio", "fecha_fin", "created_at", "updated_at"):
         out[key] = _iso_utc(out.get(key))
     # IDs relacionados → str
-    for key in ("id_usuario", "usuario_id", "id_objetivo", "id_tarea"):
+    for key in ("id_usuario", "usuario_id", "referencia_id"):
         if isinstance(out.get(key), ObjectId):
             out[key] = str(out[key])
 
@@ -155,12 +210,23 @@ def api_create_event():
 
 @calendar_bp.route("/api/events/<event_id>", methods=["PUT", "PATCH"])
 def api_update_event(event_id: str):
-    """Actualiza un evento por su ID. Manejo UTC consistente."""
+    """
+    Actualiza un evento por su ID. Manejo UTC consistente.
+    Si cambia la asociación (referencia_id / referencia_tipo),
+    sincroniza bidireccionalmente con las tareas/objetivos afectados.
+    """
     payload = request.get_json(silent=True) or {}
     try:
         oid = ObjectId(event_id)
     except Exception:
         return jsonify({"error": "ID inválido."}), 400
+
+    col, _ = _events_col()
+
+    # Obtener el evento actual para conocer la asociación anterior
+    existing = col.find_one({"_id": oid})
+    if not existing:
+        return jsonify({"error": "Evento no encontrado."}), 404
 
     updates: Dict[str, Any] = {}
     # Campos de texto directos
@@ -180,25 +246,58 @@ def api_update_event(event_id: str):
             return jsonify({"error": "fecha_fin inválida (ISO 8601)."}), 400
         updates["fecha_fin"] = dt
 
-    # Relaciones
+    # Relaciones de usuario
     if "id_usuario" in payload:
         updates["id_usuario"] = ObjectId(payload["id_usuario"]) if payload.get("id_usuario") else None
     if "usuario_id" in payload:
         updates["usuario_id"] = ObjectId(payload["usuario_id"]) if payload.get("usuario_id") else None
-    if "id_objetivo" in payload:
-        updates["id_objetivo"] = ObjectId(payload["id_objetivo"]) if payload.get("id_objetivo") else None
-    if "id_tarea" in payload:
-        updates["id_tarea"] = ObjectId(payload["id_tarea"]) if payload.get("id_tarea") else None
+
+    # Referencia unificada (reemplaza id_tarea / id_objetivo)
+    ref_changed = False
+    new_ref_id = None
+    new_ref_tipo = None
+    if "referencia_id" in payload or "referencia_tipo" in payload:
+        ref_changed = True
+        ref_id_raw = payload.get("referencia_id")
+        new_ref_tipo = (payload.get("referencia_tipo") or "").strip() or None
+        if ref_id_raw and new_ref_tipo in ("tarea", "objetivo"):
+            try:
+                new_ref_id = ObjectId(ref_id_raw)
+            except Exception:
+                new_ref_id = None
+                new_ref_tipo = None
+        else:
+            new_ref_id = None
+            new_ref_tipo = None
+
+        updates["referencia_id"] = new_ref_id
+        updates["referencia_tipo"] = new_ref_tipo
 
     if not updates:
         return jsonify({"error": "No hay campos para actualizar."}), 400
 
     updates["updated_at"] = datetime.now(timezone.utc)
 
-    col, _ = _events_col()
     res = col.update_one({"_id": oid}, {"$set": updates})
-    if res.matched_count == 0:
-        return jsonify({"error": "Evento no encontrado."}), 404
+
+    # Sincronización bidireccional si cambió la referencia
+    if ref_changed:
+        old_ref_id = existing.get("referencia_id")
+        old_ref_tipo = existing.get("referencia_tipo")
+        # Compatibilidad: si el evento antiguo usaba id_tarea/id_objetivo
+        if not old_ref_id and not old_ref_tipo:
+            if existing.get("id_tarea"):
+                old_ref_id = existing.get("id_tarea")
+                old_ref_tipo = "tarea"
+            elif existing.get("id_objetivo"):
+                old_ref_id = existing.get("id_objetivo")
+                old_ref_tipo = "objetivo"
+
+        # Solo sincronizar si realmente cambió
+        old_str = str(old_ref_id) if old_ref_id else None
+        new_str = str(new_ref_id) if new_ref_id else None
+        if old_str != new_str or old_ref_tipo != new_ref_tipo:
+            _sync_event_association(oid, old_ref_id, old_ref_tipo, new_ref_id, new_ref_tipo)
 
     doc = col.find_one({"_id": oid})
     out = dict(doc)
@@ -207,7 +306,11 @@ def api_update_event(event_id: str):
     for key in ("fecha_inicio", "fecha_fin", "created_at", "updated_at"):
         out[key] = _iso_utc(out.get(key))
     # IDs relacionados → str
-    for key in ("id_usuario", "usuario_id", "id_objetivo", "id_tarea"):
+    for key in ("id_usuario", "usuario_id", "referencia_id"):
+        if isinstance(out.get(key), ObjectId):
+            out[key] = str(out[key])
+    # Compatibilidad con datos antiguos
+    for key in ("id_objetivo", "id_tarea"):
         if isinstance(out.get(key), ObjectId):
             out[key] = str(out[key])
 
@@ -215,13 +318,38 @@ def api_update_event(event_id: str):
 
 @calendar_bp.route("/api/events/<event_id>", methods=["DELETE"])
 def api_delete_event(event_id: str):
-    """Elimina un evento por ID."""
+    """
+    Elimina un evento por ID.
+    Antes de eliminar, desasocia el event_id del array event_ids
+    de la tarea u objetivo vinculado.
+    """
     try:
         oid = ObjectId(event_id)
     except Exception:
         return jsonify({"error": "ID inválido."}), 400
 
     col, _ = _events_col()
+
+    # Obtener evento antes de eliminar para conocer su asociación
+    existing = col.find_one({"_id": oid})
+    if not existing:
+        return jsonify({"error": "Evento no encontrado."}), 404
+
+    # Desasociar del item vinculado
+    old_ref_id = existing.get("referencia_id")
+    old_ref_tipo = existing.get("referencia_tipo")
+    # Compatibilidad: si el evento usaba id_tarea/id_objetivo
+    if not old_ref_id and not old_ref_tipo:
+        if existing.get("id_tarea"):
+            old_ref_id = existing.get("id_tarea")
+            old_ref_tipo = "tarea"
+        elif existing.get("id_objetivo"):
+            old_ref_id = existing.get("id_objetivo")
+            old_ref_tipo = "objetivo"
+
+    if old_ref_id and old_ref_tipo:
+        _sync_event_association(oid, old_ref_id, old_ref_tipo, None, None)
+
     res = col.delete_one({"_id": oid})
     if res.deleted_count == 0:
         return jsonify({"error": "Evento no encontrado."}), 404

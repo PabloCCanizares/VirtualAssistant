@@ -95,6 +95,10 @@ class GoalModel:
         if "created_at" not in goal_data:
             goal_data["created_at"] = datetime.utcnow()
 
+        # Asegurar que tenga el array de eventos asociados
+        if "event_ids" not in goal_data:
+            goal_data["event_ids"] = []
+
         if goal_data.get("project_id") and not isinstance(goal_data["project_id"], ObjectId):
             goal_data["project_id"] = ObjectId(str(goal_data["project_id"]))
 
@@ -241,6 +245,64 @@ class GoalModel:
         regex = re.compile(re.escape(nombre.strip()), re.IGNORECASE)
         cursor = local_col.find({"titulo": {"$regex": regex}}).sort("created_at", -1).limit(limit)
         return list(cursor)
+
+    # -------------------------------------------------------------
+    #  EVENT_IDS: Añadir / Eliminar evento asociado
+    # -------------------------------------------------------------
+    @staticmethod
+    def add_event_to_goal(goal_id, event_id):
+        """
+        Añade un event_id al array event_ids del objetivo.
+        Usa $addToSet para evitar duplicados.
+        Si el documento no tiene el campo event_ids, MongoDB lo crea automáticamente.
+        """
+        local_col, remote_col = get_collection(GoalModel.COLLECTION)
+        _gid = ObjectId(goal_id) if not isinstance(goal_id, ObjectId) else goal_id
+        _eid = ObjectId(event_id) if not isinstance(event_id, ObjectId) else event_id
+
+        local_col.update_one(
+            {"_id": _gid},
+            {"$addToSet": {"event_ids": _eid}},
+            upsert=False
+        )
+
+        if remote_col is not None:
+            try:
+                remote_col.update_one(
+                    {"_id": _gid},
+                    {"$addToSet": {"event_ids": _eid}},
+                    upsert=False
+                )
+            except Exception as e:
+                print(f"⚠️ Error al sincronizar add_event_to_goal en remoto: {e}")
+
+        print(f"📅 Evento {_eid} asociado a objetivo {_gid}.")
+
+    @staticmethod
+    def remove_event_from_goal(goal_id, event_id):
+        """
+        Elimina un event_id del array event_ids del objetivo.
+        Usa $pull para eliminarlo del array.
+        """
+        local_col, remote_col = get_collection(GoalModel.COLLECTION)
+        _gid = ObjectId(goal_id) if not isinstance(goal_id, ObjectId) else goal_id
+        _eid = ObjectId(event_id) if not isinstance(event_id, ObjectId) else event_id
+
+        local_col.update_one(
+            {"_id": _gid},
+            {"$pull": {"event_ids": _eid}}
+        )
+
+        if remote_col is not None:
+            try:
+                remote_col.update_one(
+                    {"_id": _gid},
+                    {"$pull": {"event_ids": _eid}}
+                )
+            except Exception as e:
+                print(f"⚠️ Error al sincronizar remove_event_from_goal en remoto: {e}")
+
+        print(f"🗑️ Evento {_eid} desasociado de objetivo {_gid}.")
 
     @staticmethod
     def delete_goal(goal_id):

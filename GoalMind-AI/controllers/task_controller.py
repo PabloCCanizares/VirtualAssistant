@@ -22,6 +22,11 @@ def _serialize_task(task):
     # Serializar categorias (array de ObjectIds)
     if task_view.get("categorias"):
         task_view["categorias"] = [str(cid) for cid in task_view["categorias"]]
+    # Serializar event_ids (array de ObjectIds de eventos asociados)
+    if task_view.get("event_ids"):
+        task_view["event_ids"] = [str(eid) for eid in task_view["event_ids"]]
+    else:
+        task_view["event_ids"] = []
     return task_view
 
 

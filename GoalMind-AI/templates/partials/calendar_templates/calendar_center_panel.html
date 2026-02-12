@@ -371,11 +371,14 @@
       
       // Si es edición y hay asociación previa, mostrarla
       const rawData = data.extendedProps?.raw || data;
-      if (rawData.id_tarea) {
-        // Cargar info de la tarea asociada
+      if (rawData.referencia_id && rawData.referencia_tipo) {
+        // Nuevo formato unificado
+        loadAssociationInfo(rawData.referencia_id, rawData.referencia_tipo);
+      } else if (rawData.id_tarea) {
+        // Compatibilidad con datos antiguos
         loadAssociationInfo(rawData.id_tarea, 'tarea');
       } else if (rawData.id_objetivo) {
-        // Cargar info del objetivo asociado
+        // Compatibilidad con datos antiguos
         loadAssociationInfo(rawData.id_objetivo, 'objetivo');
       }
       
@@ -522,6 +525,7 @@
             title: ev.title,
             start: ev.start?.toISOString(),
             end: ev.end?.toISOString(),
+            extendedProps: ev.extendedProps || {},
             descripcion: ev.extendedProps?.descripcion || '',
             tipo_evento: ev.extendedProps?.tipo_evento || ''
           });
@@ -559,20 +563,17 @@
           tipo_evento: inputTipo.value.trim() || null,
           fecha_inicio: localInputValueToISO(inputInicio.value),
           fecha_fin: localInputValueToISO(inputFin.value),
-          // Asociaciones - limpiar las anteriores y establecer la nueva
-          id_objetivo: null,
-          id_tarea: null
+          // Referencia unificada (reemplaza id_objetivo / id_tarea)
+          referencia_id: null,
+          referencia_tipo: null
         };
         
-        // Establecer la asociación según el tipo seleccionado
+        // Establecer la referencia según el tipo seleccionado
         const asociarTipo = inputAsociarTipo.value;
         const asociarId = inputAsociarId.value;
-        if (asociarId) {
-          if (asociarTipo === 'objetivo') {
-            payload.id_objetivo = asociarId;
-          } else if (asociarTipo === 'tarea') {
-            payload.id_tarea = asociarId;
-          }
+        if (asociarId && (asociarTipo === 'tarea' || asociarTipo === 'objetivo')) {
+          payload.referencia_id = asociarId;
+          payload.referencia_tipo = asociarTipo;
         }
 
         if (!payload.titulo) {
