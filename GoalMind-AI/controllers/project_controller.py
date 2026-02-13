@@ -1,6 +1,5 @@
 # controllers/project_controller.py
 from datetime import datetime
-import os
 from pathlib import Path
 from uuid import uuid4
 
@@ -14,10 +13,10 @@ from model.project_model import ProjectModel
 from model.task_model import TaskModel
 from model.upload_model import Upload_model
 from model.category_model import CategoryModel
-from database.mongo_conn import queue_deletion, flush_deletion_queue
+from database.mongo_conn import queue_deletion, flush_deletion_queue, get_app_user_id
 
 project_bp = Blueprint("project_bp", __name__, url_prefix="/projects")
-DEFAULT_USER_ID = os.getenv("DEFAULT_USER_ID", "66ffbbbbbbbbbbbbbbbb0100")
+DEFAULT_USER_ID = get_app_user_id()
 
 
 def _serialize_id(value):

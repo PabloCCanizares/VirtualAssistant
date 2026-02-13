@@ -17,16 +17,15 @@ except Exception as exc:
     print(f"⚠️ Scheduler deshabilitado (APScheduler no disponible): {exc}")
 ################ Aplicacion Flask ##################
 env_root = Path(__file__).resolve().parent
+# 1. Cargar .env de la raíz (fuente de verdad)
+load_dotenv(env_root / ".env")
+# 2. Fallback: GoalMind-AI/.env sin sobreescribir (variables de IA específicas)
 ai_root = env_root / "GoalMind-AI"
 if ai_root.exists():
     sys.path.insert(0, str(ai_root))
-    try:
-        from config import load_env
-        load_env(ai_root)
-    except Exception:
-        load_dotenv(ai_root / ".env")
-else:
-    load_dotenv(env_root / ".env")
+    ai_env = ai_root / ".env"
+    if ai_env.exists():
+        load_dotenv(ai_env, override=False)
 
 #Clase principal de la aplicacion para crear la aplicacion en Flask
 from flask import Flask

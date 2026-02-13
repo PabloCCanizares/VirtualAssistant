@@ -1,5 +1,3 @@
-import os
-
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from model.task_model import TaskModel
 from bson import ObjectId
@@ -8,9 +6,10 @@ from datetime import datetime
 from model.goal_model import GoalModel
 from model.project_model import ProjectModel
 from model.category_model import CategoryModel
+from database.mongo_conn import get_app_user_id
 
 task_bp = Blueprint("task_bp", __name__, url_prefix="/tasks")
-DEFAULT_USER_ID = os.getenv("DEFAULT_USER_ID", "66ffbbbbbbbbbbbbbbbb0100")
+DEFAULT_USER_ID = get_app_user_id()
 
 
 def _serialize_task(task):

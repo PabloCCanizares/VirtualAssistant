@@ -12,26 +12,42 @@ from pymongo import MongoClient
 import socket
 # Módulo estándar de python para manejo de JSON
 import json
+# Módulo estándar de python para variables de entorno y hashing
+import os
+import hashlib
 # Certificados raíz (para evitar problemas TLS/SSL con Atlas en macOS, etc.) [si da error ejecutar en comandos: pip install certifi]
 import certifi
 from datetime import datetime
 from bson import ObjectId
 
 ############################### Configuracion de la base de datos MongoDB #############################
-# Ruta al archivo JSON que contiene las credenciales de la base de datos remota
-# El archivo mongo_user.json debe estar en la misma carpeta que este archivo
+# Ruta al archivo JSON que contiene las credenciales de la base de datos remota (fallback)
 CONFIG_PATH = Path(__file__).resolve().parent / "mongo_user.json"
-
-# Carga las credenciales desde la ruta configurada
-with CONFIG_PATH.open("r", encoding="utf-8") as f:
-    file = json.load(f)
-    username = file["username"]
-    pswd = file["pswd"]
-    collections = file["collections"]
 
 # Objetos de conexión
 mongo_local = PyMongo()
 mongo_remote = None
+
+# Nombres dinámicos de las bases de datos (se configuran en init_app)
+_local_db_name = "VirtualAssistantDB"
+_remote_db_name = "VirtualAssistantDB"
+
+# Lista de colecciones para sincronización
+collections = ["Tasks", "Goals", "Projects", "ProjectDocuments", "Events"]
+
+
+def generate_user_id_from_nickname(nickname: str) -> str:
+    """Genera un ObjectId determinista (24 hex chars) desde un nickname."""
+    digest = hashlib.sha256(nickname.strip().lower().encode("utf-8")).hexdigest()
+    return digest[:24]  # 12 bytes = 24 hex chars = formato ObjectId válido
+
+
+def get_app_user_id() -> str:
+    """Devuelve el user ID activo: generado desde nickname o DEFAULT_USER_ID."""
+    nickname = (os.getenv("APP_USER_NICKNAME") or "").strip()
+    if nickname:
+        return generate_user_id_from_nickname(nickname)
+    return os.getenv("DEFAULT_USER_ID", "66ffbbbbbbbbbbbbbbbb0100")
 
 
 def internet_available():
@@ -45,10 +61,30 @@ def internet_available():
 
 def init_app(app):
     """Inicializa las conexiones local y remota (Atlas)."""
-    global mongo_remote
+    global mongo_remote, _local_db_name, _remote_db_name, collections
+
+    # ------------- LEER CONFIGURACIÓN (env vars > mongo_user.json > defaults) -------------
+    local_uri = os.getenv("MONGO_LOCAL_URI", "mongodb://127.0.0.1:27017")
+    _local_db_name = os.getenv("MONGO_LOCAL_DB", "VirtualAssistantDB")
+    remote_uri = (os.getenv("MONGO_REMOTE_URI") or "").strip()
+    _remote_db_name = os.getenv("MONGO_REMOTE_DB", "VirtualAssistantDB")
+
+    # Fallback: si no hay MONGO_REMOTE_URI, intentar leer de mongo_user.json
+    if not remote_uri:
+        try:
+            with CONFIG_PATH.open("r", encoding="utf-8") as f:
+                file = json.load(f)
+            username = file["username"]
+            pswd = file["pswd"]
+            remote_uri = f"mongodb+srv://{username}:{pswd}@database.3vr51dn.mongodb.net"
+            # Actualizar colecciones desde el archivo si existen
+            if "collections" in file:
+                collections = file["collections"]
+        except Exception:
+            remote_uri = ""
 
     # ------------- CONEXIÓN LOCAL -------------
-    app.config["MONGO_URI"] = "mongodb://127.0.0.1:27017/VirtualAssistantDB"
+    app.config["MONGO_URI"] = f"{local_uri}/{_local_db_name}"
     mongo_local.init_app(app)
     app.mongo_local = mongo_local
     print("✅ Conectado a MongoDB local")
@@ -58,14 +94,13 @@ def init_app(app):
     app.mongo_remote = None
 
     # ------------- CONEXIÓN REMOTA (ATLAS) -------------
-    if internet_available():
+    if remote_uri and internet_available():
         print("🌐 Internet disponible → probando conexión a MongoDB Atlas...")
-        uri_remote = f"mongodb+srv://{username}:{pswd}@database.3vr51dn.mongodb.net/data"
 
         try:
             # Creamos el cliente con timeout y certificados de certifi
             client = MongoClient(
-                uri_remote,
+                remote_uri,
                 tlsCAFile=certifi.where(),
                 serverSelectionTimeoutMS=5000,
             )
@@ -80,6 +115,8 @@ def init_app(app):
             mongo_remote = None
             app.mongo_remote = None
             print(f"⚠️ No se pudo conectar a Atlas, se usará SOLO la base local.\nDetalle: {e}")
+    elif not remote_uri:
+        print("⚠️ Sin URI remota configurada → se usará solo la base local.")
     else:
         print("⚠️ Sin conexión a internet → se usará solo la base local.")
 
@@ -88,8 +125,8 @@ def init_app(app):
 
 def get_collection(name):
     """Devuelve referencias a las colecciones local y remota."""
-    db_local = mongo_local.cx["VirtualAssistantDB"]
-    db_remote = mongo_remote["data"] if mongo_remote else None
+    db_local = mongo_local.cx[_local_db_name]
+    db_remote = mongo_remote[_remote_db_name] if mongo_remote else None
     return db_local[name], (db_remote[name] if db_remote is not None else None)
 
 
