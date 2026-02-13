@@ -30,7 +30,7 @@ def _serialize_goal(goal):
 
 def _load_categories():
     """Carga todas las categorias y las serializa para los templates."""
-    categories = CategoryModel.get_all_categories()
+    categories = CategoryModel.get_all_categories(usuario_id=DEFAULT_USER_ID)
     return [{
         "_id": str(c["_id"]),
         "name": c.get("name", "")
@@ -43,7 +43,7 @@ def _build_category_names(categories):
 
 
 def _load_projects():
-    projects = ProjectModel.get_all_projects()
+    projects = ProjectModel.get_all_projects(usuario_id=DEFAULT_USER_ID)
     projects_view = []
     project_titles = {}
     for project in projects:
@@ -62,7 +62,7 @@ def _load_projects():
 def list_goals():
     """Muestra todos los objetivos."""
     try:
-        goals = GoalModel.get_all_goals()
+        goals = GoalModel.get_all_goals(usuario_id=DEFAULT_USER_ID)
         goals_view = [_serialize_goal(g) for g in goals]
         projects, project_titles = _load_projects()
         categories = _load_categories()
@@ -93,10 +93,10 @@ def filter_by_category():
     categoria_ids = request.args.getlist("categoria")
     try:
         if categoria_ids:
-            goals = GoalModel.search_by_categories(categoria_ids)
+            goals = GoalModel.search_by_categories(categoria_ids, usuario_id=DEFAULT_USER_ID)
             flash(f"Filtro aplicado", "info")
         else:
-            goals = GoalModel.get_all_goals()
+            goals = GoalModel.get_all_goals(usuario_id=DEFAULT_USER_ID)
         goals_view = [_serialize_goal(g) for g in goals]
         projects, project_titles = _load_projects()
         categories = _load_categories()
@@ -144,9 +144,9 @@ def add_goal():
             except Exception:
                 pass
 
-        user_id = request.form.get("id_usuario") or DEFAULT_USER_ID
+        user_id = request.form.get("usuario_id") or DEFAULT_USER_ID
         data = {
-            "id_usuario": user_id,
+            "usuario_id": user_id,
             "project_id": project_id,
             "titulo": request.form.get("titulo"),
             "descripcion": request.form.get("descripcion"),
@@ -175,7 +175,7 @@ def add_goal():
 def view_goal(goal_id):
     """Muestra el detalle de un objetivo especifico."""
     try:
-        goal = GoalModel.get_goal_by_id(goal_id)
+        goal = GoalModel.get_goal_by_id(goal_id, usuario_id=DEFAULT_USER_ID)
         if not goal:
             flash("Objetivo no encontrado.", "warning")
             return redirect(url_for("goal_bp.list_goals"))
@@ -186,7 +186,7 @@ def view_goal(goal_id):
         category_names = _build_category_names(categories)
 
         # Obtener tareas asociadas a este objetivo
-        tasks = TaskModel.get_tasks_by_goal(goal_id)
+        tasks = TaskModel.get_tasks_by_goal(goal_id, usuario_id=DEFAULT_USER_ID)
         tasks_view = []
         for task in tasks:
             task_view = dict(task)
@@ -252,12 +252,10 @@ def update_goal(goal_id):
                 updates["progreso"] = int(request.form.get("progreso") or 0)
             except ValueError:
                 pass
-        if request.form.get("id_usuario"):
-            updates["id_usuario"] = request.form.get("id_usuario")
         if request.form.get("project_id"):
             updates["project_id"] = request.form.get("project_id")
 
-        GoalModel.update_goal(goal_id, updates)
+        GoalModel.update_goal(goal_id, updates, usuario_id=DEFAULT_USER_ID)
         flash("Objetivo actualizado correctamente", "success")
     except Exception as e:
         flash(f"Error al actualizar el objetivo: {e}", "danger")
@@ -276,20 +274,20 @@ def delete_goal(goal_id):
     try:
         task_ids = []
         try:
-            tasks = TaskModel.get_tasks_by_goal(goal_id)
+            tasks = TaskModel.get_tasks_by_goal(goal_id, usuario_id=DEFAULT_USER_ID)
             task_ids = [t.get("_id") for t in tasks if t.get("_id")]
         except Exception:
             task_ids = []
 
         if task_ids:
             try:
-                TaskModel.delete_tasks_by_ids(task_ids)
+                TaskModel.delete_tasks_by_ids(task_ids, usuario_id=DEFAULT_USER_ID)
             except Exception:
                 pass
             for tid in task_ids:
                 queue_deletion("Tasks", tid)
 
-        deleted = GoalModel.delete_goal(goal_id)
+        deleted = GoalModel.delete_goal(goal_id, usuario_id=DEFAULT_USER_ID)
         if deleted:
             queue_deletion("Goals", goal_id)
             try:
@@ -321,19 +319,19 @@ def bulk_delete_goals():
         task_ids = []
         for gid in ids:
             try:
-                tasks = TaskModel.get_tasks_by_goal(gid)
+                tasks = TaskModel.get_tasks_by_goal(gid, usuario_id=DEFAULT_USER_ID)
                 task_ids.extend([t.get("_id") for t in tasks if t.get("_id")])
             except Exception:
                 continue
         if task_ids:
             try:
-                TaskModel.delete_tasks_by_ids(task_ids)
+                TaskModel.delete_tasks_by_ids(task_ids, usuario_id=DEFAULT_USER_ID)
             except Exception:
                 pass
             for tid in task_ids:
                 queue_deletion("Tasks", tid)
 
-        deleted = GoalModel.delete_goals_by_ids(ids)
+        deleted = GoalModel.delete_goals_by_ids(ids, usuario_id=DEFAULT_USER_ID)
         for gid in ids:
             queue_deletion("Goals", gid)
         try:

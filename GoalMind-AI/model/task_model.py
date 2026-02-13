@@ -1,6 +1,18 @@
-from database.mongo_conn import get_collection, sync_to_remote, sync_from_remote
+from database.mongo_conn import get_collection, sync_to_remote, sync_from_remote, get_app_user_id
 from bson import ObjectId
 from datetime import datetime
+
+
+def _uid_filter(usuario_id):
+    """Construye filtro que matchea tanto string como ObjectId."""
+    uid = usuario_id or get_app_user_id()
+    conditions = [{"usuario_id": uid}]
+    try:
+        if ObjectId.is_valid(str(uid)):
+            conditions.append({"usuario_id": ObjectId(str(uid))})
+    except Exception:
+        pass
+    return {"$or": conditions} if len(conditions) > 1 else conditions[0]
 
 
 class TaskModel:
@@ -12,11 +24,14 @@ class TaskModel:
     #  INSERTAR
     # -------------------------------------------------------------
     @staticmethod
-    def insert_task(task_data):
+    def insert_task(task_data, usuario_id=None):
         """
         Inserta una tarea en la base local y la sincroniza con la remota si está disponible.
         """
         local_col, _ = get_collection(TaskModel.COLLECTION)
+        
+        uid = usuario_id or get_app_user_id()
+        task_data["usuario_id"] = task_data.get("usuario_id") or uid
 
         # Asegurar que tenga fecha de creación
         if "fecha_creacion" not in task_data:
@@ -41,19 +56,21 @@ class TaskModel:
     #  OBTENER POR ID
     # -------------------------------------------------------------
     @staticmethod
-    def get_task_by_id(task_id):
+    def get_task_by_id(task_id, usuario_id=None):
         """
         Obtiene una tarea por su _id.
         Si no está en local, intenta descargarla desde la remota.
+        Filtra por usuario_id.
         """
         local_col, _ = get_collection(TaskModel.COLLECTION)
         _id = ObjectId(task_id) if not isinstance(task_id, ObjectId) else task_id
 
-        task = local_col.find_one({"_id": _id})
+        query = {"_id": _id, **_uid_filter(usuario_id)}
+        task = local_col.find_one(query)
 
         if not task:
             sync_from_remote(TaskModel.COLLECTION, {"_id": _id})
-            task = local_col.find_one({"_id": _id})
+            task = local_col.find_one(query)
 
         return task
     
@@ -61,12 +78,13 @@ class TaskModel:
     #  OBTENER POR CATEGORÍA
     # -------------------------------------------------------------
     @staticmethod
-    def get_tasks_by_category(category_id):
+    def get_tasks_by_category(category_id, usuario_id=None):
         """
         Devuelve todas las tareas que contengan una categoría específica.
         
         Args:
             category_id: ObjectId o string del ID de la categoría
+            usuario_id: ID del usuario para filtrar
             
         Returns:
             list: Lista de tareas que pertenecen a la categoría especificada
@@ -74,31 +92,30 @@ class TaskModel:
         local_col, _ = get_collection(TaskModel.COLLECTION)
         _id = ObjectId(category_id) if not isinstance(category_id, ObjectId) else category_id
         
-        # Buscar tareas que contengan esta categoría en su array de categorías
-        return list(local_col.find({"categorias": _id}).sort("fecha_creacion", -1))
+        query = {"categorias": _id, **_uid_filter(usuario_id)}
+        return list(local_col.find(query).sort("fecha_creacion", -1))
 
     # -------------------------------------------------------------
     #  BUSCAR TAREAS POR NOMBRE Y/O CATEGORÍA
     # -------------------------------------------------------------
     @staticmethod
-    def search_tasks(nombre=None, categoria=None, category_ids=None):
+    def search_tasks(nombre=None, categoria=None, category_ids=None, usuario_id=None):
         """
         Busca tareas por nombre (contenido) y/o categoría.
         La búsqueda por nombre es case-insensitive y parcial (regex).
-        No filtra por usuario, devuelve todas las tareas que coincidan.
         
         Args:
             nombre (str): Texto a buscar en el campo 'contenido' (opcional)
             categoria (str): Texto para buscar en nombres de categorías - DEPRECADO, usar category_ids
             category_ids (list): Lista de IDs de categorías para filtrar (opcional)
+            usuario_id: ID del usuario para filtrar
             
         Returns:
             list: Lista de tareas que coinciden con los criterios
         """
         local_col, _ = get_collection(TaskModel.COLLECTION)
         
-        # Construir query dinámicamente
-        query = {}
+        query = {**_uid_filter(usuario_id)}
         
         # Filtro por nombre (búsqueda parcial case-insensitive)
         if nombre and nombre.strip():
@@ -106,7 +123,6 @@ class TaskModel:
         
         # Filtro por categorías (array de ObjectIds)
         if category_ids and len(category_ids) > 0:
-            # Convertir a ObjectIds si es necesario
             cat_oids = []
             for cid in category_ids:
                 try:
@@ -117,12 +133,7 @@ class TaskModel:
                 except Exception:
                     continue
             if cat_oids:
-                # Buscar tareas que tengan al menos una de las categorías
                 query["categorias"] = {"$in": cat_oids}
-        
-        # Si no hay filtros, devolver todas las tareas
-        if not query:
-            return list(local_col.find().sort("fecha_creacion", -1))
         
         return list(local_col.find(query).sort("fecha_creacion", -1))
 
@@ -130,13 +141,13 @@ class TaskModel:
     #  OBTENER TODAS
     # -------------------------------------------------------------
     @staticmethod
-    def get_all_tasks():
+    def get_all_tasks(usuario_id=None):
         """
-        Devuelve todas las tareas almacenadas localmente.
+        Devuelve todas las tareas del usuario actual.
         (No descarga desde remoto automáticamente.)
         """
         local_col, _ = get_collection(TaskModel.COLLECTION)
-        return list(local_col.find())
+        return list(local_col.find(_uid_filter(usuario_id)))
 
     # -------------------------------------------------------------
     #  OBTENER POR USUARIO
@@ -147,33 +158,13 @@ class TaskModel:
         Devuelve todas las tareas de un usuario específico.
         """
         local_col, _ = get_collection(TaskModel.COLLECTION)
-        _id = None
-        if isinstance(usuario_id, ObjectId):
-            _id = usuario_id
-        else:
-            try:
-                _id = ObjectId(str(usuario_id))
-            except Exception:
-                _id = None
-
-        queries = []
-        if _id:
-            queries.append({"usuario_id": _id})
-            queries.append({"id_usuario": _id})
-        if usuario_id is not None:
-            queries.append({"usuario_id": str(usuario_id)})
-            queries.append({"id_usuario": str(usuario_id)})
-
-        if not queries:
-            return []
-
-        return list(local_col.find({"$or": queries}))
+        return list(local_col.find(_uid_filter(usuario_id)))
 
     # -------------------------------------------------------------
     #  OBTENER POR OBJETIVO (GOAL)
     # -------------------------------------------------------------
     @staticmethod
-    def get_tasks_by_goal(goal_id):
+    def get_tasks_by_goal(goal_id, usuario_id=None):
         """
         Devuelve todas las tareas asociadas a un objetivo específico.
         """
@@ -197,45 +188,52 @@ class TaskModel:
         if not queries:
             return []
 
-        # Compatibilidad: algunas tareas guardan "objetivo_id" y otras "goal_id"
-        return list(local_col.find({"$or": queries}).sort("fecha_creacion", -1))
+        uid_filter = _uid_filter(usuario_id)
+        base_query = {"$and": [{"$or": queries}, uid_filter]}
+        return list(local_col.find(base_query).sort("fecha_creacion", -1))
 
     # -------------------------------------------------------------
     #  ELIMINAR
     # -------------------------------------------------------------
     @staticmethod
-    def delete_task(task_id):
+    def delete_task(task_id, usuario_id=None):
         """
         Elimina una tarea tanto en la base local como remota (si está disponible).
+        Solo elimina si el usuario es propietario de la tarea.
         """
         local_col, remote_col = get_collection(TaskModel.COLLECTION)
         _id = ObjectId(task_id) if not isinstance(task_id, ObjectId) else task_id
 
-        # Eliminar local
-        local_col.delete_one({"_id": _id})
+        query = {"_id": _id, **_uid_filter(usuario_id)}
+        local_col.delete_one(query)
 
-        # Eliminar remoto (si hay conexión)
         if remote_col is not None:
-            remote_col.delete_one({"_id": _id})
-            print(f"🗑️ Tarea eliminada en local y remoto: {_id}")
+            try:
+                remote_col.delete_one(query)
+                print(f"🗑️ Tarea eliminada en local y remoto: {_id}")
+            except Exception:
+                print(f"🗑️ Tarea eliminada solo localmente: {_id}")
         else:
             print(f"⚠️ Tarea eliminada solo localmente (sin conexión remota): {_id}")
 
     @staticmethod
-    def delete_tasks_by_ids(task_ids):
+    def delete_tasks_by_ids(task_ids, usuario_id=None):
         """
         Elimina varias tareas por sus _id. Devuelve el nº de documentos eliminados.
+        Solo elimina tareas del usuario actual.
         """
         local_col, remote_col = get_collection(TaskModel.COLLECTION)
         ids = [
             ObjectId(tid) if not isinstance(tid, ObjectId) else tid
             for tid in task_ids if tid
         ]
-        res_local = local_col.delete_many({"_id": {"$in": ids}})
+        
+        query = {"_id": {"$in": ids}, **_uid_filter(usuario_id)}
+        res_local = local_col.delete_many(query)
 
         if remote_col is not None:
             try:
-                remote_col.delete_many({"_id": {"$in": ids}})
+                remote_col.delete_many(query)
             except Exception:
                 pass
 
@@ -245,20 +243,19 @@ class TaskModel:
     #  ACTUALIZAR
     # -------------------------------------------------------------
     @staticmethod
-    def update_task(task_id, updates):
+    def update_task(task_id, updates, usuario_id=None):
         """
         Actualiza una tarea localmente y sincroniza los cambios con la base remota.
+        Solo actualiza si el usuario es propietario de la tarea.
         """
         local_col, _ = get_collection(TaskModel.COLLECTION)
         _id = ObjectId(task_id) if not isinstance(task_id, ObjectId) else task_id
 
-        # Actualizar en local
-        local_col.update_one({"_id": _id}, {"$set": updates})
+        query = {"_id": _id, **_uid_filter(usuario_id)}
+        local_col.update_one(query, {"$set": updates})
 
-        # Obtener el documento actualizado
         updated_task = local_col.find_one({"_id": _id})
 
-        # Sincronizar con la nube
         sync_to_remote(TaskModel.COLLECTION, updated_task)
 
         print(f"♻️ Tarea {_id} actualizada y sincronizada.")
@@ -268,18 +265,19 @@ class TaskModel:
     #  EVENT_IDS: Añadir / Eliminar evento asociado
     # -------------------------------------------------------------
     @staticmethod
-    def add_event_to_task(task_id, event_id):
+    def add_event_to_task(task_id, event_id, usuario_id=None):
         """
         Añade un event_id al array event_ids de la tarea.
         Usa $addToSet para evitar duplicados.
-        Si el documento no tiene el campo event_ids, MongoDB lo crea automáticamente.
+        Solo modifica si el usuario es propietario de la tarea.
         """
         local_col, remote_col = get_collection(TaskModel.COLLECTION)
         _tid = ObjectId(task_id) if not isinstance(task_id, ObjectId) else task_id
         _eid = ObjectId(event_id) if not isinstance(event_id, ObjectId) else event_id
 
+        query = {"_id": _tid, **_uid_filter(usuario_id)}
         local_col.update_one(
-            {"_id": _tid},
+            query,
             {"$addToSet": {"event_ids": _eid}},
             upsert=False
         )
@@ -287,7 +285,7 @@ class TaskModel:
         if remote_col is not None:
             try:
                 remote_col.update_one(
-                    {"_id": _tid},
+                    query,
                     {"$addToSet": {"event_ids": _eid}},
                     upsert=False
                 )
@@ -297,24 +295,26 @@ class TaskModel:
         print(f"📅 Evento {_eid} asociado a tarea {_tid}.")
 
     @staticmethod
-    def remove_event_from_task(task_id, event_id):
+    def remove_event_from_task(task_id, event_id, usuario_id=None):
         """
         Elimina un event_id del array event_ids de la tarea.
         Usa $pull para eliminarlo del array.
+        Solo modifica si el usuario es propietario de la tarea.
         """
         local_col, remote_col = get_collection(TaskModel.COLLECTION)
         _tid = ObjectId(task_id) if not isinstance(task_id, ObjectId) else task_id
         _eid = ObjectId(event_id) if not isinstance(event_id, ObjectId) else event_id
 
+        query = {"_id": _tid, **_uid_filter(usuario_id)}
         local_col.update_one(
-            {"_id": _tid},
+            query,
             {"$pull": {"event_ids": _eid}}
         )
 
         if remote_col is not None:
             try:
                 remote_col.update_one(
-                    {"_id": _tid},
+                    query,
                     {"$pull": {"event_ids": _eid}}
                 )
             except Exception as e:
@@ -326,14 +326,14 @@ class TaskModel:
     #  ASIGNAR OBJETIVO A MÚLTIPLES TAREAS
     # -------------------------------------------------------------
     @staticmethod
-    def assign_goal_to_tasks(task_ids, goal_id):
+    def assign_goal_to_tasks(task_ids, goal_id, usuario_id=None):
         """
         Asigna un objetivo (goal_id) a múltiples tareas.
         Devuelve el número de tareas actualizadas.
+        Solo modifica tareas del usuario actual.
         """
         local_col, remote_col = get_collection(TaskModel.COLLECTION)
         
-        # Convertir IDs a ObjectId
         object_ids = [
             ObjectId(tid) if not isinstance(tid, ObjectId) else tid
             for tid in task_ids if tid
@@ -341,17 +341,16 @@ class TaskModel:
         
         objetivo_oid = ObjectId(goal_id) if not isinstance(goal_id, ObjectId) else goal_id
         
-        # Actualizar en local
+        query = {"_id": {"$in": object_ids}, **_uid_filter(usuario_id)}
         result = local_col.update_many(
-            {"_id": {"$in": object_ids}},
+            query,
             {"$set": {"objetivo_id": objetivo_oid}}
         )
         
-        # Sincronizar cada tarea actualizada con la nube
         if remote_col is not None:
             try:
                 remote_col.update_many(
-                    {"_id": {"$in": object_ids}},
+                    query,
                     {"$set": {"objetivo_id": objetivo_oid}}
                 )
                 print(f"🎯 {result.modified_count} tareas asignadas al objetivo {goal_id} y sincronizadas.")

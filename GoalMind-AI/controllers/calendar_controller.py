@@ -6,8 +6,12 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from model.task_model import TaskModel
 from model.goal_model import GoalModel
+from model.event_model import eventModel
 
-from database.mongo_conn import get_collection
+from database.mongo_conn import get_collection, get_app_user_id
+
+calendar_bp = Blueprint("calendar_bp", __name__)
+DEFAULT_USER_ID = get_app_user_id()
 
 # No ponemos url_prefix para que /api/... quede en la raíz,
 # y la página del calendario sea /calendar
@@ -73,21 +77,21 @@ def _sync_event_association(event_id, old_ref_id, old_ref_tipo, new_ref_id, new_
     if old_ref_id and old_ref_tipo:
         try:
             if old_ref_tipo == "tarea":
-                TaskModel.remove_event_from_task(str(old_ref_id), eid)
+                TaskModel.remove_event_from_task(str(old_ref_id), eid, usuario_id=DEFAULT_USER_ID)
             elif old_ref_tipo == "objetivo":
-                GoalModel.remove_event_from_goal(str(old_ref_id), eid)
+                GoalModel.remove_event_from_goal(str(old_ref_id), eid, usuario_id=DEFAULT_USER_ID)
         except Exception as e:
-            print(f"⚠️ Error al desasociar evento {eid} del {old_ref_tipo} {old_ref_id}: {e}")
+            print(f"Error al desasociar evento {eid} del {old_ref_tipo} {old_ref_id}: {e}")
 
     # Asociar al nuevo item
     if new_ref_id and new_ref_tipo:
         try:
             if new_ref_tipo == "tarea":
-                TaskModel.add_event_to_task(str(new_ref_id), eid)
+                TaskModel.add_event_to_task(str(new_ref_id), eid, usuario_id=DEFAULT_USER_ID)
             elif new_ref_tipo == "objetivo":
-                GoalModel.add_event_to_goal(str(new_ref_id), eid)
+                GoalModel.add_event_to_goal(str(new_ref_id), eid, usuario_id=DEFAULT_USER_ID)
         except Exception as e:
-            print(f"⚠️ Error al asociar evento {eid} al {new_ref_tipo} {new_ref_id}: {e}")
+            print(f"Error al asociar evento {eid} al {new_ref_tipo} {new_ref_id}: {e}")
 
 
 @calendar_bp.route("/api/events", methods=["GET"])
@@ -96,6 +100,7 @@ def api_list_events():
     Devuelve una lista de eventos en bruto (con las claves esperadas por el front).
     Si se proporcionan start y end (ISO), filtra por intersección de rango.
     Todas las fechas se devuelven en ISO con offset UTC (+00:00).
+    Filtra por el usuario actual.
     """
     start_iso = request.args.get("start")
     end_iso = request.args.get("end")
@@ -105,18 +110,26 @@ def api_list_events():
     col, _ = _events_col()
 
     query: Dict[str, Any] = {}
+
+    # Añadir filtro de usuario
+    from model.event_model import _uid_filter
+    query.update(_uid_filter(DEFAULT_USER_ID))
+
     if start_dt and end_dt:
         # Intersección: (inicio <= end) y (fin >= start)
         query = {
-            "$or": [
-                {"fecha_inicio": {"$lte": end_dt}, "fecha_fin": {"$gte": start_dt}},
-                {"start": {"$lte": end_dt}, "end": {"$gte": start_dt}},  # compatibilidad
+            "$and": [
+                _uid_filter(DEFAULT_USER_ID),
+                {"$or": [
+                    {"fecha_inicio": {"$lte": end_dt}, "fecha_fin": {"$gte": start_dt}},
+                    {"start": {"$lte": end_dt}, "end": {"$gte": start_dt}},
+                ]}
             ]
         }
     elif start_dt:
-        query = {"$or": [{"fecha_inicio": {"$gte": start_dt}}, {"start": {"$gte": start_dt}}]}
+        query = {"$and": [_uid_filter(DEFAULT_USER_ID), {"$or": [{"fecha_inicio": {"$gte": start_dt}}, {"start": {"$gte": start_dt}}]}]}
     elif end_dt:
-        query = {"$or": [{"fecha_inicio": {"$lte": end_dt}}, {"start": {"$lte": end_dt}}]}
+        query = {"$and": [_uid_filter(DEFAULT_USER_ID), {"$or": [{"fecha_inicio": {"$lte": end_dt}}, {"start": {"$lte": end_dt}}]}]}
 
     docs = list(col.find(query).sort("fecha_inicio", 1))
 
@@ -145,8 +158,7 @@ def api_create_event():
     """
     Crea un evento. Espera JSON con:
     - Requeridos:  titulo, fecha_inicio (ISO), fecha_fin (ISO)
-    - Opcionales:  descripcion, tipo_evento, id_usuario, usuario_id,
-                   referencia_id, referencia_tipo ('tarea'|'objetivo')
+    - Opcionales:  descripcion, tipo_evento, referencia_id, referencia_tipo ('tarea'|'objetivo')
     Guarda y devuelve todo normalizado a UTC.
     Sincroniza bidireccionalmente: añade el event_id al array event_ids
     de la tarea u objetivo asociado.
@@ -178,9 +190,7 @@ def api_create_event():
         "fecha_inicio": start_dt,  # aware UTC
         "fecha_fin": end_dt,       # aware UTC
         "tipo_evento": (payload.get("tipo_evento") or "").strip() or None,
-        # aceptamos ambas claves por compatibilidad
-        "id_usuario": ObjectId(payload["id_usuario"]) if payload.get("id_usuario") else None,
-        "usuario_id": ObjectId(payload["usuario_id"]) if payload.get("usuario_id") else None,
+        "usuario_id": DEFAULT_USER_ID,
         # Referencia unificada
         "referencia_id": ref_id,
         "referencia_tipo": ref_tipo,

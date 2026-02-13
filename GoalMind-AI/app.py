@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 import secrets
 import os
 #Importacion de la funcion init_app para realizar la conexion con la base de datos MongoDB (Local y Remota)
-from database.mongo_conn import init_app
+from database.mongo_conn import init_app, get_app_user_id
 #Importacion del scheduler para sincronización en background
 try:
     from database.scheduler import init_scheduler
@@ -88,10 +88,10 @@ app.register_blueprint(ai_chat_bp)
 ################ Context Processor - Variables globales para templates ##################
 @app.context_processor
 def inject_now():
-    """Inyecta la función now() en todas las plantillas Jinja2."""
+    """Inyecta la funcion now() en todas las plantillas Jinja2."""
     sidebar_categories = []
     try:
-        categories = CategoryModel.get_all_categories()
+        categories = CategoryModel.get_all_categories(usuario_id=get_app_user_id())
         sidebar_categories = [
             {"_id": str(c["_id"]), "name": c.get("name", "")}
             for c in categories
