@@ -8,8 +8,9 @@ from config import get_settings
 from model.goal_model import GoalModel
 from model.project_model import ProjectModel
 from model.task_model import TaskModel
+from database.mongo_conn import get_app_user_id
 
-DEFAULT_USER_ID = "66ffbbbbbbbbbbbbbbbb0100"
+DEFAULT_USER_ID = get_app_user_id()
 
 """Convertir los objetos no seriablizables a formatos compatibles con JSON para meterlos en MongoDB.""
 """

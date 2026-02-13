@@ -2,14 +2,14 @@ from datetime import datetime
 
 from bson import ObjectId
 
-from database.mongo_conn import get_collection, sync_from_remote, sync_to_remote
+from database.mongo_conn import get_collection, sync_from_remote, sync_to_remote, get_app_user_id
 
 
 class Upload_model:
     """Gestion de la coleccion 'Uploads'."""
 
     COLLECTION = "Uploads"
-    DEFAULT_USER_ID = "66ffbbbbbbbbbbbbbbbb0100"
+    DEFAULT_USER_ID = get_app_user_id()
 
     @staticmethod
     def get_all_uploads(user_id=None):

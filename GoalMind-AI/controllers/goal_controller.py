@@ -1,8 +1,6 @@
 # controllers/goal_controller.py
-import os
-
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
-from database.mongo_conn import queue_deletion, flush_deletion_queue
+from database.mongo_conn import queue_deletion, flush_deletion_queue, get_app_user_id
 from model.goal_model import GoalModel
 from model.project_model import ProjectModel
 from model.task_model import TaskModel
@@ -10,7 +8,7 @@ from model.category_model import CategoryModel
 from bson import ObjectId
 
 goal_bp = Blueprint("goal_bp", __name__, url_prefix="/goals")
-DEFAULT_USER_ID = os.getenv("DEFAULT_USER_ID", "66ffbbbbbbbbbbbbbbbb0100")
+DEFAULT_USER_ID = get_app_user_id()
 
 
 def _serialize_goal(goal):
@@ -420,7 +418,7 @@ def list_goals_by_user(user_id):
     """Muestra todas las tareas creadas por un usuario especifico."""
     try:
         if user_id == "0":
-            user_id = "66ffbbbbbbbbbbbbbbbb0100"
+            user_id = DEFAULT_USER_ID
         goals = GoalModel.get_by_user_id(user_id)
         goals_view = [_serialize_goal(g) for g in goals]
         projects, project_titles = _load_projects()
