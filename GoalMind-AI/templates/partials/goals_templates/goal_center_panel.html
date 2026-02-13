@@ -35,12 +35,12 @@
         {% if goals and goals|length > 0 %}
           {% for goal in goals[:4] %}
             <div class="tree-item folder">
-              <span class="tree-item-icon">📁</span>
+              <span class="tree-item-icon"></span>
               <span class="tree-item-text">{{ goal.get('titulo','(sin titulo)') }}</span>
             </div>
             <div class="tree-children">
               <div class="tree-item task">
-                <span class="tree-item-icon">📊</span>
+                <span class="tree-item-icon"></span>
                 <span class="tree-item-text">Estado: {{ goal.get('estado','En progreso') }}</span>
               </div>
               <div class="tree-item file">
@@ -361,12 +361,12 @@
             <!-- Botones de accion -->
             <div class="item-actions">
               <button type="button" class="panel-action-btn btn-edit">✏️ Editar</button>
-              <button type="submit" class="panel-action-btn success btn-confirm" style="display:none;">✅ Confirmar</button>
-              <button type="button" class="panel-action-btn btn-cancel" style="display:none;">❌ Cancelar</button>
+              <button type="submit" class="panel-action-btn success btn-confirm" style="display:none;">Confirmar</button>
+              <button type="button" class="panel-action-btn btn-cancel" style="display:none;">Cancelar</button>
               <button type="button"
                       class="panel-action-btn danger task-delete-btn"
                       title="Eliminar"
-                      form="delete-{{ goal['_id'] }}">🗑️ Eliminar</button>
+                      form="delete-{{ goal['_id'] }}">Eliminar</button>
             </div>
 
           </form>
@@ -386,7 +386,7 @@
     </ul>
     {% else %}
     <div class="empty-state">
-      <div class="empty-state-icon">🎯</div>
+      <div class="empty-state-icon"></div>
       <h4 class="empty-state-title">No hay objetivos registrados</h4>
       <p class="empty-state-desc">Crea tu primer objetivo usando el panel de la derecha.</p>
     </div>
@@ -395,7 +395,7 @@
 
   <!-- Seccion de sugerencias IA -->
   <div class="ai-suggestions-section">
-    <h3 class="ai-suggestions-title">🤖 Sugerencias inteligentes (LangGraph)</h3>
+    <h3 class="ai-suggestions-title"> Sugerencias inteligentes (LangGraph)</h3>
     <div class="ai-suggestion-item">
       <strong>Crear rutina diaria de seguimiento</strong>
       <p>¿Programamos 15 min diarios para revisar el progreso de tus objetivos activos?</p>
@@ -408,7 +408,7 @@
 
   <!-- Grafico de progreso -->
   <div class="chart-section">
-    <h3 class="chart-section-title">📈 Progreso semanal (tareas completadas)</h3>
+    <h3 class="chart-section-title"> Progreso semanal (tareas completadas)</h3>
     <canvas id="progressChart" height="180"></canvas>
   </div>
 

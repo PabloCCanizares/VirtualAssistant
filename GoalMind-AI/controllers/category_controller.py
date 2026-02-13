@@ -1,7 +1,9 @@
 from flask import Blueprint, request, jsonify, flash, redirect, url_for
 from model.category_model import CategoryModel
+from database.mongo_conn import get_app_user_id
 
 category_bp = Blueprint("category_bp", __name__, url_prefix="/categories")
+DEFAULT_USER_ID = get_app_user_id()
 
 
 def _serialize_category(category):
@@ -24,7 +26,7 @@ def api_get_all_categories():
     Response: { "success": true, "categories": [...] }
     """
     try:
-        categories = CategoryModel.get_all_categories()
+        categories = CategoryModel.get_all_categories(usuario_id=DEFAULT_USER_ID)
         categories_view = [_serialize_category(c) for c in categories]
         return jsonify({
             "success": True,
@@ -49,7 +51,7 @@ def api_search_categories():
     """
     try:
         query = request.args.get("q", "").strip()
-        categories = CategoryModel.search_by_name(query)
+        categories = CategoryModel.search_by_name(query, usuario_id=DEFAULT_USER_ID)
         categories_view = [_serialize_category(c) for c in categories]
         return jsonify({
             "success": True,
@@ -72,7 +74,7 @@ def api_get_category(category_id):
     Response: { "success": true, "category": {...} }
     """
     try:
-        category = CategoryModel.get_category_by_id(category_id)
+        category = CategoryModel.get_category_by_id(category_id, usuario_id=DEFAULT_USER_ID)
         if not category:
             return jsonify({
                 "success": False,
@@ -115,13 +117,13 @@ def api_add_category():
             }), 400
 
         # Verificar si ya existe
-        if CategoryModel.exists_by_name(name):
+        if CategoryModel.exists_by_name(name, usuario_id=DEFAULT_USER_ID):
             return jsonify({
                 "success": False,
                 "message": f"Ya existe una categoria con el nombre '{name}'"
             }), 409
 
-        category = CategoryModel.insert_category(name)
+        category = CategoryModel.insert_category(name, usuario_id=DEFAULT_USER_ID)
         if not category:
             return jsonify({
                 "success": False,
@@ -174,7 +176,7 @@ def api_update_category(category_id):
                 "message": "Categoria no encontrada"
             }), 404
 
-        category = CategoryModel.update_category(category_id, name)
+        category = CategoryModel.update_category(category_id, name, usuario_id=DEFAULT_USER_ID)
         if not category:
             return jsonify({
                 "success": False,
@@ -206,14 +208,14 @@ def api_get_category_usage(category_id):
     """
     try:
         # Verificar que la categoría existe
-        category = CategoryModel.get_category_by_id(category_id)
+        category = CategoryModel.get_category_by_id(category_id, usuario_id=DEFAULT_USER_ID)
         if not category:
             return jsonify({
                 "success": False,
                 "message": "Categoria no encontrada"
             }), 404
 
-        usage = CategoryModel.get_category_usage(category_id)
+        usage = CategoryModel.get_category_usage(category_id, usuario_id=DEFAULT_USER_ID)
         return jsonify({
             "success": True,
             "category": _serialize_category(category),
@@ -250,7 +252,7 @@ def api_delete_category(category_id):
 
         print(f"[DELETE CATEGORY] Categoria encontrada, procediendo a eliminar: {existing.get('name', 'N/A')}")
 
-        deleted = CategoryModel.delete_category(category_id)
+        deleted = CategoryModel.delete_category(category_id, usuario_id=DEFAULT_USER_ID)
 
         if not deleted:
             print(f"[DELETE CATEGORY] delete_category retornó False para: {category_id}")
@@ -300,7 +302,7 @@ def api_get_categories_by_ids():
                 "categories": []
             })
 
-        categories = CategoryModel.get_categories_by_ids(ids)
+        categories = CategoryModel.get_categories_by_ids(ids, usuario_id=DEFAULT_USER_ID)
         categories_view = [_serialize_category(c) for c in categories]
         return jsonify({
             "success": True,

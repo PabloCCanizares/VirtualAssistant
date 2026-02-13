@@ -1,6 +1,18 @@
-from database.mongo_conn import get_collection, sync_to_remote
+from database.mongo_conn import get_collection, sync_to_remote, get_app_user_id
 from bson import ObjectId
 from datetime import datetime
+
+
+def _uid_filter(usuario_id):
+    """Construye filtro que matchea tanto string como ObjectId."""
+    uid = usuario_id or get_app_user_id()
+    conditions = [{"usuario_id": uid}]
+    try:
+        if ObjectId.is_valid(str(uid)):
+            conditions.append({"usuario_id": ObjectId(str(uid))})
+    except Exception:
+        pass
+    return {"$or": conditions} if len(conditions) > 1 else conditions[0]
 
 
 class CategoryModel:
@@ -12,27 +24,28 @@ class CategoryModel:
     #  INSERTAR
     # -------------------------------------------------------------
     @staticmethod
-    def insert_category(name: str):
+    def insert_category(name: str, usuario_id=None):
         """
         Inserta una categoria en la base local y la sincroniza con la remota.
         Devuelve la categoria insertada con su _id.
         """
         local_col, _ = get_collection(CategoryModel.COLLECTION)
+        
+        uid = usuario_id or get_app_user_id()
 
-        # Verificar que no exista una categoria con el mismo nombre (case-insensitive)
-        existing = local_col.find_one({"name": {"$regex": f"^{name}$", "$options": "i"}})
+        existing = local_col.find_one({"name": {"$regex": f"^{name}$", "$options": "i"}, **_uid_filter(uid)})
         if existing:
-            return None  # Ya existe
+            return None
 
         category_data = {
             "name": name.strip(),
+            "usuario_id": uid,
             "created_at": datetime.utcnow()
         }
 
         result = local_col.insert_one(category_data)
         category_data["_id"] = result.inserted_id
 
-        # Sincronizar con la nube
         sync_to_remote(CategoryModel.COLLECTION, category_data)
 
         print(f"Categoria insertada: {category_data['_id']} - {name}")
@@ -42,30 +55,30 @@ class CategoryModel:
     #  OBTENER TODAS
     # -------------------------------------------------------------
     @staticmethod
-    def get_all_categories():
+    def get_all_categories(usuario_id=None):
         """
-        Devuelve todas las categorias ordenadas alfabeticamente por nombre.
+        Devuelve todas las categorias del usuario actual ordenadas alfabeticamente por nombre.
         """
         local_col, _ = get_collection(CategoryModel.COLLECTION)
-        return list(local_col.find().sort("name", 1))
+        return list(local_col.find(_uid_filter(usuario_id)).sort("name", 1))
 
     # -------------------------------------------------------------
     #  OBTENER POR ID
     # -------------------------------------------------------------
     @staticmethod
-    def get_category_by_id(category_id):
+    def get_category_by_id(category_id, usuario_id=None):
         """
         Obtiene una categoria por su _id.
         """
         local_col, _ = get_collection(CategoryModel.COLLECTION)
         _id = ObjectId(category_id) if not isinstance(category_id, ObjectId) else category_id
-        return local_col.find_one({"_id": _id})
+        return local_col.find_one({"_id": _id, **_uid_filter(usuario_id)})
 
     # -------------------------------------------------------------
     #  OBTENER POR IDs (MULTIPLES)
     # -------------------------------------------------------------
     @staticmethod
-    def get_categories_by_ids(category_ids: list):
+    def get_categories_by_ids(category_ids: list, usuario_id=None):
         """
         Obtiene multiples categorias por sus _ids.
         Devuelve una lista de categorias.
@@ -75,7 +88,6 @@ class CategoryModel:
         
         local_col, _ = get_collection(CategoryModel.COLLECTION)
         
-        # Convertir a ObjectId si es necesario
         object_ids = []
         for cid in category_ids:
             try:
@@ -89,30 +101,32 @@ class CategoryModel:
         if not object_ids:
             return []
         
-        return list(local_col.find({"_id": {"$in": object_ids}}).sort("name", 1))
+        query = {"_id": {"$in": object_ids}, **_uid_filter(usuario_id)}
+        return list(local_col.find(query).sort("name", 1))
 
     # -------------------------------------------------------------
     #  BUSCAR POR NOMBRE
     # -------------------------------------------------------------
     @staticmethod
-    def search_by_name(query: str, limit: int = 20):
+    def search_by_name(query: str, limit: int = 20, usuario_id=None):
         """
         Busca categorias cuyo nombre contenga el texto dado (case-insensitive).
         """
         local_col, _ = get_collection(CategoryModel.COLLECTION)
         
         if not query or not query.strip():
-            return list(local_col.find().sort("name", 1).limit(limit))
+            return list(local_col.find(_uid_filter(usuario_id)).sort("name", 1).limit(limit))
         
         import re
         regex = re.compile(re.escape(query.strip()), re.IGNORECASE)
-        return list(local_col.find({"name": {"$regex": regex}}).sort("name", 1).limit(limit))
+        search_query = {"name": {"$regex": regex}, **_uid_filter(usuario_id)}
+        return list(local_col.find(search_query).sort("name", 1).limit(limit))
 
     # -------------------------------------------------------------
     #  ACTUALIZAR
     # -------------------------------------------------------------
     @staticmethod
-    def update_category(category_id, name: str):
+    def update_category(category_id, name: str, usuario_id=None):
         """
         Actualiza el nombre de una categoria.
         Devuelve la categoria actualizada o None si no se encontro.
@@ -120,20 +134,21 @@ class CategoryModel:
         local_col, _ = get_collection(CategoryModel.COLLECTION)
         _id = ObjectId(category_id) if not isinstance(category_id, ObjectId) else category_id
 
-        # Verificar que no exista otra categoria con el mismo nombre
         existing = local_col.find_one({
             "name": {"$regex": f"^{name}$", "$options": "i"},
-            "_id": {"$ne": _id}
+            "_id": {"$ne": _id},
+            **_uid_filter(usuario_id)
         })
         if existing:
-            return None  # Ya existe otra con ese nombre
+            return None
 
         updates = {
             "name": name.strip(),
             "updated_at": datetime.utcnow()
         }
 
-        local_col.update_one({"_id": _id}, {"$set": updates})
+        query = {"_id": _id, **_uid_filter(usuario_id)}
+        local_col.update_one(query, {"$set": updates})
         updated_category = local_col.find_one({"_id": _id})
 
         if updated_category:
@@ -146,7 +161,7 @@ class CategoryModel:
     #  ELIMINAR
     # -------------------------------------------------------------
     @staticmethod
-    def delete_category(category_id):
+    def delete_category(category_id, usuario_id=None):
         """
         Elimina una categoria tanto en la base local como remota.
         Devuelve True si se elimino, False si no se encontro.
@@ -159,20 +174,18 @@ class CategoryModel:
             print(f"Error al convertir category_id a ObjectId: {e}")
             return False
 
-        # Eliminar de la base local primero
-        result = local_col.delete_one({"_id": _id})
+        query = {"_id": _id, **_uid_filter(usuario_id)}
+        result = local_col.delete_one(query)
         deleted_locally = result.deleted_count > 0
 
         if deleted_locally:
             print(f"Categoria eliminada localmente: {_id}")
 
-        # Intentar eliminar de remoto de forma independiente (no afecta el resultado)
         if remote_col is not None:
             try:
-                remote_col.delete_one({"_id": _id})
+                remote_col.delete_one(query)
                 print(f"Categoria eliminada en remoto: {_id}")
             except Exception as e:
-                # Error en remoto no debe afectar la operación local
                 print(f"Error al eliminar categoria de remoto (no crítico): {e}")
 
         return deleted_locally
@@ -181,19 +194,19 @@ class CategoryModel:
     #  VERIFICAR SI EXISTE POR NOMBRE
     # -------------------------------------------------------------
     @staticmethod
-    def exists_by_name(name: str) -> bool:
+    def exists_by_name(name: str, usuario_id=None) -> bool:
         """
         Verifica si existe una categoria con el nombre dado (case-insensitive).
         """
         local_col, _ = get_collection(CategoryModel.COLLECTION)
-        existing = local_col.find_one({"name": {"$regex": f"^{name}$", "$options": "i"}})
+        existing = local_col.find_one({"name": {"$regex": f"^{name}$", "$options": "i"}, **_uid_filter(usuario_id)})
         return existing is not None
 
     # -------------------------------------------------------------
     #  CONTAR USO DE CATEGORIA
     # -------------------------------------------------------------
     @staticmethod
-    def get_category_usage(category_id):
+    def get_category_usage(category_id, usuario_id=None):
         """
         Cuenta cuántos objetivos, tareas y proyectos tienen asignada esta categoría.
         Devuelve un diccionario con los conteos.
@@ -203,15 +216,15 @@ class CategoryModel:
         except Exception:
             return {"goals": 0, "tasks": 0, "projects": 0, "total": 0}
 
-        # Obtener colecciones
         goals_col, _ = get_collection("Goals")
         tasks_col, _ = get_collection("Tasks")
         projects_col, _ = get_collection("Projects")
 
-        # Contar documentos que tienen esta categoría en su array "categorias"
-        goals_count = goals_col.count_documents({"categorias": _id})
-        tasks_count = tasks_col.count_documents({"categorias": _id})
-        projects_count = projects_col.count_documents({"categorias": _id})
+        uid_filter = _uid_filter(usuario_id)
+        
+        goals_count = goals_col.count_documents({"categorias": _id, **uid_filter})
+        tasks_count = tasks_col.count_documents({"categorias": _id, **uid_filter})
+        projects_count = projects_col.count_documents({"categorias": _id, **uid_filter})
 
         return {
             "goals": goals_count,

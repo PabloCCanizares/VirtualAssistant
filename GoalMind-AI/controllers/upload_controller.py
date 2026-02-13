@@ -6,8 +6,10 @@ from flask import Blueprint, current_app, flash, redirect, render_template, requ
 from werkzeug.utils import secure_filename
 
 from model.upload_model import Upload_model
+from database.mongo_conn import get_app_user_id
 
 upload_bp = Blueprint("upload_bp", __name__, url_prefix="/upload")
+DEFAULT_USER_ID = get_app_user_id()
 
 
 def _allowed_file(filename):
@@ -47,7 +49,7 @@ def _serialize_upload(doc):
 @upload_bp.route("/", methods=["GET"])
 def list_uploads():
     try:
-        docs = Upload_model.get_all_uploads()
+        docs = Upload_model.get_all_uploads(usuario_id=DEFAULT_USER_ID)
     except Exception as exc:
         flash(f"Error al cargar documentos: {exc}", "danger")
         docs = []
@@ -94,10 +96,10 @@ def upload_file():
         "content_type": file.mimetype or "application/octet-stream",
         "size": file_path.stat().st_size,
         "local_path": str(file_path),
-        "id_usuario": Upload_model.DEFAULT_USER_ID,
+        "usuario_id": DEFAULT_USER_ID,
     }
 
-    Upload_model.insert_upload(doc_data)
+    Upload_model.insert_upload(doc_data, usuario_id=DEFAULT_USER_ID)
     flash("Documento subido correctamente", "success")
 
     return redirect(url_for("upload_bp.list_uploads"))
@@ -105,7 +107,7 @@ def upload_file():
 
 @upload_bp.route("/<doc_id>/download", methods=["GET"])
 def download_upload(doc_id):
-    doc = Upload_model.get_upload_by_id(doc_id)
+    doc = Upload_model.get_upload_by_id(doc_id, usuario_id=DEFAULT_USER_ID)
     if not doc:
         flash("Documento no encontrado.", "warning")
         return redirect(url_for("upload_bp.list_uploads"))
@@ -125,7 +127,7 @@ def download_upload(doc_id):
 
 @upload_bp.route("/<doc_id>/view", methods=["GET"])
 def view_upload(doc_id):
-    doc = Upload_model.get_upload_by_id(doc_id)
+    doc = Upload_model.get_upload_by_id(doc_id, usuario_id=DEFAULT_USER_ID)
     if not doc:
         flash("Documento no encontrado.", "warning")
         return redirect(url_for("upload_bp.list_uploads"))
@@ -145,7 +147,7 @@ def view_upload(doc_id):
 
 @upload_bp.route("/<doc_id>/delete", methods=["POST"])
 def delete_upload(doc_id):
-    doc = Upload_model.get_upload_by_id(doc_id)
+    doc = Upload_model.get_upload_by_id(doc_id, usuario_id=DEFAULT_USER_ID)
     if not doc:
         flash("Documento no encontrado.", "warning")
         return redirect(url_for("upload_bp.list_uploads"))
@@ -157,7 +159,7 @@ def delete_upload(doc_id):
         except Exception:
             pass
 
-    Upload_model.delete_upload(doc_id)
+    Upload_model.delete_upload(doc_id, usuario_id=DEFAULT_USER_ID)
     flash("Documento eliminado", "success")
 
     return redirect(url_for("upload_bp.list_uploads"))

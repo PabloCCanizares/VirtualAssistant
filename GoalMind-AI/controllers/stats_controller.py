@@ -8,14 +8,11 @@ import uuid
 
 from model.task_model import TaskModel
 from model.goal_model import GoalModel
-try:
-    from model.event_model import EventModel
-    _HAS_EVENT_MODEL = True
-except Exception:
-    _HAS_EVENT_MODEL = False
-    from database.mongo_conn import get_collection
+from model.event_model import eventModel
+from database.mongo_conn import get_app_user_id, get_collection
 
 stats_bp = Blueprint("stats_bp", __name__, url_prefix="/stats")
+DEFAULT_USER_ID = get_app_user_id()
 
 # Palette tomada del dashboard (accent, accent2, good, warn, bad)
 PALETTE = {
@@ -82,7 +79,7 @@ def _is_in_ym(dt_obj, year):
     return d.year == year
 
 def _load_all_tasks():
-    tasks = TaskModel.get_all_tasks()
+    tasks = TaskModel.get_all_tasks(usuario_id=DEFAULT_USER_ID)
     out = []
     for t in tasks:
         t = dict(t) if not isinstance(t, dict) else t.copy()
@@ -95,7 +92,7 @@ def _load_all_tasks():
     return out
 
 def _load_all_goals():
-    goals = GoalModel.get_all_goals()
+    goals = GoalModel.get_all_goals(usuario_id=DEFAULT_USER_ID)
     out = []
     for g in goals:
         g = dict(g) if not isinstance(g, dict) else g.copy()
@@ -108,11 +105,7 @@ def _load_all_goals():
     return out
 
 def _load_all_events():
-    if _HAS_EVENT_MODEL:
-        events = EventModel.get_all_events()
-    else:
-        col, _ = get_collection("Events")
-        events = list(col.find({}))
+    events = eventModel.get_all_events(usuario_id=DEFAULT_USER_ID)
     out = []
     for e in events:
         e = dict(e) if not isinstance(e, dict) else e.copy()

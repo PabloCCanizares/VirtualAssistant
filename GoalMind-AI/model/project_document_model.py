@@ -2,7 +2,19 @@ from datetime import datetime
 
 from bson import ObjectId
 
-from database.mongo_conn import get_collection, sync_from_remote, sync_to_remote
+from database.mongo_conn import get_collection, sync_from_remote, sync_to_remote, get_app_user_id
+
+
+def _uid_filter(usuario_id):
+    """Construye filtro que matchea tanto string como ObjectId."""
+    uid = usuario_id or get_app_user_id()
+    conditions = [{"usuario_id": uid}]
+    try:
+        if ObjectId.is_valid(str(uid)):
+            conditions.append({"usuario_id": ObjectId(str(uid))})
+    except Exception:
+        pass
+    return {"$or": conditions} if len(conditions) > 1 else conditions[0]
 
 
 class ProjectDocumentModel:
@@ -11,12 +23,12 @@ class ProjectDocumentModel:
     COLLECTION = "ProjectDocuments"
 
     @staticmethod
-    def get_all_documents():
+    def get_all_documents(usuario_id=None):
         local_col, _ = get_collection(ProjectDocumentModel.COLLECTION)
-        return list(local_col.find().sort("uploaded_at", -1))
+        return list(local_col.find(_uid_filter(usuario_id)).sort("uploaded_at", -1))
 
     @staticmethod
-    def get_by_project(project_id):
+    def get_by_project(project_id, usuario_id=None):
         local_col, _ = get_collection(ProjectDocumentModel.COLLECTION)
         queries = []
         if isinstance(project_id, ObjectId):
@@ -33,22 +45,28 @@ class ProjectDocumentModel:
         if not queries:
             return []
 
-        return list(local_col.find({"$or": queries}).sort("uploaded_at", -1))
+        uid_filter = _uid_filter(usuario_id)
+        base_query = {"$and": [{"$or": queries}, uid_filter]}
+        return list(local_col.find(base_query).sort("uploaded_at", -1))
 
     @staticmethod
-    def get_document_by_id(doc_id):
+    def get_document_by_id(doc_id, usuario_id=None):
         local_col, _ = get_collection(ProjectDocumentModel.COLLECTION)
         _id = ObjectId(doc_id) if not isinstance(doc_id, ObjectId) else doc_id
 
-        doc = local_col.find_one({"_id": _id})
+        query = {"_id": _id, **_uid_filter(usuario_id)}
+        doc = local_col.find_one(query)
         if not doc:
             sync_from_remote(ProjectDocumentModel.COLLECTION, {"_id": _id})
-            doc = local_col.find_one({"_id": _id})
+            doc = local_col.find_one(query)
         return doc
 
     @staticmethod
-    def insert_document(doc_data):
+    def insert_document(doc_data, usuario_id=None):
         local_col, _ = get_collection(ProjectDocumentModel.COLLECTION)
+
+        uid = usuario_id or get_app_user_id()
+        doc_data["usuario_id"] = doc_data.get("usuario_id") or uid
 
         if "uploaded_at" not in doc_data:
             doc_data["uploaded_at"] = datetime.utcnow()
@@ -68,15 +86,16 @@ class ProjectDocumentModel:
         return doc_data
 
     @staticmethod
-    def delete_document(doc_id):
+    def delete_document(doc_id, usuario_id=None):
         local_col, remote_col = get_collection(ProjectDocumentModel.COLLECTION)
         _id = ObjectId(doc_id) if not isinstance(doc_id, ObjectId) else doc_id
 
-        res = local_col.delete_one({"_id": _id})
+        query = {"_id": _id, **_uid_filter(usuario_id)}
+        res = local_col.delete_one(query)
 
         if remote_col is not None:
             try:
-                remote_col.delete_one({"_id": _id})
+                remote_col.delete_one(query)
             except Exception:
                 pass
 
