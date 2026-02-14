@@ -37,7 +37,7 @@
     <div class="panel-section panel-accent project-tree-section">
       <div class="panel-header">
         <h3 class="panel-title">
-          <span class="panel-title-icon">🌳</span>
+          <span class="panel-title-icon"></span>
           Estructura del proyecto
         </h3>
         <span class="panel-badge accent">vista arbol</span>
@@ -47,8 +47,8 @@
           {% for goal in goals %}
             <div class="tree-item folder tree-item-goal" data-goal-id="{{ goal['_id'] }}">
               <span class="tree-item-toggle">▶</span>
-              <span class="tree-item-icon">🎯</span>
-              <span class="tree-item-text">{{ goal.get('titulo','(sin titulo)') }}</span>
+              <span class="tree-item-icon"></span>
+              <span class="tree-item-text">{{ goal.get('titulo') }}</span>
               <span class="tree-item-badge">{{ (goal_tasks.get(goal['_id'], [])|length) if goal_tasks else 0 }} tareas</span>
               <form method="post"
                     action="{{ url_for('goal_bp.delete_goal', goal_id=goal['_id']) }}"
@@ -64,14 +64,14 @@
               {% if tasks|length > 0 %}
                 {% for task in tasks %}
                   <div class="tree-item task">
-                    <span class="tree-item-icon">📋</span>
+                    <span class="tree-item-icon"> - </span>
                     <span class="tree-item-text">{{ task.titulo }}</span>
                     <span class="tree-item-status tree-item-status-{{ task.estado|lower|replace(' ', '-') }}">{{ task.estado }}</span>
                   </div>
                 {% endfor %}
               {% else %}
                 <div class="tree-item tree-item-empty">
-                  <span class="tree-item-icon">📭</span>
+                  <span class="tree-item-icon"></span>
                   <span class="tree-item-text tree-item-text-muted">Sin tareas asociadas</span>
                 </div>
               {% endif %}

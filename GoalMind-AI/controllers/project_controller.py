@@ -290,9 +290,9 @@ def view_project(project_id):
         goal_tasks[goal_id] = [
             {
                 "_id": _serialize_id(t.get("_id")),
-                "titulo": t.get("titulo", "(sin titulo)"),
-                "estado": t.get("estado", "Pendiente"),
-                "prioridad": t.get("prioridad", "Media"),
+                "titulo": t.get("contenido", "(Sin título)"),
+                "estado": t.get("estado", "(Estado desconocido)"),
+                "prioridad": t.get("prioridad", "(Prioridad desconocida)"),
             }
             for t in tasks
         ]
