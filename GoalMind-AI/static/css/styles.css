@@ -607,7 +607,6 @@ main{
   transition: transform .2s ease, filter .2s ease, box-shadow .2s ease;
 }
 .event:hover{
-  transform: translateX(4px);
   filter: brightness(1.08);
   box-shadow: 0 14px 36px rgba(0,0,0,.45), 0 0 0 1px rgba(108,243,255,.18) inset;
 }

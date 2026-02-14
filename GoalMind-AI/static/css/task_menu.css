@@ -51,7 +51,6 @@
 }
 
 .task-item:hover {
-  transform: translateX(4px);
   background: linear-gradient(180deg, rgba(108,243,255,.10), rgba(139,123,255,.08));
 }
 
@@ -234,7 +233,7 @@
   display:flex;align-items:center;gap:12px;
   padding:10px 12px;border-radius:14px;transition:all .3s;cursor:pointer;
 }
-.item:hover{background:rgba(108,243,255,.15);transform:translateX(6px)}
+.item:hover{background:rgba(108,243,255,.15);}
 .folder{color:var(--accent);font-weight:700}
 .task{color:var(--good)}
 .file{color:var(--warn)}

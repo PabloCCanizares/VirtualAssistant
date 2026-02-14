@@ -79,7 +79,6 @@
 .sidebar-nav-item:hover {
   background: rgba(108,243,255,.08);
   border-color: rgba(108,243,255,.15);
-  transform: translateX(4px);
 }
 
 .sidebar-nav-item[aria-current="page"],
@@ -767,7 +766,6 @@
 
 .dashboard-task:hover {
   background: rgba(108,243,255,.06);
-  transform: translateX(4px);
 }
 
 .dashboard-task:last-child {
