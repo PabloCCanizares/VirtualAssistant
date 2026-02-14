@@ -41,6 +41,9 @@
         indexAxis: 'y',
         responsive: true,
         maintainAspectRatio: false,
+        scales: {
+          x: { min: 0, max: 100 }
+        },
         plugins: { legend: { display: false }, tooltip: { enabled: true } }
       }
     });

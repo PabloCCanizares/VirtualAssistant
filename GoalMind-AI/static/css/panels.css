@@ -588,7 +588,6 @@
 
 .item-card:hover {
   background: linear-gradient(180deg, rgba(108,243,255,.10), rgba(139,123,255,.06));
-  transform: translateX(6px);
   box-shadow: var(--panel-shadow);
 }
 
@@ -619,7 +618,6 @@
 
 .item-card-link:hover .item-card-arrow {
   opacity: 1;
-  transform: translateX(0);
 }
 
 .item-card.expanded {
