@@ -295,7 +295,6 @@
   outline: none;
   border-color: var(--input-focus);
   box-shadow: 0 0 0 2px rgba(108,243,255,.15);
-}
   min-width: 200px;
   padding: 8px 12px;
   border-radius: 10px;
@@ -1520,7 +1519,6 @@
 
 .tree-item:hover {
   background: rgba(108,243,255,.1);
-  transform: translateX(4px);
 }
 
 .tree-item-icon {
@@ -1551,7 +1549,7 @@
 }
 
 .tree-children {
-  margin-left: 24px;
+  margin-left: 17px;
   padding-left: 12px;
   border-left: 2px solid rgba(108,243,255,.15);
 }
