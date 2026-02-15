@@ -248,7 +248,7 @@
       </p>
       <form method="post"
             action="{{ url_for('project_bp.delete_project', project_id=project['_id']) }}"
-            onsubmit="return confirm('¿Estas seguro de que quieres eliminar este proyecto? Esta accion no se puede deshacer.');">
+            data-confirm-message="¿Estás seguro de que quieres eliminar este proyecto? Esta acción no se puede deshacer.">
         <button type="submit" class="panel-action-btn danger" style="width: 100%; justify-content: center;">
           Eliminar proyecto
         </button>

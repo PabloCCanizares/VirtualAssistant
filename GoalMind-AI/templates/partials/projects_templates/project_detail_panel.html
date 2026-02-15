@@ -52,7 +52,7 @@
               <span class="tree-item-badge">{{ (goal_tasks.get(goal['_id'], [])|length) if goal_tasks else 0 }} tareas</span>
               <form method="post"
                     action="{{ url_for('goal_bp.delete_goal', goal_id=goal['_id']) }}"
-                    onsubmit="return confirm('¿Eliminar este objetivo?');"
+                    data-confirm-message="¿Eliminar este objetivo?"
                     class="tree-item-action"
                     style="display: inline;">
                 <input type="hidden" name="redirect_to" value="{{ url_for('project_bp.view_project', project_id=project['_id']) }}">
@@ -116,7 +116,7 @@
                 </a>
                 <form method="post"
                       action="{{ url_for('project_bp.delete_document', doc_id=doc['_id']) }}"
-                      onsubmit="return confirm('¿Eliminar este documento?');"
+                      data-confirm-message="¿Eliminar este documento?"
                       style="display: inline;">
                   <button type="submit" class="panel-action-btn panel-action-btn-small danger" title="Eliminar">🗑️</button>
                 </form>
@@ -165,7 +165,7 @@
                 </div>
                 <p class="item-desc">{{ note.get('text','') }}</p>
               </div>
-              <form method="post" action="{{ url_for('project_bp.delete_project_note', project_id=project['_id'], note_id=note.get('_id')) }}" onsubmit="return confirm('?Eliminar esta anotacion?');" class="project-note-delete-form">
+              <form method="post" action="{{ url_for('project_bp.delete_project_note', project_id=project['_id'], note_id=note.get('_id')) }}" data-confirm-message="¿Eliminar esta anotación?" class="project-note-delete-form">
                 <button type="submit" class="panel-action-btn panel-action-btn-small danger" title="Eliminar">Eliminar</button>
               </form>
             </div>
@@ -338,7 +338,7 @@
         <form id="delete-{{ goal['_id'] }}"
               action="{{ url_for('goal_bp.delete_goal', goal_id=goal['_id']) }}"
               method="post"
-              onsubmit="return confirm('¿Eliminar este objetivo?');"
+              data-confirm-message="¿Eliminar este objetivo?"
               style="display:none;">
           <input type="hidden" name="redirect_to" value="{{ url_for('project_bp.view_project', project_id=project['_id']) }}">
         </form>
