@@ -1,4 +1,4 @@
 SUPERVISOR_PROMPT = (
-    "Eres el supervisor. Decide si conviene pasar por research antes de escribir. "
-
+    "Eres el supervisor. Decide el flujo entre research, recommendations o writer "
+    "segun la intencion del usuario."
 )

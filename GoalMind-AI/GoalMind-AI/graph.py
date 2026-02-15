@@ -2,7 +2,14 @@ from langchain_core.messages import AIMessage, HumanMessage
 from langchain_openai import ChatOpenAI
 from langgraph.graph import END, START, StateGraph
 
-from agents import critic_node, research_node, route_after_supervisor, supervisor_node, writer_node
+from agents import (
+    critic_node,
+    recommendations_node,
+    research_node,
+    route_after_supervisor,
+    supervisor_node,
+    writer_node,
+)
 from state import AppState
 
 
@@ -40,6 +47,7 @@ def build_chat_graph(llm):
 
     graph.add_node("supervisor", lambda state: supervisor_node(state, llm))
     graph.add_node("research", lambda state: research_node(state, llm))
+    graph.add_node("recommendations", lambda state: recommendations_node(state, llm))
     graph.add_node("writer", lambda state: writer_node(state, llm))
     graph.add_node("critic", lambda state: critic_node(state, llm))
     graph.add_node("finalize", _finalize_node)
@@ -50,10 +58,19 @@ def build_chat_graph(llm):
         route_after_supervisor,
         {
             "research": "research",
+            "recommendations": "recommendations",
             "writer": "writer",
         },
     )
     graph.add_edge("research", "writer")
+    graph.add_conditional_edges(
+        "recommendations",
+        _route_after_writer,
+        {
+            "critic": "critic",
+            "finalize": "finalize",
+        },
+    )
     graph.add_conditional_edges(
         "writer",
         _route_after_writer,

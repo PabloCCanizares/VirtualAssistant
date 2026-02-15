@@ -14,9 +14,23 @@ def _last_user_text(messages: list) -> str:
 def supervisor_node(state: AppState, llm) -> AppState:
     user_text = _last_user_text(state.get("messages", []))
     fast_words = ["rapido", "breve", "resumen", "corto"]
+    recommendation_words = [
+        "recomendacion",
+        "recomendaciones",
+        "recomiendame",
+        "dame recomendaciones",
+        "recomendaciones personales",
+        "priorizar",
+        "prioridades",
+    ]
     use_critic = any(word in user_text for word in ["critica", "mejora", "revisa"])
 
-    route = "writer" if any(word in user_text for word in fast_words) else "research"
+    if any(word in user_text for word in recommendation_words):
+        route = "recommendations"
+    elif any(word in user_text for word in fast_words):
+        route = "writer"
+    else:
+        route = "research"
 
     messages = [
         SystemMessage(content=SUPERVISOR_PROMPT),
