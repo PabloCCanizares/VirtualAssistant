@@ -1,6 +1,4 @@
-from langchain_core.messages import HumanMessage, SystemMessage
-
-from prompts.supervisor_prompt import SUPERVISOR_PROMPT
+from langchain_core.messages import HumanMessage
 from state import AppState
 
 
@@ -14,6 +12,7 @@ def _last_user_text(messages: list) -> str:
 def supervisor_node(state: AppState, llm) -> AppState:
     user_text = _last_user_text(state.get("messages", []))
     fast_words = ["rapido", "breve", "resumen", "corto"]
+    weekly_summary_exact_trigger = "hazme un resumen de la semana"
     recommendation_words = [
         "recomendacion",
         "recomendaciones",
@@ -27,16 +26,12 @@ def supervisor_node(state: AppState, llm) -> AppState:
 
     if any(word in user_text for word in recommendation_words):
         route = "recommendations"
+    elif user_text == weekly_summary_exact_trigger:
+        route = "weekly_summary"
     elif any(word in user_text for word in fast_words):
         route = "writer"
     else:
         route = "research"
-
-    messages = [
-        SystemMessage(content=SUPERVISOR_PROMPT),
-        HumanMessage(content=f"Mensaje usuario: {user_text}"),
-    ]
-    _ = llm.invoke(messages)
 
     return {"route": route, "use_critic": use_critic}
 

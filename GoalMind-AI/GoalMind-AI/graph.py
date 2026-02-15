@@ -8,6 +8,7 @@ from agents import (
     research_node,
     route_after_supervisor,
     supervisor_node,
+    weekly_summary_node,
     writer_node,
 )
 from state import AppState
@@ -48,6 +49,7 @@ def build_chat_graph(llm):
     graph.add_node("supervisor", lambda state: supervisor_node(state, llm))
     graph.add_node("research", lambda state: research_node(state, llm))
     graph.add_node("recommendations", lambda state: recommendations_node(state, llm))
+    graph.add_node("weekly_summary", lambda state: weekly_summary_node(state, llm))
     graph.add_node("writer", lambda state: writer_node(state, llm))
     graph.add_node("critic", lambda state: critic_node(state, llm))
     graph.add_node("finalize", _finalize_node)
@@ -59,12 +61,21 @@ def build_chat_graph(llm):
         {
             "research": "research",
             "recommendations": "recommendations",
+            "weekly_summary": "weekly_summary",
             "writer": "writer",
         },
     )
     graph.add_edge("research", "writer")
     graph.add_conditional_edges(
         "recommendations",
+        _route_after_writer,
+        {
+            "critic": "critic",
+            "finalize": "finalize",
+        },
+    )
+    graph.add_conditional_edges(
+        "weekly_summary",
         _route_after_writer,
         {
             "critic": "critic",
@@ -86,7 +97,7 @@ def build_chat_graph(llm):
 
 
 def run_graph_chat(user_message: str, history, context_json: str, model: str) -> str:
-    llm = ChatOpenAI(model=model, temperature=0.3)
+    llm = ChatOpenAI(model=model, temperature=0.3, timeout=45)
     app = build_chat_graph(llm)
 
     state = {
