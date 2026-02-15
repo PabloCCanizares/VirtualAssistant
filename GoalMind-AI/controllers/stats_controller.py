@@ -104,19 +104,6 @@ def _load_all_goals():
         out.append(g)
     return out
 
-def _load_all_events():
-    events = eventModel.get_all_events(usuario_id=DEFAULT_USER_ID)
-    out = []
-    for e in events:
-        e = dict(e) if not isinstance(e, dict) else e.copy()
-        if "_id" in e and not isinstance(e["_id"], str):
-            try:
-                e["_id"] = str(e["_id"])
-            except Exception:
-                pass
-        out.append(e)
-    return out
-
 # Estado -> valor
 _ESTADO_VAL = {
     "pendiente": 0,
@@ -135,7 +122,7 @@ def stats_tasks_completed_month():
     year = _year_now()
     month_tasks = [t for t in tasks if _is_in_ym(t.get("fecha_limite"), year)]
     total = len(month_tasks)
-    completed = sum(1 for t in month_tasks if (t.get("estado") or "").strip().lower() == "completada")
+    completed = sum(1 for t in month_tasks if (t.get("estado")).strip().lower() == "completada")
     pct = round((completed / total * 100.0) if total else 0.0, 2)
     return {
         "uid": uuid.uuid4().hex,
@@ -178,7 +165,7 @@ def stats_goals_progress():
     return {"uid": uuid.uuid4().hex, "palette": PALETTE, "goals": result, "count": len(result)}
 
 def stats_tasks_relevance_month():
-    PRIOR_POINTS = {"alta":3, "media":2, "baja":1, "high":3, "medium":2, "low":1}
+    PRIOR_POINTS = {"alta":1, "media":1, "baja":1, "high":1, "medium":1, "low":1}
     tasks = _load_all_tasks()
     year = _year_now()
     def priority_points(t):
@@ -196,18 +183,18 @@ def stats_tasks_relevance_month():
             "meta": {"year": year}}
 
 def stats_events_by_type_month():
-    events = _load_all_events()
+    tasks = _load_all_tasks()
     year = _year_now()
-    month_events = [e for e in events if _is_in_ym(e.get("fecha_inicio"), year)]
-    total = len(month_events)
+    month_tasks = [t for t in tasks if _is_in_ym(t.get("fecha_limite"), year)]
+    total = len(month_tasks)
     counts = {}
-    for e in month_events:
-        t = (e.get("tipo_evento") or "sin_tipo").strip()
-        counts[t] = counts.get(t, 0) + 1
+    for t in month_tasks:
+        cat = (t.get("categoria") or "sin_categoria").strip()
+        counts[cat] = counts.get(cat, 0) + 1
     distribution = [{"tipo": tipo, "count": cnt, "percentage": round((cnt/total*100.0) if total else 0.0,2)}
                     for tipo, cnt in counts.items()]
     distribution.sort(key=lambda x: x["count"], reverse=True)
-    return {"uid": uuid.uuid4().hex, "palette": PALETTE, "total": total, "distribution": distribution, "items": month_events,
+    return {"uid": uuid.uuid4().hex, "palette": PALETTE, "total": total, "distribution": distribution, "items": month_tasks,
             "meta": {"year": year}}
 
 # Mapa de rutas -> template parcial (autónomo)
