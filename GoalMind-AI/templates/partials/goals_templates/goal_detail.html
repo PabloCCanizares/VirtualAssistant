@@ -165,7 +165,7 @@
               <form id="delete-goal-task-{{ task['_id'] }}"
                     action="{{ url_for('task_bp.delete_task', task_id=task['_id']) }}"
                     method="post"
-                    onsubmit="return confirm('¿Eliminar esta tarea?');"
+                    data-confirm-message="¿Eliminar esta tarea?"
                     style="display:none;">
               </form>
 
@@ -422,7 +422,7 @@
         </div>
 
         <div class="panel-actions" style="margin-top: 16px; justify-content: space-between;">
-          <form action="{{ url_for('goal_bp.delete_goal', goal_id=goal['_id']) }}" method="post" style="display: inline;" onsubmit="return confirm('¿Eliminar este objetivo?');">
+          <form action="{{ url_for('goal_bp.delete_goal', goal_id=goal['_id']) }}" method="post" style="display: inline;" data-confirm-message="¿Eliminar este objetivo?">
             <button type="submit" class="panel-action-btn danger">Eliminar objetivo</button>
           </form>
           <div style="display: flex; gap: 10px;">

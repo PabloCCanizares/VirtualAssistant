@@ -180,7 +180,7 @@
       <form id="bulkDeleteGoalsForm"
             action="{{ url_for('goal_bp.bulk_delete_goals') }}"
             method="post"
-            onsubmit="return confirm('¿Eliminar los objetivos seleccionados?');">
+            data-confirm-message="¿Eliminar los objetivos seleccionados?">
         <button type="submit"
                 class="panel-action-btn danger"
                 disabled
@@ -376,7 +376,7 @@
         <form id="delete-{{ goal['_id'] }}"
               action="{{ url_for('goal_bp.delete_goal', goal_id=goal['_id']) }}"
               method="post"
-              onsubmit="return confirm('¿Eliminar este objetivo?');"
+              data-confirm-message="¿Eliminar este objetivo?"
               style="display:none;">
           {% if csrf_token is defined %}{{ csrf_token() }}{% endif %}
         </form>

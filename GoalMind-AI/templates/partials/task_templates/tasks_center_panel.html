@@ -116,7 +116,7 @@
         <form id="delete-{{ task['_id'] }}"
               action="{{ url_for('task_bp.delete_task', task_id=task['_id']) }}"
               method="post"
-              onsubmit="return confirm('¿Eliminar esta tarea?');"
+              data-confirm-message="¿Eliminar esta tarea?"
               style="display:none;">
           {% if csrf_token is defined %}{{ csrf_token() }}{% endif %}
         </form>

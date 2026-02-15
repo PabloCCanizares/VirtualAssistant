@@ -164,7 +164,7 @@ def add_goal():
     except Exception as e:
         flash(f"Error al crear el objetivo: {e}", "danger")
 
-    return redirect(url_for("goal_bp.list_goals"))
+    return redirect(url_for("project_bp.view_project", project_id=project_id))
 
 
 
