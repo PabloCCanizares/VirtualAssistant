@@ -12,6 +12,7 @@
   let inputEl = null;
   let sendBtn = null;
   let welcomeEl = null;
+  let welcomePromptButtons = [];
   let isSending = false;
   const history = [];
   const maxHistory = 8;
@@ -24,6 +25,7 @@
     inputEl = document.getElementById('ai-chat-input');
     sendBtn = document.getElementById('ai-chat-send');
     welcomeEl = messagesEl ? messagesEl.querySelector('.ai-chat-welcome') : null;
+    welcomePromptButtons = welcomeEl ? Array.from(welcomeEl.querySelectorAll('.ai-chat-welcome-btn')) : [];
 
     if (!aiBtn || !chatOverlay) {
       console.warn('AI Chat: Elementos no encontrados');
@@ -39,6 +41,20 @@
     if (sendBtn) {
       sendBtn.addEventListener('click', handleSend);
     }
+
+    welcomePromptButtons.forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        const prompt = (btn.dataset.prompt || '').trim();
+        if (!prompt) {
+          return;
+        }
+        if (inputEl) {
+          inputEl.value = prompt;
+          autoResize();
+        }
+        handleSend();
+      });
+    });
 
     if (inputEl) {
       inputEl.addEventListener('keydown', function(e) {
