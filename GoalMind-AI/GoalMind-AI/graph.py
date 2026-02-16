@@ -97,7 +97,7 @@ def build_chat_graph(llm):
 
 
 def run_graph_chat(user_message: str, history, context_json: str, model: str) -> str:
-    llm = ChatOpenAI(model=model, temperature=0.3, timeout=45)
+    llm = ChatOpenAI(model=model, temperature=1, timeout=45)
     app = build_chat_graph(llm)
 
     state = {
