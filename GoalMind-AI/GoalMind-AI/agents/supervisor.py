@@ -12,7 +12,7 @@ def _last_user_text(messages: list) -> str:
 def supervisor_node(state: AppState, llm) -> AppState:
     user_text = _last_user_text(state.get("messages", []))
     fast_words = ["rapido", "breve", "resumen", "corto"]
-    weekly_summary_exact_trigger = "hazme un resumen de la semana"
+    weekly_summary_exact_trigger = "Hazme un resumen de la semana"
     recommendation_words = [
         "recomendacion",
         "recomendaciones",
