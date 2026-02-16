@@ -176,7 +176,8 @@
           </span>
         </div>
         <div class="grid-card-footer">
-          {{ project.get('descripcion','Sin descripcion')[:80] }}{% if project.get('descripcion','')|length > 80 %}...{% endif %}
+          {% set desc = project.get('descripcion') or 'Sin descripcion' %}
+          {{ desc[:80] }}{% if desc|length > 80 %}...{% endif %}
         </div>
         <div class="grid-card-footer">
           🎯 {{ goal_counts.get(project['_id'], 0) }} objetivos · 📄 {{ doc_counts.get(project['_id'], 0) }} documentos
