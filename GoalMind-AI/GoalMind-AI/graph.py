@@ -3,7 +3,9 @@ from langchain_openai import ChatOpenAI
 from langgraph.graph import END, START, StateGraph
 
 from agents import (
+    action_executor_node,
     critic_node,
+    intent_interpreter_node,
     recommendations_node,
     research_node,
     route_after_supervisor,
@@ -43,10 +45,34 @@ def _finalize_node(state: AppState) -> AppState:
     return {"final_response": draft}
 
 
+def _route_after_intent(state: AppState) -> str:
+    action_name = state.get("action_name")
+    confidence = state.get("action_confidence", 0.0) or 0.0
+    needs_confirmation = state.get("action_needs_confirmation", False)
+    clarification = state.get("action_clarification_question")
+    fallback = state.get("fallback_route", "research")
+
+    if clarification:
+        return "finalize"
+
+    if not action_name or confidence < 0.6:
+        return fallback
+
+    if action_name == "weekly_summary":
+        return "weekly_summary"
+
+    if needs_confirmation:
+        return "finalize"
+
+    return "action_executor"
+
+
 def build_chat_graph(llm):
     graph = StateGraph(AppState)
 
     graph.add_node("supervisor", lambda state: supervisor_node(state, llm))
+    graph.add_node("intent_interpreter", lambda state: intent_interpreter_node(state, llm))
+    graph.add_node("action_executor", lambda state: action_executor_node(state, llm))
     graph.add_node("research", lambda state: research_node(state, llm))
     graph.add_node("recommendations", lambda state: recommendations_node(state, llm))
     graph.add_node("weekly_summary", lambda state: weekly_summary_node(state, llm))
@@ -59,6 +85,17 @@ def build_chat_graph(llm):
         "supervisor",
         route_after_supervisor,
         {
+            "intent_interpreter": "intent_interpreter",
+            "action_executor": "action_executor",
+            "finalize": "finalize",
+        },
+    )
+    graph.add_conditional_edges(
+        "intent_interpreter",
+        _route_after_intent,
+        {
+            "action_executor": "action_executor",
+            "finalize": "finalize",
             "research": "research",
             "recommendations": "recommendations",
             "weekly_summary": "weekly_summary",
@@ -90,19 +127,29 @@ def build_chat_graph(llm):
             "finalize": "finalize",
         },
     )
+    graph.add_edge("action_executor", "finalize")
     graph.add_edge("critic", "finalize")
     graph.add_edge("finalize", END)
 
     return graph.compile()
 
 
-def run_graph_chat(user_message: str, history, context_json: str, model: str) -> str:
+def run_graph_chat(
+    user_message: str,
+    history,
+    context_json: str,
+    model: str,
+    user_id: str,
+    pending_action_intent: dict | None = None,
+) -> str:
     llm = ChatOpenAI(model=model, temperature=1, timeout=45)
     app = build_chat_graph(llm)
 
     state = {
         "messages": _history_to_messages(history) + [HumanMessage(content=user_message)],
         "context_json": context_json,
+        "user_id": user_id,
+        "pending_action_intent": pending_action_intent,
     }
     result = app.invoke(state)
     return (result.get("final_response") or "").strip()
