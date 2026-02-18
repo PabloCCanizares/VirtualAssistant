@@ -24,7 +24,7 @@ def init_scheduler(app, sync_interval_minutes=1):
     if _scheduler is not None:
         return _scheduler
 
-    executors = {"default": ThreadPoolExecutor(10)}
+    executors = {"default": ThreadPoolExecutor(4)}
     _scheduler = BackgroundScheduler(executors=executors)
 
     def sync_job():
@@ -69,7 +69,10 @@ def shutdown_scheduler():
     """Detiene el scheduler de forma segura."""
     global _scheduler
     if _scheduler is not None:
-        _scheduler.shutdown(wait=False)
+        try:
+            _scheduler.shutdown(wait=True)
+        except Exception:
+            pass
         print(" [Scheduler] Detenido")
         _scheduler = None
 

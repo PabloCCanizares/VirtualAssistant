@@ -1,3 +1,6 @@
+import logging
+from typing import Any, Iterable
+
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_openai import ChatOpenAI
 from langgraph.graph import END, START, StateGraph
@@ -15,10 +18,15 @@ from agents import (
 )
 from state import AppState
 
+logger = logging.getLogger(__name__)
+VALID_FALLBACK_ROUTES = {"research", "recommendations", "weekly_summary", "writer"}
 
-def _history_to_messages(history) -> list:
+
+def _history_to_messages(history: Iterable[dict[str, Any]] | None) -> list:
     messages = []
     for item in history or []:
+        if not isinstance(item, dict):
+            continue
         role = item.get("role")
         content = (item.get("content") or "").strip()
         if not content:
@@ -51,6 +59,8 @@ def _route_after_intent(state: AppState) -> str:
     needs_confirmation = state.get("action_needs_confirmation", False)
     clarification = state.get("action_clarification_question")
     fallback = state.get("fallback_route", "research")
+    if fallback not in VALID_FALLBACK_ROUTES:
+        fallback = "research"
 
     if clarification:
         return "finalize"
@@ -142,14 +152,18 @@ def run_graph_chat(
     user_id: str,
     pending_action_intent: dict | None = None,
 ) -> str:
-    llm = ChatOpenAI(model=model, temperature=1, timeout=45)
+    llm = ChatOpenAI(model=model, timeout=45)
     app = build_chat_graph(llm)
 
     state = {
         "messages": _history_to_messages(history) + [HumanMessage(content=user_message)],
-        "context_json": context_json,
+        "context_json": context_json or "{}",
         "user_id": user_id,
         "pending_action_intent": pending_action_intent,
     }
-    result = app.invoke(state)
+    try:
+        result = app.invoke(state, config={"recursion_limit": 25})
+    except Exception as exc:
+        logger.exception("run_graph_chat: fallo en ejecucion del grafo")
+        raise RuntimeError("No se pudo ejecutar el flujo de chat.") from exc
     return (result.get("final_response") or "").strip()

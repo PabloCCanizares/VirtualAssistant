@@ -1,4 +1,5 @@
 import json
+import logging
 from pathlib import Path
 from typing import Any, Dict, Optional, Tuple
 
@@ -12,6 +13,7 @@ from model.task_model import TaskModel
 from services.action_state import clear_pending_action
 from state import AppState
 
+logger = logging.getLogger(__name__)
 
 CONFIRM_REQUIRED_ACTIONS = {"delete_project", "delete_goal", "delete_task"}
 
@@ -117,7 +119,7 @@ def _delete_project_cascade(project_id: str, user_id: str) -> None:
         for gid in goal_ids:
             queue_deletion("Goals", gid)
 
-    docs = ProjectDocumentModel.get_by_project(project_id)
+    docs = ProjectDocumentModel.get_by_project(project_id, usuario_id=user_id)
     for doc in docs:
         if not doc.get("upload_id"):
             local_path = doc.get("local_path")
@@ -127,10 +129,11 @@ def _delete_project_cascade(project_id: str, user_id: str) -> None:
                 except Exception:
                     pass
         try:
-            ProjectDocumentModel.delete_document(doc.get("_id"))
+            ProjectDocumentModel.delete_document(doc.get("_id"), usuario_id=user_id)
         except Exception:
             pass
-        queue_deletion("ProjectDocuments", doc.get("_id"))
+        if doc.get("_id"):
+            queue_deletion("ProjectDocuments", doc.get("_id"))
 
     ProjectModel.delete_project(project_id)
     queue_deletion("Projects", project_id)
@@ -148,13 +151,28 @@ def _delete_goal_cascade(goal_id: str, user_id: str) -> None:
     queue_deletion("Goals", goal_id)
 
 
-def action_executor_node(state: AppState, llm) -> AppState:
+def _safe_int(value: Any, default: int = 0) -> int:
+    try:
+        return int(value)
+    except Exception:
+        return default
+
+
+def action_executor_node(state: AppState, _llm) -> AppState:
     user_id = _ensure_user_id(state)
-    clear_pending_action(user_id)
 
     pending = state.get("pending_action_intent") or {}
     action_name = pending.get("action_name") or state.get("action_name")
     parameters = pending.get("parameters") or state.get("action_parameters") or {}
+
+    if action_name in CONFIRM_REQUIRED_ACTIONS and not state.get("action_confirmed", False):
+        return {
+            "final_response": (
+                "Esta accion requiere confirmacion explicita. "
+                "Responde 'confirmo' para continuar o 'cancela' para abortar."
+            ),
+            "pending_action_intent": pending or {"action_name": action_name, "parameters": parameters},
+        }
 
     context = _load_context(state)
 
@@ -176,6 +194,7 @@ def action_executor_node(state: AppState, llm) -> AppState:
                 "usuario_id": user_id,
             }
             ProjectModel.insert_project(data)
+            clear_pending_action(user_id)
             return {"final_response": f"✅ Proyecto creado: {titulo}."}
 
         if action_name == "create_goal":
@@ -193,10 +212,11 @@ def action_executor_node(state: AppState, llm) -> AppState:
                 "fecha_fin": parameters.get("fecha_fin"),
                 "prioridad": parameters.get("prioridad") or "Media",
                 "estado": parameters.get("estado") or "En progreso",
-                "progreso": int(parameters.get("progreso") or 0),
+                "progreso": _safe_int(parameters.get("progreso"), 0),
                 "usuario_id": user_id,
             }
             GoalModel.insert_goal(data)
+            clear_pending_action(user_id)
             return {"final_response": f"✅ Objetivo creado: {titulo}."}
 
         if action_name == "create_task":
@@ -218,6 +238,7 @@ def action_executor_node(state: AppState, llm) -> AppState:
                 "alarma_id": None,
             }
             TaskModel.insert_task(data)
+            clear_pending_action(user_id)
             return {"final_response": f"✅ Tarea creada: {contenido}."}
 
         if action_name == "delete_project":
@@ -225,7 +246,11 @@ def action_executor_node(state: AppState, llm) -> AppState:
             if clar:
                 return {"final_response": clar}
             _delete_project_cascade(project_id, user_id)
-            flush_deletion_queue()
+            try:
+                flush_deletion_queue()
+            except Exception:
+                logger.warning("No se pudo vaciar DeleteQueue tras delete_project", exc_info=True)
+            clear_pending_action(user_id)
             return {"final_response": "🗑️ Proyecto eliminado correctamente."}
 
         if action_name == "delete_goal":
@@ -233,7 +258,11 @@ def action_executor_node(state: AppState, llm) -> AppState:
             if clar:
                 return {"final_response": clar}
             _delete_goal_cascade(goal_id, user_id)
-            flush_deletion_queue()
+            try:
+                flush_deletion_queue()
+            except Exception:
+                logger.warning("No se pudo vaciar DeleteQueue tras delete_goal", exc_info=True)
+            clear_pending_action(user_id)
             return {"final_response": "🗑️ Objetivo eliminado correctamente."}
 
         if action_name == "delete_task":
@@ -242,10 +271,15 @@ def action_executor_node(state: AppState, llm) -> AppState:
                 return {"final_response": clar}
             TaskModel.delete_task(task_id, usuario_id=user_id)
             queue_deletion("Tasks", task_id)
-            flush_deletion_queue()
+            try:
+                flush_deletion_queue()
+            except Exception:
+                logger.warning("No se pudo vaciar DeleteQueue tras delete_task", exc_info=True)
+            clear_pending_action(user_id)
             return {"final_response": "🗑️ Tarea eliminada correctamente."}
 
         return {"final_response": "Accion no soportada en este momento."}
 
     except Exception as exc:
+        logger.exception("action_executor_node: fallo al ejecutar accion '%s'", action_name)
         return {"final_response": f"No pude ejecutar la accion: {exc}"}

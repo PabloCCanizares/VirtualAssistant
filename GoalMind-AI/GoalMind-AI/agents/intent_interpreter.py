@@ -1,11 +1,15 @@
 import json
-from typing import Any, Dict, Optional
+import logging
+from typing import Any, Dict
 
 from langchain_core.messages import SystemMessage
 
 from prompts.intent_interpreter_prompt import INTENT_INTERPRETER_PROMPT
 from services.action_state import set_pending_action
+from services.llm_utils import LLMInvokeError, invoke_with_retry
 from state import AppState
+
+logger = logging.getLogger(__name__)
 
 ALLOWED_ACTIONS = {
     "create_project",
@@ -76,8 +80,19 @@ def intent_interpreter_node(state: AppState, llm) -> AppState:
     ]
     messages.extend(state.get("messages", []))
 
-    response = llm.invoke(messages)
-    data = _safe_parse_json((response.content or "").strip())
+    try:
+        raw_response = invoke_with_retry(llm, messages, retries=1)
+    except LLMInvokeError:
+        logger.exception("intent_interpreter_node: error invocando LLM")
+        return {
+            "action_name": None,
+            "action_confidence": 0.0,
+            "action_parameters": {},
+            "action_needs_confirmation": False,
+            "action_clarification_question": None,
+        }
+
+    data = _safe_parse_json(raw_response)
     intent = _normalize_intent(data)
 
     action_name = intent.get("action_name")
@@ -108,6 +123,7 @@ def intent_interpreter_node(state: AppState, llm) -> AppState:
         }
         set_pending_action(user_id, pending)
         result["pending_action_intent"] = pending
+        result["action_confirmed"] = False
         result[
             "draft_response"
         ] = "¿Confirmas esta accion? Responde 'confirmo' para continuar o 'cancela' para abortar."

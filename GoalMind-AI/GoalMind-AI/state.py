@@ -1,6 +1,11 @@
-from typing import TypedDict
+from typing import Any, TypedDict
 
 from langchain_core.messages import BaseMessage
+
+
+class ActionIntent(TypedDict, total=False):
+    action_name: str
+    parameters: dict[str, Any]
 
 
 class AppState(TypedDict, total=False):
@@ -15,8 +20,8 @@ class AppState(TypedDict, total=False):
     final_response: str
     action_name: str
     action_confidence: float
-    action_parameters: dict
+    action_parameters: dict[str, Any]
     action_needs_confirmation: bool
     action_clarification_question: str
-    pending_action_intent: dict
+    pending_action_intent: ActionIntent
     action_confirmed: bool

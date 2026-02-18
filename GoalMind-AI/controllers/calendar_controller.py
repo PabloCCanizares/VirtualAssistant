@@ -13,10 +13,6 @@ from database.mongo_conn import get_collection, get_app_user_id
 calendar_bp = Blueprint("calendar_bp", __name__)
 DEFAULT_USER_ID = get_app_user_id()
 
-# No ponemos url_prefix para que /api/... quede en la raíz,
-# y la página del calendario sea /calendar
-calendar_bp = Blueprint("calendar_bp", __name__)
-
 # -----------------------------
 # 🗓️ Página del calendario
 # -----------------------------
