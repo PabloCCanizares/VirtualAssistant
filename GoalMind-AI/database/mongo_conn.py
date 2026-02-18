@@ -226,39 +226,37 @@ def sync_local_to_remote():
 def queue_deletion(collection_name, target_id):
     """Guarda en cola una eliminación para sincronizar cuando haya conexión remota."""
     local_col, _ = get_collection("DeleteQueue")
+    if not collection_name:
+        return False
     if target_id is None:
         return False
 
-    if isinstance(target_id, ObjectId):
-        tid = target_id
-    else:
-        try:
-            if ObjectId.is_valid(str(target_id)):
-                tid = ObjectId(str(target_id))
-            else:
-                tid = str(target_id)
-        except Exception:
-            tid = str(target_id)
+    target_id_str = str(target_id)
+    try:
+        if ObjectId.is_valid(target_id_str):
+            target_id_str = str(ObjectId(target_id_str))
+    except Exception:
+        pass
+
+    queue_id = f"{collection_name}:{target_id_str}"
 
     payload = {
-        "_id": tid,
+        "_id": queue_id,
         "collection": collection_name,
+        "target_id": target_id_str,
         "deleted_at": datetime.utcnow(),
     }
 
     try:
-        local_col.update_one({"_id": tid}, {"$setOnInsert": payload}, upsert=True)
+        local_col.update_one({"_id": queue_id}, {"$setOnInsert": payload}, upsert=True)
         # Asegurar que el documento se elimine localmente (por si se reinsertó)
         target_local, _ = get_collection(collection_name)
-        queries = []
+        queries = [{"_id": target_id_str}]
         try:
-            if ObjectId.is_valid(str(tid)):
-                queries.append({"_id": ObjectId(str(tid))})
+            if ObjectId.is_valid(target_id_str):
+                queries.append({"_id": ObjectId(target_id_str)})
         except Exception:
             pass
-        queries.append({"_id": str(tid)})
-        if isinstance(tid, ObjectId):
-            queries.append({"_id": tid})
         if queries:
             target_local.delete_many({"$or": queries})
         return True
@@ -271,7 +269,9 @@ def get_pending_deletions(collection_name):
     local_col, _ = get_collection("DeleteQueue")
     pending = set()
     for doc in local_col.find({"collection": collection_name}):
-        pending.add(str(doc.get("_id")))
+        pending_id = doc.get("target_id", doc.get("_id"))
+        if pending_id is not None:
+            pending.add(str(pending_id))
     return pending
 
 
@@ -284,7 +284,7 @@ def flush_deletion_queue():
     removed = 0
     for item in local_col.find().sort("deleted_at", 1):
         collection = item.get("collection")
-        target_id = item.get("_id")
+        target_id = item.get("target_id", item.get("_id"))
         if not collection or target_id is None:
             continue
 

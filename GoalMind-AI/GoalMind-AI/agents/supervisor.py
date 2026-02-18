@@ -2,6 +2,9 @@ from langchain_core.messages import HumanMessage
 from services.action_state import clear_pending_action
 from state import AppState
 
+CONFIRM_WORDS = {"si", "sí", "confirmo", "confirmar", "adelante", "ejecuta", "ok", "vale"}
+CANCEL_WORDS = {"no", "cancela", "cancelar", "anula", "detener"}
+
 
 def _last_user_text(messages: list) -> str:
     for message in reversed(messages):
@@ -10,7 +13,17 @@ def _last_user_text(messages: list) -> str:
     return ""
 
 
-def supervisor_node(state: AppState, llm) -> AppState:
+def _is_confirmation(user_text: str) -> bool:
+    normalized = (user_text or "").strip().lower()
+    return normalized in CONFIRM_WORDS or normalized.startswith("confirm")
+
+
+def _is_cancellation(user_text: str) -> bool:
+    normalized = (user_text or "").strip().lower()
+    return normalized in CANCEL_WORDS or normalized.startswith("cancel")
+
+
+def supervisor_node(state: AppState, _llm) -> AppState:
     user_text = _last_user_text(state.get("messages", []))
     fast_words = ["rapido", "breve", "resumen", "corto"]
     weekly_summary_exact_trigger = "hazme un resumen de la semana"
@@ -27,15 +40,24 @@ def supervisor_node(state: AppState, llm) -> AppState:
 
     pending_action = state.get("pending_action_intent")
     if pending_action:
-        confirm_words = {"si", "sí", "confirmo", "confirmar", "adelante", "ejecuta", "ok", "vale"}
-        cancel_words = {"no", "cancela", "cancelar", "anula", "detener"}
-        if user_text in confirm_words or user_text.startswith("confirm"):
+        if _is_confirmation(user_text):
             return {"route": "action_executor", "action_confirmed": True}
-        if user_text in cancel_words or user_text.startswith("cancel"):
+        if _is_cancellation(user_text):
             clear_pending_action(state.get("user_id"))
-            return {"route": "finalize", "final_response": "Acción cancelada."}
-        # Si el usuario escribe otra cosa, se limpia la acción pendiente
-        clear_pending_action(state.get("user_id"))
+            return {
+                "route": "finalize",
+                "pending_action_intent": None,
+                "action_confirmed": False,
+                "final_response": "Accion cancelada.",
+            }
+        return {
+            "route": "finalize",
+            "final_response": (
+                "Tienes una accion pendiente. Responde 'confirmo' para ejecutarla "
+                "o 'cancela' para abortar."
+            ),
+            "pending_action_intent": pending_action,
+        }
 
     if any(word in user_text for word in recommendation_words):
         fallback = "recommendations"

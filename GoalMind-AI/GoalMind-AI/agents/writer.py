@@ -1,7 +1,13 @@
+import logging
+
 from langchain_core.messages import SystemMessage
 
 from prompts.writer_prompt import WRITER_PROMPT
+from services.llm_utils import LLMInvokeError, invoke_with_retry
 from state import AppState
+
+
+logger = logging.getLogger(__name__)
 
 
 def writer_node(state: AppState, llm) -> AppState:
@@ -12,5 +18,9 @@ def writer_node(state: AppState, llm) -> AppState:
         SystemMessage(content=f"Research: {research_notes}"),
     ]
     messages.extend(state.get("messages", []))
-    response = llm.invoke(messages)
-    return {"draft_response": (response.content or "").strip()}
+    try:
+        draft = invoke_with_retry(llm, messages, retries=1)
+    except LLMInvokeError:
+        logger.exception("writer_node: error invocando LLM")
+        draft = "No pude generar una respuesta en este momento."
+    return {"draft_response": draft}

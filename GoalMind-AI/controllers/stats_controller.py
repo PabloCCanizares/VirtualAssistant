@@ -3,13 +3,11 @@
 from flask import Blueprint, render_template, current_app
 from datetime import datetime, timezone
 from typing import List, Dict, Any
-from bson import ObjectId
 import uuid
 
 from model.task_model import TaskModel
 from model.goal_model import GoalModel
-from model.event_model import eventModel
-from database.mongo_conn import get_app_user_id, get_collection
+from database.mongo_conn import get_app_user_id
 
 stats_bp = Blueprint("stats_bp", __name__, url_prefix="/stats")
 DEFAULT_USER_ID = get_app_user_id()

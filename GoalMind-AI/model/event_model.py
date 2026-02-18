@@ -73,7 +73,7 @@ class eventModel:
         data["usuario_id"] = data.get("usuario_id") or uid
         
         res = local_col.insert_one(data)
-        if cloud_col:
+        if cloud_col is not None:
             try:
                 cloud_col.insert_one({**data, "_id": res.inserted_id})
             except Exception:
@@ -86,7 +86,7 @@ class eventModel:
         oid = ObjectId(event_id) if not isinstance(event_id, ObjectId) else event_id
         query = {"_id": oid, **_uid_filter(usuario_id)}
         local_col.update_one(query, {"$set": updates})
-        if cloud_col:
+        if cloud_col is not None:
             try:
                 cloud_col.update_one(query, {"$set": updates})
             except Exception:
@@ -98,7 +98,7 @@ class eventModel:
         oid = ObjectId(event_id) if not isinstance(event_id, ObjectId) else event_id
         query = {"_id": oid, **_uid_filter(usuario_id)}
         local_col.delete_one(query)
-        if cloud_col:
+        if cloud_col is not None:
             try:
                 cloud_col.delete_one(query)
             except Exception:
@@ -117,7 +117,7 @@ class eventModel:
             return 0
         query = {"_id": {"$in": oids}, **_uid_filter(usuario_id)}
         res = local_col.delete_many(query)
-        if cloud_col:
+        if cloud_col is not None:
             try:
                 cloud_col.delete_many(query)
             except Exception:
