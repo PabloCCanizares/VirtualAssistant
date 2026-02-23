@@ -1,31 +1,43 @@
-from pathlib import Path
-import sys
-from datetime import datetime
 
-#Carga variables de entorno desde .env si existe
-from dotenv import load_dotenv
-#Modulo estandar de python para generar tokens seguros
-import secrets
-import os
-#Importacion de la funcion init_app para realizar la conexion con la base de datos MongoDB (Local y Remota)
+# === Importacion de librerias necesarias para la aplicacion ===
+from pathlib import Path # Manipulacion de rutas de archivos y directorios
+from datetime import datetime # Manipulacion de fechas y horas
+import secrets # Generacion tokens seguros
+import os # Interaccion con el sistema operativo
+import sys # Manipulacion de argumentos y variables de entorno (.env)
+# ··· Importacion de funciones ···
+from dotenv import load_dotenv # Carga variables de entorno desde .env
 from database.mongo_conn import init_app, get_app_user_id
+
 #Importacion del scheduler para sincronización en background
 try:
     from database.scheduler import init_scheduler
 except Exception as exc:
     init_scheduler = None
-    print(f"⚠️ Scheduler deshabilitado (APScheduler no disponible): {exc}")
+    print(f"Error con init_scheduler en database/scheduler.py: {exc}")
+
 ################ Aplicacion Flask ##################
 env_root = Path(__file__).resolve().parent
-# 1. Cargar .env de la raíz (fuente de verdad)
-load_dotenv(env_root / ".env")
-# 2. Fallback: GoalMind-AI/.env sin sobreescribir (variables de IA específicas)
+
+
+def load_project_env(base_dir: Path) -> None:
+    """Carga variables de entorno desde el .env de la raíz del proyecto."""
+    env_file = base_dir / ".env"
+
+    if env_file.exists():
+        load_dotenv(env_file)
+        return
+
+    print("⚠️ No existe .env en la raíz del proyecto. Se usarán variables del entorno del sistema.")
+    load_dotenv()
+
+
+# 1. Cargar variables de entorno desde .env (fuente de verdad)
+load_project_env(env_root)
+# 2. Mantener path del submódulo de IA para imports
 ai_root = env_root / "GoalMind-AI"
 if ai_root.exists():
     sys.path.insert(0, str(ai_root))
-    ai_env = ai_root / ".env"
-    if ai_env.exists():
-        load_dotenv(ai_env, override=False)
 
 #Clase principal de la aplicacion para crear la aplicacion en Flask
 from flask import Flask
@@ -69,10 +81,6 @@ app.config["UPLOAD_ALLOWED_EXTENSIONS"] = {
     "zip",
 }
 app.config["MAX_CONTENT_LENGTH"] = 25 * 1024 * 1024
-
-
-
-
 
 # 4. Activar y registrar los blueprints
 app.register_blueprint(task_bp)

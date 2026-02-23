@@ -1,3 +1,6 @@
+# === Archivos sensibles o de configuración ===
+GoalMind-AI/.env
+
 # === Entorno virtual ===
 GoalMind-AI/venv/
 
@@ -34,4 +37,4 @@ GoalMind-AI/uploads/
 GoalMind-AI/controllers/__pycache__/goal_controller.cpython-312.pyc
 GoalMind-AI/controllers/__pycache__/task_controller.cpython-312.pyc
 GoalMind-AI/database/__pycache__/mongo_conn.cpython-312.pyc
-GoalMind-AI/GoalMind-AI/.env
+

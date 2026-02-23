@@ -1,4 +1,3 @@
-# database/scheduler.py
 # Módulo para gestionar la sincronización en background con APScheduler
 
 from apscheduler.schedulers.background import BackgroundScheduler
