@@ -6,7 +6,6 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from model.task_model import TaskModel
 from model.goal_model import GoalModel
-from model.event_model import eventModel
 
 from database.mongo_conn import get_collection, get_app_user_id
 
@@ -284,7 +283,7 @@ def api_update_event(event_id: str):
 
     updates["updated_at"] = datetime.now(timezone.utc)
 
-    res = col.update_one({"_id": oid}, {"$set": updates})
+    col.update_one({"_id": oid}, {"$set": updates})
 
     # Sincronización bidireccional si cambió la referencia
     if ref_changed:

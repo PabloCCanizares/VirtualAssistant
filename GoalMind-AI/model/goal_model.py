@@ -1,4 +1,4 @@
-from database.mongo_conn import get_collection, sync_to_remote, sync_from_remote, get_app_user_id
+from database.mongo_conn import get_collection, sync_to_remote, get_app_user_id
 from bson import ObjectId
 from datetime import datetime
 

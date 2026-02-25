@@ -7,6 +7,7 @@ from pathlib import Path
 # Permite la conexion a la base de datos MongoDB via Flask-PyMongo (Local y Remota).
 from flask_pymongo import PyMongo
 from pymongo import MongoClient
+import logging
 
 # Módulo estándar de python para comprobar conexion a internet
 import socket
@@ -34,6 +35,8 @@ _remote_db_name = "VirtualAssistantDB"
 
 # Lista de colecciones para sincronización
 collections = ["Tasks", "Goals", "Projects", "ProjectDocuments", "Events"]
+_configured_remote_uri = ""
+logger = logging.getLogger(__name__)
 
 
 def generate_user_id_from_nickname(nickname: str) -> str:
@@ -61,7 +64,7 @@ def internet_available():
 
 def init_app(app):
     """Inicializa las conexiones local y remota (Atlas)."""
-    global mongo_remote, _local_db_name, _remote_db_name, collections
+    global mongo_remote, _local_db_name, _remote_db_name, collections, _configured_remote_uri
 
     # ------------- LEER CONFIGURACIÓN (env vars > mongo_user.json > defaults) -------------
     local_uri = os.getenv("MONGO_LOCAL_URI", "mongodb://127.0.0.1:27017")
@@ -82,6 +85,7 @@ def init_app(app):
                 collections = file["collections"]
         except Exception:
             remote_uri = ""
+    _configured_remote_uri = remote_uri
 
     # ------------- CONEXIÓN LOCAL -------------
     app.config["MONGO_URI"] = f"{local_uri}/{_local_db_name}"
@@ -123,6 +127,42 @@ def init_app(app):
     return mongo_local, mongo_remote
 
 
+def ensure_remote_connection(app=None):
+    """
+    Intenta recuperar conexión remota si no existe.
+    Devuelve True si hay remoto disponible, False en caso contrario.
+    """
+    global mongo_remote
+
+    if mongo_remote is not None:
+        if app is not None:
+            app.mongo_remote = mongo_remote
+        return True
+
+    remote_uri = (_configured_remote_uri or os.getenv("MONGO_REMOTE_URI", "")).strip()
+    if not remote_uri:
+        return False
+
+    if not internet_available():
+        return False
+
+    try:
+        client = MongoClient(
+            remote_uri,
+            tlsCAFile=certifi.where(),
+            serverSelectionTimeoutMS=5000,
+        )
+        client.admin.command("ping")
+        mongo_remote = client
+        if app is not None:
+            app.mongo_remote = client
+        logger.info("✅ Reconexión a MongoDB Atlas completada.")
+        return True
+    except Exception as exc:
+        logger.warning("No se pudo reconectar a MongoDB Atlas: %s", exc)
+        return False
+
+
 def get_collection(name):
     """Devuelve referencias a las colecciones local y remota."""
     db_local = mongo_local.cx[_local_db_name]
@@ -151,28 +191,29 @@ def sync_from_remote(collection_name, obj):
 
 def sync_to_remote(collection_name, obj):
     """Sube o actualiza un documento en la base remota."""
-    local_col, remote_col = get_collection(collection_name)
+    _, remote_col = get_collection(collection_name)
 
     if remote_col is None:
-        return
+        return False
 
     if "_id" not in obj:
-        return
+        return False
 
     filtro = {"_id": obj["_id"]}
 
     # Usar replace_one con upsert=True para insertar o actualizar
     remote_col.replace_one(filtro, obj, upsert=True)
+    return True
 
 
 def sync_all_collections():
     """Sincroniza todas las colecciones desde la base remota hacia local."""
     from flask import current_app
 
-    remote = current_app.mongo_remote
-    if remote is None:
-        return
+    if not ensure_remote_connection(current_app):
+        return 0
 
+    pulled_docs = 0
     for col in collections:
         pending_ids = get_pending_deletions(col)
         local_col, remote_col = get_collection(col)
@@ -204,23 +245,30 @@ def sync_all_collections():
                 # Descargar solo si no existe en local
                 if not local_col.find_one({"_id": doc["_id"]}):
                     local_col.insert_one(doc)
+                    pulled_docs += 1
+    return pulled_docs
 
 
 def sync_local_to_remote():
     """Sube a la nube los documentos que existan en local pero no en remoto."""
     from flask import current_app
-    remote = current_app.mongo_remote
 
-    if remote is None:
-        return
+    if not ensure_remote_connection(current_app):
+        return 0
 
+    pushed_docs = 0
     for col in collections:
         local_col, remote_col = get_collection(col)
+        pending_ids = get_pending_deletions(col)
 
         if remote_col is None:
             continue
         for local_doc in local_col.find():
-            sync_to_remote(col, local_doc)
+            if str(local_doc.get("_id")) in pending_ids:
+                continue
+            if sync_to_remote(col, local_doc):
+                pushed_docs += 1
+    return pushed_docs
 
 
 def queue_deletion(collection_name, target_id):
@@ -278,7 +326,7 @@ def get_pending_deletions(collection_name):
 def flush_deletion_queue():
     """Intenta eliminar en remoto los documentos en cola y limpia los completados."""
     local_col, _ = get_collection("DeleteQueue")
-    if mongo_remote is None:
+    if not ensure_remote_connection():
         return 0
 
     removed = 0

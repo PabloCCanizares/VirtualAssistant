@@ -390,7 +390,7 @@ def bulk_delete_tasks():
         if request.is_json:
             return jsonify({"success": True, "message": f"Se eliminaron {deleted} tarea(s).", "deleted_count": deleted})
         flash(f"Se eliminaron {deleted} tarea(s).", "success")
-    except Exception as e:
+    except Exception:
         if request.is_json:
             return jsonify({"success": False, "message": "No se pudieron eliminar las tareas seleccionadas."}), 500
         flash("No se pudieron eliminar las tareas seleccionadas.", "danger")

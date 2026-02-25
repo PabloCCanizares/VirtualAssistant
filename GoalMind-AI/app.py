@@ -1,23 +1,33 @@
-
 # === Importacion de librerias necesarias para la aplicacion ===
-from pathlib import Path # Manipulacion de rutas de archivos y directorios
-from datetime import datetime # Manipulacion de fechas y horas
+import logging # Manipulacion de logs
+import os
 import secrets # Generacion tokens seguros
-import os # Interaccion con el sistema operativo
-import sys # Manipulacion de argumentos y variables de entorno (.env)
-# ··· Importacion de funciones ···
+import sys # Manipulacion del entorno .env
+from datetime import datetime
+from pathlib import Path
+
 from dotenv import load_dotenv # Carga variables de entorno desde .env
-from database.mongo_conn import init_app, get_app_user_id
+from flask import Flask
+# ··· Importacion de funciones ···
+from database.mongo_conn import get_app_user_id, init_app
+from database.scheduler import init_scheduler
+from model.category_model import CategoryModel
 
-#Importacion del scheduler para sincronización en background
-try:
-    from database.scheduler import init_scheduler
-except Exception as exc:
-    init_scheduler = None
-    print(f"Error con init_scheduler en database/scheduler.py: {exc}")
 
-################ Aplicacion Flask ##################
-env_root = Path(__file__).resolve().parent
+# Extensiones por defecto permitidas para uploads
+DEFAULT_UPLOAD_EXTENSIONS = {
+    "pdf",
+    "doc",
+    "docx",
+    "txt",
+    "png",
+    "jpg",
+    "jpeg",
+    "csv",
+    "xlsx",
+    "pptx",
+    "zip",
+}
 
 
 def load_project_env(base_dir: Path) -> None:
@@ -32,92 +42,152 @@ def load_project_env(base_dir: Path) -> None:
     load_dotenv()
 
 
-# 1. Cargar variables de entorno desde .env (fuente de verdad)
+def _env_bool(name: str, default: bool = False) -> bool:
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return str(value).strip().lower() in {"1", "true", "yes", "on", "si", "sí"}
+
+
+def _env_int(name: str, default: int, minimum: int = 1) -> int:
+    value = os.getenv(name)
+    if value is None:
+        return default
+    try:
+        parsed = int(value)
+    except Exception:
+        return default
+    return max(minimum, parsed)
+
+
+def _is_production() -> bool:
+    return os.getenv("FLASK_ENV", "development").strip().lower() == "production"
+
+
+def _is_debug_enabled() -> bool:
+    return _env_bool("FLASK_DEBUG", not _is_production())
+
+
+def _should_start_scheduler_process(debug_enabled: bool) -> bool:
+    # Con reloader activo, solo iniciar en el proceso hijo real.
+    if os.environ.get("WERKZEUG_RUN_MAIN") == "true":
+        return True
+    return not debug_enabled
+
+
+def _configure_logging() -> logging.Logger:
+    logging.basicConfig(
+        level=getattr(logging, os.getenv("LOG_LEVEL", "INFO").upper(), logging.INFO),
+        format="%(asctime)s %(levelname)s [%(name)s] %(message)s",
+    )
+    return logging.getLogger(__name__)
+
+
+def _configure_upload_settings(flask_app: Flask) -> None:
+    upload_root_value = os.getenv("UPLOAD_ROOT", "uploads").strip()
+    upload_root = Path(upload_root_value)
+    if not upload_root.is_absolute():
+        upload_root = Path(__file__).resolve().parent / upload_root
+
+    flask_app.config["UPLOAD_ROOT"] = str(upload_root)
+    Path(flask_app.config["UPLOAD_ROOT"]).mkdir(parents=True, exist_ok=True)
+
+    allowed_ext_env = os.getenv("UPLOAD_ALLOWED_EXTENSIONS", "").strip()
+    if allowed_ext_env:
+        allowed_ext = {
+            ext.strip().lower() for ext in allowed_ext_env.split(",") if ext.strip()
+        }
+    else:
+        allowed_ext = set(DEFAULT_UPLOAD_EXTENSIONS)
+
+    flask_app.config["UPLOAD_ALLOWED_EXTENSIONS"] = allowed_ext
+    flask_app.config["MAX_CONTENT_LENGTH"] = (
+        _env_int("MAX_CONTENT_LENGTH_MB", 25, minimum=1) * 1024 * 1024
+    )
+
+
+def _register_blueprints(flask_app: Flask) -> None:
+    # Importación de blueprints (se hace aquí tras preparar sys.path del submódulo IA)
+    from controllers.ai_chat_controller import ai_chat_bp
+    from controllers.calendar_controller import calendar_bp
+    from controllers.category_controller import category_bp
+    from controllers.dashboard_controller import dashboard_bp
+    from controllers.goal_controller import goal_bp
+    from controllers.project_controller import project_bp
+    from controllers.stats_controller import stats_bp
+    from controllers.task_controller import task_bp
+    from controllers.upload_controller import upload_bp
+
+    flask_app.register_blueprint(task_bp)
+    flask_app.register_blueprint(dashboard_bp)
+    flask_app.register_blueprint(goal_bp)
+    flask_app.register_blueprint(project_bp)
+    flask_app.register_blueprint(calendar_bp)
+    flask_app.register_blueprint(stats_bp)
+    flask_app.register_blueprint(upload_bp)
+    flask_app.register_blueprint(category_bp)
+    flask_app.register_blueprint(ai_chat_bp)
+
+
+def setup_scheduler(flask_app: Flask, logger: logging.Logger) -> None:
+    sync_interval = _env_int("SYNC_INTERVAL_MINUTES", 1, minimum=1)
+    debug_enabled = _is_debug_enabled()
+
+    if not _should_start_scheduler_process(debug_enabled):
+        logger.info("Scheduler no iniciado en el proceso de recarga de Flask.")
+        return
+
+    # Scheduler crítico: si falla, el arranque debe abortar.
+    init_scheduler(flask_app, sync_interval_minutes=sync_interval)
+
+
+# === Inicialización de entorno y logging ===
+env_root = Path(__file__).resolve().parent
 load_project_env(env_root)
-# 2. Mantener path del submódulo de IA para imports
+logger = _configure_logging()
+
+# Mantener path del submódulo de IA para imports internos
 ai_root = env_root / "GoalMind-AI"
 if ai_root.exists():
     sys.path.insert(0, str(ai_root))
 
-#Clase principal de la aplicacion para crear la aplicacion en Flask
-from flask import Flask
 
-#Importacion de los blueprints de los controladores
-## Un blueprint es una forma de organizar un grupo relacionado de rutas y funcionalidades ##
-from controllers.task_controller import task_bp
-from controllers.dashboard_controller import dashboard_bp
-from controllers.goal_controller import goal_bp
-from controllers.project_controller import project_bp
-from controllers.calendar_controller import calendar_bp
-from controllers.stats_controller import stats_bp
-from controllers.upload_controller import upload_bp
-from controllers.category_controller import category_bp
-from controllers.ai_chat_controller import ai_chat_bp
-from model.category_model import CategoryModel
-
+# === Construcción de la app ===
 app = Flask(__name__)
+app.secret_key = os.getenv("FLASK_SECRET_KEY") or secrets.token_hex(32)
 
-################## Configuracion de la aplicacion ##################
-# 1. Configuracion de la clave secreta para sesiones y seguridad
-app.secret_key = secrets.token_hex(32)
-# 2. Configuracion de la base de datos MongoDB (Local y Remota)
 local, remote = init_app(app)
 app.mongo_local = local
 app.mongo_remote = remote
-# 3. Configuracion de almacenamiento local de documentos
-app.config["UPLOAD_ROOT"] = str(Path(__file__).resolve().parent / "uploads")
-Path(app.config["UPLOAD_ROOT"]).mkdir(parents=True, exist_ok=True)
-app.config["UPLOAD_ALLOWED_EXTENSIONS"] = {
-    "pdf",
-    "doc",
-    "docx",
-    "txt",
-    "png",
-    "jpg",
-    "jpeg",
-    "csv",
-    "xlsx",
-    "pptx",
-    "zip",
-}
-app.config["MAX_CONTENT_LENGTH"] = 25 * 1024 * 1024
 
-# 4. Activar y registrar los blueprints
-app.register_blueprint(task_bp)
-app.register_blueprint(dashboard_bp)
-app.register_blueprint(goal_bp) 
-app.register_blueprint(project_bp)
-app.register_blueprint(calendar_bp) 
-app.register_blueprint(stats_bp)
-app.register_blueprint(upload_bp)
-app.register_blueprint(category_bp)
-app.register_blueprint(ai_chat_bp)
+_configure_upload_settings(app)
+_register_blueprints(app)
 
-################ Context Processor - Variables globales para templates ##################
+
+# === Context processor global ===
 @app.context_processor
 def inject_now():
-    """Inyecta la funcion now() en todas las plantillas Jinja2."""
+    """Inyecta now() y categorías del sidebar en todas las plantillas."""
     sidebar_categories = []
     try:
         categories = CategoryModel.get_all_categories(usuario_id=get_app_user_id())
         sidebar_categories = [
-            {"_id": str(c["_id"]), "name": c.get("name", "")}
-            for c in categories
+            {"_id": str(category["_id"]), "name": category.get("name", "")}
+            for category in categories
         ]
     except Exception:
         sidebar_categories = []
+
     return {
         "now": datetime.now,
         "sidebar_categories": sidebar_categories,
     }
 
-################ Inicialización del Scheduler ##################
-# Solo inicializar si no estamos en el proceso de recarga de Flask (evita duplicados en modo debug)
-if init_scheduler and (os.environ.get("WERKZEUG_RUN_MAIN") == "true" or not app.debug):
-    # Sincronización automática cada minuto
-    init_scheduler(app, sync_interval_minutes=1)
 
-################ Ejecucion de la aplicacion ##################
-## La aplicacion se ejecuta solo si este archivo es el principal (python app.py), si se importa no se ejecuta ##
+# === Scheduler en background ===
+setup_scheduler(app, logger)
+
+
+# === Ejecución de aplicación ===
 if __name__ == "__main__":
-    app.run(debug=True) ## Modo debug activado para desarrollo, eliminar debug=True en produccion ##
+    app.run(debug=_is_debug_enabled())
