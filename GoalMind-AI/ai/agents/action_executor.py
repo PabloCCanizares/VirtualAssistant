@@ -10,8 +10,8 @@ from model.goal_model import GoalModel
 from model.project_document_model import ProjectDocumentModel
 from model.project_model import ProjectModel
 from model.task_model import TaskModel
-from services.action_state import clear_pending_action
-from state import AppState
+from ai.services.action_state import clear_pending_action
+from ai.state import AppState
 
 logger = logging.getLogger(__name__)
 

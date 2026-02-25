@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request
-from chat import run_chat
+from ai.chat import run_chat
 
 ai_chat_bp = Blueprint("ai_chat_bp", __name__)
 

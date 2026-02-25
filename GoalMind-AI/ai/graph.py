@@ -5,7 +5,7 @@ from langchain_core.messages import AIMessage, HumanMessage
 from langchain_openai import ChatOpenAI
 from langgraph.graph import END, START, StateGraph
 
-from agents import (
+from ai.agents import (
     action_executor_node,
     critic_node,
     intent_interpreter_node,
@@ -16,7 +16,7 @@ from agents import (
     weekly_summary_node,
     writer_node,
 )
-from state import AppState
+from ai.state import AppState
 
 logger = logging.getLogger(__name__)
 VALID_FALLBACK_ROUTES = {"research", "recommendations", "weekly_summary", "writer"}

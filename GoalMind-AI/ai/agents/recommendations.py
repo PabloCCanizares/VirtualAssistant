@@ -2,9 +2,9 @@ import logging
 
 from langchain_core.messages import SystemMessage
 
-from prompts.recommendations_prompt import RECOMMENDATIONS_PROMPT
-from services.llm_utils import LLMInvokeError, invoke_with_retry
-from state import AppState
+from ai.prompts.recommendations_prompt import RECOMMENDATIONS_PROMPT
+from ai.services.llm_utils import LLMInvokeError, invoke_with_retry
+from ai.state import AppState
 
 logger = logging.getLogger(__name__)
 

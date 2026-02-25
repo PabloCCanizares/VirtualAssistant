@@ -1,6 +1,6 @@
 from langchain_core.messages import HumanMessage
-from services.action_state import clear_pending_action
-from state import AppState
+from ai.services.action_state import clear_pending_action
+from ai.state import AppState
 
 CONFIRM_WORDS = {"si", "sí", "confirmo", "confirmar", "adelante", "ejecuta", "ok", "vale"}
 CANCEL_WORDS = {"no", "cancela", "cancelar", "anula", "detener"}

@@ -3,8 +3,8 @@ from langchain_core.messages import HumanMessage
 
 pytest.importorskip("langgraph")
 
-from agents.supervisor import route_after_supervisor, supervisor_node
-from graph import _history_to_messages, _route_after_intent, _route_after_writer
+from ai.agents.supervisor import route_after_supervisor, supervisor_node
+from ai.graph import _history_to_messages, _route_after_intent, _route_after_writer
 
 
 def test_history_to_messages_filters_invalid_entries():

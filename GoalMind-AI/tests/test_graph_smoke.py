@@ -3,7 +3,7 @@ from langchain_core.messages import HumanMessage
 
 pytest.importorskip("langgraph")
 
-from graph import build_chat_graph
+from ai.graph import build_chat_graph
 
 
 class _Response:

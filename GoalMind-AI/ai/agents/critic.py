@@ -2,9 +2,9 @@ import logging
 
 from langchain_core.messages import HumanMessage, SystemMessage
 
-from prompts.critic_prompt import CRITIC_PROMPT
-from services.llm_utils import LLMInvokeError, invoke_with_retry
-from state import AppState
+from ai.prompts.critic_prompt import CRITIC_PROMPT
+from ai.services.llm_utils import LLMInvokeError, invoke_with_retry
+from ai.state import AppState
 
 logger = logging.getLogger(__name__)
 
