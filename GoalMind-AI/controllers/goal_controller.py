@@ -94,7 +94,7 @@ def filter_by_category():
     try:
         if categoria_ids:
             goals = GoalModel.search_by_categories(categoria_ids, usuario_id=DEFAULT_USER_ID)
-            flash(f"Filtro aplicado", "info")
+            flash("Filtro aplicado", "info")
         else:
             goals = GoalModel.get_all_goals(usuario_id=DEFAULT_USER_ID)
         goals_view = [_serialize_goal(g) for g in goals]

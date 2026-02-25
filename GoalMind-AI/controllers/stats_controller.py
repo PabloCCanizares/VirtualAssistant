@@ -2,8 +2,8 @@
 # controllers/stats_controller.py
 from flask import Blueprint, render_template, current_app
 from datetime import datetime, timezone
-from typing import List, Dict, Any
 import uuid
+from bson import ObjectId
 
 from model.task_model import TaskModel
 from model.goal_model import GoalModel
