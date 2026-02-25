@@ -2,9 +2,9 @@ import logging
 
 from langchain_core.messages import SystemMessage
 
-from prompts.weekly_summary_prompt import WEEKLY_SUMMARY_PROMPT
-from services.llm_utils import LLMInvokeError, invoke_with_retry
-from state import AppState
+from ai.prompts.weekly_summary_prompt import WEEKLY_SUMMARY_PROMPT
+from ai.services.llm_utils import LLMInvokeError, invoke_with_retry
+from ai.state import AppState
 
 logger = logging.getLogger(__name__)
 

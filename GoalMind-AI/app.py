@@ -1,8 +1,7 @@
 # === Importacion de librerias necesarias para la aplicacion ===
 import logging # Manipulacion de logs
-import os
+import os # Manipulacion del entorno .env para interaccion con el sistema operativo
 import secrets # Generacion tokens seguros
-import sys # Manipulacion del entorno .env
 from datetime import datetime
 from pathlib import Path
 
@@ -13,8 +12,7 @@ from database.mongo_conn import get_app_user_id, init_app
 from database.scheduler import init_scheduler
 from model.category_model import CategoryModel
 
-
-# Extensiones por defecto permitidas para uploads
+# === Configuración de constantes y funciones de utilidad ===
 DEFAULT_UPLOAD_EXTENSIONS = {
     "pdf",
     "doc",
@@ -29,18 +27,31 @@ DEFAULT_UPLOAD_EXTENSIONS = {
     "zip",
 }
 
-
 def load_project_env(base_dir: Path) -> None:
-    """Carga variables de entorno desde el .env de la raíz del proyecto."""
-    env_file = base_dir / ".env"
+    """Carga variables de entorno.
+
+    Args:
+        base_dir: Ruta (Path) base donde se busca el archivo '.env', es decir, la raiz del proyecto.
+
+    Returns:
+        None.
+
+    Raises:
+        RuntimeError: Si no se encuentra '.env'. Es un error crítico porque falta API_KEY y URLs de MongoDB.
+    """
+
+    env_file = base_dir / ".env" # Operador '/' de Path, sirve para concatenar rutas.
 
     if env_file.exists():
         load_dotenv(env_file)
         return
-
-    print("⚠️ No existe .env en la raíz del proyecto. Se usarán variables del entorno del sistema.")
-    load_dotenv()
-
+    
+    message = (
+        f"!! == Error: \nNo encontrado el archivo de entorno requerido: \n{env_file} \n "
+        "Comprueba la ruta y asegurate de que el archivo '.env' existe en la raíz del proyecto. \n== !! "
+    )
+    logging.getLogger(__name__).error(message)
+    raise RuntimeError(message)
 
 def _env_bool(name: str, default: bool = False) -> bool:
     value = os.getenv(name)
@@ -48,25 +59,21 @@ def _env_bool(name: str, default: bool = False) -> bool:
         return default
     return str(value).strip().lower() in {"1", "true", "yes", "on", "si", "sí"}
 
-
 def _env_int(name: str, default: int, minimum: int = 1) -> int:
     value = os.getenv(name)
     if value is None:
         return default
     try:
         parsed = int(value)
-    except Exception:
+    except (TypeError, ValueError):
         return default
     return max(minimum, parsed)
-
 
 def _is_production() -> bool:
     return os.getenv("FLASK_ENV", "development").strip().lower() == "production"
 
-
 def _is_debug_enabled() -> bool:
     return _env_bool("FLASK_DEBUG", not _is_production())
-
 
 def _should_start_scheduler_process(debug_enabled: bool) -> bool:
     # Con reloader activo, solo iniciar en el proceso hijo real.
@@ -74,14 +81,12 @@ def _should_start_scheduler_process(debug_enabled: bool) -> bool:
         return True
     return not debug_enabled
 
-
 def _configure_logging() -> logging.Logger:
     logging.basicConfig(
         level=getattr(logging, os.getenv("LOG_LEVEL", "INFO").upper(), logging.INFO),
         format="%(asctime)s %(levelname)s [%(name)s] %(message)s",
     )
     return logging.getLogger(__name__)
-
 
 def _configure_upload_settings(flask_app: Flask) -> None:
     upload_root_value = os.getenv("UPLOAD_ROOT", "uploads").strip()
@@ -105,9 +110,8 @@ def _configure_upload_settings(flask_app: Flask) -> None:
         _env_int("MAX_CONTENT_LENGTH_MB", 25, minimum=1) * 1024 * 1024
     )
 
-
 def _register_blueprints(flask_app: Flask) -> None:
-    # Importación de blueprints (se hace aquí tras preparar sys.path del submódulo IA)
+    # Importación de blueprints
     from controllers.ai_chat_controller import ai_chat_bp
     from controllers.calendar_controller import calendar_bp
     from controllers.category_controller import category_bp
@@ -128,7 +132,6 @@ def _register_blueprints(flask_app: Flask) -> None:
     flask_app.register_blueprint(category_bp)
     flask_app.register_blueprint(ai_chat_bp)
 
-
 def setup_scheduler(flask_app: Flask, logger: logging.Logger) -> None:
     sync_interval = _env_int("SYNC_INTERVAL_MINUTES", 1, minimum=1)
     debug_enabled = _is_debug_enabled()
@@ -146,15 +149,21 @@ env_root = Path(__file__).resolve().parent
 load_project_env(env_root)
 logger = _configure_logging()
 
-# Mantener path del submódulo de IA para imports internos
-ai_root = env_root / "GoalMind-AI"
-if ai_root.exists():
-    sys.path.insert(0, str(ai_root))
-
-
 # === Construcción de la app ===
 app = Flask(__name__)
-app.secret_key = os.getenv("FLASK_SECRET_KEY") or secrets.token_hex(32)
+if _is_production():
+    production_secret = os.getenv("FLASK_SECRET_KEY")
+    if not production_secret:
+        logger.error(
+            "FLASK_SECRET_KEY no está definido y FLASK_ENV=production. "
+            "El arranque se detiene por seguridad."
+        )
+        raise RuntimeError(
+            "Falta FLASK_SECRET_KEY en producción. Define la variable en '.env'."
+        )
+    app.secret_key = production_secret
+else:
+    app.secret_key = os.getenv("FLASK_SECRET_KEY") or secrets.token_hex(32)
 
 local, remote = init_app(app)
 app.mongo_local = local
@@ -176,6 +185,10 @@ def inject_now():
             for category in categories
         ]
     except Exception:
+        logger.warning(
+            "No se pudieron cargar las categorías del sidebar.",
+            exc_info=True,
+        )
         sidebar_categories = []
 
     return {

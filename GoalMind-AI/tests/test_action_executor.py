@@ -1,5 +1,5 @@
-import agents.action_executor as executor_module
-from agents.action_executor import action_executor_node
+import ai.agents.action_executor as executor_module
+from ai.agents.action_executor import action_executor_node
 
 
 def test_delete_goal_requires_confirmation():

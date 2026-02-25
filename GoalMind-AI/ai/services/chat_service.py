@@ -1,10 +1,10 @@
 import logging
 
-from config import get_settings
+from ai.config import get_settings
 from database.mongo_conn import get_app_user_id
-from graph import run_graph_chat
-from services.action_state import get_pending_action
-from repositories.context_repository import get_user_context_json
+from ai.graph import run_graph_chat
+from ai.services.action_state import get_pending_action
+from ai.repositories.context_repository import get_user_context_json
 
 logger = logging.getLogger(__name__)
 DEFAULT_USER_ID = get_app_user_id()
