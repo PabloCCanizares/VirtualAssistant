@@ -133,16 +133,16 @@
             <div class="item-meta">
               {% set goal_id = task.get('objetivo_id') %}
               <span class="item-meta-tag">
-                🎯 {{ goal_titles.get(goal_id, 'Sin objetivo') }}
+                {{ goal_titles.get(goal_id, 'Sin objetivo') }}
               </span>
               {% if goal_project_titles.get(goal_id) %}
               <span class="item-meta-tag">
-                🧭 {{ goal_project_titles.get(goal_id) }}
+                {{ goal_project_titles.get(goal_id) }}
               </span>
               {% endif %}
               {% if task['fecha_limite'] %}
               <span class="item-meta-tag deadline">
-                📅 {{ task['fecha_limite'] }}
+                {{ task['fecha_limite'] }}
               </span>
               {% endif %}
               {% set estado = task.get('estado', 'pendiente')|lower %}
@@ -277,13 +277,11 @@
           {% for project in projects_with_goals %}
           <div class="project-group">
             <div class="project-group-header">
-              <span class="project-icon">📁</span>
               <span class="project-name">{{ project.titulo }}</span>
             </div>
             <div class="goals-list">
               {% for goal in project.goals %}
               <button type="button" class="goal-option" data-goal-id="{{ goal._id }}">
-                <span class="goal-icon">🎯</span>
                 <span class="goal-name">{{ goal.titulo }}</span>
               </button>
               {% endfor %}

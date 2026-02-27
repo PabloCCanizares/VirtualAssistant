@@ -23,7 +23,6 @@
   <div class="panel-section panel-accent">
     <div class="panel-header">
       <h3 class="panel-title">
-        <span class="panel-title-icon">🗂️</span>
         Proyectos activos
       </h3>
       <div class="panel-actions">
@@ -180,7 +179,7 @@
           {{ desc[:80] }}{% if desc|length > 80 %}...{% endif %}
         </div>
         <div class="grid-card-footer">
-          🎯 {{ goal_counts.get(project['_id'], 0) }} objetivos · 📄 {{ doc_counts.get(project['_id'], 0) }} documentos
+          {{ goal_counts.get(project['_id'], 0) }} objetivos {{ doc_counts.get(project['_id'], 0) }} documentos
         </div>
         <div class="panel-actions">
           <a class="panel-action-btn primary" href="{{ url_for('project_bp.view_project', project_id=project['_id']) }}">
@@ -192,7 +191,6 @@
     </div>
     {% else %}
     <div class="empty-state">
-      <div class="empty-state-icon">🗂️</div>
       <h4 class="empty-state-title">No hay proyectos registrados</h4>
       <p class="empty-state-desc">Crea tu primer proyecto usando el panel de la derecha.</p>
     </div>

@@ -82,7 +82,7 @@ class ProjectDocumentModel:
         doc_data["_id"] = result.inserted_id
 
         sync_to_remote(ProjectDocumentModel.COLLECTION, doc_data)
-        print(f"📄 Documento insertado y sincronizado: {doc_data['_id']}")
+        print(f"Documento insertado y sincronizado: {doc_data['_id']}")
         return doc_data
 
     @staticmethod

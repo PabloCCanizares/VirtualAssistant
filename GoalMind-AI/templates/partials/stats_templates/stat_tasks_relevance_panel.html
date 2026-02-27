@@ -1,18 +1,17 @@
 {# templates/partials/stats_templates/stat_tasks_relevance_panel.html #}
-<div class="panel stat-panel" role="region" aria-label="{{ title }}">
-  <h2>{{ title }}</h2>
+<div class="panel stat-panel stat-relevance-layout" role="region" aria-label="{{ title }}">
+  <h2 class="stat-relevance-title">{{ title }}</h2>
 
-  <div class="chart-container">
+  <div class="stat-relevance-chart">
     <canvas id="chart-relevance-{{ data.uid }}"></canvas>
   </div>
 
-  <div style="margin-top:10px;">
-    <strong>Puntos totales:</strong> {{ data.total_points }} &nbsp;
-    <strong>Puntos mes:</strong> {{ data.month_points }} &nbsp;
-    <strong>% relevancia:</strong> {{ data.percentage_of_relevance }}%
-  </div>
-
-  <div style="margin-top:12px;">
+  <div class="stat-relevance-table-wrapper">
+    <div class="stat-numbers" style="margin-bottom:10px;">
+      <strong>Puntos totales:</strong> {{ data.total_points }} &nbsp;
+      <strong>Puntos mes:</strong> {{ data.month_points }} &nbsp;
+      <strong>% relevancia:</strong> {{ data.percentage_of_relevance }}%
+    </div>
     <table class="stats-table">
       <thead><tr><th>Tarea</th><th>Prioridad</th><th>Puntos</th><th>Estado</th></tr></thead>
       <tbody>

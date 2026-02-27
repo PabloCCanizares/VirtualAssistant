@@ -48,7 +48,7 @@ class TaskModel:
         # Sincronizar con la nube
         sync_to_remote(TaskModel.COLLECTION, task_data)
 
-        print(f"🗂️ Tarea insertada localmente y sincronizada: {task_data['_id']}")
+        print(f"Tarea insertada localmente y sincronizada: {task_data['_id']}")
         return task_data
     
 
@@ -353,10 +353,10 @@ class TaskModel:
                     query,
                     {"$set": {"objetivo_id": objetivo_oid}}
                 )
-                print(f"🎯 {result.modified_count} tareas asignadas al objetivo {goal_id} y sincronizadas.")
+                print(f" {result.modified_count} tareas asignadas al objetivo {goal_id} y sincronizadas.")
             except Exception as e:
-                print(f"⚠️ Error al sincronizar asignación de objetivo: {e}")
+                print(f" Error al sincronizar asignación de objetivo: {e}")
         else:
-            print(f"🎯 {result.modified_count} tareas asignadas al objetivo {goal_id} (solo local).")
+            print(f" {result.modified_count} tareas asignadas al objetivo {goal_id} (solo local).")
         
         return result.modified_count

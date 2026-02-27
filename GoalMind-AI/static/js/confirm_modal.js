@@ -15,29 +15,6 @@ class ConfirmModal {
   }
 
   init() {
-    // Crear el HTML del modal si no existe
-    if (!document.getElementById('confirmModal')) {
-      const modalHTML = `
-        <div class="confirm-modal" id="confirmModal" aria-hidden="true" role="dialog" aria-modal="true">
-          <div class="confirm-modal-overlay" data-action="cancel"></div>
-          <div class="confirm-modal-content" role="document">
-            <div class="confirm-modal-header">
-              <h3 class="confirm-modal-title" id="confirmModalTitle">Confirmar acción</h3>
-              <button type="button" class="confirm-modal-close" data-action="cancel" aria-label="Cerrar">×</button>
-            </div>
-            <div class="confirm-modal-body" id="confirmModalBody">
-              ¿Estás seguro de que deseas continuar?
-            </div>
-            <div class="confirm-modal-actions">
-              <button type="button" class="panel-action-btn secondary" data-action="cancel">Cancelar</button>
-              <button type="button" class="panel-action-btn danger" data-action="confirm">Eliminar</button>
-            </div>
-          </div>
-        </div>
-      `;
-      document.body.insertAdjacentHTML('beforeend', modalHTML);
-    }
-
     // Obtener referencias a los elementos
     this.modal = document.getElementById('confirmModal');
     this.overlay = this.modal.querySelector('.confirm-modal-overlay');

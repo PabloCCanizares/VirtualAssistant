@@ -186,7 +186,6 @@ class UploadModal {
 
     if (nameEl) nameEl.textContent = file.name;
     if (sizeEl) sizeEl.textContent = formatFileSize(file.size);
-    if (iconEl) iconEl.textContent = getFileIcon(file.type);
   }
 
   submit() {
@@ -218,22 +217,6 @@ function formatFileSize(bytes) {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
-function getFileIcon(mimeType) {
-  if (!mimeType) return '📄';
-  
-  if (mimeType.startsWith('image/')) return '🖼️';
-  if (mimeType.startsWith('video/')) return '🎬';
-  if (mimeType.startsWith('audio/')) return '🎵';
-  if (mimeType.includes('pdf')) return '📕';
-  if (mimeType.includes('word') || mimeType.includes('document')) return '📘';
-  if (mimeType.includes('excel') || mimeType.includes('spreadsheet')) return '📗';
-  if (mimeType.includes('powerpoint') || mimeType.includes('presentation')) return '📙';
-  if (mimeType.includes('zip') || mimeType.includes('compressed')) return '🗜️';
-  if (mimeType.includes('text')) return '📝';
-  
-  return '📄';
-}
-
 function showSnackbar(message, type = 'success') {
   // Buscar snackbar existente o crear uno
   let snackbar = document.querySelector('.snackbar');
@@ -256,5 +239,4 @@ window.initCollapsiblePanels = initCollapsiblePanels;
 window.initDropzone = initDropzone;
 window.UploadModal = UploadModal;
 window.formatFileSize = formatFileSize;
-window.getFileIcon = getFileIcon;
 window.showSnackbar = showSnackbar;

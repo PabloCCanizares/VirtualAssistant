@@ -120,7 +120,7 @@ def stats_tasks_completed_month():
     year = _year_now()
     month_tasks = [t for t in tasks if _is_in_ym(t.get("fecha_limite"), year)]
     total = len(month_tasks)
-    completed = sum(1 for t in month_tasks if (t.get("estado")).strip().lower() == "completada")
+    completed = sum(1 for t in month_tasks if (t.get("estado") or "").strip().lower() == "completada")
     pct = round((completed / total * 100.0) if total else 0.0, 2)
     return {
         "uid": uuid.uuid4().hex,
