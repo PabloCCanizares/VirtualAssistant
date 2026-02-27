@@ -1,12 +1,12 @@
 {# templates/partials/stats_templates/stat_events_by_type_panel.html #}
-<div class="panel stat-panel" role="region" aria-label="{{ title }}">
-  <h2>{{ title }}</h2>
+<div class="panel stat-panel stat-events-layout" role="region" aria-label="{{ title }}">
+  <h2 class="stat-events-title">{{ title }}</h2>
 
-  <div class="chart-container">
+  <div class="stat-events-chart">
     <canvas id="chart-events-{{ data.uid }}"></canvas>
   </div>
 
-  <div style="margin-top:12px;">
+  <div class="stat-events-table-wrapper">
     <table class="stats-table">
       <thead><tr><th>Tipo</th><th>Count</th><th>%</th></tr></thead>
       <tbody>

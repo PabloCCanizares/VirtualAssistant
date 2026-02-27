@@ -399,7 +399,7 @@ def bulk_delete_tasks():
 
 
 # -------------------------------------------------------------
-# 🎯 ASIGNAR OBJETIVO A MÚLTIPLES TAREAS (POST)
+# ASIGNAR OBJETIVO A MÚLTIPLES TAREAS (POST)
 # -------------------------------------------------------------
 @task_bp.route("/bulk-assign-goal", methods=["POST"])
 def bulk_assign_goal():

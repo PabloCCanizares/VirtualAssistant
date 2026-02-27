@@ -105,9 +105,9 @@
                 <h4 class="item-title item-title-small">{{ doc.get('original_name', doc.get('filename')) }}</h4>
                 <div class="item-meta">
                   {% if doc.get('goal_id') %}
-                  <span class="item-meta-tag">🎯 {{ goal_titles.get(doc.get('goal_id'), 'Objetivo') }}</span>
+                  <span class="item-meta-tag"> {{ goal_titles.get(doc.get('goal_id'), 'Objetivo') }}</span>
                   {% endif %}
-                  <span class="item-meta-tag">📦 {{ (doc.get('size', 0) / 1024) | round(1) }} KB</span>
+                  <span class="item-meta-tag"> {{ (doc.get('size', 0) / 1024) | round(1) }} KB</span>
                 </div>
               </div>
               <div class="panel-actions panel-actions-compact">
@@ -184,7 +184,6 @@
   <div class="panel-section panel-accent">
     <div class="panel-header">
       <h3 class="panel-title">
-        <span class="panel-title-icon">🎯</span>
         Objetivos del proyecto
       </h3>
       <div class="panel-actions">
@@ -347,7 +346,6 @@
     </ul>
     {% else %}
     <div class="empty-state">
-      <div class="empty-state-icon">🎯</div>
       <h4 class="empty-state-title">Sin objetivos asociados</h4>
       <p class="empty-state-desc">Crea objetivos en la seccion de Objetivos y asignalos a este proyecto.</p>
     </div>

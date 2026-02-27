@@ -108,7 +108,7 @@ class GoalModel:
 
         sync_to_remote(GoalModel.COLLECTION, goal_data)
 
-        print(f"🎯 Objetivo insertado localmente y sincronizado: {goal_data['_id']}")
+        print(f" Objetivo insertado localmente y sincronizado: {goal_data['_id']}")
         return goal_data
     
     
