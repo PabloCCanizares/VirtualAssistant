@@ -6,6 +6,7 @@ from typing import Any, Dict, Optional, Tuple
 from bson import ObjectId
 
 from database.mongo_conn import queue_deletion, flush_deletion_queue, get_app_user_id
+from model.event_model import eventModel
 from model.goal_model import GoalModel
 from model.project_document_model import ProjectDocumentModel
 from model.project_model import ProjectModel
@@ -15,7 +16,7 @@ from ai.state import AppState
 
 logger = logging.getLogger(__name__)
 
-CONFIRM_REQUIRED_ACTIONS = {"delete_project", "delete_goal", "delete_task"}
+CONFIRM_REQUIRED_ACTIONS = {"delete_project", "delete_goal", "delete_task", "delete_event"}
 
 
 def _load_context(state: AppState) -> Dict[str, Any]:
@@ -55,8 +56,8 @@ def _resolve_project_id(params: Dict[str, Any], context: Dict[str, Any]) -> Tupl
     if project:
         return str(project.get("_id")), None
     if matches:
-        return None, "He encontrado varios proyectos con ese nombre. ¿Cuál exactamente?"
-    return None, "¿Qué proyecto quieres usar? Indica el nombre."
+        return None, "He encontrado varios proyectos con ese nombre. ¿Cual exactamente?"
+    return None, "¿Que proyecto quieres usar? Indica el nombre."
 
 
 def _resolve_goal_id(params: Dict[str, Any], context: Dict[str, Any]) -> Tuple[Optional[str], Optional[str]]:
@@ -68,8 +69,8 @@ def _resolve_goal_id(params: Dict[str, Any], context: Dict[str, Any]) -> Tuple[O
     if goal:
         return str(goal.get("_id")), None
     if matches:
-        return None, "He encontrado varios objetivos con ese nombre. ¿Cuál exactamente?"
-    return None, "¿Qué objetivo quieres usar? Indica el nombre."
+        return None, "He encontrado varios objetivos con ese nombre. ¿Cual exactamente?"
+    return None, "¿Que objetivo quieres usar? Indica el nombre."
 
 
 def _resolve_task_id(params: Dict[str, Any], context: Dict[str, Any]) -> Tuple[Optional[str], Optional[str]]:
@@ -81,8 +82,21 @@ def _resolve_task_id(params: Dict[str, Any], context: Dict[str, Any]) -> Tuple[O
     if task:
         return str(task.get("_id")), None
     if matches:
-        return None, "He encontrado varias tareas con ese texto. ¿Cuál exactamente?"
-    return None, "¿Qué tarea quieres usar? Indica el texto exacto."
+        return None, "He encontrado varias tareas con ese texto. ¿Cual exactamente?"
+    return None, "¿Que tarea quieres usar? Indica el texto exacto."
+
+
+def _resolve_event_id(params: Dict[str, Any], context: Dict[str, Any]) -> Tuple[Optional[str], Optional[str]]:
+    eid = params.get("event_id")
+    if eid:
+        return str(eid), None
+    title = params.get("event_title") or params.get("titulo_evento") or params.get("titulo")
+    event, matches = _match_by_title(context.get("events", []), "titulo", title)
+    if event:
+        return str(event.get("_id")), None
+    if matches:
+        return None, "He encontrado varios eventos con ese nombre. ¿Cual exactamente?"
+    return None, "¿Que evento quieres usar? Indica el nombre."
 
 
 def _parse_object_id(value: Optional[str]) -> Optional[ObjectId]:
@@ -158,6 +172,15 @@ def _safe_int(value: Any, default: int = 0) -> int:
         return default
 
 
+def _build_update_fields(params: Dict[str, Any], allowed_keys: set) -> Dict[str, Any]:
+    """Extrae solo los campos permitidos del dict de parametros para un update."""
+    updates = {}
+    for key in allowed_keys:
+        if key in params and params[key] is not None:
+            updates[key] = params[key]
+    return updates
+
+
 def action_executor_node(state: AppState, _llm) -> AppState:
     user_id = _ensure_user_id(state)
 
@@ -180,6 +203,7 @@ def action_executor_node(state: AppState, _llm) -> AppState:
         return {"final_response": "No se detecto ninguna accion para ejecutar."}
 
     try:
+        # ── CREATE ─────────────────────────────────────────────────
         if action_name == "create_project":
             titulo = parameters.get("titulo") or parameters.get("title")
             if not titulo:
@@ -195,7 +219,7 @@ def action_executor_node(state: AppState, _llm) -> AppState:
             }
             ProjectModel.insert_project(data)
             clear_pending_action(user_id)
-            return {"final_response": f"✅ Proyecto creado: {titulo}."}
+            return {"final_response": f"Proyecto creado: {titulo}."}
 
         if action_name == "create_goal":
             titulo = parameters.get("titulo") or parameters.get("title")
@@ -217,7 +241,7 @@ def action_executor_node(state: AppState, _llm) -> AppState:
             }
             GoalModel.insert_goal(data)
             clear_pending_action(user_id)
-            return {"final_response": f"✅ Objetivo creado: {titulo}."}
+            return {"final_response": f"Objetivo creado: {titulo}."}
 
         if action_name == "create_task":
             contenido = parameters.get("contenido") or parameters.get("titulo")
@@ -239,8 +263,85 @@ def action_executor_node(state: AppState, _llm) -> AppState:
             }
             TaskModel.insert_task(data)
             clear_pending_action(user_id)
-            return {"final_response": f"✅ Tarea creada: {contenido}."}
+            return {"final_response": f"Tarea creada: {contenido}."}
 
+        if action_name == "create_event":
+            titulo = parameters.get("titulo") or parameters.get("title")
+            if not titulo:
+                return {"final_response": "Necesito el titulo del evento para crearlo."}
+            fecha_inicio = parameters.get("fecha_inicio")
+            if not fecha_inicio:
+                return {"final_response": "Necesito la fecha de inicio del evento."}
+            data = {
+                "titulo": titulo,
+                "descripcion": parameters.get("descripcion"),
+                "fecha_inicio": fecha_inicio,
+                "fecha_fin": parameters.get("fecha_fin"),
+                "tipo_evento": parameters.get("tipo_evento"),
+                "usuario_id": user_id,
+            }
+            # Vincular a tarea u objetivo si se proporciona
+            id_tarea = parameters.get("id_tarea")
+            if id_tarea:
+                data["id_tarea"] = _parse_object_id(str(id_tarea)) or id_tarea
+            id_objetivo = parameters.get("id_objetivo")
+            if id_objetivo:
+                data["id_objetivo"] = _parse_object_id(str(id_objetivo)) or id_objetivo
+            eventModel.insert_event(data, usuario_id=user_id)
+            clear_pending_action(user_id)
+            return {"final_response": f"Evento creado: {titulo}."}
+
+        # ── UPDATE ─────────────────────────────────────────────────
+        if action_name == "update_project":
+            project_id, clar = _resolve_project_id(parameters, context)
+            if clar:
+                return {"final_response": clar}
+            allowed = {"titulo", "descripcion", "estado", "prioridad", "fecha_inicio", "fecha_fin"}
+            updates = _build_update_fields(parameters, allowed)
+            if not updates:
+                return {"final_response": "No se indicaron campos para actualizar en el proyecto."}
+            ProjectModel.update_project(project_id, updates, usuario_id=user_id)
+            clear_pending_action(user_id)
+            campos = ", ".join(updates.keys())
+            return {"final_response": f"Proyecto actualizado ({campos})."}
+
+        if action_name == "update_goal":
+            goal_id, clar = _resolve_goal_id(parameters, context)
+            if clar:
+                return {"final_response": clar}
+            allowed = {"titulo", "descripcion", "estado", "prioridad", "fecha_inicio", "fecha_fin", "progreso"}
+            updates = _build_update_fields(parameters, allowed)
+            if not updates:
+                return {"final_response": "No se indicaron campos para actualizar en el objetivo."}
+            if "progreso" in updates:
+                updates["progreso"] = _safe_int(updates["progreso"], 0)
+            GoalModel.update_goal(goal_id, updates, usuario_id=user_id)
+            clear_pending_action(user_id)
+            campos = ", ".join(updates.keys())
+            return {"final_response": f"Objetivo actualizado ({campos})."}
+
+        if action_name == "update_task":
+            task_id, clar = _resolve_task_id(parameters, context)
+            if clar:
+                return {"final_response": clar}
+            allowed = {"contenido", "descripcion", "fecha_limite", "estado", "prioridad"}
+            updates = _build_update_fields(parameters, allowed)
+            if not updates:
+                return {"final_response": "No se indicaron campos para actualizar en la tarea."}
+            TaskModel.update_task(task_id, updates, usuario_id=user_id)
+            clear_pending_action(user_id)
+            campos = ", ".join(updates.keys())
+            return {"final_response": f"Tarea actualizada ({campos})."}
+
+        if action_name == "mark_task_complete":
+            task_id, clar = _resolve_task_id(parameters, context)
+            if clar:
+                return {"final_response": clar}
+            TaskModel.update_task(task_id, {"estado": "completada"}, usuario_id=user_id)
+            clear_pending_action(user_id)
+            return {"final_response": "Tarea marcada como completada."}
+
+        # ── DELETE ─────────────────────────────────────────────────
         if action_name == "delete_project":
             project_id, clar = _resolve_project_id(parameters, context)
             if clar:
@@ -251,7 +352,7 @@ def action_executor_node(state: AppState, _llm) -> AppState:
             except Exception:
                 logger.warning("No se pudo vaciar DeleteQueue tras delete_project", exc_info=True)
             clear_pending_action(user_id)
-            return {"final_response": "🗑️ Proyecto eliminado correctamente."}
+            return {"final_response": "Proyecto eliminado correctamente."}
 
         if action_name == "delete_goal":
             goal_id, clar = _resolve_goal_id(parameters, context)
@@ -263,7 +364,7 @@ def action_executor_node(state: AppState, _llm) -> AppState:
             except Exception:
                 logger.warning("No se pudo vaciar DeleteQueue tras delete_goal", exc_info=True)
             clear_pending_action(user_id)
-            return {"final_response": "🗑️ Objetivo eliminado correctamente."}
+            return {"final_response": "Objetivo eliminado correctamente."}
 
         if action_name == "delete_task":
             task_id, clar = _resolve_task_id(parameters, context)
@@ -276,7 +377,20 @@ def action_executor_node(state: AppState, _llm) -> AppState:
             except Exception:
                 logger.warning("No se pudo vaciar DeleteQueue tras delete_task", exc_info=True)
             clear_pending_action(user_id)
-            return {"final_response": "🗑️ Tarea eliminada correctamente."}
+            return {"final_response": "Tarea eliminada correctamente."}
+
+        if action_name == "delete_event":
+            event_id, clar = _resolve_event_id(parameters, context)
+            if clar:
+                return {"final_response": clar}
+            eventModel.delete_event(event_id, usuario_id=user_id)
+            queue_deletion("Events", event_id)
+            try:
+                flush_deletion_queue()
+            except Exception:
+                logger.warning("No se pudo vaciar DeleteQueue tras delete_event", exc_info=True)
+            clear_pending_action(user_id)
+            return {"final_response": "Evento eliminado correctamente."}
 
         return {"final_response": "Accion no soportada en este momento."}
 

@@ -5,6 +5,8 @@ from .intent_interpreter import intent_interpreter_node
 from .action_executor import action_executor_node
 from .recommendations import recommendations_node
 from .weekly_summary import weekly_summary_node
+from .weekly_planner import weekly_planner_node
+from .progress_tracker import progress_tracker_node
 from .writer import writer_node
 
 __all__ = [
@@ -13,6 +15,8 @@ __all__ = [
     "action_executor_node",
     "recommendations_node",
     "weekly_summary_node",
+    "weekly_planner_node",
+    "progress_tracker_node",
     "writer_node",
     "supervisor_node",
     "route_after_supervisor",

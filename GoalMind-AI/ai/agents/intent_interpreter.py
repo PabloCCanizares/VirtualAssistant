@@ -12,14 +12,24 @@ from ai.state import AppState
 logger = logging.getLogger(__name__)
 
 ALLOWED_ACTIONS = {
+    # CRUD existentes
     "create_project",
     "create_goal",
     "create_task",
     "delete_project",
     "delete_goal",
     "delete_task",
-    "weekly_summary",
+    # Nuevas: edicion
+    "update_project",
+    "update_goal",
+    "update_task",
+    "mark_task_complete",
+    # Nuevas: eventos
+    "create_event",
+    "delete_event",
 }
+
+CONFIRM_REQUIRED_ACTIONS = {"delete_project", "delete_goal", "delete_task", "delete_event"}
 
 
 def _safe_parse_json(text: str) -> Dict[str, Any]:
@@ -100,7 +110,7 @@ def intent_interpreter_node(state: AppState, llm) -> AppState:
     needs_confirmation = intent.get("needs_confirmation", False)
     clarification_question = intent.get("clarification_question")
 
-    if action_name in {"delete_project", "delete_goal", "delete_task"}:
+    if action_name in CONFIRM_REQUIRED_ACTIONS:
         needs_confirmation = True
 
     result: Dict[str, Any] = {
