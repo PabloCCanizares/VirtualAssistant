@@ -14,8 +14,11 @@ class AppState(TypedDict, total=False):
     user_id: str
     route: str
     use_critic: bool
-    fallback_route: str
+    fallback_route: str  # deprecated: mantenido por compatibilidad
+    query_type: str  # categoria detectada por el supervisor LLM
     research_notes: str
+    progress_analysis: str  # output del progress_tracker (consume el writer)
+    weekly_plan: str  # output del weekly_planner (va directo a finalize)
     draft_response: str
     final_response: str
     action_name: str

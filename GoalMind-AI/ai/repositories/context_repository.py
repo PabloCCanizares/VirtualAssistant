@@ -3,6 +3,7 @@ from datetime import datetime
 
 from bson import ObjectId
 
+from model.event_model import eventModel
 from model.goal_model import GoalModel
 from model.project_model import ProjectModel
 from model.task_model import TaskModel
@@ -24,12 +25,14 @@ def _load_user_context(user_id):
     tasks = TaskModel.get_task_by_user(user_id)
     goals = GoalModel.get_by_user_id(user_id)
     projects = ProjectModel.get_by_user_id(user_id)
+    events = eventModel.get_events_by_user(user_id)
 
     return {
         "user_id": str(user_id),
         "tasks": [_serialize_value(task) for task in tasks],
         "goals": [_serialize_value(goal) for goal in goals],
         "projects": [_serialize_value(project) for project in projects],
+        "events": [_serialize_value(e) for e in events],
     }
 
 

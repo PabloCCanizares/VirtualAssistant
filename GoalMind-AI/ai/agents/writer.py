@@ -11,11 +11,11 @@ logger = logging.getLogger(__name__)
 
 
 def writer_node(state: AppState, llm) -> AppState:
-    research_notes = state.get("research_notes", "")
+    # Usa research_notes o progress_analysis, sin context_json crudo
+    notes = state.get("research_notes") or state.get("progress_analysis", "")
     messages = [
         SystemMessage(content=WRITER_PROMPT),
-        SystemMessage(content=f"Contexto del usuario (JSON): {state.get('context_json', '{}')}"),
-        SystemMessage(content=f"Research: {research_notes}"),
+        SystemMessage(content=f"Notas de analisis:\n{notes}"),
     ]
     messages.extend(state.get("messages", []))
     try:

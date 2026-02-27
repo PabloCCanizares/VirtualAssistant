@@ -9,17 +9,18 @@ from ai.agents import (
     action_executor_node,
     critic_node,
     intent_interpreter_node,
+    progress_tracker_node,
     recommendations_node,
     research_node,
     route_after_supervisor,
     supervisor_node,
+    weekly_planner_node,
     weekly_summary_node,
     writer_node,
 )
 from ai.state import AppState
 
 logger = logging.getLogger(__name__)
-VALID_FALLBACK_ROUTES = {"research", "recommendations", "weekly_summary", "writer"}
 
 
 def _history_to_messages(history: Iterable[dict[str, Any]] | None) -> list:
@@ -38,6 +39,62 @@ def _history_to_messages(history: Iterable[dict[str, Any]] | None) -> list:
     return messages
 
 
+# ── Routing functions ──────────────────────────────────────────────
+
+
+def _route_after_supervisor(state: AppState) -> str:
+    """
+    Mapea las 7 categorias del supervisor + rutas de acciones pendientes.
+    Posibles destinos:
+      action           → intent_interpreter
+      action_executor  → action_executor (accion pendiente confirmada)
+      weekly_summary   → weekly_summary
+      weekly_plan      → weekly_planner
+      recommendations  → recommendations
+      progress         → progress_tracker
+      research         → research
+      off_topic        → finalize (mensaje fijo)
+      finalize         → finalize
+    """
+    route = route_after_supervisor(state)
+
+    route_map = {
+        "action": "intent_interpreter",
+        "action_executor": "action_executor",
+        "weekly_summary": "weekly_summary",
+        "weekly_plan": "weekly_planner",
+        "recommendations": "recommendations",
+        "progress": "progress_tracker",
+        "research": "research",
+        "off_topic": "finalize",
+        "finalize": "finalize",
+    }
+    return route_map.get(route, "research")
+
+
+def _route_after_intent(state: AppState) -> str:
+    """
+    Despues del intent_interpreter, solo 2 destinos posibles:
+      - action_executor: si hay accion clara con confianza >= 0.6 y no necesita confirmacion
+      - finalize: clarificacion, confirmacion pendiente, o no hay accion
+    """
+    action_name = state.get("action_name")
+    confidence = state.get("action_confidence", 0.0) or 0.0
+    needs_confirmation = state.get("action_needs_confirmation", False)
+    clarification = state.get("action_clarification_question")
+
+    if clarification:
+        return "finalize"
+
+    if not action_name or confidence < 0.6:
+        return "finalize"
+
+    if needs_confirmation:
+        return "finalize"
+
+    return "action_executor"
+
+
 def _route_after_writer(state: AppState) -> str:
     return "critic" if state.get("use_critic", False) else "finalize"
 
@@ -53,92 +110,95 @@ def _finalize_node(state: AppState) -> AppState:
     return {"final_response": draft}
 
 
-def _route_after_intent(state: AppState) -> str:
-    action_name = state.get("action_name")
-    confidence = state.get("action_confidence", 0.0) or 0.0
-    needs_confirmation = state.get("action_needs_confirmation", False)
-    clarification = state.get("action_clarification_question")
-    fallback = state.get("fallback_route", "research")
-    if fallback not in VALID_FALLBACK_ROUTES:
-        fallback = "research"
-
-    if clarification:
-        return "finalize"
-
-    if not action_name or confidence < 0.6:
-        return fallback
-
-    if action_name == "weekly_summary":
-        return "weekly_summary"
-
-    if needs_confirmation:
-        return "finalize"
-
-    return "action_executor"
+# ── Graph builder ──────────────────────────────────────────────────
 
 
 def build_chat_graph(llm):
     graph = StateGraph(AppState)
 
+    # Nodos
     graph.add_node("supervisor", lambda state: supervisor_node(state, llm))
     graph.add_node("intent_interpreter", lambda state: intent_interpreter_node(state, llm))
     graph.add_node("action_executor", lambda state: action_executor_node(state, llm))
     graph.add_node("research", lambda state: research_node(state, llm))
     graph.add_node("recommendations", lambda state: recommendations_node(state, llm))
     graph.add_node("weekly_summary", lambda state: weekly_summary_node(state, llm))
+    graph.add_node("weekly_planner", lambda state: weekly_planner_node(state, llm))
+    graph.add_node("progress_tracker", lambda state: progress_tracker_node(state, llm))
     graph.add_node("writer", lambda state: writer_node(state, llm))
     graph.add_node("critic", lambda state: critic_node(state, llm))
     graph.add_node("finalize", _finalize_node)
 
+    # START → supervisor
     graph.add_edge(START, "supervisor")
+
+    # supervisor → 8 destinos posibles
     graph.add_conditional_edges(
         "supervisor",
-        route_after_supervisor,
+        _route_after_supervisor,
         {
             "intent_interpreter": "intent_interpreter",
             "action_executor": "action_executor",
+            "weekly_summary": "weekly_summary",
+            "weekly_planner": "weekly_planner",
+            "recommendations": "recommendations",
+            "progress_tracker": "progress_tracker",
+            "research": "research",
             "finalize": "finalize",
         },
     )
+
+    # intent_interpreter → action_executor o finalize
     graph.add_conditional_edges(
         "intent_interpreter",
         _route_after_intent,
         {
             "action_executor": "action_executor",
             "finalize": "finalize",
-            "research": "research",
-            "recommendations": "recommendations",
-            "weekly_summary": "weekly_summary",
-            "writer": "writer",
         },
     )
-    graph.add_edge("research", "writer")
-    graph.add_conditional_edges(
-        "recommendations",
-        _route_after_writer,
-        {
-            "critic": "critic",
-            "finalize": "finalize",
-        },
-    )
+
+    # Directas a finalize (sin writer intermedio)
+    graph.add_edge("action_executor", "finalize")
+
+    # weekly_summary → finalize (directo, opcionalmente via critic)
     graph.add_conditional_edges(
         "weekly_summary",
         _route_after_writer,
-        {
-            "critic": "critic",
-            "finalize": "finalize",
-        },
+        {"critic": "critic", "finalize": "finalize"},
     )
+
+    # weekly_planner → finalize (directo, opcionalmente via critic)
+    graph.add_conditional_edges(
+        "weekly_planner",
+        _route_after_writer,
+        {"critic": "critic", "finalize": "finalize"},
+    )
+
+    # recommendations → finalize (directo, opcionalmente via critic)
+    graph.add_conditional_edges(
+        "recommendations",
+        _route_after_writer,
+        {"critic": "critic", "finalize": "finalize"},
+    )
+
+    # research → writer (siempre pasa por writer)
+    graph.add_edge("research", "writer")
+
+    # progress_tracker → writer (siempre pasa por writer)
+    graph.add_edge("progress_tracker", "writer")
+
+    # writer → critic o finalize
     graph.add_conditional_edges(
         "writer",
         _route_after_writer,
-        {
-            "critic": "critic",
-            "finalize": "finalize",
-        },
+        {"critic": "critic", "finalize": "finalize"},
     )
-    graph.add_edge("action_executor", "finalize")
+
+    # critic → finalize
     graph.add_edge("critic", "finalize")
+
+    # finalize → END
     graph.add_edge("finalize", END)
 
     return graph.compile()

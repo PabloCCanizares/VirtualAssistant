@@ -1,6 +1,21 @@
-from langchain_core.messages import HumanMessage
+import json
+import logging
+
+from langchain_core.messages import HumanMessage, SystemMessage
+
+from ai.prompts.supervisor_prompt import SUPERVISOR_PROMPT
 from ai.services.action_state import clear_pending_action
+from ai.services.llm_utils import LLMInvokeError, invoke_with_retry
 from ai.state import AppState
+
+logger = logging.getLogger(__name__)
+
+VALID_CATEGORIES = {"action", "weekly_summary", "weekly_plan", "recommendations", "progress", "research", "off_topic"}
+
+OFF_TOPIC_MESSAGE = (
+    "Lo siento, solo puedo ayudarte con la gestion de tus proyectos, objetivos, "
+    "tareas y calendario. ¿Hay algo relacionado en lo que pueda ayudarte?"
+)
 
 CONFIRM_WORDS = {"si", "sí", "confirmo", "confirmar", "adelante", "ejecuta", "ok", "vale"}
 CANCEL_WORDS = {"no", "cancela", "cancelar", "anula", "detener"}
@@ -23,21 +38,34 @@ def _is_cancellation(user_text: str) -> bool:
     return normalized in CANCEL_WORDS or normalized.startswith("cancel")
 
 
-def supervisor_node(state: AppState, _llm) -> AppState:
-    user_text = _last_user_text(state.get("messages", []))
-    fast_words = ["rapido", "breve", "resumen", "corto"]
-    weekly_summary_exact_trigger = "hazme un resumen de la semana"
-    recommendation_words = [
-        "recomendacion",
-        "recomendaciones",
-        "recomiendame",
-        "dame recomendaciones",
-        "recomendaciones personales",
-        "priorizar",
-        "prioridades",
-    ]
-    use_critic = any(word in user_text for word in ["critica", "mejora", "revisa"])
+def _parse_supervisor_json(text: str) -> dict:
+    """Extrae el JSON de la respuesta del LLM supervisor."""
+    if not text:
+        return {}
+    try:
+        return json.loads(text)
+    except Exception:
+        pass
+    start = text.find("{")
+    end = text.rfind("}")
+    if start != -1 and end != -1 and end > start:
+        try:
+            return json.loads(text[start : end + 1])
+        except Exception:
+            return {}
+    return {}
 
+
+def supervisor_node(state: AppState, llm) -> AppState:
+    """
+    Doble fase:
+      Fase 1 (Python puro): detectar confirmacion/cancelacion de acciones pendientes.
+      Fase 2 (LLM): clasificar la intencion en 6 categorias. NO recibe context_json.
+    """
+    messages = state.get("messages", [])
+    user_text = _last_user_text(messages)
+
+    # ── Fase 1: Acciones pendientes (Python puro) ──────────────────
     pending_action = state.get("pending_action_intent")
     if pending_action:
         if _is_confirmation(user_text):
@@ -59,21 +87,43 @@ def supervisor_node(state: AppState, _llm) -> AppState:
             "pending_action_intent": pending_action,
         }
 
-    if any(word in user_text for word in recommendation_words):
-        fallback = "recommendations"
-    elif user_text == weekly_summary_exact_trigger:
-        fallback = "weekly_summary"
-    elif any(word in user_text for word in fast_words):
-        fallback = "writer"
-    else:
-        fallback = "research"
+    # ── Fase 2: Clasificacion LLM (sin context_json) ──────────────
+    llm_messages = [
+        SystemMessage(content=SUPERVISOR_PROMPT),
+    ]
+    llm_messages.extend(messages)
+
+    try:
+        raw = invoke_with_retry(llm, llm_messages, retries=1)
+    except LLMInvokeError:
+        logger.exception("supervisor_node: error invocando LLM para clasificacion")
+        return {"route": "research", "query_type": "research", "use_critic": False}
+
+    parsed = _parse_supervisor_json(raw)
+    category = parsed.get("category", "research")
+    use_critic = parsed.get("use_critic", False)
+
+    if category not in VALID_CATEGORIES:
+        category = "research"
+
+    if not isinstance(use_critic, bool):
+        use_critic = False
+
+    # Si es off_topic, inyectar respuesta fija y enrutar a finalize
+    if category == "off_topic":
+        return {
+            "route": "finalize",
+            "query_type": "off_topic",
+            "use_critic": False,
+            "final_response": OFF_TOPIC_MESSAGE,
+        }
 
     return {
-        "route": "intent_interpreter",
-        "fallback_route": fallback,
+        "route": category,
+        "query_type": category,
         "use_critic": use_critic,
     }
 
 
 def route_after_supervisor(state: AppState) -> str:
-    return state.get("route", "intent_interpreter")
+    return state.get("route", "research")
