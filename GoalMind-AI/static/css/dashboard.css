@@ -1195,6 +1195,21 @@
   color: var(--text);
 }
 
+.ai-chat-message.assistant.thinking .ai-chat-bubble {
+  border-style: dashed;
+  color: rgba(248, 251, 255, 0.85);
+  animation: ai-chat-thinking-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes ai-chat-thinking-pulse {
+  0%, 100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
 .ai-chat-messages::-webkit-scrollbar {
   width: 6px;
 }
@@ -2215,4 +2230,3 @@
   transform: translateY(-1px);
   box-shadow: 0 4px 16px rgba(255, 107, 107, 0.2);
 }
-

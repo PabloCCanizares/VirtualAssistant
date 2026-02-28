@@ -91,7 +91,7 @@ def init_app(app):
     app.config["MONGO_URI"] = f"{local_uri}/{_local_db_name}"
     mongo_local.init_app(app)
     app.mongo_local = mongo_local
-    print("✅ Conectado a MongoDB local")
+    print("Conectado a MongoDB local")
 
     # Por defecto asumimos que NO hay remoto
     mongo_remote = None
@@ -99,7 +99,7 @@ def init_app(app):
 
     # ------------- CONEXIÓN REMOTA (ATLAS) -------------
     if remote_uri and internet_available():
-        print("🌐 Internet disponible → probando conexión a MongoDB Atlas...")
+        print("Internet disponible → probando conexión a MongoDB Atlas...")
 
         try:
             # Creamos el cliente con timeout y certificados de certifi
@@ -113,16 +113,16 @@ def init_app(app):
 
             mongo_remote = client
             app.mongo_remote = client
-            print("✅ Conectado a MongoDB Atlas")
+            print("Conectado a MongoDB Atlas")
         except Exception as e:
             # Si falla el handshake SSL o cualquier otra cosa → seguimos solo con local
             mongo_remote = None
             app.mongo_remote = None
-            print(f"⚠️ No se pudo conectar a Atlas, se usará SOLO la base local.\nDetalle: {e}")
+            print(f"No se pudo conectar a Atlas, se usará SOLO la base local.\nDetalle: {e}")
     elif not remote_uri:
-        print("⚠️ Sin URI remota configurada → se usará solo la base local.")
+        print("Sin URI remota configurada → se usará solo la base local.")
     else:
-        print("⚠️ Sin conexión a internet → se usará solo la base local.")
+        print("Sin conexión a internet → se usará solo la base local.")
 
     return mongo_local, mongo_remote
 
@@ -156,7 +156,7 @@ def ensure_remote_connection(app=None):
         mongo_remote = client
         if app is not None:
             app.mongo_remote = client
-        logger.info("✅ Reconexión a MongoDB Atlas completada.")
+        logger.info("Reconexión a MongoDB Atlas completada.")
         return True
     except Exception as exc:
         logger.warning("No se pudo reconectar a MongoDB Atlas: %s", exc)
