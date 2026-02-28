@@ -69,7 +69,7 @@ def init_scheduler(app, sync_interval_minutes=1):
 
     # Iniciar el scheduler
     _scheduler.start()
-    logger.info("✅ [Scheduler] Iniciado - Sincronización cada %s minutos", sync_interval_minutes)
+    logger.info("[Scheduler] Iniciado - Sincronización cada %s minutos", sync_interval_minutes)
 
     # Ejecutar una sincronización inicial al arrancar (en background)
     _scheduler.add_job(

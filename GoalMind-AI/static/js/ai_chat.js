@@ -101,7 +101,7 @@
 
   function appendMessage(role, text) {
     if (!messagesEl) {
-      return;
+      return null;
     }
     if (welcomeEl) {
       welcomeEl.remove();
@@ -115,6 +115,32 @@
     wrapper.appendChild(bubble);
     messagesEl.appendChild(wrapper);
     messagesEl.scrollTop = messagesEl.scrollHeight;
+    return wrapper;
+  }
+
+  function appendThinkingMessage() {
+    const wrapper = appendMessage('assistant', 'Pensando...');
+    if (wrapper) {
+      wrapper.classList.add('thinking');
+    }
+    return wrapper;
+  }
+
+  function updateAssistantMessage(wrapper, text) {
+    if (!wrapper) {
+      appendMessage('assistant', text);
+      return;
+    }
+    const bubble = wrapper.querySelector('.ai-chat-bubble');
+    if (!bubble) {
+      appendMessage('assistant', text);
+      return;
+    }
+    wrapper.classList.remove('thinking');
+    bubble.textContent = text;
+    if (messagesEl) {
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
   }
 
   function setSending(state) {
@@ -147,6 +173,7 @@
 
   async function sendMessage(message) {
     setSending(true);
+    const thinkingMessage = appendThinkingMessage();
     try {
       const res = await fetch('/api/ai/chat', {
         method: 'POST',
@@ -164,13 +191,15 @@
         throw new Error(data.error || 'Error al enviar mensaje');
       }
       const reply = (data.reply || '').trim();
-      appendMessage('assistant', reply || 'No se recibio respuesta.');
-      history.push({ role: 'assistant', content: reply });
+      const safeReply = reply || 'No se recibio respuesta.';
+      updateAssistantMessage(thinkingMessage, safeReply);
+      history.push({ role: 'assistant', content: safeReply });
       while (history.length > maxHistory) {
         history.shift();
       }
     } catch (err) {
-      appendMessage('assistant', 'Error: ' + err.message);
+      const errorText = (err && err.message) ? err.message : 'Error inesperado';
+      updateAssistantMessage(thinkingMessage, 'Error: ' + errorText);
     } finally {
       setSending(false);
       if (inputEl) {

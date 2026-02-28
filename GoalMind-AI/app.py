@@ -4,10 +4,17 @@ import os # Manipulacion del entorno .env para interaccion con el sistema operat
 import secrets # Generacion tokens seguros
 from datetime import datetime
 from pathlib import Path
-
-from dotenv import load_dotenv # Carga variables de entorno desde .env
 from flask import Flask
+
 # ··· Importacion de funciones ···
+from bootstrap import (
+    configure_logging,
+    env_int,
+    is_debug_enabled,
+    is_production,
+    load_project_env,
+    should_start_scheduler_process,
+)
 from database.mongo_conn import get_app_user_id, init_app
 from database.scheduler import init_scheduler
 from model.category_model import CategoryModel
@@ -27,67 +34,6 @@ DEFAULT_UPLOAD_EXTENSIONS = {
     "zip",
 }
 
-def load_project_env(base_dir: Path) -> None:
-    """Carga variables de entorno.
-
-    Args:
-        base_dir: Ruta (Path) base donde se busca el archivo '.env', es decir, la raiz del proyecto.
-
-    Returns:
-        None.
-
-    Raises:
-        RuntimeError: Si no se encuentra '.env'. Es un error crítico porque falta API_KEY y URLs de MongoDB.
-    """
-
-    env_file = base_dir / ".env" # Operador '/' de Path, sirve para concatenar rutas.
-
-    if env_file.exists():
-        load_dotenv(env_file)
-        return
-    
-    message = (
-        f"!! == Error: \nNo encontrado el archivo de entorno requerido: \n{env_file} \n "
-        "Comprueba la ruta y asegurate de que el archivo '.env' existe en la raíz del proyecto. \n== !! "
-    )
-    logging.getLogger(__name__).error(message)
-    raise RuntimeError(message)
-
-def _env_bool(name: str, default: bool = False) -> bool:
-    value = os.getenv(name)
-    if value is None:
-        return default
-    return str(value).strip().lower() in {"1", "true", "yes", "on", "si", "sí"}
-
-def _env_int(name: str, default: int, minimum: int = 1) -> int:
-    value = os.getenv(name)
-    if value is None:
-        return default
-    try:
-        parsed = int(value)
-    except (TypeError, ValueError):
-        return default
-    return max(minimum, parsed)
-
-def _is_production() -> bool:
-    return os.getenv("FLASK_ENV", "development").strip().lower() == "production"
-
-def _is_debug_enabled() -> bool:
-    return _env_bool("FLASK_DEBUG", not _is_production())
-
-def _should_start_scheduler_process(debug_enabled: bool) -> bool:
-    # Con reloader activo, solo iniciar en el proceso hijo real.
-    if os.environ.get("WERKZEUG_RUN_MAIN") == "true":
-        return True
-    return not debug_enabled
-
-def _configure_logging() -> logging.Logger:
-    logging.basicConfig(
-        level=getattr(logging, os.getenv("LOG_LEVEL", "INFO").upper(), logging.INFO),
-        format="%(asctime)s %(levelname)s [%(name)s] %(message)s",
-    )
-    return logging.getLogger(__name__)
-
 def _configure_upload_settings(flask_app: Flask) -> None:
     upload_root_value = os.getenv("UPLOAD_ROOT", "uploads").strip()
     upload_root = Path(upload_root_value)
@@ -106,9 +52,7 @@ def _configure_upload_settings(flask_app: Flask) -> None:
         allowed_ext = set(DEFAULT_UPLOAD_EXTENSIONS)
 
     flask_app.config["UPLOAD_ALLOWED_EXTENSIONS"] = allowed_ext
-    flask_app.config["MAX_CONTENT_LENGTH"] = (
-        _env_int("MAX_CONTENT_LENGTH_MB", 25, minimum=1) * 1024 * 1024
-    )
+    flask_app.config["MAX_CONTENT_LENGTH"] = env_int("MAX_CONTENT_LENGTH_MB", 25, minimum=1) * 1024 * 1024
 
 def _register_blueprints(flask_app: Flask) -> None:
     # Importación de blueprints
@@ -133,10 +77,10 @@ def _register_blueprints(flask_app: Flask) -> None:
     flask_app.register_blueprint(ai_chat_bp)
 
 def setup_scheduler(flask_app: Flask, logger: logging.Logger) -> None:
-    sync_interval = _env_int("SYNC_INTERVAL_MINUTES", 1, minimum=1)
-    debug_enabled = _is_debug_enabled()
+    sync_interval = env_int("SYNC_INTERVAL_MINUTES", 1, minimum=1)
+    debug_enabled = is_debug_enabled()
 
-    if not _should_start_scheduler_process(debug_enabled):
+    if not should_start_scheduler_process(debug_enabled):
         logger.info("Scheduler no iniciado en el proceso de recarga de Flask.")
         return
 
@@ -147,11 +91,11 @@ def setup_scheduler(flask_app: Flask, logger: logging.Logger) -> None:
 # === Inicialización de entorno y logging ===
 env_root = Path(__file__).resolve().parent
 load_project_env(env_root)
-logger = _configure_logging()
+logger = configure_logging(__name__)
 
 # === Construcción de la app ===
 app = Flask(__name__)
-if _is_production():
+if is_production():
     production_secret = os.getenv("FLASK_SECRET_KEY")
     if not production_secret:
         logger.error(
@@ -202,5 +146,6 @@ setup_scheduler(app, logger)
 
 
 # === Ejecución de aplicación ===
+## La aplicacion se ejecuta solo si este archivo es el principal (python app.py), si se importa no se ejecuta ##
 if __name__ == "__main__":
-    app.run(debug=_is_debug_enabled())
+    app.run(debug=is_debug_enabled())
