@@ -1933,6 +1933,8 @@
 
 .item-card-compact .item-card-header {
   gap: 10px;
+  justify-content: space-between;
+  flex-wrap: wrap;
 }
 
 .item-title-small {
@@ -1941,7 +1943,10 @@
 
 .panel-actions-compact {
   gap: 6px;
-  flex-shrink: 0;
+  flex-shrink: 1;
+  min-width: 0;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .panel-action-btn-small {

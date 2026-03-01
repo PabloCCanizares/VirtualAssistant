@@ -186,51 +186,10 @@
         <input type="file" id="dropzoneFileInput" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.md,.png,.jpg,.jpeg,.gif,.webp">
       </div>
 
-      <!-- Separador -->
-      <div style="display: flex; align-items: center; gap: 12px; margin: 16px 0; color: var(--muted); font-size: 12px;">
-        <div style="flex: 1; height: 1px; background: rgba(255,255,255,.1);"></div>
-        <span>o selecciona de la biblioteca</span>
-        <div style="flex: 1; height: 1px; background: rgba(255,255,255,.1);"></div>
-      </div>
-
-      <!-- Seleccionar de biblioteca existente -->
-      {% if uploads and uploads|length > 0 %}
-      <form method="post"
-            action="{{ url_for('project_bp.link_upload_document', project_id=project['_id']) }}"
-            class="panel-form">
-
-        <div class="panel-form-group">
-          <label class="panel-form-label" for="upload_id">Documento en biblioteca</label>
-          <select name="upload_id" id="upload_id" class="panel-form-select" required>
-            <option value="">Selecciona un documento</option>
-            {% for upload in uploads %}
-              <option value="{{ upload['_id'] }}">
-                {{ upload.title }} ({{ upload.size_label }})
-              </option>
-            {% endfor %}
-          </select>
-        </div>
-
-        <div class="panel-form-group">
-          <label class="panel-form-label" for="goal_id_link">Asociar a objetivo (opcional)</label>
-          <select name="goal_id" id="goal_id_link" class="panel-form-select">
-            <option value="">Sin objetivo</option>
-            {% if goals and goals|length > 0 %}
-              {% for goal in goals %}
-                <option value="{{ goal['_id'] }}">{{ goal.get('titulo','(sin titulo)') }}</option>
-              {% endfor %}
-            {% endif %}
-          </select>
-        </div>
-
-        <button type="submit" class="panel-form-submit">Asociar documento</button>
-      </form>
-      {% else %}
       <div class="empty-state" style="padding: 16px 0;">
      <div class="empty-state-icon" style="font-size: 32px;">📚</div>
-        <p class="empty-state-desc" style="font-size: 12px;">No hay documentos en la biblioteca. Arrastra un archivo arriba para subir uno nuevo.</p>
+        <p class="empty-state-desc" style="font-size: 12px;">Arrastra un archivo arriba para subir uno nuevo.</p>
       </div>
-      {% endif %}
     </div>
   </div>
 

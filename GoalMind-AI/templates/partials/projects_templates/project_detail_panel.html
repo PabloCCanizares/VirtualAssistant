@@ -111,14 +111,17 @@
                 </div>
               </div>
               <div class="panel-actions panel-actions-compact">
+                <a class="panel-action-btn panel-action-btn-small" href="{{ url_for('project_bp.view_document', doc_id=doc['_id']) }}" target="_blank" rel="noopener" title="Ver">
+                  Ver
+                </a>
                 <a class="panel-action-btn panel-action-btn-small" href="{{ url_for('project_bp.download_document', doc_id=doc['_id']) }}" title="Descargar">
-                  ⬇️
+                  Descargar
                 </a>
                 <form method="post"
                       action="{{ url_for('project_bp.delete_document', doc_id=doc['_id']) }}"
                       data-confirm-message="¿Eliminar este documento?"
                       style="display: inline;">
-                  <button type="submit" class="panel-action-btn panel-action-btn-small danger" title="Eliminar">🗑️</button>
+                  <button type="submit" class="panel-action-btn panel-action-btn-small danger" title="Eliminar">Eliminar</button>
                 </form>
               </div>
             </div>
