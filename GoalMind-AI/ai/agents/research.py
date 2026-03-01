@@ -1,4 +1,4 @@
-import logging
+﻿import logging
 
 from langchain_core.messages import SystemMessage
 
@@ -17,8 +17,10 @@ def research_node(state: AppState, llm) -> AppState:
     ]
     messages.extend(state.get("messages", []))
     try:
-        notes = invoke_with_retry(llm, messages, retries=1)
+        notes = invoke_with_retry(llm, messages)
     except LLMInvokeError:
         logger.exception("research_node: error invocando LLM")
         notes = ""
     return {"research_notes": notes}
+
+

@@ -1,4 +1,4 @@
-import logging
+﻿import logging
 
 from langchain_core.messages import SystemMessage
 
@@ -16,8 +16,10 @@ def progress_tracker_node(state: AppState, llm) -> AppState:
     ]
     messages.extend(state.get("messages", []))
     try:
-        analysis = invoke_with_retry(llm, messages, retries=1)
+        analysis = invoke_with_retry(llm, messages)
     except LLMInvokeError:
         logger.exception("progress_tracker_node: error invocando LLM")
         analysis = ""
     return {"progress_analysis": analysis}
+
+

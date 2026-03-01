@@ -24,12 +24,26 @@ class Settings:
     openai_api_key: Optional[str]
     openai_model: str
     default_user_id: Optional[str]
+    openai_timeout_seconds: int
+    ai_llm_retries: int
 
 
 def get_settings() -> Settings:
     load_env()
+    timeout_raw = os.getenv("OPENAI_TIMEOUT_SECONDS", "25")
+    retries_raw = os.getenv("AI_LLM_RETRIES", "1")
+    try:
+        timeout_seconds = max(5, int(timeout_raw))
+    except Exception:
+        timeout_seconds = 25
+    try:
+        llm_retries = max(0, int(retries_raw))
+    except Exception:
+        llm_retries = 1
     return Settings(
         openai_api_key=os.getenv("OPENAI_API_KEY"),
         openai_model=os.getenv("OPENAI_MODEL", "gpt-5-nano"),
         default_user_id=os.getenv("DEFAULT_USER_ID"),
+        openai_timeout_seconds=timeout_seconds,
+        ai_llm_retries=llm_retries,
     )

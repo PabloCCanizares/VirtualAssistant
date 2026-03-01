@@ -1,4 +1,4 @@
-import json
+﻿import json
 import logging
 from typing import Any, Dict, List
 
@@ -78,7 +78,7 @@ def action_planner_node(state: AppState, llm) -> AppState:
     messages.extend(state.get("messages", []))
 
     try:
-        raw = invoke_with_retry(llm, messages, retries=1)
+        raw = invoke_with_retry(llm, messages)
     except LLMInvokeError:
         logger.exception("action_planner_node: error invocando LLM")
         return {"final_response": "No pude planificar las acciones en este momento."}
@@ -92,14 +92,14 @@ def action_planner_node(state: AppState, llm) -> AppState:
     raw_actions = parsed.get("actions")
     if not isinstance(raw_actions, list) or not raw_actions:
         return {
-            "final_response": "No he podido identificar ninguna accion en tu mensaje. ¿Puedes reformularlo?"
+            "final_response": "No he podido identificar ninguna accion en tu mensaje. Â¿Puedes reformularlo?"
         }
 
     actions = [_validate_action(item) for item in raw_actions]
     actions = [a for a in actions if a is not None]
     if not actions:
         return {
-            "final_response": "Las acciones detectadas no son validas. ¿Puedes reformular tu peticion?"
+            "final_response": "Las acciones detectadas no son validas. Â¿Puedes reformular tu peticion?"
         }
 
     if _needs_confirmation(actions):
@@ -115,7 +115,7 @@ def action_planner_node(state: AppState, llm) -> AppState:
             "action_confirmed": False,
             "draft_response": (
                 f"Voy a ejecutar las siguientes acciones: {action_names}. "
-                "Alguna de ellas es destructiva. ¿Confirmas? Responde 'confirmo' o 'cancela'."
+                "Alguna de ellas es destructiva. Â¿Confirmas? Responde 'confirmo' o 'cancela'."
             ),
         }
 
@@ -127,3 +127,5 @@ def action_planner_node(state: AppState, llm) -> AppState:
         "action_result_id": None,
         "action_result_message": None,
     }
+
+
