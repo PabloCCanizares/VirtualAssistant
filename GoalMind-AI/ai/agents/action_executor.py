@@ -12,6 +12,7 @@ from model.project_document_model import ProjectDocumentModel
 from model.project_model import ProjectModel
 from model.task_model import TaskModel
 from ai.services.action_state import clear_pending_action
+from ai.services.session_mutations_state import append_session_mutation
 from ai.state import AppState
 
 logger = logging.getLogger(__name__)
@@ -181,6 +182,15 @@ def _build_update_fields(params: Dict[str, Any], allowed_keys: set) -> Dict[str,
     return updates
 
 
+def _result(message: str, result_id: Optional[str] = None) -> Dict[str, Any]:
+    """Construye el dict de retorno unificado con campos para modo cola y modo simple."""
+    return {
+        "final_response": message,
+        "action_result_message": message,
+        "action_result_id": result_id,
+    }
+
+
 def action_executor_node(state: AppState, _llm) -> AppState:
     user_id = _ensure_user_id(state)
 
@@ -189,25 +199,28 @@ def action_executor_node(state: AppState, _llm) -> AppState:
     parameters = pending.get("parameters") or state.get("action_parameters") or {}
 
     if action_name in CONFIRM_REQUIRED_ACTIONS and not state.get("action_confirmed", False):
+        msg = (
+            "Esta accion requiere confirmacion explicita. "
+            "Responde 'confirmo' para continuar o 'cancela' para abortar."
+        )
         return {
-            "final_response": (
-                "Esta accion requiere confirmacion explicita. "
-                "Responde 'confirmo' para continuar o 'cancela' para abortar."
-            ),
+            "final_response": msg,
+            "action_result_message": msg,
+            "action_result_id": None,
             "pending_action_intent": pending or {"action_name": action_name, "parameters": parameters},
         }
 
     context = _load_context(state)
 
     if not action_name:
-        return {"final_response": "No se detecto ninguna accion para ejecutar."}
+        return _result("No se detecto ninguna accion para ejecutar.")
 
     try:
         # ── CREATE ─────────────────────────────────────────────────
         if action_name == "create_project":
             titulo = parameters.get("titulo") or parameters.get("title")
             if not titulo:
-                return {"final_response": "Necesito el titulo del proyecto para crearlo."}
+                return _result("Necesito el titulo del proyecto para crearlo.")
             data = {
                 "titulo": titulo,
                 "descripcion": parameters.get("descripcion"),
@@ -218,16 +231,18 @@ def action_executor_node(state: AppState, _llm) -> AppState:
                 "usuario_id": user_id,
             }
             ProjectModel.insert_project(data)
+            new_id = str(data.get("_id", ""))
             clear_pending_action(user_id)
-            return {"final_response": f"Proyecto creado: {titulo}."}
+            append_session_mutation(user_id, {"action": "created", "type": "project", "id": new_id, "name": titulo})
+            return _result(f"Proyecto creado: {titulo}.", new_id)
 
         if action_name == "create_goal":
             titulo = parameters.get("titulo") or parameters.get("title")
             if not titulo:
-                return {"final_response": "Necesito el titulo del objetivo para crearlo."}
+                return _result("Necesito el titulo del objetivo para crearlo.")
             project_id, clar = _resolve_project_id(parameters, context)
             if clar:
-                return {"final_response": clar}
+                return _result(clar)
             data = {
                 "titulo": titulo,
                 "descripcion": parameters.get("descripcion"),
@@ -240,16 +255,18 @@ def action_executor_node(state: AppState, _llm) -> AppState:
                 "usuario_id": user_id,
             }
             GoalModel.insert_goal(data)
+            new_id = str(data.get("_id", ""))
             clear_pending_action(user_id)
-            return {"final_response": f"Objetivo creado: {titulo}."}
+            append_session_mutation(user_id, {"action": "created", "type": "goal", "id": new_id, "name": titulo})
+            return _result(f"Objetivo creado: {titulo}.", new_id)
 
         if action_name == "create_task":
             contenido = parameters.get("contenido") or parameters.get("titulo")
             if not contenido:
-                return {"final_response": "Necesito el contenido de la tarea para crearla."}
+                return _result("Necesito el contenido de la tarea para crearla.")
             goal_id, clar = _resolve_goal_id(parameters, context)
             if clar:
-                return {"final_response": clar}
+                return _result(clar)
             objetivo_oid = _parse_object_id(goal_id)
             data = {
                 "usuario_id": user_id,
@@ -262,16 +279,18 @@ def action_executor_node(state: AppState, _llm) -> AppState:
                 "alarma_id": None,
             }
             TaskModel.insert_task(data)
+            new_id = str(data.get("_id", ""))
             clear_pending_action(user_id)
-            return {"final_response": f"Tarea creada: {contenido}."}
+            append_session_mutation(user_id, {"action": "created", "type": "task", "id": new_id, "name": contenido})
+            return _result(f"Tarea creada: {contenido}.", new_id)
 
         if action_name == "create_event":
             titulo = parameters.get("titulo") or parameters.get("title")
             if not titulo:
-                return {"final_response": "Necesito el titulo del evento para crearlo."}
+                return _result("Necesito el titulo del evento para crearlo.")
             fecha_inicio = parameters.get("fecha_inicio")
             if not fecha_inicio:
-                return {"final_response": "Necesito la fecha de inicio del evento."}
+                return _result("Necesito la fecha de inicio del evento.")
             data = {
                 "titulo": titulo,
                 "descripcion": parameters.get("descripcion"),
@@ -280,96 +299,109 @@ def action_executor_node(state: AppState, _llm) -> AppState:
                 "tipo_evento": parameters.get("tipo_evento"),
                 "usuario_id": user_id,
             }
-            # Vincular a tarea u objetivo si se proporciona
             id_tarea = parameters.get("id_tarea")
             if id_tarea:
                 data["id_tarea"] = _parse_object_id(str(id_tarea)) or id_tarea
             id_objetivo = parameters.get("id_objetivo")
             if id_objetivo:
                 data["id_objetivo"] = _parse_object_id(str(id_objetivo)) or id_objetivo
-            eventModel.insert_event(data, usuario_id=user_id)
+            new_id = str(eventModel.insert_event(data, usuario_id=user_id) or "")
             clear_pending_action(user_id)
-            return {"final_response": f"Evento creado: {titulo}."}
+            append_session_mutation(user_id, {"action": "created", "type": "event", "id": new_id, "name": titulo})
+            return _result(f"Evento creado: {titulo}.", new_id)
 
         # ── UPDATE ─────────────────────────────────────────────────
         if action_name == "update_project":
             project_id, clar = _resolve_project_id(parameters, context)
             if clar:
-                return {"final_response": clar}
+                return _result(clar)
             allowed = {"titulo", "descripcion", "estado", "prioridad", "fecha_inicio", "fecha_fin"}
             updates = _build_update_fields(parameters, allowed)
             if not updates:
-                return {"final_response": "No se indicaron campos para actualizar en el proyecto."}
+                return _result("No se indicaron campos para actualizar en el proyecto.")
             ProjectModel.update_project(project_id, updates, usuario_id=user_id)
             clear_pending_action(user_id)
+            nombre = parameters.get("titulo") or parameters.get("project_title", "")
+            append_session_mutation(user_id, {"action": "updated", "type": "project", "id": project_id, "name": nombre})
             campos = ", ".join(updates.keys())
-            return {"final_response": f"Proyecto actualizado ({campos})."}
+            return _result(f"Proyecto actualizado ({campos}).", project_id)
 
         if action_name == "update_goal":
             goal_id, clar = _resolve_goal_id(parameters, context)
             if clar:
-                return {"final_response": clar}
+                return _result(clar)
             allowed = {"titulo", "descripcion", "estado", "prioridad", "fecha_inicio", "fecha_fin", "progreso"}
             updates = _build_update_fields(parameters, allowed)
             if not updates:
-                return {"final_response": "No se indicaron campos para actualizar en el objetivo."}
+                return _result("No se indicaron campos para actualizar en el objetivo.")
             if "progreso" in updates:
                 updates["progreso"] = _safe_int(updates["progreso"], 0)
             GoalModel.update_goal(goal_id, updates, usuario_id=user_id)
             clear_pending_action(user_id)
+            nombre = parameters.get("titulo") or parameters.get("goal_title", "")
+            append_session_mutation(user_id, {"action": "updated", "type": "goal", "id": goal_id, "name": nombre})
             campos = ", ".join(updates.keys())
-            return {"final_response": f"Objetivo actualizado ({campos})."}
+            return _result(f"Objetivo actualizado ({campos}).", goal_id)
 
         if action_name == "update_task":
             task_id, clar = _resolve_task_id(parameters, context)
             if clar:
-                return {"final_response": clar}
+                return _result(clar)
             allowed = {"contenido", "descripcion", "fecha_limite", "estado", "prioridad"}
             updates = _build_update_fields(parameters, allowed)
             if not updates:
-                return {"final_response": "No se indicaron campos para actualizar en la tarea."}
+                return _result("No se indicaron campos para actualizar en la tarea.")
             TaskModel.update_task(task_id, updates, usuario_id=user_id)
             clear_pending_action(user_id)
+            nombre = parameters.get("contenido") or parameters.get("task_title", "")
+            append_session_mutation(user_id, {"action": "updated", "type": "task", "id": task_id, "name": nombre})
             campos = ", ".join(updates.keys())
-            return {"final_response": f"Tarea actualizada ({campos})."}
+            return _result(f"Tarea actualizada ({campos}).", task_id)
 
         if action_name == "mark_task_complete":
             task_id, clar = _resolve_task_id(parameters, context)
             if clar:
-                return {"final_response": clar}
+                return _result(clar)
             TaskModel.update_task(task_id, {"estado": "completada"}, usuario_id=user_id)
             clear_pending_action(user_id)
-            return {"final_response": "Tarea marcada como completada."}
+            nombre = parameters.get("contenido") or parameters.get("task_title", "")
+            append_session_mutation(user_id, {"action": "updated", "type": "task", "id": task_id, "name": nombre})
+            return _result("Tarea marcada como completada.", task_id)
 
         # ── DELETE ─────────────────────────────────────────────────
         if action_name == "delete_project":
             project_id, clar = _resolve_project_id(parameters, context)
             if clar:
-                return {"final_response": clar}
+                return _result(clar)
+            nombre = parameters.get("project_title") or parameters.get("titulo", "")
             _delete_project_cascade(project_id, user_id)
             try:
                 flush_deletion_queue()
             except Exception:
                 logger.warning("No se pudo vaciar DeleteQueue tras delete_project", exc_info=True)
             clear_pending_action(user_id)
-            return {"final_response": "Proyecto eliminado correctamente."}
+            append_session_mutation(user_id, {"action": "deleted", "type": "project", "id": project_id, "name": nombre})
+            return _result("Proyecto eliminado correctamente.", project_id)
 
         if action_name == "delete_goal":
             goal_id, clar = _resolve_goal_id(parameters, context)
             if clar:
-                return {"final_response": clar}
+                return _result(clar)
+            nombre = parameters.get("goal_title") or parameters.get("titulo", "")
             _delete_goal_cascade(goal_id, user_id)
             try:
                 flush_deletion_queue()
             except Exception:
                 logger.warning("No se pudo vaciar DeleteQueue tras delete_goal", exc_info=True)
             clear_pending_action(user_id)
-            return {"final_response": "Objetivo eliminado correctamente."}
+            append_session_mutation(user_id, {"action": "deleted", "type": "goal", "id": goal_id, "name": nombre})
+            return _result("Objetivo eliminado correctamente.", goal_id)
 
         if action_name == "delete_task":
             task_id, clar = _resolve_task_id(parameters, context)
             if clar:
-                return {"final_response": clar}
+                return _result(clar)
+            nombre = parameters.get("task_title") or parameters.get("contenido", "")
             TaskModel.delete_task(task_id, usuario_id=user_id)
             queue_deletion("Tasks", task_id)
             try:
@@ -377,12 +409,14 @@ def action_executor_node(state: AppState, _llm) -> AppState:
             except Exception:
                 logger.warning("No se pudo vaciar DeleteQueue tras delete_task", exc_info=True)
             clear_pending_action(user_id)
-            return {"final_response": "Tarea eliminada correctamente."}
+            append_session_mutation(user_id, {"action": "deleted", "type": "task", "id": task_id, "name": nombre})
+            return _result("Tarea eliminada correctamente.", task_id)
 
         if action_name == "delete_event":
             event_id, clar = _resolve_event_id(parameters, context)
             if clar:
-                return {"final_response": clar}
+                return _result(clar)
+            nombre = parameters.get("event_title") or parameters.get("titulo", "")
             eventModel.delete_event(event_id, usuario_id=user_id)
             queue_deletion("Events", event_id)
             try:
@@ -390,10 +424,11 @@ def action_executor_node(state: AppState, _llm) -> AppState:
             except Exception:
                 logger.warning("No se pudo vaciar DeleteQueue tras delete_event", exc_info=True)
             clear_pending_action(user_id)
-            return {"final_response": "Evento eliminado correctamente."}
+            append_session_mutation(user_id, {"action": "deleted", "type": "event", "id": event_id, "name": nombre})
+            return _result("Evento eliminado correctamente.", event_id)
 
-        return {"final_response": "Accion no soportada en este momento."}
+        return _result("Accion no soportada en este momento.")
 
     except Exception as exc:
         logger.exception("action_executor_node: fallo al ejecutar accion '%s'", action_name)
-        return {"final_response": f"No pude ejecutar la accion: {exc}"}
+        return _result(f"No pude ejecutar la accion: {exc}")

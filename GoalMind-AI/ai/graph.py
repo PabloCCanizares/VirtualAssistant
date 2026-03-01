@@ -7,9 +7,10 @@ from langgraph.graph import END, START, StateGraph
 
 from ai.agents import (
     action_executor_node,
+    action_planner_node,
     critic_node,
-    intent_interpreter_node,
     progress_tracker_node,
+    queue_executor_node,
     recommendations_node,
     research_node,
     route_after_supervisor,
@@ -44,23 +45,25 @@ def _history_to_messages(history: Iterable[dict[str, Any]] | None) -> list:
 
 def _route_after_supervisor(state: AppState) -> str:
     """
-    Mapea las 7 categorias del supervisor + rutas de acciones pendientes.
+    Mapea las categorias del supervisor a nodos del grafo.
     Posibles destinos:
-      action           → intent_interpreter
-      action_executor  → action_executor (accion pendiente confirmada)
+      action           → action_planner  (nuevo flujo multi-accion)
+      action_executor  → action_executor (accion unica pendiente confirmada)
+      queue_executor   → queue_executor  (cola pendiente confirmada)
       weekly_summary   → weekly_summary
       weekly_plan      → weekly_planner
       recommendations  → recommendations
       progress         → progress_tracker
       research         → research
-      off_topic        → finalize (mensaje fijo)
+      off_topic        → finalize
       finalize         → finalize
     """
     route = route_after_supervisor(state)
 
     route_map = {
-        "action": "intent_interpreter",
+        "action": "action_planner",
         "action_executor": "action_executor",
+        "queue_executor": "queue_executor",
         "weekly_summary": "weekly_summary",
         "weekly_plan": "weekly_planner",
         "recommendations": "recommendations",
@@ -72,27 +75,35 @@ def _route_after_supervisor(state: AppState) -> str:
     return route_map.get(route, "research")
 
 
-def _route_after_intent(state: AppState) -> str:
+def _route_after_action_planner(state: AppState) -> str:
     """
-    Despues del intent_interpreter, solo 2 destinos posibles:
-      - action_executor: si hay accion clara con confianza >= 0.6 y no necesita confirmacion
-      - finalize: clarificacion, confirmacion pendiente, o no hay accion
+    Si action_planner puso una cola → queue_executor.
+    Si pidio confirmacion o clarificacion → finalize.
     """
-    action_name = state.get("action_name")
-    confidence = state.get("action_confidence", 0.0) or 0.0
-    needs_confirmation = state.get("action_needs_confirmation", False)
-    clarification = state.get("action_clarification_question")
+    if state.get("action_queue") is not None:
+        return "queue_executor"
+    return "finalize"
 
-    if clarification:
-        return "finalize"
 
-    if not action_name or confidence < 0.6:
-        return "finalize"
+def _route_after_queue_executor(state: AppState) -> str:
+    """
+    Si quedan acciones en la cola → action_executor.
+    Si la cola esta vacia → finalize.
+    """
+    queue = state.get("action_queue") or []
+    if queue:
+        return "action_executor"
+    return "finalize"
 
-    if needs_confirmation:
-        return "finalize"
 
-    return "action_executor"
+def _route_after_action_executor(state: AppState) -> str:
+    """
+    Si estamos en modo cola (action_queue fue inicializado) → volver a queue_executor.
+    En modo simple (action_queue es None) → finalize directamente.
+    """
+    if state.get("action_queue") is not None:
+        return "queue_executor"
+    return "finalize"
 
 
 def _route_after_writer(state: AppState) -> str:
@@ -118,7 +129,8 @@ def build_chat_graph(llm):
 
     # Nodos
     graph.add_node("supervisor", lambda state: supervisor_node(state, llm))
-    graph.add_node("intent_interpreter", lambda state: intent_interpreter_node(state, llm))
+    graph.add_node("action_planner", lambda state: action_planner_node(state, llm))
+    graph.add_node("queue_executor", lambda state: queue_executor_node(state, llm))
     graph.add_node("action_executor", lambda state: action_executor_node(state, llm))
     graph.add_node("research", lambda state: research_node(state, llm))
     graph.add_node("recommendations", lambda state: recommendations_node(state, llm))
@@ -132,13 +144,14 @@ def build_chat_graph(llm):
     # START → supervisor
     graph.add_edge(START, "supervisor")
 
-    # supervisor → 8 destinos posibles
+    # supervisor → destinos
     graph.add_conditional_edges(
         "supervisor",
         _route_after_supervisor,
         {
-            "intent_interpreter": "intent_interpreter",
+            "action_planner": "action_planner",
             "action_executor": "action_executor",
+            "queue_executor": "queue_executor",
             "weekly_summary": "weekly_summary",
             "weekly_planner": "weekly_planner",
             "recommendations": "recommendations",
@@ -148,18 +161,35 @@ def build_chat_graph(llm):
         },
     )
 
-    # intent_interpreter → action_executor o finalize
+    # action_planner → queue_executor (cola lista) o finalize (confirmacion/clarificacion)
     graph.add_conditional_edges(
-        "intent_interpreter",
-        _route_after_intent,
+        "action_planner",
+        _route_after_action_planner,
+        {
+            "queue_executor": "queue_executor",
+            "finalize": "finalize",
+        },
+    )
+
+    # queue_executor → action_executor (cola no vacia) o finalize (cola vacia)
+    graph.add_conditional_edges(
+        "queue_executor",
+        _route_after_queue_executor,
         {
             "action_executor": "action_executor",
             "finalize": "finalize",
         },
     )
 
-    # Directas a finalize (sin writer intermedio)
-    graph.add_edge("action_executor", "finalize")
+    # action_executor → queue_executor (modo cola) o finalize (modo simple)
+    graph.add_conditional_edges(
+        "action_executor",
+        _route_after_action_executor,
+        {
+            "queue_executor": "queue_executor",
+            "finalize": "finalize",
+        },
+    )
 
     # weekly_summary → finalize (directo, opcionalmente via critic)
     graph.add_conditional_edges(
@@ -211,6 +241,7 @@ def run_graph_chat(
     model: str,
     user_id: str,
     pending_action_intent: dict | None = None,
+    session_mutations_json: str = "[]",
 ) -> str:
     llm = ChatOpenAI(model=model, timeout=45)
     app = build_chat_graph(llm)
@@ -220,9 +251,10 @@ def run_graph_chat(
         "context_json": context_json or "{}",
         "user_id": user_id,
         "pending_action_intent": pending_action_intent,
+        "session_mutations_json": session_mutations_json,
     }
     try:
-        result = app.invoke(state, config={"recursion_limit": 25})
+        result = app.invoke(state, config={"recursion_limit": 50})
     except Exception as exc:
         logger.exception("run_graph_chat: fallo en ejecucion del grafo")
         raise RuntimeError("No se pudo ejecutar el flujo de chat.") from exc
