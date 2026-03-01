@@ -41,14 +41,6 @@
       Estadisticas
     </a>
 
-     <a href="{{ url_for('upload_bp.list_uploads') }}"
-       class="sidebar-nav-item"
-       {% if page == 'uploads' %}aria-current="page"{% endif %}>
-      <span class="sidebar-nav-icon"></span>
-      Mis documentos
-    </a>
-
-
     <a href="{{ url_for('dashboard_bp.config') }}"
        class="sidebar-nav-item"
        {% if page == 'config' %}aria-current="page"{% endif %}>

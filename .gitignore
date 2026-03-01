@@ -1,8 +1,14 @@
 # === Archivos sensibles o de configuración ===
 GoalMind-AI/.env
+.env
+**/.env
 
 # === Entorno virtual ===
 GoalMind-AI/venv/
+venv/
+.venv/
+**/venv/
+**/.venv/
 
 # === Cachés y archivos temporales de Python ===
 GoalMind-AI/__pycache__/
