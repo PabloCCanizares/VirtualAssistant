@@ -1,4 +1,5 @@
 import logging
+import os
 import time
 from typing import Sequence
 
@@ -16,7 +17,7 @@ def invoke_with_retry(
     llm,
     messages: Sequence[BaseMessage],
     *,
-    retries: int = 1,
+    retries: int | None = None,
     backoff_seconds: float = 0.3,
 ) -> str:
     """
@@ -26,6 +27,7 @@ def invoke_with_retry(
         llm: Instancia compatible con .invoke(messages).
         messages: Lista de mensajes de LangChain.
         retries: Número de reintentos tras el intento inicial.
+            Si es None, se toma de AI_LLM_RETRIES (por defecto 1).
         backoff_seconds: Espera base para backoff exponencial.
 
     Returns:
@@ -34,6 +36,12 @@ def invoke_with_retry(
     Raises:
         LLMInvokeError: si todos los intentos fallan.
     """
+    if retries is None:
+        try:
+            retries = max(0, int(os.getenv("AI_LLM_RETRIES", "1")))
+        except Exception:
+            retries = 1
+
     attempts = max(1, retries + 1)
     last_exc = None
 

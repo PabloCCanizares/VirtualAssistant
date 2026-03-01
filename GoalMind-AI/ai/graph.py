@@ -19,6 +19,11 @@ from ai.agents import (
     weekly_summary_node,
     writer_node,
 )
+from ai.repositories.context_repository import (
+    get_user_context_json,
+    get_weekly_planner_context_json,
+    get_weekly_due_context_json,
+)
 from ai.state import AppState
 
 logger = logging.getLogger(__name__)
@@ -110,6 +115,78 @@ def _route_after_writer(state: AppState) -> str:
     return "critic" if state.get("use_critic", False) else "finalize"
 
 
+def _route_after_context_loader(state: AppState) -> str:
+    """
+    Reenvia al nodo correcto despues de asegurar que el contexto esta cargado.
+    """
+    route = state.get("route", "research")
+    route_map = {
+        "action": "action_planner",
+        "action_executor": "action_executor",
+        "weekly_summary": "weekly_summary",
+        "weekly_plan": "weekly_planner",
+        "recommendations": "recommendations",
+        "progress": "progress_tracker",
+        "research": "research",
+    }
+    return route_map.get(route, "research")
+
+
+def _ensure_context_node(state: AppState) -> AppState:
+    """
+    Carga el contexto solo cuando algun nodo lo necesita.
+    Si ya existe en state, se reutiliza.
+    """
+    cached = (state.get("context_json") or "").strip()
+    if cached:
+        return {"context_json": cached}
+
+    user_id = state.get("user_id")
+    if not user_id:
+        return {"context_json": "{}"}
+
+    try:
+        context_json = get_user_context_json(user_id)
+    except Exception:
+        logger.exception("_ensure_context_node: error construyendo contexto de usuario")
+        context_json = "{}"
+    return {"context_json": context_json}
+
+
+def _ensure_weekly_summary_context_node(state: AppState) -> AppState:
+    """
+    Carga contexto filtrado para weekly_summary:
+    solo vencimientos/eventos de la semana.
+    """
+    user_id = state.get("user_id")
+    if not user_id:
+        return {"context_json": "{}"}
+
+    try:
+        context_json = get_weekly_due_context_json(user_id)
+    except Exception:
+        logger.exception("_ensure_weekly_summary_context_node: error construyendo contexto semanal")
+        context_json = "{}"
+    return {"context_json": context_json}
+
+
+def _ensure_weekly_planner_context_node(state: AppState) -> AppState:
+    """
+    Carga contexto filtrado para weekly_planner:
+    solo vencimientos/eventos de los proximos 7 dias.
+    """
+    user_id = state.get("user_id")
+    if not user_id:
+        return {"context_json": "{}"}
+
+    try:
+        context_json = get_weekly_planner_context_json(user_id)
+    except Exception:
+        logger.exception("_ensure_weekly_planner_context_node: error construyendo contexto de plan semanal")
+        context_json = "{}"
+    return {"context_json": context_json}
+
+
 def _finalize_node(state: AppState) -> AppState:
     final_response = (state.get("final_response") or "").strip()
     if final_response:
@@ -129,6 +206,9 @@ def build_chat_graph(llm):
 
     # Nodos
     graph.add_node("supervisor", lambda state: supervisor_node(state, llm))
+    graph.add_node("load_context", _ensure_context_node)
+    graph.add_node("load_weekly_summary_context", _ensure_weekly_summary_context_node)
+    graph.add_node("load_weekly_planner_context", _ensure_weekly_planner_context_node)
     graph.add_node("action_planner", lambda state: action_planner_node(state, llm))
     graph.add_node("queue_executor", lambda state: queue_executor_node(state, llm))
     graph.add_node("action_executor", lambda state: action_executor_node(state, llm))
@@ -149,15 +229,35 @@ def build_chat_graph(llm):
         "supervisor",
         _route_after_supervisor,
         {
+            "action_planner": "load_context",
+            "action_executor": "load_context",
+            "queue_executor": "queue_executor",
+            "weekly_summary": "load_weekly_summary_context",
+            "weekly_planner": "load_weekly_planner_context",
+            "recommendations": "load_context",
+            "progress_tracker": "load_context",
+            "research": "load_context",
+            "finalize": "finalize",
+        },
+    )
+
+    # load_weekly_summary_context -> weekly_summary
+    graph.add_edge("load_weekly_summary_context", "weekly_summary")
+    # load_weekly_planner_context -> weekly_planner
+    graph.add_edge("load_weekly_planner_context", "weekly_planner")
+
+    # load_context -> destino real segun route
+    graph.add_conditional_edges(
+        "load_context",
+        _route_after_context_loader,
+        {
             "action_planner": "action_planner",
             "action_executor": "action_executor",
-            "queue_executor": "queue_executor",
             "weekly_summary": "weekly_summary",
             "weekly_planner": "weekly_planner",
             "recommendations": "recommendations",
             "progress_tracker": "progress_tracker",
             "research": "research",
-            "finalize": "finalize",
         },
     )
 
@@ -176,7 +276,7 @@ def build_chat_graph(llm):
         "queue_executor",
         _route_after_queue_executor,
         {
-            "action_executor": "action_executor",
+            "action_executor": "load_context",
             "finalize": "finalize",
         },
     )
@@ -237,22 +337,24 @@ def build_chat_graph(llm):
 def run_graph_chat(
     user_message: str,
     history,
-    context_json: str,
     model: str,
     user_id: str,
     pending_action_intent: dict | None = None,
     session_mutations_json: str = "[]",
+    context_json: str | None = None,
+    timeout_seconds: int = 25,
 ) -> str:
-    llm = ChatOpenAI(model=model, timeout=45)
+    llm = ChatOpenAI(model=model, timeout=timeout_seconds)
     app = build_chat_graph(llm)
 
     state = {
         "messages": _history_to_messages(history) + [HumanMessage(content=user_message)],
-        "context_json": context_json or "{}",
         "user_id": user_id,
         "pending_action_intent": pending_action_intent,
         "session_mutations_json": session_mutations_json,
     }
+    if context_json is not None:
+        state["context_json"] = context_json
     try:
         result = app.invoke(state, config={"recursion_limit": 50})
     except Exception as exc:

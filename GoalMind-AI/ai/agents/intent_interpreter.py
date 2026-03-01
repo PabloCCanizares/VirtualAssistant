@@ -1,4 +1,4 @@
-import json
+﻿import json
 import logging
 from typing import Any, Dict
 
@@ -91,7 +91,7 @@ def intent_interpreter_node(state: AppState, llm) -> AppState:
     messages.extend(state.get("messages", []))
 
     try:
-        raw_response = invoke_with_retry(llm, messages, retries=1)
+        raw_response = invoke_with_retry(llm, messages)
     except LLMInvokeError:
         logger.exception("intent_interpreter_node: error invocando LLM")
         return {
@@ -136,7 +136,9 @@ def intent_interpreter_node(state: AppState, llm) -> AppState:
         result["action_confirmed"] = False
         result[
             "draft_response"
-        ] = "¿Confirmas esta accion? Responde 'confirmo' para continuar o 'cancela' para abortar."
+        ] = "Â¿Confirmas esta accion? Responde 'confirmo' para continuar o 'cancela' para abortar."
         return result
 
     return result
+
+

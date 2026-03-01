@@ -1,4 +1,4 @@
-import logging
+﻿import logging
 
 from langchain_core.messages import HumanMessage, SystemMessage
 
@@ -16,8 +16,10 @@ def critic_node(state: AppState, llm) -> AppState:
         HumanMessage(content=f"Borrador para mejorar:\n\n{draft}"),
     ]
     try:
-        final_text = invoke_with_retry(llm, messages, retries=1)
+        final_text = invoke_with_retry(llm, messages)
     except LLMInvokeError:
         logger.exception("critic_node: error invocando LLM")
         final_text = draft.strip() or "No pude generar una respuesta en este momento."
     return {"final_response": final_text}
+
+

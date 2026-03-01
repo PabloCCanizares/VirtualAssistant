@@ -70,6 +70,7 @@ def queue_executor_node(state: AppState, _llm) -> AppState:
     resolved_params = _resolve_refs(current.get("action_parameters", {}), ref_map)
 
     base_updates.update({
+        "route": "action_executor",
         "action_name": current["action_name"],
         "action_parameters": resolved_params,
         "current_action_ref_id": current.get("ref_id"),

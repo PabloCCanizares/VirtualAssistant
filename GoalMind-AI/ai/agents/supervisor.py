@@ -1,4 +1,4 @@
-import json
+﻿import json
 import logging
 
 from langchain_core.messages import HumanMessage, SystemMessage
@@ -14,10 +14,10 @@ VALID_CATEGORIES = {"action", "weekly_summary", "weekly_plan", "recommendations"
 
 OFF_TOPIC_MESSAGE = (
     "Lo siento, solo puedo ayudarte con la gestion de tus proyectos, objetivos, "
-    "tareas y calendario. ¿Hay algo relacionado en lo que pueda ayudarte?"
+    "tareas y calendario. Â¿Hay algo relacionado en lo que pueda ayudarte?"
 )
 
-CONFIRM_WORDS = {"si", "sí", "confirmo", "confirmar", "adelante", "ejecuta", "ok", "vale"}
+CONFIRM_WORDS = {"si", "sÃ­", "confirmo", "confirmar", "adelante", "ejecuta", "ok", "vale"}
 CANCEL_WORDS = {"no", "cancela", "cancelar", "anula", "detener"}
 
 
@@ -65,7 +65,7 @@ def supervisor_node(state: AppState, llm) -> AppState:
     messages = state.get("messages", [])
     user_text = _last_user_text(messages)
 
-    # ── Fase 1: Acciones pendientes (Python puro) ──────────────────
+    # â”€â”€ Fase 1: Acciones pendientes (Python puro) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     pending_action = state.get("pending_action_intent")
     if pending_action:
         # Caso especial: cola de acciones con confirmacion pendiente
@@ -121,14 +121,14 @@ def supervisor_node(state: AppState, llm) -> AppState:
             "pending_action_intent": pending_action,
         }
 
-    # ── Fase 2: Clasificacion LLM (sin context_json) ──────────────
+    # â”€â”€ Fase 2: Clasificacion LLM (sin context_json) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     llm_messages = [
         SystemMessage(content=SUPERVISOR_PROMPT),
     ]
     llm_messages.extend(messages)
 
     try:
-        raw = invoke_with_retry(llm, llm_messages, retries=1)
+        raw = invoke_with_retry(llm, llm_messages)
     except LLMInvokeError:
         logger.exception("supervisor_node: error invocando LLM para clasificacion")
         return {"route": "research", "query_type": "research", "use_critic": False}
@@ -161,3 +161,5 @@ def supervisor_node(state: AppState, llm) -> AppState:
 
 def route_after_supervisor(state: AppState) -> str:
     return state.get("route", "research")
+
+

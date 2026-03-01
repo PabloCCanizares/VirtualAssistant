@@ -1,4 +1,4 @@
-import logging
+﻿import logging
 
 from langchain_core.messages import SystemMessage
 
@@ -16,8 +16,10 @@ def recommendations_node(state: AppState, llm) -> AppState:
     ]
     messages.extend(state.get("messages", []))
     try:
-        draft = invoke_with_retry(llm, messages, retries=1)
+        draft = invoke_with_retry(llm, messages)
     except LLMInvokeError:
         logger.exception("recommendations_node: error invocando LLM")
         draft = "No pude generar recomendaciones en este momento."
     return {"draft_response": draft}
+
+
