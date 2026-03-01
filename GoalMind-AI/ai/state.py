@@ -28,3 +28,12 @@ class AppState(TypedDict, total=False):
     action_clarification_question: str
     pending_action_intent: ActionIntent
     action_confirmed: bool
+    # --- Cola de acciones múltiples ---
+    action_queue: list[dict]        # acciones pendientes de ejecutar en la cola
+    action_results: list[dict]      # resultados acumulados de cada acción ejecutada
+    action_ref_map: dict[str, str]  # {ref_id → id_real} para resolver dependencias
+    current_action_ref_id: str      # ref_id de la acción que se está ejecutando ahora
+    action_result_id: str           # ID del documento creado/afectado por action_executor
+    action_result_message: str      # mensaje resultado de action_executor (para la cola)
+    # --- Contexto de mutaciones de sesión ---
+    session_mutations_json: str     # JSON string de las mutaciones de esta sesión

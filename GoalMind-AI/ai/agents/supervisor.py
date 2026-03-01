@@ -68,6 +68,40 @@ def supervisor_node(state: AppState, llm) -> AppState:
     # ── Fase 1: Acciones pendientes (Python puro) ──────────────────
     pending_action = state.get("pending_action_intent")
     if pending_action:
+        # Caso especial: cola de acciones con confirmacion pendiente
+        if pending_action.get("action_name") == "__queue__":
+            if _is_confirmation(user_text):
+                queue = pending_action.get("parameters", {}).get("queue", [])
+                clear_pending_action(state.get("user_id"))
+                return {
+                    "route": "queue_executor",
+                    "action_confirmed": True,
+                    "action_queue": queue,
+                    "action_results": [],
+                    "action_ref_map": {},
+                    "current_action_ref_id": None,
+                    "action_result_id": None,
+                    "action_result_message": None,
+                    "pending_action_intent": None,
+                }
+            if _is_cancellation(user_text):
+                clear_pending_action(state.get("user_id"))
+                return {
+                    "route": "finalize",
+                    "pending_action_intent": None,
+                    "action_confirmed": False,
+                    "final_response": "Accion cancelada.",
+                }
+            return {
+                "route": "finalize",
+                "final_response": (
+                    "Tienes acciones pendientes de confirmacion. "
+                    "Responde 'confirmo' para ejecutarlas o 'cancela' para abortar."
+                ),
+                "pending_action_intent": pending_action,
+            }
+
+        # Caso normal: accion unica pendiente
         if _is_confirmation(user_text):
             return {"route": "action_executor", "action_confirmed": True}
         if _is_cancellation(user_text):
