@@ -344,7 +344,7 @@ def run_graph_chat(
     context_json: str | None = None,
     timeout_seconds: int = 25,
 ) -> str:
-    llm = ChatOpenAI(model=model, timeout=timeout_seconds)
+    llm = ChatOpenAI(model=model, timeout=timeout_seconds, temperature=1)
     app = build_chat_graph(llm)
 
     state = {
