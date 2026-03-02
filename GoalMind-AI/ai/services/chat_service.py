@@ -16,8 +16,19 @@ def run_chat(message, history):
         raise ValueError("Mensaje vacio")
 
     settings = get_settings()
-    if not settings.openai_api_key:
-        raise ValueError("OPENAI_API_KEY no configurada")
+    provider = settings.ai_provider
+    model = settings.openai_model
+    api_key = settings.openai_api_key
+    base_url = None
+    if provider == "groq":
+        model = settings.groq_model
+        api_key = settings.groq_api_key
+        base_url = "https://api.groq.com/openai/v1"
+        if not api_key:
+            raise ValueError("GROQ_API_KEY no configurada")
+    else:
+        if not api_key:
+            raise ValueError("OPENAI_API_KEY no configurada")
 
     user_id = settings.default_user_id or DEFAULT_USER_ID
     try:
@@ -35,9 +46,11 @@ def run_chat(message, history):
     return run_graph_chat(
         user_message=user_message,
         history=list(history or []),
-        model=settings.openai_model,
+        model=model,
         user_id=user_id,
         pending_action_intent=pending_action,
         session_mutations_json=session_mutations_json,
         timeout_seconds=settings.openai_timeout_seconds,
+        api_key=api_key,
+        base_url=base_url,
     )

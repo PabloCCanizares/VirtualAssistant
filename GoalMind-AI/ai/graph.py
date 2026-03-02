@@ -343,8 +343,16 @@ def run_graph_chat(
     session_mutations_json: str = "[]",
     context_json: str | None = None,
     timeout_seconds: int = 25,
+    api_key: str | None = None,
+    base_url: str | None = None,
 ) -> str:
-    llm = ChatOpenAI(model=model, timeout=timeout_seconds, temperature=1)
+    llm = ChatOpenAI(
+        model=model,
+        timeout=timeout_seconds,
+        temperature=1,
+        api_key=api_key,
+        base_url=base_url,
+    )
     app = build_chat_graph(llm)
 
     state = {
