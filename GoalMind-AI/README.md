@@ -1,12 +1,13 @@
-# Asistente Personal LLM — Flask demo
+# Asistente Personal LLM — Flask 
 
 Estructura dividida en **panel izquierdo (sidebar)**, **header**, **panel central**, **panel derecho**, y **footer**.
 
 ## Cómo ejecutar
 ```bash
+cd GoalMind-AI
 python3 -m venv .venv
 source .venv/bin/activate  # En Windows: .venv\Scripts\activate
-pip install -r requirements.txt
+pip install -r requirements.txt -r requirements.txt
 python app.py  # o: flask --app app run --debug
 ```
 Abrir: http://127.0.0.1:5000/
