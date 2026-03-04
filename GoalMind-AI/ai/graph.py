@@ -87,11 +87,10 @@ def _route_after_action_planner(state: AppState) -> str:
 
 def _route_after_queue_executor(state: AppState) -> str:
     """
-    Si quedan acciones en la cola → action_executor.
-    Si la cola esta vacia → finalize.
+    Si queue_executor acaba de preparar una accion (action_name seteado) → action_executor.
+    Si la cola estaba vacia y ya construyo el resumen (action_name=None) → finalize.
     """
-    queue = state.get("action_queue") or []
-    if queue:
+    if state.get("action_name"):
         return "action_executor"
     return "finalize"
 
@@ -251,7 +250,7 @@ def run_graph_chat(
     session_mutations_json: str = "[]",
 ) -> str:
     print("\n" + "#"*60)
-    print("# 🚀 INICIANDO GRAFO DE CHAT")
+    print("# INICIANDO GRAFO DE CHAT")
     print("#"*60)
     print(f"   Usuario: {user_id}")
     print(f"   Modelo: {model}")
@@ -260,7 +259,7 @@ def run_graph_chat(
     print(f"   Accion pendiente: {'Sí' if pending_action_intent else 'No'}")
     print("#"*60 + "\n")
 
-    llm = ChatOpenAI(model=model, timeout=45)
+    llm = ChatOpenAI(model=model)
     app = build_chat_graph(llm)
 
     state = {
@@ -278,7 +277,7 @@ def run_graph_chat(
 
     final_response = (result.get("final_response") or "").strip()
     print("#"*60)
-    print("# ✅ GRAFO COMPLETADO")
+    print("#GRAFO COMPLETADO")
     print("#"*60)
     print(f"   Respuesta final ({len(final_response)} caracteres):")
     print(f"   {final_response[:100]}{'...' if len(final_response) > 100 else ''}")

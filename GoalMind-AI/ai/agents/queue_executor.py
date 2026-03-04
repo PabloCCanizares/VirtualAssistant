@@ -75,6 +75,7 @@ def queue_executor_node(state: AppState, _llm) -> AppState:
         print("="*60 + "\n")
         base_updates["final_response"] = summary
         base_updates["action_queue"] = []
+        base_updates["action_name"] = None  # señal al router: no hay accion pendiente
         return base_updates
 
     # Sacar la siguiente accion

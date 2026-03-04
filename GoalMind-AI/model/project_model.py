@@ -64,7 +64,7 @@ class ProjectModel:
         project_data["_id"] = result.inserted_id
 
         sync_to_remote(ProjectModel.COLLECTION, project_data)
-        print(f"📁 Proyecto insertado localmente y sincronizado: {project_data['_id']}")
+        print(f"Proyecto insertado localmente y sincronizado: {project_data['_id']}")
         return project_data
 
     @staticmethod
