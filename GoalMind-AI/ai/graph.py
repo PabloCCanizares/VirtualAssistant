@@ -111,13 +111,20 @@ def _route_after_writer(state: AppState) -> str:
 
 
 def _finalize_node(state: AppState) -> AppState:
+    print("\n" + "="*60)
+    print("✅ FINALIZE_NODE: Finalizando respuesta...")
+    print("="*60)
     final_response = (state.get("final_response") or "").strip()
     if final_response:
+        print(f"   ✓ final_response ya establecido ({len(final_response)} caracteres)")
+        print("="*60 + "\n")
         return {"final_response": final_response}
 
     draft = (state.get("draft_response") or "").strip()
     if not draft:
         draft = "No pude generar una respuesta en este momento."
+    print(f"   ✓ Usando draft_response como final ({len(draft)} caracteres)")
+    print("="*60 + "\n")
     return {"final_response": draft}
 
 
@@ -243,6 +250,16 @@ def run_graph_chat(
     pending_action_intent: dict | None = None,
     session_mutations_json: str = "[]",
 ) -> str:
+    print("\n" + "#"*60)
+    print("# 🚀 INICIANDO GRAFO DE CHAT")
+    print("#"*60)
+    print(f"   Usuario: {user_id}")
+    print(f"   Modelo: {model}")
+    print(f"   Mensaje: '{user_message[:80]}{'...' if len(user_message) > 80 else ''}'")
+    print(f"   Historial: {len(history)} mensajes")
+    print(f"   Accion pendiente: {'Sí' if pending_action_intent else 'No'}")
+    print("#"*60 + "\n")
+
     llm = ChatOpenAI(model=model, timeout=45)
     app = build_chat_graph(llm)
 
@@ -258,4 +275,12 @@ def run_graph_chat(
     except Exception as exc:
         logger.exception("run_graph_chat: fallo en ejecucion del grafo")
         raise RuntimeError("No se pudo ejecutar el flujo de chat.") from exc
-    return (result.get("final_response") or "").strip()
+
+    final_response = (result.get("final_response") or "").strip()
+    print("#"*60)
+    print("# ✅ GRAFO COMPLETADO")
+    print("#"*60)
+    print(f"   Respuesta final ({len(final_response)} caracteres):")
+    print(f"   {final_response[:100]}{'...' if len(final_response) > 100 else ''}")
+    print("#"*60 + "\n")
+    return final_response

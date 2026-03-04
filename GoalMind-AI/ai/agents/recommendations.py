@@ -10,14 +10,20 @@ logger = logging.getLogger(__name__)
 
 
 def recommendations_node(state: AppState, llm) -> AppState:
+    print("\n" + "="*60)
+    print("RECOMMENDATIONS_NODE: Generando recomendaciones...")
+    print("="*60)
     messages = [
         SystemMessage(content=RECOMMENDATIONS_PROMPT),
         SystemMessage(content=f"Contexto del usuario (JSON): {state.get('context_json', '{}')}"),
     ]
     messages.extend(state.get("messages", []))
+    print(f"   Llamando LLM para generar recomendaciones...")
     try:
         draft = invoke_with_retry(llm, messages, retries=1)
     except LLMInvokeError:
         logger.exception("recommendations_node: error invocando LLM")
         draft = "No pude generar recomendaciones en este momento."
+    print(f"   ✓ Recomendaciones generadas ({len(draft)} caracteres)")
+    print("="*60 + "\n")
     return {"draft_response": draft}

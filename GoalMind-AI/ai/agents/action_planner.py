@@ -63,8 +63,13 @@ def _needs_confirmation(actions: List[Dict[str, Any]]) -> bool:
 
 
 def action_planner_node(state: AppState, llm) -> AppState:
+    print("\n" + "="*60)
+    print("ACTION_PLANNER_NODE: Descomponiendo acciones...")
+    print("="*60)
     session_mutations = (state.get("session_mutations_json") or "[]").strip()
     context_json = state.get("context_json") or "{}"
+    print(f"   Mutaciones de sesion: {len(eval(session_mutations)) if session_mutations != '[]' else 0} registros")
+    print(f"   Llamando LLM para analizar acciones...")
 
     system_parts = [ACTION_PLANNER_PROMPT]
     system_parts.append(f"Contexto del usuario (JSON): {context_json}")
@@ -98,9 +103,15 @@ def action_planner_node(state: AppState, llm) -> AppState:
     actions = [_validate_action(item) for item in raw_actions]
     actions = [a for a in actions if a is not None]
     if not actions:
+        print(f"   ✗ No se detectaron acciones validas")
+        print("="*60 + "\n")
         return {
             "final_response": "Las acciones detectadas no son validas. ¿Puedes reformular tu peticion?"
         }
+
+    print(f"   ✓ {len(actions)} accion(es) detectada(s):")
+    for i, act in enumerate(actions, 1):
+        print(f"      {i}. {act['action_name']} (ref_id={act.get('ref_id')})")
 
     if _needs_confirmation(actions):
         user_id = state.get("user_id")
@@ -110,6 +121,8 @@ def action_planner_node(state: AppState, llm) -> AppState:
         }
         set_pending_action(user_id, pending)
         action_names = ", ".join(a["action_name"] for a in actions)
+        print(f"   ⚠️  Hay acciones destructivas → pidiendo confirmacion")
+        print("="*60 + "\n")
         return {
             "pending_action_intent": pending,
             "action_confirmed": False,
@@ -119,6 +132,8 @@ def action_planner_node(state: AppState, llm) -> AppState:
             ),
         }
 
+    print(f"   → Enrutando a cola para ejecucion...")
+    print("="*60 + "\n")
     return {
         "action_queue": actions,
         "action_results": [],

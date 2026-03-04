@@ -184,6 +184,10 @@ def _build_update_fields(params: Dict[str, Any], allowed_keys: set) -> Dict[str,
 
 def _result(message: str, result_id: Optional[str] = None) -> Dict[str, Any]:
     """Construye el dict de retorno unificado con campos para modo cola y modo simple."""
+    print(f"   ✓ Resultado: {message}")
+    if result_id:
+        print(f"   ✓ ID generado/afectado: {result_id}")
+    print("="*60 + "\n")
     return {
         "final_response": message,
         "action_result_message": message,
@@ -192,11 +196,16 @@ def _result(message: str, result_id: Optional[str] = None) -> Dict[str, Any]:
 
 
 def action_executor_node(state: AppState, _llm) -> AppState:
+    print("\n" + "="*60)
+    print("ACTION_EXECUTOR_NODE: Ejecutando accion...")
+    print("="*60)
     user_id = _ensure_user_id(state)
 
     pending = state.get("pending_action_intent") or {}
     action_name = pending.get("action_name") or state.get("action_name")
     parameters = pending.get("parameters") or state.get("action_parameters") or {}
+    print(f"   Accion: {action_name}")
+    print(f"   Parametros: {parameters}")
 
     if action_name in CONFIRM_REQUIRED_ACTIONS and not state.get("action_confirmed", False):
         msg = (

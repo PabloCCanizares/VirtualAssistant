@@ -34,13 +34,21 @@ def _build_summary(results: List[Dict[str, Any]]) -> str:
 
 
 def queue_executor_node(state: AppState, _llm) -> AppState:
+    print("\n" + "="*60)
+    print("QUEUE_EXECUTOR_NODE: Gestionando cola de acciones...")
+    print("="*60)
     queue: List[Dict] = list(state.get("action_queue") or [])
     results: List[Dict] = list(state.get("action_results") or [])
     ref_map: Dict[str, str] = dict(state.get("action_ref_map") or {})
 
+    print(f"   Estado de la cola: {len(queue)} acciones pendientes, {len(results)} completadas")
+    if ref_map:
+        print(f"   Referencias resueltas: {ref_map}")
+
     # Recoger resultado de action_executor si venimos de el
     prev_message: Optional[str] = state.get("action_result_message")
     if prev_message is not None:
+        print(f"   Recolectando resultado de accion anterior: '{prev_message}'")
         prev_id: Optional[str] = state.get("action_result_id")
         prev_ref_id: Optional[str] = state.get("current_action_ref_id")
         results.append({
@@ -61,13 +69,20 @@ def queue_executor_node(state: AppState, _llm) -> AppState:
 
     if not queue:
         # Cola vacia: construir resumen final
-        base_updates["final_response"] = _build_summary(results)
+        summary = _build_summary(results)
+        print(f"\n   ✓ COLA VACIA: Construyendo resumen final")
+        print(f"      {summary}")
+        print("="*60 + "\n")
+        base_updates["final_response"] = summary
         base_updates["action_queue"] = []
         return base_updates
 
     # Sacar la siguiente accion
     current = queue.pop(0)
     resolved_params = _resolve_refs(current.get("action_parameters", {}), ref_map)
+    print(f"\n   → Siguiente accion: '{current['action_name']}' (ref_id={current.get('ref_id')})")
+    print(f"   → Parametros resueltos: {resolved_params}")
+    print("="*60 + "\n")
 
     base_updates.update({
         "action_name": current["action_name"],
