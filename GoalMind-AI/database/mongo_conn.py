@@ -6,7 +6,7 @@ from pathlib import Path
 
 # Permite la conexion a la base de datos MongoDB via Flask-PyMongo (Local y Remota).
 from flask_pymongo import PyMongo
-from pymongo import MongoClient
+from pymongo import MongoClient, ReplaceOne
 import logging
 
 # Módulo estándar de python para comprobar conexion a internet
@@ -29,9 +29,9 @@ CONFIG_PATH = Path(__file__).resolve().parent / "mongo_user.json"
 mongo_local = PyMongo()
 mongo_remote = None
 
-# Nombres dinámicos de las bases de datos (se configuran en init_app)
-_local_db_name = "VirtualAssistantDB"
-_remote_db_name = "VirtualAssistantDB"
+# Nombres dinámicos de las bases de datos (se configuran en init_app desde .env)
+_local_db_name = ""
+_remote_db_name = ""
 
 # Lista de colecciones para sincronización
 collections = ["Tasks", "Goals", "Projects", "ProjectDocuments", "Events"]
@@ -51,6 +51,13 @@ def get_app_user_id() -> str:
     if nickname:
         return generate_user_id_from_nickname(nickname)
     return os.getenv("DEFAULT_USER_ID", "66ffbbbbbbbbbbbbbbbb0100")
+
+
+def _create_mongo_client(uri: str) -> MongoClient:
+    """Crea y valida un cliente MongoClient con TLS y timeout."""
+    client = MongoClient(uri, tlsCAFile=certifi.where(), serverSelectionTimeoutMS=5000)
+    client.admin.command("ping")
+    return client
 
 
 def internet_available():
@@ -102,15 +109,7 @@ def init_app(app):
         print("Internet disponible → probando conexión a MongoDB Atlas...")
 
         try:
-            # Creamos el cliente con timeout y certificados de certifi
-            client = MongoClient(
-                remote_uri,
-                tlsCAFile=certifi.where(),
-                serverSelectionTimeoutMS=5000,
-            )
-            # Forzamos un ping para comprobar que la conexión es válida
-            client.admin.command("ping")
-
+            client = _create_mongo_client(remote_uri)
             mongo_remote = client
             app.mongo_remote = client
             print("Conectado a MongoDB Atlas")
@@ -147,15 +146,9 @@ def ensure_remote_connection(app=None):
         return False
 
     try:
-        client = MongoClient(
-            remote_uri,
-            tlsCAFile=certifi.where(),
-            serverSelectionTimeoutMS=5000,
-        )
-        client.admin.command("ping")
-        mongo_remote = client
+        mongo_remote = _create_mongo_client(remote_uri)
         if app is not None:
-            app.mongo_remote = client
+            app.mongo_remote = mongo_remote
         logger.info("Reconexión a MongoDB Atlas completada.")
         return True
     except Exception as exc:
@@ -171,7 +164,7 @@ def get_collection(name):
 
 
 # ------------------------------------------------------
-# 🧩 NUEVAS FUNCIONES DE SINCRONIZACIÓN UNITARIA
+# FUNCIONES DE SINCRONIZACIÓN UNITARIA
 # ------------------------------------------------------
 
 def sync_from_remote(collection_name, obj):
@@ -238,14 +231,14 @@ def sync_all_collections():
                 if delete_query["$or"]:
                     local_col.delete_many(delete_query)
 
-            remote_docs = remote_col.find()
-            for doc in remote_docs:
-                if str(doc.get("_id")) in pending_ids:
-                    continue
-                # Descargar solo si no existe en local
-                if not local_col.find_one({"_id": doc["_id"]}):
-                    local_col.insert_one(doc)
-                    pulled_docs += 1
+            existing_ids = {doc["_id"] for doc in local_col.find({}, {"_id": 1})}
+            new_docs = [
+                doc for doc in remote_col.find()
+                if doc["_id"] not in existing_ids and str(doc.get("_id")) not in pending_ids
+            ]
+            if new_docs:
+                local_col.insert_many(new_docs)
+                pulled_docs += len(new_docs)
     return pulled_docs
 
 
@@ -263,11 +256,14 @@ def sync_local_to_remote():
 
         if remote_col is None:
             continue
-        for local_doc in local_col.find():
-            if str(local_doc.get("_id")) in pending_ids:
-                continue
-            if sync_to_remote(col, local_doc):
-                pushed_docs += 1
+        ops = [
+            ReplaceOne({"_id": doc["_id"]}, doc, upsert=True)
+            for doc in local_col.find()
+            if str(doc.get("_id")) not in pending_ids
+        ]
+        if ops:
+            remote_col.bulk_write(ops)
+            pushed_docs += len(ops)
     return pushed_docs
 
 
@@ -364,24 +360,13 @@ def flush_deletion_queue():
             unique_candidates.append(cid)
 
         delete_query = {"$or": [{"_id": cid} for cid in unique_candidates]}
-        deleted = 0
-        delete_error = False
         try:
             deleted = remote_col.delete_many(delete_query).deleted_count
         except Exception:
-            deleted = 0
-            delete_error = True
+            continue
 
         if deleted > 0:
             local_col.delete_one({"_id": item["_id"]})
             removed += 1
-            continue
-
-        # Si hubo error o no se pudo confirmar el borrado, mantener en cola
-        if delete_error:
-            continue
-
-        # Si no se eliminó, mantener en cola para reintentar más tarde
-        continue
 
     return removed

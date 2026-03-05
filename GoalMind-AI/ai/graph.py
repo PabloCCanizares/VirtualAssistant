@@ -2,7 +2,6 @@ import logging
 from typing import Any, Iterable
 
 from langchain_core.messages import AIMessage, HumanMessage
-from langchain_openai import ChatOpenAI
 from langgraph.graph import END, START, StateGraph
 
 from ai.agents import (
@@ -19,6 +18,7 @@ from ai.agents import (
     weekly_summary_node,
     writer_node,
 )
+from ai.config import build_llm
 from ai.state import AppState
 
 logger = logging.getLogger(__name__)
@@ -259,7 +259,7 @@ def run_graph_chat(
     print(f"   Accion pendiente: {'Sí' if pending_action_intent else 'No'}")
     print("#"*60 + "\n")
 
-    llm = ChatOpenAI(model=model)
+    llm = build_llm(model)
     app = build_chat_graph(llm)
 
     state = {

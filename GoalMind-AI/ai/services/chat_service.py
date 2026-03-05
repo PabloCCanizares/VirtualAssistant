@@ -17,7 +17,9 @@ def run_chat(message, history):
         raise ValueError("Mensaje vacio")
 
     settings = get_settings()
-    if not settings.openai_api_key:
+    if settings.llm_provider == "gemini" and not settings.gemini_api_key:
+        raise ValueError("GEMINI_API_KEY no configurada")
+    if settings.llm_provider == "openai" and not settings.openai_api_key:
         raise ValueError("OPENAI_API_KEY no configurada")
 
     user_id = settings.default_user_id or DEFAULT_USER_ID
@@ -43,7 +45,7 @@ def run_chat(message, history):
         user_message=user_message,
         history=list(history or []),
         context_json=context_json,
-        model=settings.openai_model,
+        model=settings.gemini_model if settings.llm_provider == "gemini" else settings.openai_model,
         user_id=user_id,
         pending_action_intent=pending_action,
         session_mutations_json=session_mutations_json,
