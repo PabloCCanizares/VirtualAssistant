@@ -5,6 +5,16 @@ from langchain_core.messages import AIMessage, HumanMessage
 from langchain_openai import ChatOpenAI
 from langgraph.graph import END, START, StateGraph
 
+try:
+    from langchain_google_genai import ChatGoogleGenerativeAI
+except Exception:  # pragma: no cover
+    ChatGoogleGenerativeAI = None
+
+try:
+    from langchain_groq import ChatGroq
+except Exception:  # pragma: no cover
+    ChatGroq = None
+
 from ai.agents import (
     action_executor_node,
     action_planner_node,
@@ -198,6 +208,40 @@ def _finalize_node(state: AppState) -> AppState:
     return {"final_response": draft}
 
 
+def _build_llm(provider: str, model: str, api_key: str | None, timeout_seconds: int):
+    provider_name = (provider or "").strip().lower()
+
+    if provider_name == "openai":
+        return ChatOpenAI(
+            model=model,
+            api_key=api_key,
+            timeout=timeout_seconds,
+            temperature=1,
+        )
+
+    if provider_name == "gemini":
+        if ChatGoogleGenerativeAI is None:
+            raise RuntimeError(
+                "Proveedor Gemini no disponible. Instala 'langchain-google-genai'."
+            )
+        return ChatGoogleGenerativeAI(
+            model=model,
+            google_api_key=api_key,
+        )
+
+    if provider_name == "groq":
+        if ChatGroq is None:
+            raise RuntimeError(
+                "Proveedor Groq no disponible. Instala 'langchain-groq'."
+            )
+        return ChatGroq(
+            model=model,
+            api_key=api_key,
+        )
+
+    raise ValueError(f"Proveedor de modelo no soportado: '{provider}'.")
+
+
 # ── Graph builder ──────────────────────────────────────────────────
 
 
@@ -339,12 +383,19 @@ def run_graph_chat(
     history,
     model: str,
     user_id: str,
+    provider: str = "openai",
+    api_key: str | None = None,
     pending_action_intent: dict | None = None,
     session_mutations_json: str = "[]",
     context_json: str | None = None,
     timeout_seconds: int = 25,
 ) -> str:
-    llm = ChatOpenAI(model=model, timeout=timeout_seconds, temperature=1)
+    llm = _build_llm(
+        provider=provider,
+        model=model,
+        api_key=api_key,
+        timeout_seconds=timeout_seconds,
+    )
     app = build_chat_graph(llm)
 
     state = {

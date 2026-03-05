@@ -11,11 +11,16 @@
   let messagesEl = null;
   let inputEl = null;
   let sendBtn = null;
+  let modelSelect = null;
   let welcomeEl = null;
   let welcomePromptButtons = [];
   let isSending = false;
+  let hasAvailableModel = true;
+  let selectedModelId = null;
   const history = [];
   const maxHistory = 8;
+  const modelStorageKey = 'ai-chat-model-id';
+  let modelWarningShown = false;
 
   function init() {
     aiBtn = document.getElementById('sidebar-ai-btn');
@@ -24,6 +29,7 @@
     messagesEl = document.getElementById('ai-chat-messages');
     inputEl = document.getElementById('ai-chat-input');
     sendBtn = document.getElementById('ai-chat-send');
+    modelSelect = document.getElementById('ai-chat-model');
     welcomeEl = messagesEl ? messagesEl.querySelector('.ai-chat-welcome') : null;
     welcomePromptButtons = welcomeEl ? Array.from(welcomeEl.querySelectorAll('.ai-chat-welcome-btn')) : [];
 
@@ -40,6 +46,10 @@
 
     if (sendBtn) {
       sendBtn.addEventListener('click', handleSend);
+    }
+
+    if (modelSelect) {
+      modelSelect.addEventListener('change', handleModelChange);
     }
 
     welcomePromptButtons.forEach(function(btn) {
@@ -78,6 +88,9 @@
         closeAIChat();
       }
     });
+
+    syncInputState();
+    loadModelCatalog();
   }
 
   function openAIChat() {
@@ -145,16 +158,149 @@
 
   function setSending(state) {
     isSending = state;
+    syncInputState();
+  }
+
+  function syncInputState() {
+    const disabled = isSending || !hasAvailableModel;
+
     if (sendBtn) {
-      sendBtn.disabled = state;
+      sendBtn.disabled = disabled;
     }
     if (inputEl) {
-      inputEl.disabled = state;
+      inputEl.disabled = disabled;
+    }
+    if (modelSelect) {
+      modelSelect.disabled = isSending || modelSelect.options.length === 0;
+    }
+  }
+
+  function getStoredModelId() {
+    try {
+      return localStorage.getItem(modelStorageKey);
+    } catch (err) {
+      return null;
+    }
+  }
+
+  function storeModelId(modelId) {
+    try {
+      if (!modelId) {
+        localStorage.removeItem(modelStorageKey);
+        return;
+      }
+      localStorage.setItem(modelStorageKey, modelId);
+    } catch (err) {
+      return;
+    }
+  }
+
+  function handleModelChange() {
+    if (!modelSelect) {
+      return;
+    }
+    selectedModelId = modelSelect.value || null;
+    storeModelId(selectedModelId);
+  }
+
+  function renderModelOptions(models, defaultModelId) {
+    if (!modelSelect) {
+      return;
+    }
+    modelSelect.innerHTML = '';
+
+    const availableIds = [];
+    models.forEach(function(model) {
+      const option = document.createElement('option');
+      option.value = model.id;
+      option.textContent = model.available ? model.label : model.label + ' (sin API key)';
+      option.disabled = !model.available;
+      modelSelect.appendChild(option);
+      if (model.available) {
+        availableIds.push(model.id);
+      }
+    });
+
+    if (!models.length) {
+      const option = document.createElement('option');
+      option.value = '';
+      option.textContent = 'Sin modelos configurados';
+      modelSelect.appendChild(option);
+    }
+
+    hasAvailableModel = availableIds.length > 0;
+    if (!hasAvailableModel) {
+      selectedModelId = null;
+      modelSelect.value = '';
+      if (inputEl) {
+        inputEl.placeholder = 'Configura una API key en .env para usar el chat...';
+      }
+      if (!modelWarningShown) {
+        appendMessage('assistant', 'No hay modelos de IA disponibles. Revisa las API keys en el archivo .env.');
+        modelWarningShown = true;
+      }
+      syncInputState();
+      return;
+    }
+
+    const storedModelId = getStoredModelId();
+    if (storedModelId && availableIds.indexOf(storedModelId) >= 0) {
+      selectedModelId = storedModelId;
+    } else if (defaultModelId && availableIds.indexOf(defaultModelId) >= 0) {
+      selectedModelId = defaultModelId;
+    } else {
+      selectedModelId = availableIds[0];
+    }
+
+    modelSelect.value = selectedModelId;
+    if (inputEl) {
+      inputEl.placeholder = 'Escribe tu mensaje...';
+    }
+    storeModelId(selectedModelId);
+    syncInputState();
+  }
+
+  async function loadModelCatalog() {
+    if (!modelSelect) {
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/ai/models', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'No se pudo cargar el catalogo de modelos');
+      }
+
+      const models = Array.isArray(data.models) ? data.models : [];
+      renderModelOptions(models, data.default_model_id || null);
+    } catch (err) {
+      hasAvailableModel = false;
+      selectedModelId = null;
+      modelSelect.innerHTML = '';
+      const option = document.createElement('option');
+      option.value = '';
+      option.textContent = 'Error cargando modelos';
+      modelSelect.appendChild(option);
+      if (inputEl) {
+        inputEl.placeholder = 'No se pudieron cargar los modelos de IA...';
+      }
+      if (!modelWarningShown) {
+        appendMessage('assistant', 'No se pudo cargar el catalogo de modelos. Revisa la configuracion del backend.');
+        modelWarningShown = true;
+      }
+      syncInputState();
     }
   }
 
   function handleSend() {
-    if (isSending || !inputEl) {
+    if (isSending || !inputEl || !hasAvailableModel) {
       return;
     }
     const message = inputEl.value.trim();
@@ -182,7 +328,8 @@
         },
         body: JSON.stringify({
           message: message,
-          history: history
+          history: history,
+          model_id: selectedModelId
         })
       });
 
