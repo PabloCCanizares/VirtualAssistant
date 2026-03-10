@@ -64,7 +64,6 @@ def _register_blueprints(flask_app: Flask) -> None:
     from controllers.project_controller import project_bp
     from controllers.stats_controller import stats_bp
     from controllers.task_controller import task_bp
-    from controllers.upload_controller import upload_bp
 
     flask_app.register_blueprint(task_bp)
     flask_app.register_blueprint(dashboard_bp)
@@ -72,7 +71,6 @@ def _register_blueprints(flask_app: Flask) -> None:
     flask_app.register_blueprint(project_bp)
     flask_app.register_blueprint(calendar_bp)
     flask_app.register_blueprint(stats_bp)
-    flask_app.register_blueprint(upload_bp)
     flask_app.register_blueprint(category_bp)
     flask_app.register_blueprint(ai_chat_bp)
 

@@ -111,6 +111,14 @@
                 </div>
               </div>
               <div class="panel-actions panel-actions-compact">
+                <a class="panel-action-btn panel-action-btn-small js-view-document"
+                   href="{{ url_for('project_bp.view_document', doc_id=doc['_id']) }}"
+                   data-view-url="{{ url_for('project_bp.view_document', doc_id=doc['_id']) }}"
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   title="Ver documento">
+                  Ver
+                </a>
                 <a class="panel-action-btn panel-action-btn-small" href="{{ url_for('project_bp.download_document', doc_id=doc['_id']) }}" title="Descargar">
                   ⬇️
                 </a>
@@ -457,6 +465,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.js-view-document').forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const viewUrl = link.dataset.viewUrl || link.href;
+      window.open(viewUrl, '_blank', 'noopener');
+    });
+  });
+
   const modal = document.getElementById('projectNoteModal');
   const modalBody = document.getElementById('projectNoteModalBody');
   const modalDate = document.getElementById('projectNoteModalDate');

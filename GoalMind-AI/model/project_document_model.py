@@ -75,9 +75,6 @@ class ProjectDocumentModel:
             doc_data["project_id"] = ObjectId(str(doc_data["project_id"]))
         if doc_data.get("goal_id") and not isinstance(doc_data["goal_id"], ObjectId):
             doc_data["goal_id"] = ObjectId(str(doc_data["goal_id"]))
-        if doc_data.get("upload_id") and not isinstance(doc_data["upload_id"], ObjectId):
-            doc_data["upload_id"] = ObjectId(str(doc_data["upload_id"]))
-
         result = local_col.insert_one(doc_data)
         doc_data["_id"] = result.inserted_id
 

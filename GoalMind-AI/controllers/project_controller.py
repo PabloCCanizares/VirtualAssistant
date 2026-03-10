@@ -1,4 +1,5 @@
 # controllers/project_controller.py
+import mimetypes
 from datetime import datetime
 from pathlib import Path
 from uuid import uuid4
@@ -11,7 +12,6 @@ from model.goal_model import GoalModel
 from model.project_document_model import ProjectDocumentModel
 from model.project_model import ProjectModel
 from model.task_model import TaskModel
-from model.upload_model import Upload_model
 from model.category_model import CategoryModel
 from database.mongo_conn import queue_deletion, flush_deletion_queue, get_app_user_id
 
@@ -64,8 +64,6 @@ def _serialize_document(doc):
         doc_view["project_id"] = _serialize_id(doc_view["project_id"])
     if doc_view.get("goal_id"):
         doc_view["goal_id"] = _serialize_id(doc_view["goal_id"])
-    if doc_view.get("upload_id"):
-        doc_view["upload_id"] = _serialize_id(doc_view["upload_id"])
     return doc_view
 
 
@@ -78,6 +76,38 @@ def _format_size(size_bytes):
             return f"{size:.1f} {unit}" if unit != "B" else f"{int(size)} {unit}"
         size /= 1024.0
     return f"{size:.1f} PB"
+
+
+def _resolve_document_file(doc):
+    local_path = doc.get("local_path")
+    if not local_path:
+        return None, "Documento sin ruta local."
+
+    file_path = Path(local_path)
+    if not file_path.exists():
+        return None, "Archivo no encontrado en disco."
+
+    return file_path, None
+
+
+def _resolve_document_mimetype(doc, file_path):
+    content_type = (doc.get("content_type") or "").strip()
+    if content_type and content_type != "application/octet-stream":
+        return content_type
+
+    guessed_type, _ = mimetypes.guess_type(doc.get("original_name") or file_path.name)
+    return guessed_type or "application/octet-stream"
+
+
+def _detect_preview_mode(doc, file_path, mimetype):
+    suffix = file_path.suffix.lower()
+    if mimetype == "application/pdf" or suffix == ".pdf":
+        return "pdf"
+    if mimetype.startswith("image/"):
+        return "image"
+    if mimetype.startswith("text/") or suffix in {".txt", ".md", ".csv", ".json", ".log"}:
+        return "text"
+    return "unsupported"
 
 
 def _parse_importance(value, default=None):
@@ -249,26 +279,10 @@ def view_project(project_id):
 
     goals = GoalModel.get_by_project(project_id, usuario_id=DEFAULT_USER_ID)
     docs = ProjectDocumentModel.get_by_project(project_id, usuario_id=DEFAULT_USER_ID)
-    uploads = Upload_model.get_all_uploads(usuario_id=DEFAULT_USER_ID)
     categories = _load_categories()
 
     goals_view = [_serialize_goal(g) for g in goals]
     docs_view = [_serialize_document(d) for d in docs]
-    upload_views = []
-    linked_upload_ids = {d.get("upload_id") for d in docs_view if d.get("upload_id")}
-
-    for upload in uploads:
-        upload_id = _serialize_id(upload.get("_id"))
-        if upload_id in linked_upload_ids:
-            continue
-        upload_views.append(
-            {
-                "_id": upload_id,
-                "title": upload.get("title") or upload.get("original_name") or "(sin nombre)",
-                "original_name": upload.get("original_name") or "",
-                "size_label": _format_size(upload.get("size", 0) or 0),
-            }
-        )
 
     goal_titles = {g["_id"]: g.get("titulo", "(sin titulo)") for g in goals_view}
     goal_documents = {g["_id"]: [] for g in goals_view}
@@ -304,7 +318,6 @@ def view_project(project_id):
         project=_serialize_project(project),
         goals=goals_view,
         documents=docs_view,
-        uploads=upload_views,
         goal_titles=goal_titles,
         goal_documents=goal_documents,
         goal_tasks=goal_tasks,
@@ -405,46 +418,6 @@ def update_project(project_id):
         flash("Proyecto actualizado correctamente", "success")
     except Exception as e:
         flash(f"Error al actualizar el proyecto: {e}", "danger")
-
-    return redirect(url_for("project_bp.view_project", project_id=project_id))
-
-
-# -------------------------------------------------------------
-# ASOCIAR DOCUMENTO EXISTENTE
-# -------------------------------------------------------------
-@project_bp.route("/<project_id>/documents/link", methods=["POST"])
-def link_upload_document(project_id):
-    project = ProjectModel.get_project_by_id(project_id, usuario_id=DEFAULT_USER_ID)
-    if not project:
-        flash("Proyecto no encontrado.", "warning")
-        return redirect(url_for("project_bp.list_projects"))
-
-    upload_id = request.form.get("upload_id")
-    if not upload_id:
-        flash("Selecciona un documento para asociar.", "warning")
-        return redirect(url_for("project_bp.view_project", project_id=project_id))
-
-    upload_doc = Upload_model.get_upload_by_id(upload_id, usuario_id=DEFAULT_USER_ID)
-    if not upload_doc:
-        flash("Documento no encontrado en la biblioteca.", "warning")
-        return redirect(url_for("project_bp.view_project", project_id=project_id))
-
-    goal_id = request.form.get("goal_id") or None
-
-    doc_data = {
-        "project_id": project_id,
-        "goal_id": goal_id,
-        "upload_id": upload_id,
-        "filename": upload_doc.get("filename"),
-        "original_name": upload_doc.get("original_name"),
-        "content_type": upload_doc.get("content_type"),
-        "size": upload_doc.get("size"),
-        "local_path": upload_doc.get("local_path"),
-        "usuario_id": DEFAULT_USER_ID,
-    }
-
-    ProjectDocumentModel.insert_document(doc_data, usuario_id=DEFAULT_USER_ID)
-    flash("Documento asociado correctamente", "success")
 
     return redirect(url_for("project_bp.view_project", project_id=project_id))
 
@@ -581,6 +554,30 @@ def upload_document(project_id):
 
 
 # -------------------------------------------------------------
+# VER DOCUMENTO
+# -------------------------------------------------------------
+@project_bp.route("/documents/<doc_id>/view", methods=["GET"])
+def view_document(doc_id):
+    doc = ProjectDocumentModel.get_document_by_id(doc_id, usuario_id=DEFAULT_USER_ID)
+    if not doc:
+        flash("Documento no encontrado.", "warning")
+        return redirect(url_for("project_bp.list_projects"))
+
+    file_path, error_message = _resolve_document_file(doc)
+    if error_message:
+        flash(error_message, "warning")
+        return redirect(url_for("project_bp.view_project", project_id=doc.get("project_id")))
+
+    mimetype = _resolve_document_mimetype(doc, file_path)
+    return send_file(
+        file_path,
+        mimetype=mimetype,
+        as_attachment=_detect_preview_mode(doc, file_path, mimetype) == "unsupported",
+        download_name=doc.get("original_name") or file_path.name,
+    )
+
+
+# -------------------------------------------------------------
 # DESCARGAR DOCUMENTO
 # -------------------------------------------------------------
 @project_bp.route("/documents/<doc_id>/download", methods=["GET"])
@@ -590,17 +587,17 @@ def download_document(doc_id):
         flash("Documento no encontrado.", "warning")
         return redirect(url_for("project_bp.list_projects"))
 
-    local_path = doc.get("local_path")
-    if not local_path:
-        flash("Documento sin ruta local.", "warning")
+    file_path, error_message = _resolve_document_file(doc)
+    if error_message:
+        flash(error_message, "warning")
         return redirect(url_for("project_bp.view_project", project_id=doc.get("project_id")))
 
-    file_path = Path(local_path)
-    if not file_path.exists():
-        flash("Archivo no encontrado en disco.", "warning")
-        return redirect(url_for("project_bp.view_project", project_id=doc.get("project_id")))
-
-    return send_file(file_path, as_attachment=True, download_name=doc.get("original_name") or file_path.name)
+    return send_file(
+        file_path,
+        mimetype=_resolve_document_mimetype(doc, file_path),
+        as_attachment=True,
+        download_name=doc.get("original_name") or file_path.name,
+    )
 
 
 # -------------------------------------------------------------
