@@ -79,6 +79,7 @@ def init_app(app):
     remote_uri = (os.getenv("MONGO_REMOTE_URI") or "").strip()
     _remote_db_name = os.getenv("MONGO_REMOTE_DB", "VirtualAssistantDB")
 
+    '''
     # Fallback: si no hay MONGO_REMOTE_URI, intentar leer de mongo_user.json
     if not remote_uri:
         try:
@@ -93,12 +94,8 @@ def init_app(app):
         except Exception:
             remote_uri = ""
     _configured_remote_uri = remote_uri
+'''
 
-    # ------------- CONEXIÓN LOCAL -------------
-    app.config["MONGO_URI"] = f"{local_uri}/{_local_db_name}"
-    mongo_local.init_app(app)
-    app.mongo_local = mongo_local
-    print("Conectado a MongoDB local")
 
     # Por defecto asumimos que NO hay remoto
     mongo_remote = None
@@ -124,6 +121,12 @@ def init_app(app):
         print("Sin conexión a internet → se usará solo la base local.")
 
     return mongo_local, mongo_remote
+
+    # ------------- CONEXIÓN LOCAL -------------
+    app.config["MONGO_URI"] = f"{local_uri}/{_local_db_name}"
+    mongo_local.init_app(app)
+    app.mongo_local = mongo_local
+    print("Conectado a MongoDB local")
 
 
 def ensure_remote_connection(app=None):
