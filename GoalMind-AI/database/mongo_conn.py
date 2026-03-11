@@ -163,6 +163,13 @@ def get_collection(name):
     return db_local[name], (db_remote[name] if db_remote is not None else None)
 
 
+def get_remote_database(app=None):
+    """Devuelve la base de datos remota si está disponible."""
+    if not ensure_remote_connection(app):
+        return None
+    return mongo_remote[_remote_db_name] if mongo_remote else None
+
+
 # ------------------------------------------------------
 # FUNCIONES DE SINCRONIZACIÓN UNITARIA
 # ------------------------------------------------------

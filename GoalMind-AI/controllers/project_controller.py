@@ -1,6 +1,7 @@
 # controllers/project_controller.py
 import mimetypes
 from datetime import datetime
+from io import BytesIO
 from pathlib import Path
 from uuid import uuid4
 
@@ -13,7 +14,8 @@ from model.project_document_model import ProjectDocumentModel
 from model.project_model import ProjectModel
 from model.task_model import TaskModel
 from model.category_model import CategoryModel
-from database.mongo_conn import queue_deletion, flush_deletion_queue, get_app_user_id
+from database.gridfs_storage import download_file_from_remote_storage, upload_file_to_remote_storage
+from database.mongo_conn import flush_deletion_queue, get_app_user_id, queue_deletion
 
 project_bp = Blueprint("project_bp", __name__, url_prefix="/projects")
 DEFAULT_USER_ID = get_app_user_id()
@@ -90,17 +92,35 @@ def _resolve_document_file(doc):
     return file_path, None
 
 
+def _document_name(doc):
+    return doc.get("original_name") or doc.get("filename") or "documento"
+
+
+def _resolve_document_source(doc):
+    file_path, _ = _resolve_document_file(doc)
+    if file_path:
+        return file_path, None, None
+
+    upload_id = doc.get("upload_id")
+    if upload_id:
+        remote_bytes = download_file_from_remote_storage(upload_id, current_app)
+        if remote_bytes is not None:
+            return None, BytesIO(remote_bytes), None
+
+    return None, None, "Archivo no encontrado ni en disco ni en remoto."
+
+
 def _resolve_document_mimetype(doc, file_path):
     content_type = (doc.get("content_type") or "").strip()
     if content_type and content_type != "application/octet-stream":
         return content_type
 
-    guessed_type, _ = mimetypes.guess_type(doc.get("original_name") or file_path.name)
+    guessed_type, _ = mimetypes.guess_type(_document_name(doc) if file_path is None else (doc.get("original_name") or file_path.name))
     return guessed_type or "application/octet-stream"
 
 
 def _detect_preview_mode(doc, file_path, mimetype):
-    suffix = file_path.suffix.lower()
+    suffix = file_path.suffix.lower() if file_path else Path(_document_name(doc)).suffix.lower()
     if mimetype == "application/pdf" or suffix == ".pdf":
         return "pdf"
     if mimetype.startswith("image/"):
@@ -474,13 +494,12 @@ def delete_project(project_id):
 
     for doc in docs:
         try:
-            if not doc.get("upload_id"):
-                local_path = doc.get("local_path")
-                if local_path:
-                    try:
-                        Path(local_path).unlink(missing_ok=True)
-                    except Exception:
-                        pass
+            local_path = doc.get("local_path")
+            if local_path:
+                try:
+                    Path(local_path).unlink(missing_ok=True)
+                except Exception:
+                    pass
             ProjectDocumentModel.delete_document(doc["_id"], usuario_id=DEFAULT_USER_ID)
         except Exception as e:
             errors.append(f"borrado documento: {e}")
@@ -547,8 +566,26 @@ def upload_document(project_id):
         "local_path": str(file_path),
     }
 
+    remote_upload_id = upload_file_to_remote_storage(
+        file_path,
+        original_name=file.filename,
+        content_type=doc_data["content_type"],
+        metadata={
+            "project_id": str(project_id),
+            "goal_id": str(goal_id) if goal_id else None,
+            "usuario_id": DEFAULT_USER_ID,
+            "filename": unique_name,
+        },
+        app=current_app,
+    )
+    if remote_upload_id is not None:
+        doc_data["upload_id"] = remote_upload_id
+
     ProjectDocumentModel.insert_document(doc_data, usuario_id=DEFAULT_USER_ID)
-    flash("Documento subido correctamente", "success")
+    if remote_upload_id is not None:
+        flash("Documento subido correctamente y sincronizado en remoto.", "success")
+    else:
+        flash("Documento subido correctamente.", "success")
 
     return redirect(url_for("project_bp.view_project", project_id=project_id))
 
@@ -563,17 +600,17 @@ def view_document(doc_id):
         flash("Documento no encontrado.", "warning")
         return redirect(url_for("project_bp.list_projects"))
 
-    file_path, error_message = _resolve_document_file(doc)
+    file_path, file_stream, error_message = _resolve_document_source(doc)
     if error_message:
         flash(error_message, "warning")
         return redirect(url_for("project_bp.view_project", project_id=doc.get("project_id")))
 
     mimetype = _resolve_document_mimetype(doc, file_path)
     return send_file(
-        file_path,
+        file_stream or file_path,
         mimetype=mimetype,
         as_attachment=_detect_preview_mode(doc, file_path, mimetype) == "unsupported",
-        download_name=doc.get("original_name") or file_path.name,
+        download_name=_document_name(doc),
     )
 
 
@@ -587,16 +624,16 @@ def download_document(doc_id):
         flash("Documento no encontrado.", "warning")
         return redirect(url_for("project_bp.list_projects"))
 
-    file_path, error_message = _resolve_document_file(doc)
+    file_path, file_stream, error_message = _resolve_document_source(doc)
     if error_message:
         flash(error_message, "warning")
         return redirect(url_for("project_bp.view_project", project_id=doc.get("project_id")))
 
     return send_file(
-        file_path,
+        file_stream or file_path,
         mimetype=_resolve_document_mimetype(doc, file_path),
         as_attachment=True,
-        download_name=doc.get("original_name") or file_path.name,
+        download_name=_document_name(doc),
     )
 
 
@@ -610,13 +647,12 @@ def delete_document(doc_id):
         flash("Documento no encontrado.", "warning")
         return redirect(url_for("project_bp.list_projects"))
 
-    if not doc.get("upload_id"):
-        local_path = doc.get("local_path")
-        if local_path:
-            try:
-                Path(local_path).unlink(missing_ok=True)
-            except Exception:
-                pass
+    local_path = doc.get("local_path")
+    if local_path:
+        try:
+            Path(local_path).unlink(missing_ok=True)
+        except Exception:
+            pass
 
     ProjectDocumentModel.delete_document(doc_id, usuario_id=DEFAULT_USER_ID)
     flash("Documento eliminado", "success")

@@ -2,7 +2,8 @@ from datetime import datetime
 
 from bson import ObjectId
 
-from database.mongo_conn import get_collection, sync_from_remote, sync_to_remote, get_app_user_id
+from database.gridfs_storage import delete_file_from_remote_storage
+from database.mongo_conn import get_app_user_id, get_collection, sync_from_remote, sync_to_remote
 
 
 def _uid_filter(usuario_id):
@@ -88,6 +89,11 @@ class ProjectDocumentModel:
         _id = ObjectId(doc_id) if not isinstance(doc_id, ObjectId) else doc_id
 
         query = {"_id": _id, **_uid_filter(usuario_id)}
+        existing_doc = local_col.find_one(query)
+
+        if existing_doc and existing_doc.get("upload_id"):
+            delete_file_from_remote_storage(existing_doc.get("upload_id"))
+
         res = local_col.delete_one(query)
 
         if remote_col is not None:
