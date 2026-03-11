@@ -21,6 +21,15 @@ def run_chat(message, history):
         raise ValueError("GEMINI_API_KEY no configurada")
     if settings.llm_provider == "openai" and not settings.openai_api_key:
         raise ValueError("OPENAI_API_KEY no configurada")
+    if settings.llm_provider == "groq" and not settings.groq_api_key:
+        raise ValueError("GROQ_API_KEY no configurada")
+
+    if settings.llm_provider == "gemini":
+        selected_model = settings.gemini_model
+    elif settings.llm_provider == "groq":
+        selected_model = settings.groq_model
+    else:
+        selected_model = settings.openai_model
 
     user_id = settings.default_user_id or DEFAULT_USER_ID
     try:
@@ -45,7 +54,7 @@ def run_chat(message, history):
         user_message=user_message,
         history=list(history or []),
         context_json=context_json,
-        model=settings.gemini_model if settings.llm_provider == "gemini" else settings.openai_model,
+        model=selected_model,
         user_id=user_id,
         pending_action_intent=pending_action,
         session_mutations_json=session_mutations_json,
