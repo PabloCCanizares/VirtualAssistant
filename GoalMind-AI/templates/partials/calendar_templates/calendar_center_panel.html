@@ -243,11 +243,6 @@
       if (!val) return null;
       return new Date(val).toISOString();
     }
-    function timeStrToMinutes(t) {
-      if (!t) return 0;
-      const parts = t.split(':').map(Number);
-      return parts[0] * 60 + (parts[1] || 0);
-    }
     function escapeHTML(s) {
       return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
     }
@@ -291,24 +286,12 @@
       const clearAssociationBtn= document.getElementById('clearAssociation');
 
       let searchTimeout = null;
-
-      // ===== Utilidades de altura =====
-      function getHourPixelHeight() {
-        const el = container || document.documentElement;
-        const px = parseFloat(getComputedStyle(el).getPropertyValue('--hour-h'));
-        return isNaN(px) ? 48 : px;
-      }
-      function calcContentHeight(minT, maxT, extraPx = 120) {
-        const minutes = timeStrToMinutes(maxT) - timeStrToMinutes(minT);
-        return Math.round(Math.max(1, minutes / 60) * getHourPixelHeight() + extraPx);
-      }
+      let listaBtn = null; // se cachea tras calendar.render()
 
       // ===== Modo Lista =====
       function enterListMode() {
         container.classList.add('list-mode');
-        // Gestión manual del estado activo: quitar de todos y añadir al botón Lista
         container.querySelectorAll('.fc-button').forEach(btn => btn.classList.remove('fc-button-active'));
-        const listaBtn = container.querySelector('.fc-listaCustom-button');
         if (listaBtn) listaBtn.classList.add('fc-button-active');
         elvMode = 'upcoming';
         elvTitle.textContent = 'Próximos eventos';
@@ -316,10 +299,12 @@
         loadAndRenderTimeline('upcoming');
       }
       function exitListMode() {
+        if (!container.classList.contains('list-mode')) return;
         container.classList.remove('list-mode');
-        // Quitar el activo del botón Lista; FullCalendar activará el de la vista montada
-        const listaBtn = container.querySelector('.fc-listaCustom-button');
         if (listaBtn) listaBtn.classList.remove('fc-button-active');
+        // Recalcular layout: FullCalendar no conoce las dimensiones correctas
+        // porque .fc-view-harness estaba en display:none
+        if (calendar) calendar.updateSize();
       }
 
       async function loadAndRenderTimeline(type) {
@@ -525,6 +510,7 @@
       });
 
       calendar.render();
+      listaBtn = container.querySelector('.fc-listaCustom-button');
 
       // Salir del modo lista al pulsar cualquier botón del toolbar excepto el de Lista.
       // viewDidMount no se dispara si la vista ya estaba montada (p.ej. volver a "Semana"
