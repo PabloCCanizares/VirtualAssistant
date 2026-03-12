@@ -16,6 +16,27 @@
   --shadow: 0 16px 48px rgba(0,0,0,.45);
   --glow: 0 0 32px rgba(108,243,255,.35);
   --radius: 16px;
+
+  /* Movido desde panels.css */
+  --panel-bg: linear-gradient(135deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+  --panel-border: rgba(255,255,255,.08);
+  --panel-radius: 16px;
+  --panel-shadow: 0 8px 32px rgba(0,0,0,.35);
+  --panel-glow: 0 0 24px rgba(108,243,255,.2);
+  --input-bg: #0c1324;
+  --input-border: rgba(255,255,255,.10);
+  --input-focus: rgba(108,243,255,.4);
+  --btn-gradient: linear-gradient(180deg, rgba(108,243,255,.15), rgba(139,123,255,.12));
+  --btn-gradient-hover: linear-gradient(180deg, rgba(108,243,255,.25), rgba(139,123,255,.20));
+  --btn-primary: linear-gradient(90deg, var(--accent), var(--accent-2));
+  --btn-danger: linear-gradient(180deg, rgba(255,107,136,.20), rgba(255,107,136,.12));
+  --btn-danger-hover: linear-gradient(180deg, rgba(255,107,136,.35), rgba(255,107,136,.25));
+  --btn-success: linear-gradient(90deg, var(--good), #2fd19e);
+
+  /* Estilo unificado de tarjeta */
+  --card-bg: linear-gradient(135deg, rgba(16,24,43,.95), rgba(11,15,26,.9));
+  --card-border: rgba(108,243,255,.25);
+  --card-shadow: 0 16px 48px rgba(0,0,0,.4), 0 0 32px rgba(108,243,255,.15);
 }
 *{box-sizing:border-box}
 html,body{height:100%}

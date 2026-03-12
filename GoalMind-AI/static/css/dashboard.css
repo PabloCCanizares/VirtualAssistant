@@ -591,72 +591,24 @@
   gap: 20px;
 }
 
-/* Dashboard Cards - Sistema Colapsable */
+/* Dashboard Cards */
 .dashboard-card {
-  background: linear-gradient(135deg, rgba(16,24,43,.95), rgba(11,15,26,.9));
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: 0 8px 32px rgba(0,0,0,.3);
   overflow: hidden;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-
-  /* Estado colapsado por defecto */
-  max-height: 56px;
-  padding: 16px 20px;
-}
-
-/* Estado expandido */
-.dashboard-card.expanded,
-.dashboard-card.locked {
-  max-height: 800px;
   padding: 20px;
-}
-
-/* Hover para expandir (solo si no hay otro locked) */
-.dashboard-side:not(.has-locked) .dashboard-card:hover {
-  max-height: 800px;
-  padding: 20px;
-}
-
-/* Efecto visual cuando esta expandido */
-.dashboard-card.expanded,
-.dashboard-card.locked,
-.dashboard-side:not(.has-locked) .dashboard-card:hover {
-  box-shadow: 0 16px 48px rgba(0,0,0,.4), 0 0 32px rgba(108,243,255,.15);
-  border-color: rgba(108,243,255,.25);
 }
 
 .dashboard-card-header {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 0;
-  padding-bottom: 0;
-  border-bottom: none;
-  cursor: pointer;
-  min-height: 24px;
-  transition: all 0.3s ease;
-}
-
-/* Header con borde cuando esta expandido */
-.dashboard-card.expanded .dashboard-card-header,
-.dashboard-card.locked .dashboard-card-header,
-.dashboard-side:not(.has-locked) .dashboard-card:hover .dashboard-card-header {
   margin-bottom: 16px;
   padding-bottom: 12px;
   border-bottom: 1px solid rgba(255,255,255,.06);
+  min-height: 24px;
 }
 
 .dashboard-card-icon {
   font-size: 18px;
-  transition: transform 0.3s ease;
-}
-
-/* Icono rotado cuando expandido */
-.dashboard-card.expanded .dashboard-card-icon,
-.dashboard-card.locked .dashboard-card-icon,
-.dashboard-side:not(.has-locked) .dashboard-card:hover .dashboard-card-icon {
-  transform: scale(1.1);
 }
 
 .dashboard-card-title {
@@ -667,35 +619,9 @@
   flex: 1;
 }
 
-/* Indicador de expandir/colapsar */
-.dashboard-card-toggle {
-  font-size: 12px;
-  color: var(--muted);
-  transition: all 0.3s ease;
-  opacity: 0.6;
-}
-
-.dashboard-card.expanded .dashboard-card-toggle,
-.dashboard-card.locked .dashboard-card-toggle,
-.dashboard-side:not(.has-locked) .dashboard-card:hover .dashboard-card-toggle {
-  transform: rotate(180deg);
-  opacity: 1;
-  color: var(--accent);
-}
-
-/* Contenido colapsable */
+/* Contenido siempre visible */
 .dashboard-card-content {
-  opacity: 0;
-  transform: translateY(-10px);
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  pointer-events: none;
-}
-
-.dashboard-card.expanded .dashboard-card-content,
-.dashboard-card.locked .dashboard-card-content,
-.dashboard-side:not(.has-locked) .dashboard-card:hover .dashboard-card-content {
   opacity: 1;
-  transform: translateY(0);
   pointer-events: auto;
 }
 
@@ -704,71 +630,6 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-}
-
-.dashboard-form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.dashboard-form-label {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.dashboard-form-input,
-.dashboard-form-select,
-.dashboard-form-textarea {
-  width: 100%;
-  padding: 10px 12px;
-  background: #0c1324;
-  border: 1px solid rgba(255,255,255,.10);
-  border-radius: 10px;
-  color: var(--text);
-  font-size: 13px;
-  transition: all 0.25s ease;
-}
-
-.dashboard-form-input:focus,
-.dashboard-form-select:focus,
-.dashboard-form-textarea:focus {
-  outline: none;
-  border-color: rgba(108,243,255,.4);
-  box-shadow: 0 0 0 3px rgba(108,243,255,.12);
-}
-
-.dashboard-form-input::placeholder,
-.dashboard-form-textarea::placeholder {
-  color: rgba(159,176,215,.4);
-}
-
-.dashboard-form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-
-.dashboard-form-submit {
-  margin-top: 8px;
-  padding: 12px 16px;
-  background: linear-gradient(90deg, var(--accent), var(--accent-2));
-  border: none;
-  border-radius: 10px;
-  color: #0a1628;
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.25s ease;
-}
-
-.dashboard-form-submit:hover {
-  filter: brightness(1.1);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(108,243,255,.25);
 }
 
 /* Goals dentro del dashboard */

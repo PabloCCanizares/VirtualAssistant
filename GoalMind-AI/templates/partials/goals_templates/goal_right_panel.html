@@ -2,11 +2,10 @@
 
   {% if goal %}
   <!-- Vista de detalle: Formulario de nueva tarea con objetivo_id hardcodeado -->
-  <div class="side-panel-card collapsible">
+  <div class="side-panel-card">
     <div class="side-panel-header">
       <span class="side-panel-icon">➕</span>
       <h3 class="side-panel-title">Nueva tarea</h3>
-      <span class="side-panel-toggle"></span>
     </div>
 
     <div class="side-panel-card-content">
@@ -69,11 +68,10 @@
 
   {% else %}
   <!-- Vista de lista: Formulario de nuevo objetivo (colapsable) -->
-  <div class="side-panel-card collapsible">
+  <div class="side-panel-card">
     <div class="side-panel-header">
       <span class="side-panel-icon">➕</span>
       <h3 class="side-panel-title">Nuevo objetivo</h3>
-      <span class="side-panel-toggle"></span>
     </div>
 
     <div class="side-panel-card-content">
@@ -216,5 +214,4 @@
 
 </aside>
 
-<script src="{{ url_for('static', filename='js/side_panel_collapsible.js') }}"></script>
 <script src="{{ url_for('static', filename='js/category_selector.js') }}"></script>

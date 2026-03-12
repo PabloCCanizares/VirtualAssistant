@@ -1,37 +1,3 @@
-/*
- * Side Panel Collapsible - Sistema de menus desplegables para paneles laterales
- */
-
-document.addEventListener('DOMContentLoaded', function() {
-  initCollapsiblePanels();
-});
-
-function initCollapsiblePanels() {
-  const sidePanels = document.querySelectorAll('.side-panel');
-  
- sidePanels.forEach(sidePanel => {
-    const cards = sidePanel.querySelectorAll('.side-panel-card.collapsible');
-
-    function toggleCard(card) {
-      card.classList.toggle('expanded');
-    }
-
-    // Configurar cada card colapsable
-    cards.forEach(card => {
-      const header = card.querySelector('.side-panel-header');
-      const content = card.querySelector('.side-panel-card-content');
-      
-      if (!header || !content) return;
-
-      // Click en el header -> toggle expand/collapse
-      header.addEventListener('click', function(e) {
-        e.stopPropagation();
-        toggleCard(card);
-      });
-    });
-  });
-}
-
 /**
  * Drag & Drop para subida de documentos
  */
@@ -235,7 +201,6 @@ function showSnackbar(message, type = 'success') {
 }
 
 // Exportar para uso global
-window.initCollapsiblePanels = initCollapsiblePanels;
 window.initDropzone = initDropzone;
 window.UploadModal = UploadModal;
 window.formatFileSize = formatFileSize;

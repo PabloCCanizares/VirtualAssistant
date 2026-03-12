@@ -1,11 +1,10 @@
 <aside class="side-panel">
 
-  <!-- Editar proyecto (colapsable) -->
-  <div class="side-panel-card collapsible">
+  <!-- Editar proyecto -->
+  <div class="side-panel-card">
     <div class="side-panel-header">
     <span class="side-panel-icon">✏️</span>
       <h3 class="side-panel-title">Editar proyecto</h3>
-      <span class="side-panel-toggle"></span>
     </div>
 
     <div class="side-panel-card-content">
@@ -88,12 +87,11 @@
     </div>
   </div>
 
-  <!-- Crear nuevo objetivo para este proyecto (colapsable) -->
-  <div class="side-panel-card collapsible">
+  <!-- Crear nuevo objetivo para este proyecto -->
+  <div class="side-panel-card">
     <div class="side-panel-header">
      <span class="side-panel-icon">🎯</span>
       <h3 class="side-panel-title">Nuevo objetivo</h3>
-      <span class="side-panel-toggle"></span>
     </div>
 
     <div class="side-panel-card-content">
@@ -161,12 +159,11 @@
     </div>
   </div>
 
-  <!-- Asociar documento - Drag & Drop (colapsable) -->
-  <div class="side-panel-card collapsible" id="documentDropCard">
+  <!-- Asociar documento - Drag & Drop -->
+  <div class="side-panel-card" id="documentDropCard">
     <div class="side-panel-header">
     <span class="side-panel-icon">📎</span>
       <h3 class="side-panel-title">Asociar documento</h3>
-      <span class="side-panel-toggle"></span>
     </div>
 
     <div class="side-panel-card-content">
@@ -193,12 +190,11 @@
     </div>
   </div>
 
-  <!-- Eliminar proyecto (colapsable) -->
-  <div class="side-panel-card collapsible">
+  <!-- Eliminar proyecto -->
+  <div class="side-panel-card">
     <div class="side-panel-header">
       <span class="side-panel-icon">🗑️</span>
       <h3 class="side-panel-title">Eliminar proyecto</h3>
-      <span class="side-panel-toggle"></span>
     </div>
 
     <div class="side-panel-card-content">
@@ -278,7 +274,6 @@
   </div>
 </div>
 
-<script src="{{ url_for('static', filename='js/side_panel_collapsible.js') }}"></script>
 <script src="{{ url_for('static', filename='js/category_selector.js') }}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
