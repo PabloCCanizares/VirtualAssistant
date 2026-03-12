@@ -12,6 +12,12 @@ class AppState(TypedDict, total=False):
     messages: list[BaseMessage]
     context_json: str
     user_id: str
+    deep_search_mode: str  # auto|on|off (modo solicitado para deep search)
+    deep_search_requested: bool  # flag computado para fases futuras de routing
+    deep_search_error: str  # motivo si deep search no puede activarse
+    deep_search_results: list[dict[str, Any]]  # resultados crudos de proveedor de búsqueda
+    deep_research_notes: str  # notas/sintesis de investigación profunda
+    deep_research_sources: list[dict[str, Any]]  # fuentes normalizadas con URL/título/snippet
     route: str
     use_critic: bool
     fallback_route: str  # deprecated: mantenido por compatibilidad

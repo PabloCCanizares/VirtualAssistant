@@ -11,11 +11,14 @@
   let messagesEl = null;
   let inputEl = null;
   let sendBtn = null;
+  let deepSearchModeSelect = null;
   let welcomeEl = null;
   let welcomePromptButtons = [];
   let isSending = false;
   const history = [];
   const maxHistory = 8;
+  const DEEP_SEARCH_MODE_STORAGE_KEY = 'ai_chat_deep_search_mode';
+  const ALLOWED_DEEP_SEARCH_MODES = ['auto', 'on', 'off'];
 
   function init() {
     aiBtn = document.getElementById('sidebar-ai-btn');
@@ -24,6 +27,7 @@
     messagesEl = document.getElementById('ai-chat-messages');
     inputEl = document.getElementById('ai-chat-input');
     sendBtn = document.getElementById('ai-chat-send');
+    deepSearchModeSelect = document.getElementById('ai-chat-deep-search-mode');
     welcomeEl = messagesEl ? messagesEl.querySelector('.ai-chat-welcome') : null;
     welcomePromptButtons = welcomeEl ? Array.from(welcomeEl.querySelectorAll('.ai-chat-welcome-btn')) : [];
 
@@ -40,6 +44,15 @@
 
     if (sendBtn) {
       sendBtn.addEventListener('click', handleSend);
+    }
+
+    if (deepSearchModeSelect) {
+      deepSearchModeSelect.value = loadDeepSearchModePreference();
+      deepSearchModeSelect.addEventListener('change', function() {
+        const mode = normalizeDeepSearchMode(deepSearchModeSelect.value);
+        deepSearchModeSelect.value = mode;
+        saveDeepSearchModePreference(mode);
+      });
     }
 
     welcomePromptButtons.forEach(function(btn) {
@@ -151,6 +164,40 @@
     if (inputEl) {
       inputEl.disabled = state;
     }
+    if (deepSearchModeSelect) {
+      deepSearchModeSelect.disabled = state;
+    }
+  }
+
+  function normalizeDeepSearchMode(mode) {
+    const normalized = String(mode || '').trim().toLowerCase();
+    if (ALLOWED_DEEP_SEARCH_MODES.indexOf(normalized) >= 0) {
+      return normalized;
+    }
+    return 'auto';
+  }
+
+  function loadDeepSearchModePreference() {
+    try {
+      return normalizeDeepSearchMode(window.localStorage.getItem(DEEP_SEARCH_MODE_STORAGE_KEY));
+    } catch (_err) {
+      return 'auto';
+    }
+  }
+
+  function saveDeepSearchModePreference(mode) {
+    try {
+      window.localStorage.setItem(DEEP_SEARCH_MODE_STORAGE_KEY, normalizeDeepSearchMode(mode));
+    } catch (_err) {
+      // Ignorar: algunos navegadores pueden bloquear storage.
+    }
+  }
+
+  function getSelectedDeepSearchMode() {
+    if (!deepSearchModeSelect) {
+      return 'auto';
+    }
+    return normalizeDeepSearchMode(deepSearchModeSelect.value);
   }
 
   function handleSend() {
@@ -182,7 +229,8 @@
         },
         body: JSON.stringify({
           message: message,
-          history: history
+          history: history,
+          deep_search_mode: getSelectedDeepSearchMode()
         })
       });
 

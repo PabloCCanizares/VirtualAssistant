@@ -4,7 +4,14 @@ from langchain_core.messages import HumanMessage
 pytest.importorskip("langgraph")
 
 from ai.agents.supervisor import route_after_supervisor, supervisor_node
-from ai.graph import _history_to_messages, _route_after_intent, _route_after_writer
+from ai.graph import (
+    _history_to_messages,
+    _route_after_action_executor,
+    _route_after_action_planner,
+    _route_after_deep_research,
+    _route_after_queue_executor,
+    _route_after_writer,
+)
 
 
 def test_history_to_messages_filters_invalid_entries():
@@ -27,42 +34,44 @@ def test_route_after_writer_respects_use_critic():
     assert _route_after_writer({"use_critic": False}) == "finalize"
 
 
-def test_route_after_intent_uses_finalize_when_clarification_exists():
-    next_node = _route_after_intent({"action_clarification_question": "Que proyecto?"})
+def test_route_after_action_planner_goes_to_queue_when_queue_exists():
+    next_node = _route_after_action_planner({"action_queue": [{"action_name": "create_project"}]})
+    assert next_node == "queue_executor"
+
+
+def test_route_after_action_planner_goes_finalize_without_queue():
+    next_node = _route_after_action_planner({})
     assert next_node == "finalize"
 
 
-def test_route_after_intent_finalize_when_low_confidence():
-    """Con baja confianza, el nuevo routing va a finalize (ya no hay fallback)."""
-    next_node = _route_after_intent(
-        {
-            "action_name": "create_project",
-            "action_confidence": 0.25,
-        }
-    )
-    assert next_node == "finalize"
-
-
-def test_route_after_intent_action_executor_when_high_confidence():
-    next_node = _route_after_intent(
-        {
-            "action_name": "create_project",
-            "action_confidence": 0.9,
-            "action_needs_confirmation": False,
-        }
-    )
+def test_route_after_queue_executor_to_action_executor_when_action_name_exists():
+    next_node = _route_after_queue_executor({"action_name": "create_project"})
     assert next_node == "action_executor"
 
 
-def test_route_after_intent_finalize_when_needs_confirmation():
-    next_node = _route_after_intent(
-        {
-            "action_name": "delete_project",
-            "action_confidence": 0.95,
-            "action_needs_confirmation": True,
-        }
-    )
+def test_route_after_queue_executor_to_finalize_when_action_name_missing():
+    next_node = _route_after_queue_executor({})
     assert next_node == "finalize"
+
+
+def test_route_after_action_executor_returns_queue_executor_in_queue_mode():
+    next_node = _route_after_action_executor({"action_queue": []})
+    assert next_node == "queue_executor"
+
+
+def test_route_after_action_executor_returns_finalize_without_queue():
+    next_node = _route_after_action_executor({})
+    assert next_node == "finalize"
+
+
+def test_route_after_deep_research_fallbacks_to_research_on_error():
+    next_node = _route_after_deep_research({"deep_search_error": "fallo proveedor"})
+    assert next_node == "research"
+
+
+def test_route_after_deep_research_goes_writer_with_notes():
+    next_node = _route_after_deep_research({"deep_research_notes": "notas válidas"})
+    assert next_node == "writer"
 
 
 def test_supervisor_routes_pending_confirmation_to_action_executor():
@@ -122,3 +131,21 @@ def test_supervisor_off_topic_example_chiste():
 
     assert result["query_type"] == "off_topic"
     assert "gestion de tus proyectos" in result["final_response"]
+
+
+def test_supervisor_promotes_research_to_deep_research_when_requested():
+    class _MockLLM:
+        def invoke(self, messages):
+            class Response:
+                content = '{"category": "research", "use_critic": false}'
+            return Response()
+
+    state = {
+        "messages": [HumanMessage(content="Investiga sobre este tema")],
+        "deep_search_requested": True,
+        "user_id": "u1",
+    }
+    result = supervisor_node(state, _MockLLM())
+
+    assert result["query_type"] == "deep_research"
+    assert route_after_supervisor(result) == "deep_research"

@@ -10,7 +10,16 @@ from ai.state import AppState
 
 logger = logging.getLogger(__name__)
 
-VALID_CATEGORIES = {"action", "weekly_summary", "weekly_plan", "recommendations", "progress", "research", "off_topic"}
+VALID_CATEGORIES = {
+    "action",
+    "weekly_summary",
+    "weekly_plan",
+    "recommendations",
+    "progress",
+    "deep_research",
+    "research",
+    "off_topic",
+}
 
 OFF_TOPIC_MESSAGE = (
     "Lo siento, solo puedo ayudarte con la gestion de tus proyectos, objetivos, "
@@ -60,7 +69,7 @@ def supervisor_node(state: AppState, llm) -> AppState:
     """
     Doble fase:
       Fase 1 (Python puro): detectar confirmacion/cancelacion de acciones pendientes.
-      Fase 2 (LLM): clasificar la intencion en 6 categorias. NO recibe context_json.
+      Fase 2 (LLM): clasificar la intencion. NO recibe context_json.
     """
     print("\n" + "="*60)
     print("SUPERVISOR_NODE: Clasificando intencion del usuario...")
@@ -147,6 +156,10 @@ def supervisor_node(state: AppState, llm) -> AppState:
 
     if not isinstance(use_critic, bool):
         use_critic = False
+
+    # Si el usuario/cliente forzó deep search (modo ON), escalar research → deep_research.
+    if state.get("deep_search_requested", False) and category == "research":
+        category = "deep_research"
 
     # Si es off_topic, inyectar respuesta fija y enrutar a finalize
     if category == "off_topic":

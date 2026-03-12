@@ -8,6 +8,7 @@ from ai.agents import (
     action_executor_node,
     action_planner_node,
     critic_node,
+    deep_research_node,
     progress_tracker_node,
     queue_executor_node,
     recommendations_node,
@@ -54,6 +55,7 @@ def _route_after_supervisor(state: AppState) -> str:
       weekly_plan      → weekly_planner
       recommendations  → recommendations
       progress         → progress_tracker
+      deep_research    → deep_research
       research         → research
       off_topic        → finalize
       finalize         → finalize
@@ -68,6 +70,7 @@ def _route_after_supervisor(state: AppState) -> str:
         "weekly_plan": "weekly_planner",
         "recommendations": "recommendations",
         "progress": "progress_tracker",
+        "deep_research": "deep_research",
         "research": "research",
         "off_topic": "finalize",
         "finalize": "finalize",
@@ -109,6 +112,20 @@ def _route_after_writer(state: AppState) -> str:
     return "critic" if state.get("use_critic", False) else "finalize"
 
 
+def _route_after_deep_research(state: AppState) -> str:
+    """
+    Si deep_research falla o no aporta notas, hacemos fallback a research.
+    Si hay notas válidas, continuamos con writer.
+    """
+    if (state.get("deep_search_error") or "").strip():
+        return "research"
+
+    notes = (state.get("deep_research_notes") or state.get("research_notes") or "").strip()
+    if notes:
+        return "writer"
+    return "research"
+
+
 def _finalize_node(state: AppState) -> AppState:
     print("\n" + "="*60)
     print("✅ FINALIZE_NODE: Finalizando respuesta...")
@@ -138,6 +155,7 @@ def build_chat_graph(llm):
     graph.add_node("action_planner", lambda state: action_planner_node(state, llm))
     graph.add_node("queue_executor", lambda state: queue_executor_node(state, llm))
     graph.add_node("action_executor", lambda state: action_executor_node(state, llm))
+    graph.add_node("deep_research", lambda state: deep_research_node(state, llm))
     graph.add_node("research", lambda state: research_node(state, llm))
     graph.add_node("recommendations", lambda state: recommendations_node(state, llm))
     graph.add_node("weekly_summary", lambda state: weekly_summary_node(state, llm))
@@ -162,8 +180,19 @@ def build_chat_graph(llm):
             "weekly_planner": "weekly_planner",
             "recommendations": "recommendations",
             "progress_tracker": "progress_tracker",
+            "deep_research": "deep_research",
             "research": "research",
             "finalize": "finalize",
+        },
+    )
+
+    # deep_research → writer (si hay notas) o research (fallback)
+    graph.add_conditional_edges(
+        "deep_research",
+        _route_after_deep_research,
+        {
+            "writer": "writer",
+            "research": "research",
         },
     )
 
@@ -248,6 +277,9 @@ def run_graph_chat(
     user_id: str,
     pending_action_intent: dict | None = None,
     session_mutations_json: str = "[]",
+    deep_search_mode: str = "auto",
+    deep_search_requested: bool = False,
+    deep_search_error: str = "",
 ) -> str:
     print("\n" + "#"*60)
     print("# INICIANDO GRAFO DE CHAT")
@@ -268,6 +300,9 @@ def run_graph_chat(
         "user_id": user_id,
         "pending_action_intent": pending_action_intent,
         "session_mutations_json": session_mutations_json,
+        "deep_search_mode": deep_search_mode,
+        "deep_search_requested": deep_search_requested,
+        "deep_search_error": deep_search_error,
     }
     try:
         result = app.invoke(state, config={"recursion_limit": 50})
