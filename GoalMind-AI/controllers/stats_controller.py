@@ -7,6 +7,7 @@ from bson import ObjectId
 
 from model.task_model import TaskModel
 from model.goal_model import GoalModel
+from model.event_model import eventModel
 from database.mongo_conn import get_app_user_id
 
 stats_bp = Blueprint("stats_bp", __name__, url_prefix="/stats")
@@ -181,26 +182,32 @@ def stats_tasks_relevance_month():
             "meta": {"year": year}}
 
 def stats_events_by_type_month():
-    tasks = _load_all_tasks()
-    year = _year_now()
-    month_tasks = [t for t in tasks if _is_in_ym(t.get("fecha_limite"), year)]
-    total = len(month_tasks)
+    raw_events = eventModel.get_all_events(usuario_id=DEFAULT_USER_ID)
+    all_events = []
+    for e in raw_events:
+        e = dict(e) if not isinstance(e, dict) else e.copy()
+        if "_id" in e and not isinstance(e["_id"], str):
+            try:
+                e["_id"] = str(e["_id"])
+            except Exception:
+                pass
+        all_events.append(e)
+    total = len(all_events)
     counts = {}
-    for t in month_tasks:
-        cat = (t.get("categoria") or "sin_categoria").strip()
+    for t in all_events:
+        cat = (t.get("tipo_evento") or "sin_tipo").strip()
         counts[cat] = counts.get(cat, 0) + 1
     distribution = [{"tipo": tipo, "count": cnt, "percentage": round((cnt/total*100.0) if total else 0.0,2)}
                     for tipo, cnt in counts.items()]
     distribution.sort(key=lambda x: x["count"], reverse=True)
-    return {"uid": uuid.uuid4().hex, "palette": PALETTE, "total": total, "distribution": distribution, "items": month_tasks,
-            "meta": {"year": year}}
+    return {"uid": uuid.uuid4().hex, "palette": PALETTE, "total": total, "distribution": distribution, "items": all_events}
 
 # Mapa de rutas -> template parcial (autónomo)
 _STAT_MAP = {
-    "tasks_completed_month": {"fn": stats_tasks_completed_month, "template": "partials/stats_templates/stat_tasks_completed_panel.html", "title": "Tareas cumplidas (mes actual)"},
-    "goals_progress": {"fn": stats_goals_progress, "template": "partials/stats_templates/stat_goals_progress_panel.html", "title": "Progreso por objetivos"},
-    "tasks_relevance": {"fn": stats_tasks_relevance_month, "template": "partials/stats_templates/stat_tasks_relevance_panel.html", "title": "Relevancia de tareas (este mes)"},
-    "events_by_type": {"fn": stats_events_by_type_month, "template": "partials/stats_templates/stat_events_by_type_panel.html", "title": "Eventos por tipo (este mes)"},
+    "tasks_completed_month": {"fn": stats_tasks_completed_month, "template": "partials/stats_templates/stat_tasks_completed_panel.html", "title": "   Tareas cumplidas (mes actual)"},
+    "goals_progress": {"fn": stats_goals_progress, "template": "partials/stats_templates/stat_goals_progress_panel.html", "title": "   Progreso por objetivos"},
+    "tasks_relevance": {"fn": stats_tasks_relevance_month, "template": "partials/stats_templates/stat_tasks_relevance_panel.html", "title": "   Relevancia de tareas (este mes)"},
+    "events_by_type": {"fn": stats_events_by_type_month, "template": "partials/stats_templates/stat_events_by_type_panel.html", "title": "   Eventos por tipo"},
 }
 
 @stats_bp.route("/<stat_name>", methods=["GET"])

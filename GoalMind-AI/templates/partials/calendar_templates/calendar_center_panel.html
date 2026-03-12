@@ -160,6 +160,17 @@
       <button id="btn-new" class="btn primary">+ Nuevo evento</button>
     </div>
     <div id="calendar"></div>
+
+    <!-- Vista de lista custom (modo Lista) -->
+    <div id="eventsListView">
+      <div class="elv-header">
+        <h4 id="elvTitle">Próximos eventos</h4>
+      </div>
+      <div class="elv-body" id="elvBody"></div>
+      <div class="elv-footer">
+        <button class="elv-toggle-btn" id="elvToggleBtn">⏮ ver eventos pasados</button>
+      </div>
+    </div>
   </div>
 
   <!-- Modal Crear/Editar -->
@@ -221,422 +232,310 @@
   </div>
 
   <script>
-    // ---------- Utilidades de fecha ----------
-    // Convierte ISO (UTC o con offset) -> valor válido para input datetime-local (en hora local)
+    // ===== Utilidades puras (sin DOM) =====
     function isoToLocalInputValue(iso) {
       if (!iso) return "";
       const d = new Date(iso);
       const pad = n => String(n).padStart(2, "0");
-      const yyyy = d.getFullYear();
-      const mm = pad(d.getMonth() + 1);
-      const dd = pad(d.getDate());
-      const hh = pad(d.getHours());
-      const mi = pad(d.getMinutes());
-      return `${yyyy}-${mm}-${dd}T${hh}:${mi}`;
+      return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
     }
-    // Convierte valor de <input type="datetime-local"> -> ISO (toISOString())
     function localInputValueToISO(val) {
       if (!val) return null;
-      // Interpretado en zona local por el navegador
-      const d = new Date(val);
-      return d.toISOString();
+      return new Date(val).toISOString();
     }
+    function timeStrToMinutes(t) {
+      if (!t) return 0;
+      const parts = t.split(':').map(Number);
+      return parts[0] * 60 + (parts[1] || 0);
+    }
+    function escapeHTML(s) {
+      return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+    }
+    function padZ(n) { return String(n).padStart(2, '0'); }
 
-    // ---------- Modal ----------
-    const modalBackdrop = document.getElementById('eventModalBackdrop');
-    const form = document.getElementById('eventForm');
-    const inputId = document.getElementById('eventId');
-    const inputTitulo = document.getElementById('titulo');
-    const inputDescripcion = document.getElementById('descripcion');
-    const inputTipo = document.getElementById('tipo_evento');
-    const inputInicio = document.getElementById('fecha_inicio');
-    const inputFin = document.getElementById('fecha_fin');
-    const btnDelete = document.getElementById('btn-delete');
-    const btnCancel = document.getElementById('btn-cancel');
-    const btnNew = document.getElementById('btn-new');
-    const btnToday = document.getElementById('btn-today');
-    const modalTitle = document.getElementById('modalTitle');
-    
-    // Campos para asociación
-    const inputAsociar = document.getElementById('asociar_a');
-    const inputAsociarTipo = document.getElementById('asociar_tipo');
-    const inputAsociarId = document.getElementById('asociar_id');
-    const associationResults = document.getElementById('associationResults');
-    const associationSelected = document.getElementById('associationSelected');
-    const associationBadge = document.getElementById('associationBadge');
-    const clearAssociationBtn = document.getElementById('clearAssociation');
-    
-    let searchTimeout = null;
+    // Variables de módulo accesibles por todos los listeners
+    let calendar = null;
+    let elvMode = 'upcoming';
+    const slotMin = '07:00:00';
+    const slotMax = '24:00:00';
 
-    // ---------- Funciones de asociación ----------
-    async function searchAssociations(query) {
-      if (!query || query.length < 2) {
-        associationResults.style.display = 'none';
-        return;
+    document.addEventListener('DOMContentLoaded', function () {
+
+      // ===== Referencias DOM =====
+      const calendarEl    = document.getElementById('calendar');
+      const container     = document.getElementById('calendar-container');
+      const modalBackdrop = document.getElementById('eventModalBackdrop');
+      const form          = document.getElementById('eventForm');
+      const inputId       = document.getElementById('eventId');
+      const inputTitulo   = document.getElementById('titulo');
+      const inputDescripcion = document.getElementById('descripcion');
+      const inputTipo     = document.getElementById('tipo_evento');
+      const inputInicio   = document.getElementById('fecha_inicio');
+      const inputFin      = document.getElementById('fecha_fin');
+      const btnDelete     = document.getElementById('btn-delete');
+      const btnCancel     = document.getElementById('btn-cancel');
+      const btnNew        = document.getElementById('btn-new');
+      const btnToday      = document.getElementById('btn-today');
+      const modalTitle    = document.getElementById('modalTitle');
+      const elvTitle      = document.getElementById('elvTitle');
+      const elvBody       = document.getElementById('elvBody');
+      const elvToggleBtn  = document.getElementById('elvToggleBtn');
+
+      // Campos asociación
+      const inputAsociar       = document.getElementById('asociar_a');
+      const inputAsociarTipo   = document.getElementById('asociar_tipo');
+      const inputAsociarId     = document.getElementById('asociar_id');
+      const associationResults = document.getElementById('associationResults');
+      const associationSelected= document.getElementById('associationSelected');
+      const associationBadge   = document.getElementById('associationBadge');
+      const clearAssociationBtn= document.getElementById('clearAssociation');
+
+      let searchTimeout = null;
+
+      // ===== Utilidades de altura =====
+      function getHourPixelHeight() {
+        const el = container || document.documentElement;
+        const px = parseFloat(getComputedStyle(el).getPropertyValue('--hour-h'));
+        return isNaN(px) ? 48 : px;
       }
-      
-      associationResults.innerHTML = '<div class="association-loading">Buscando...</div>';
-      associationResults.style.display = 'block';
-      
-      try {
-        const res = await fetch(`/api/search/associations?q=${encodeURIComponent(query)}&limit=10`);
-        if (!res.ok) throw new Error('Error en búsqueda');
-        const data = await res.json();
-        
-        if (data.length === 0) {
-          associationResults.innerHTML = '<div class="association-no-results">No se encontraron resultados</div>';
+      function calcContentHeight(minT, maxT, extraPx = 120) {
+        const minutes = timeStrToMinutes(maxT) - timeStrToMinutes(minT);
+        return Math.round(Math.max(1, minutes / 60) * getHourPixelHeight() + extraPx);
+      }
+
+      // ===== Modo Lista =====
+      function enterListMode() {
+        container.classList.add('list-mode');
+        // Gestión manual del estado activo: quitar de todos y añadir al botón Lista
+        container.querySelectorAll('.fc-button').forEach(btn => btn.classList.remove('fc-button-active'));
+        const listaBtn = container.querySelector('.fc-listaCustom-button');
+        if (listaBtn) listaBtn.classList.add('fc-button-active');
+        elvMode = 'upcoming';
+        elvTitle.textContent = 'Próximos eventos';
+        elvToggleBtn.textContent = '⏮ ver eventos pasados';
+        loadAndRenderTimeline('upcoming');
+      }
+      function exitListMode() {
+        container.classList.remove('list-mode');
+        // Quitar el activo del botón Lista; FullCalendar activará el de la vista montada
+        const listaBtn = container.querySelector('.fc-listaCustom-button');
+        if (listaBtn) listaBtn.classList.remove('fc-button-active');
+      }
+
+      async function loadAndRenderTimeline(type) {
+        elvBody.innerHTML = '<div class="elv-loading">Cargando eventos...</div>';
+        try {
+          const res = await fetch(`/api/events/timeline?type=${type}`);
+          const events = await res.json();
+          renderTimeline(events, type);
+        } catch {
+          elvBody.innerHTML = '<div class="elv-empty">Error al cargar eventos.</div>';
+        }
+      }
+
+      function renderTimeline(events, type) {
+        if (!events.length) {
+          elvBody.innerHTML = `<div class="elv-empty">No hay eventos ${type === 'past' ? 'pasados' : 'próximos'}.</div>`;
           return;
         }
-        
-        let html = '';
-        data.forEach(item => {
-          const tipoLabel = item.tipo === 'tarea' ? 'Tarea' : 'Objetivo';
-          html += `
-            <div class="association-item" data-id="${item._id}" data-tipo="${item.tipo}" data-titulo="${item.titulo}">
-              <span class="association-item-type ${item.tipo}">${tipoLabel}</span>
-              <span class="association-item-title">${item.titulo}</span>
-            </div>
-          `;
-        });
-        associationResults.innerHTML = html;
-        
-        // Agregar event listeners a los items
-        associationResults.querySelectorAll('.association-item').forEach(item => {
+        elvBody.innerHTML = events.map(ev => {
+          const inicio  = new Date(ev.fecha_inicio);
+          const fin     = new Date(ev.fecha_fin);
+          const dateStr = inicio.toLocaleDateString('es', { weekday:'short', day:'numeric', month:'short', year:'numeric' });
+          const timeStr = `${padZ(inicio.getHours())}:${padZ(inicio.getMinutes())} – ${padZ(fin.getHours())}:${padZ(fin.getMinutes())}`;
+          const tipo    = ev.tipo_evento || '';
+          const desc    = ev.descripcion ? `<div class="elv-item-desc">${escapeHTML(ev.descripcion)}</div>` : '';
+          return `
+            <div class="elv-item" data-id="${ev._id}">
+              <div class="elv-item-left">
+                <span class="elv-item-date">${dateStr}</span>
+                <span class="elv-item-time">${timeStr}</span>
+              </div>
+              <div class="elv-item-dot" data-tipo="${tipo}"></div>
+              <div class="elv-item-right">
+                <div class="elv-item-title">${escapeHTML(ev.titulo || '(sin título)')}</div>
+                ${desc}
+              </div>
+            </div>`;
+        }).join('');
+
+        const evMap = {};
+        events.forEach(ev => { evMap[ev._id] = ev; });
+        elvBody.querySelectorAll('.elv-item').forEach(item => {
           item.addEventListener('click', () => {
-            selectAssociation(item.dataset.id, item.dataset.tipo, item.dataset.titulo);
+            const ev = evMap[item.dataset.id];
+            if (ev) openModal('edit', {
+              _id: ev._id, id: ev._id, titulo: ev.titulo,
+              fecha_inicio: ev.fecha_inicio, fecha_fin: ev.fecha_fin,
+              descripcion: ev.descripcion, tipo_evento: ev.tipo_evento,
+              extendedProps: { raw: ev }
+            });
           });
         });
-      } catch (err) {
-        console.error(err);
-        associationResults.innerHTML = '<div class="association-no-results">Error al buscar</div>';
       }
-    }
-    
-    function selectAssociation(id, tipo, titulo) {
-      inputAsociarId.value = id;
-      inputAsociarTipo.value = tipo;
-      inputAsociar.value = '';
-      inputAsociar.style.display = 'none';
-      associationResults.style.display = 'none';
-      
-      const tipoLabel = tipo === 'tarea' ? 'Tarea' : 'Objetivo';
-      associationBadge.className = `association-badge ${tipo}`;
-      associationBadge.textContent = `[${tipoLabel}] ${titulo}`;
-      associationSelected.style.display = 'flex';
-    }
-    
-    function clearAssociation() {
-      inputAsociarId.value = '';
-      inputAsociarTipo.value = '';
-      inputAsociar.value = '';
-      inputAsociar.style.display = 'block';
-      associationSelected.style.display = 'none';
-      associationResults.style.display = 'none';
-    }
-    
-    // Event listeners para el campo de asociación
-    inputAsociar.addEventListener('input', (e) => {
-      clearTimeout(searchTimeout);
-      const query = e.target.value.trim();
-      searchTimeout = setTimeout(() => searchAssociations(query), 300);
-    });
-    
-    inputAsociar.addEventListener('focus', () => {
-      if (inputAsociar.value.trim().length >= 2) {
-        searchAssociations(inputAsociar.value.trim());
+
+      // ===== Asociación =====
+      async function searchAssociations(query) {
+        if (!query || query.length < 2) { associationResults.style.display = 'none'; return; }
+        associationResults.innerHTML = '<div class="association-loading">Buscando...</div>';
+        associationResults.style.display = 'block';
+        try {
+          const res = await fetch(`/api/search/associations?q=${encodeURIComponent(query)}&limit=10`);
+          if (!res.ok) throw new Error();
+          const data = await res.json();
+          if (!data.length) { associationResults.innerHTML = '<div class="association-no-results">No se encontraron resultados</div>'; return; }
+          associationResults.innerHTML = data.map(item => {
+            const tipoLabel = item.tipo === 'tarea' ? 'Tarea' : 'Objetivo';
+            return `<div class="association-item" data-id="${item._id}" data-tipo="${item.tipo}" data-titulo="${item.titulo}">
+              <span class="association-item-type ${item.tipo}">${tipoLabel}</span>
+              <span class="association-item-title">${item.titulo}</span>
+            </div>`;
+          }).join('');
+          associationResults.querySelectorAll('.association-item').forEach(item => {
+            item.addEventListener('click', () => selectAssociation(item.dataset.id, item.dataset.tipo, item.dataset.titulo));
+          });
+        } catch {
+          associationResults.innerHTML = '<div class="association-no-results">Error al buscar</div>';
+        }
       }
-    });
-    
-    clearAssociationBtn.addEventListener('click', clearAssociation);
-    
-    // Cerrar resultados al hacer clic fuera
-    document.addEventListener('click', (e) => {
-      if (!e.target.closest('.association-field')) {
+
+      function selectAssociation(id, tipo, titulo) {
+        inputAsociarId.value = id;
+        inputAsociarTipo.value = tipo;
+        inputAsociar.value = '';
+        inputAsociar.style.display = 'none';
+        associationResults.style.display = 'none';
+        const tipoLabel = tipo === 'tarea' ? 'Tarea' : 'Objetivo';
+        associationBadge.className = `association-badge ${tipo}`;
+        associationBadge.textContent = `[${tipoLabel}] ${titulo}`;
+        associationSelected.style.display = 'flex';
+      }
+
+      function clearAssociation() {
+        inputAsociarId.value = '';
+        inputAsociarTipo.value = '';
+        inputAsociar.value = '';
+        inputAsociar.style.display = 'block';
+        associationSelected.style.display = 'none';
         associationResults.style.display = 'none';
       }
-    });
 
-    function openModal(mode, data = {}) {
-      modalTitle.textContent = mode === 'edit' ? 'Editar evento' : 'Nuevo evento';
-      inputId.value = data._id || data.id || '';
-      inputTitulo.value = data.titulo || data.title || '';
-      inputDescripcion.value = data.descripcion || data.extendedProps?.descripcion || '';
-      inputTipo.value = data.tipo_evento || data.extendedProps?.tipo_evento || '';
-      inputInicio.value = isoToLocalInputValue(data.fecha_inicio || data.start);
-      inputFin.value = isoToLocalInputValue(data.fecha_fin || data.end);
-      btnDelete.style.display = mode === 'edit' ? 'inline-block' : 'none';
-      
-      // Limpiar y configurar asociación
-      clearAssociation();
-      
-      // Si es edición y hay asociación previa, mostrarla
-      const rawData = data.extendedProps?.raw || data;
-      if (rawData.referencia_id && rawData.referencia_tipo) {
-        // Nuevo formato unificado
-        loadAssociationInfo(rawData.referencia_id, rawData.referencia_tipo);
-      } else if (rawData.id_tarea) {
-        // Compatibilidad con datos antiguos
-        loadAssociationInfo(rawData.id_tarea, 'tarea');
-      } else if (rawData.id_objetivo) {
-        // Compatibilidad con datos antiguos
-        loadAssociationInfo(rawData.id_objetivo, 'objetivo');
-      }
-      
-      modalBackdrop.style.display = 'flex';
-    }
-    
-    async function loadAssociationInfo(id, tipo) {
-      // Mostrar la asociación existente
-      inputAsociarId.value = id;
-      inputAsociarTipo.value = tipo;
-      inputAsociar.style.display = 'none';
-      
-      const tipoLabel = tipo === 'tarea' ? 'Tarea' : 'Objetivo';
-      associationBadge.className = `association-badge ${tipo}`;
-      associationBadge.textContent = `[${tipoLabel}] Cargando...`;
-      associationSelected.style.display = 'flex';
-      
-      // Intentar obtener el título real (opcional, para mejor UX)
-      try {
-        const endpoint = tipo === 'tarea' ? `/tasks/search?id=${id}` : `/goals/${id}`;
-        const res = await fetch(endpoint);
-        if (res.ok) {
-          const data = await res.json();
-          const titulo = tipo === 'tarea' ? (data.contenido || 'Sin título') : (data.titulo || 'Sin título');
-          associationBadge.textContent = `[${tipoLabel}] ${titulo}`;
+      // ===== Modal =====
+      function openModal(mode, data = {}) {
+        modalTitle.textContent = mode === 'edit' ? 'Editar evento' : 'Nuevo evento';
+        inputId.value          = data._id || data.id || '';
+        inputTitulo.value      = data.titulo || data.title || '';
+        inputDescripcion.value = data.descripcion || data.extendedProps?.descripcion || '';
+        inputTipo.value        = data.tipo_evento || data.extendedProps?.tipo_evento || '';
+        inputInicio.value      = isoToLocalInputValue(data.fecha_inicio || data.start);
+        inputFin.value         = isoToLocalInputValue(data.fecha_fin || data.end);
+        btnDelete.style.display = mode === 'edit' ? 'inline-block' : 'none';
+        clearAssociation();
+        const raw = data.extendedProps?.raw || data;
+        if (raw.referencia_id && raw.referencia_tipo) {
+          loadAssociationInfo(raw.referencia_id, raw.referencia_tipo);
+        } else if (raw.id_tarea) {
+          loadAssociationInfo(raw.id_tarea, 'tarea');
+        } else if (raw.id_objetivo) {
+          loadAssociationInfo(raw.id_objetivo, 'objetivo');
         }
-      } catch (err) {
-        // Si falla, mantener el texto genérico
-        associationBadge.textContent = `[${tipoLabel}] (ID: ${id.substring(0, 8)}...)`;
+        modalBackdrop.style.display = 'flex';
       }
-    }
-    function closeModal() {
-      modalBackdrop.style.display = 'none';
-      form.reset();
-      inputId.value = '';
-    }
 
-    btnCancel.addEventListener('click', closeModal);
-    modalBackdrop.addEventListener('click', (e) => {
-      if (e.target === modalBackdrop) closeModal();
-    });
+      async function loadAssociationInfo(id, tipo) {
+        inputAsociarId.value = id;
+        inputAsociarTipo.value = tipo;
+        inputAsociar.style.display = 'none';
+        const tipoLabel = tipo === 'tarea' ? 'Tarea' : 'Objetivo';
+        associationBadge.className = `association-badge ${tipo}`;
+        associationBadge.textContent = `[${tipoLabel}] Cargando...`;
+        associationSelected.style.display = 'flex';
+        try {
+          const endpoint = tipo === 'tarea' ? `/tasks/search?id=${id}` : `/goals/${id}`;
+          const res = await fetch(endpoint);
+          if (res.ok) {
+            const data = await res.json();
+            const titulo = tipo === 'tarea' ? (data.contenido || 'Sin título') : (data.titulo || 'Sin título');
+            associationBadge.textContent = `[${tipoLabel}] ${titulo}`;
+          }
+        } catch {
+          associationBadge.textContent = `[${tipoLabel}] (ID: ${id.substring(0, 8)}...)`;
+        }
+      }
 
-    function timeStrToMinutes(t){ // "07:00:00" -> 420
-    if(!t) return 0;
-      const parts = t.split(':').map(Number);
-      return parts[0]*60 + (parts[1]||0);
-    }
+      function closeModal() {
+        modalBackdrop.style.display = 'none';
+        form.reset();
+        inputId.value = '';
+      }
 
-    function getHourPixelHeight(){
-      // lee la variable CSS --hour-h de tu contenedor (fallback 48)
-      const el = document.querySelector('#calendar-container') || document.documentElement;
-      const v = getComputedStyle(el).getPropertyValue('--hour-h');
-      const px = parseFloat(v);
-      return isNaN(px) ? 48 : px;
-    }
-
-    function calcContentHeight(slotMinTime, slotMaxTime, extraPx = 120){
-      // extraPx: espacio para header/toolbar/col-headers; ajústalo si necesitas
-      const minutes = timeStrToMinutes(slotMaxTime) - timeStrToMinutes(slotMinTime);
-      const hours = Math.max(1, minutes / 60);
-      return Math.round(hours * getHourPixelHeight() + extraPx);
-    }
-
-    function updateCalendarSize(newMin, newMax){
-      const h = calcContentHeight(newMin, newMax, 120);
-      calendar.setOption('contentHeight', h);
-      calendar.setOption('slotMinTime', newMin);
-      calendar.setOption('slotMaxTime', newMax);
-    }
-
-    /* --- inicialización del calendario --- */
-    const slotMin = '07:00:00'; // o lee de donde lo tengas
-    const slotMax = '24:00:00';
-    const initialContentHeight = calcContentHeight(slotMin, slotMax, 120);
-
-    // ---------- FullCalendar ----------
-    document.addEventListener('DOMContentLoaded', function () {
-      const calendarEl = document.getElementById('calendar');
-
-      const calendar = new FullCalendar.Calendar(calendarEl, {
+      // ===== FullCalendar =====
+      calendar = new FullCalendar.Calendar(calendarEl, {
         locale: 'es',
         timeZone: 'local',
         initialView: 'timeGridWeek',
-        firstDay: 1,                 // Semana inicia en lunes
+        firstDay: 1,
         slotMinTime: slotMin,
         slotMaxTime: slotMax,
         nowIndicator: true,
         selectable: true,
         selectMirror: true,
-        editable: true,              // permite drag & drop y redimensionar
+        editable: true,
         eventResizableFromStart: true,
+        customButtons: {
+          listaCustom: { text: 'Lista', click: enterListMode }
+        },
         headerToolbar: {
           left: 'prev,next today',
           center: 'title',
-          right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
+          right: 'dayGridMonth,timeGridWeek,timeGridDay,listaCustom'
         },
         height: window.innerHeight,
-        buttonText: {
-          today: 'Hoy',
-          month: 'Mes',
-          week: 'Semana',
-          day: 'Día',
-          list: 'Lista'
-        },
-        // Carga de eventos desde tu API, mapeando los campos
+        buttonText: { today: 'Hoy', month: 'Mes', week: 'Semana', day: 'Día' },
+        viewDidMount: function () { exitListMode(); },
         events: async function (info, success, failure) {
           try {
-            const url = `/api/events?start=${encodeURIComponent(info.startStr)}&end=${encodeURIComponent(info.endStr)}`;
-            const res = await fetch(url);
+            const res = await fetch(`/api/events?start=${encodeURIComponent(info.startStr)}&end=${encodeURIComponent(info.endStr)}`);
             if (!res.ok) throw new Error('Error al cargar eventos');
             const data = await res.json();
-
-            const mapped = data.map(e => ({
+            success(data.map(e => ({
               id: e._id,
               title: e.titulo || '(Sin título)',
               start: e.fecha_inicio || e.start,
               end: e.fecha_fin || e.end,
-              extendedProps: {
-                descripcion: e.descripcion || '',
-                tipo_evento: e.tipo_evento || '',
-                raw: e
-              }
-            }));
-            success(mapped);
-          } catch (err) {
-            console.error(err);
-            failure(err);
-          }
+              extendedProps: { descripcion: e.descripcion || '', tipo_evento: e.tipo_evento || '', raw: e }
+            })));
+          } catch (err) { console.error(err); failure(err); }
         },
-
-        // Crear por selección en el calendario
-        select: function (selectionInfo) {
-          openModal('new', {
-            start: selectionInfo.startStr,
-            end: selectionInfo.endStr
-          });
+        select: function (info) {
+          openModal('new', { start: info.startStr, end: info.endStr });
         },
-
-        // Editar con clic
-        eventClick: function (clickInfo) {
-          const ev = clickInfo.event;
+        eventClick: function (info) {
+          const ev = info.event;
           openModal('edit', {
-            id: ev.id,
-            title: ev.title,
-            start: ev.start?.toISOString(),
-            end: ev.end?.toISOString(),
+            id: ev.id, title: ev.title,
+            start: ev.start?.toISOString(), end: ev.end?.toISOString(),
             extendedProps: ev.extendedProps || {},
             descripcion: ev.extendedProps?.descripcion || '',
             tipo_evento: ev.extendedProps?.tipo_evento || ''
           });
         },
-
-        // Mover evento (drag & drop) -> guardar
-        eventDrop: async function (changeInfo) {
-          await quickUpdateDates(changeInfo);
-        },
-
-        // Redimensionar evento -> guardar
-        eventResize: async function (resizeInfo) {
-          await quickUpdateDates(resizeInfo);
-        }
+        eventDrop:   async function (info) { await quickUpdateDates(info); },
+        eventResize: async function (info) { await quickUpdateDates(info); }
       });
 
       calendar.render();
 
-      // Botones extras
-      btnNew.addEventListener('click', () => {
-        const now = new Date();
-        const in1h = new Date(now.getTime() + 60 * 60 * 1000);
-        openModal('new', { start: now.toISOString(), end: in1h.toISOString() });
-      });
-      btnToday.addEventListener('click', () => calendar.today());
-      document.getElementById('btn-today').addEventListener('click', () => calendar.today());
-
-      // Guardar (crear/actualizar)
-      form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const id = inputId.value.trim();
-        const payload = {
-          titulo: inputTitulo.value.trim(),
-          descripcion: inputDescripcion.value.trim(),
-          tipo_evento: inputTipo.value.trim() || null,
-          fecha_inicio: localInputValueToISO(inputInicio.value),
-          fecha_fin: localInputValueToISO(inputFin.value),
-          // Referencia unificada (reemplaza id_objetivo / id_tarea)
-          referencia_id: null,
-          referencia_tipo: null
-        };
-        
-        // Establecer la referencia según el tipo seleccionado
-        const asociarTipo = inputAsociarTipo.value;
-        const asociarId = inputAsociarId.value;
-        if (asociarId && (asociarTipo === 'tarea' || asociarTipo === 'objetivo')) {
-          payload.referencia_id = asociarId;
-          payload.referencia_tipo = asociarTipo;
-        }
-
-        if (!payload.titulo) {
-          alert('El título es obligatorio.');
-          return;
-        }
-        if (!payload.fecha_inicio || !payload.fecha_fin) {
-          alert('Las fechas de inicio y fin son obligatorias.');
-          return;
-        }
-        if (new Date(payload.fecha_fin) <= new Date(payload.fecha_inicio)) {
-          alert('La fecha/hora de fin debe ser posterior al inicio.');
-          return;
-        }
-
-        try {
-          let res;
-          if (id) {
-            // UPDATE
-            res = await fetch(`/api/events/${encodeURIComponent(id)}`, {
-              method: 'PUT',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(payload)
-            });
-          } else {
-            // CREATE
-            res = await fetch('/api/events', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(payload)
-            });
-          }
-          const data = await res.json();
-          if (!res.ok) {
-            throw new Error(data?.error || 'Error guardando el evento');
-          }
-          closeModal();
-          // Recargar fuente de datos
-          calendar.refetchEvents();
-        } catch (err) {
-          console.error(err);
-          alert('No se pudo guardar el evento.');
+      // Salir del modo lista al pulsar cualquier botón del toolbar excepto el de Lista.
+      // viewDidMount no se dispara si la vista ya estaba montada (p.ej. volver a "Semana"
+      // cuando FullCalendar ya tenía timeGridWeek activa), así que usamos event delegation.
+      container.querySelector('.fc-header-toolbar')?.addEventListener('click', e => {
+        const btn = e.target.closest('.fc-button');
+        if (btn && !btn.classList.contains('fc-listaCustom-button')) {
+          exitListMode();
         }
       });
 
-      // Eliminar
-      btnDelete.addEventListener('click', async () => {
-        const id = inputId.value.trim();
-        if (!id) return;
-        if (!confirm('¿Eliminar este evento?')) return;
-        try {
-          const res = await fetch(`/api/events/${encodeURIComponent(id)}`, { method: 'DELETE' });
-          const data = await res.json();
-          if (!res.ok || !data?.deleted) throw new Error('Error eliminando');
-          closeModal();
-          calendar.refetchEvents();
-        } catch (err) {
-          console.error(err);
-          alert('No se pudo eliminar el evento.');
-        }
-      });
-
-      // Actualización rápida tras drag/resize
       async function quickUpdateDates(info) {
         const ev = info.event;
         const payload = {
@@ -645,26 +544,98 @@
         };
         try {
           const res = await fetch(`/api/events/${encodeURIComponent(ev.id)}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
+            method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
           });
-          if (!res.ok) {
-            info.revert(); // volver al estado previo
-            const data = await res.json().catch(() => ({}));
-            throw new Error(data?.error || 'Error actualizando fechas');
-          }
-        } catch (err) {
-          console.error(err);
-          alert('No se pudieron actualizar las fechas del evento.');
-        }
+          if (!res.ok) { info.revert(); throw new Error((await res.json().catch(() => ({}))).error || 'Error'); }
+        } catch (err) { console.error(err); alert('No se pudieron actualizar las fechas del evento.'); }
       }
-    });
 
-    window.addEventListener('resize', () => {
-      const h = calcContentHeight(slotMin, slotMax, 120);
-      calendar.setOption('contentHeight', h);
-    });
+      // ===== Event listeners =====
+      btnNew.addEventListener('click', () => {
+        const now = new Date();
+        openModal('new', { start: now.toISOString(), end: new Date(now.getTime() + 3600000).toISOString() });
+      });
+      btnToday.addEventListener('click', () => calendar.today());
+      btnCancel.addEventListener('click', closeModal);
+      modalBackdrop.addEventListener('click', e => { if (e.target === modalBackdrop) closeModal(); });
+      clearAssociationBtn.addEventListener('click', clearAssociation);
+      document.addEventListener('click', e => {
+        if (!e.target.closest('.association-field')) associationResults.style.display = 'none';
+      });
+      inputAsociar.addEventListener('input', e => {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => searchAssociations(e.target.value.trim()), 300);
+      });
+      inputAsociar.addEventListener('focus', () => {
+        if (inputAsociar.value.trim().length >= 2) searchAssociations(inputAsociar.value.trim());
+      });
+
+      elvToggleBtn.addEventListener('click', () => {
+        if (elvMode === 'upcoming') {
+          elvMode = 'past';
+          elvTitle.textContent = 'Eventos pasados';
+          elvToggleBtn.textContent = '⏭ ver próximos eventos';
+          loadAndRenderTimeline('past');
+        } else {
+          elvMode = 'upcoming';
+          elvTitle.textContent = 'Próximos eventos';
+          elvToggleBtn.textContent = '⏮ ver eventos pasados';
+          loadAndRenderTimeline('upcoming');
+        }
+      });
+
+      form.addEventListener('submit', async e => {
+        e.preventDefault();
+        const id = inputId.value.trim();
+        const payload = {
+          titulo: inputTitulo.value.trim(),
+          descripcion: inputDescripcion.value.trim(),
+          tipo_evento: inputTipo.value.trim() || null,
+          fecha_inicio: localInputValueToISO(inputInicio.value),
+          fecha_fin: localInputValueToISO(inputFin.value),
+          referencia_id: null,
+          referencia_tipo: null
+        };
+        const asociarTipo = inputAsociarTipo.value;
+        const asociarId   = inputAsociarId.value;
+        if (asociarId && (asociarTipo === 'tarea' || asociarTipo === 'objetivo')) {
+          payload.referencia_id   = asociarId;
+          payload.referencia_tipo = asociarTipo;
+        }
+        if (!payload.titulo) { alert('El título es obligatorio.'); return; }
+        if (!payload.fecha_inicio || !payload.fecha_fin) { alert('Las fechas de inicio y fin son obligatorias.'); return; }
+        if (new Date(payload.fecha_fin) <= new Date(payload.fecha_inicio)) { alert('La fecha/hora de fin debe ser posterior al inicio.'); return; }
+        try {
+          const res = await fetch(
+            id ? `/api/events/${encodeURIComponent(id)}` : '/api/events',
+            { method: id ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }
+          );
+          const data = await res.json();
+          if (!res.ok) throw new Error(data?.error || 'Error guardando');
+          closeModal();
+          calendar.refetchEvents();
+        } catch (err) { console.error(err); alert('No se pudo guardar el evento.'); }
+      });
+
+      btnDelete.addEventListener('click', async () => {
+        const id = inputId.value.trim();
+        if (!id || !confirm('¿Eliminar este evento?')) return;
+        try {
+          const res  = await fetch(`/api/events/${encodeURIComponent(id)}`, { method: 'DELETE' });
+          const data = await res.json();
+          if (!res.ok || !data?.deleted) throw new Error('Error eliminando');
+          closeModal();
+          calendar.refetchEvents();
+        } catch (err) { console.error(err); alert('No se pudo eliminar el evento.'); }
+      });
+
+      window.addEventListener('resize', () => {
+        if (!container.classList.contains('list-mode')) {
+          calendar.setOption('height', window.innerHeight);
+        }
+      });
+
+    }); // fin DOMContentLoaded
   </script>
 </body>
 </html>

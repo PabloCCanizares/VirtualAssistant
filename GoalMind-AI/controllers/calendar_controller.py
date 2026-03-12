@@ -12,17 +12,12 @@ from database.mongo_conn import get_collection, get_app_user_id
 calendar_bp = Blueprint("calendar_bp", __name__)
 DEFAULT_USER_ID = get_app_user_id()
 
-# -----------------------------
-# 🗓️ Página del calendario
-# -----------------------------
 @calendar_bp.route("/calendar", methods=["GET"])
 def calendar_page():
     """Renderiza la vista del calendario."""
     return render_template("partials/calendar_templates/calendar_menu.html", page="calendar")
 
-# -----------------------------
-# 🔌 API de eventos
-# -----------------------------
+
 def _events_col() -> Tuple[Any, Any]:
     """Devuelve (local_collection, remote_collection) para 'Events'."""
     return get_collection("Events")
@@ -360,6 +355,45 @@ def api_delete_event(event_id: str):
         return jsonify({"error": "Evento no encontrado."}), 404
 
     return jsonify({"deleted": True, "_id": event_id})
+
+
+@calendar_bp.route("/api/events/timeline", methods=["GET"])
+def api_events_timeline():
+    """
+    Devuelve eventos del usuario filtrados por tipo:
+    - ?type=upcoming  → fecha_fin >= ahora, orden ASC (más próximo primero)
+    - ?type=past      → fecha_fin <  ahora, orden DESC (más reciente primero)
+    """
+    tipo = request.args.get("type", "upcoming")
+    now = datetime.now(timezone.utc)
+
+    col, _ = _events_col()
+    from model.event_model import _uid_filter
+
+    if tipo == "past":
+        query = {"$and": [_uid_filter(DEFAULT_USER_ID), {"fecha_fin": {"$lt": now}}]}
+        sort_dir = -1
+    else:
+        query = {"$and": [_uid_filter(DEFAULT_USER_ID), {"fecha_fin": {"$gte": now}}]}
+        sort_dir = 1
+
+    docs = list(col.find(query).sort("fecha_fin", sort_dir))
+
+    events: List[Dict[str, Any]] = []
+    for d in docs:
+        out = dict(d)
+        out["_id"] = str(out.get("_id"))
+        for key in ("fecha_inicio", "fecha_fin", "created_at", "updated_at"):
+            out[key] = _iso_utc(out.get(key))
+        for key in ("id_usuario", "usuario_id", "referencia_id"):
+            if isinstance(out.get(key), ObjectId):
+                out[key] = str(out[key])
+        for key in ("id_objetivo", "id_tarea"):
+            if isinstance(out.get(key), ObjectId):
+                out[key] = str(out[key])
+        events.append(out)
+
+    return jsonify(events)
 
 
 # -----------------------------
