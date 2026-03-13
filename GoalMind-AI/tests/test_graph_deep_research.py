@@ -72,4 +72,6 @@ def test_graph_fallbacks_to_research_when_deep_research_errors(monkeypatch):
         }
     )
 
-    assert result["final_response"] == "respuesta final writer"
+    assert "Aviso: no se pudo completar la busqueda profunda." in result["final_response"]
+    assert "fallo proveedor" in result["final_response"]
+    assert "respuesta final writer" in result["final_response"]
