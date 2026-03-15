@@ -163,6 +163,11 @@ def get_collection(name):
     return db_local[name], (db_remote[name] if db_remote is not None else None)
 
 
+def get_local_database():
+    """Devuelve la base de datos local activa."""
+    return mongo_local.cx[_local_db_name]
+
+
 def get_remote_database(app=None):
     """Devuelve la base de datos remota si está disponible."""
     if not ensure_remote_connection(app):
@@ -263,10 +268,19 @@ def sync_local_to_remote():
 
         if remote_col is None:
             continue
+        docs = []
+        for doc in local_col.find():
+            if str(doc.get("_id")) in pending_ids:
+                continue
+            if col == "ProjectDocuments":
+                if doc.get("remote_sync_pending"):
+                    continue
+                doc = dict(doc)
+                doc.pop("local_upload_id", None)
+            docs.append(doc)
         ops = [
             ReplaceOne({"_id": doc["_id"]}, doc, upsert=True)
-            for doc in local_col.find()
-            if str(doc.get("_id")) not in pending_ids
+            for doc in docs
         ]
         if ops:
             remote_col.bulk_write(ops)

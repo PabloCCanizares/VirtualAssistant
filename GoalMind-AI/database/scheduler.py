@@ -39,16 +39,19 @@ def init_scheduler(app, sync_interval_minutes=1):
                 sync_all_collections,
                 sync_local_to_remote,
             )
+            from model.project_document_model import ProjectDocumentModel
             try:
                 ensure_remote_connection(app)
                 deleted = flush_deletion_queue()
+                promoted = ProjectDocumentModel.promote_pending_remote_uploads(app=app)
                 pushed = sync_local_to_remote()
                 pulled = sync_all_collections()
                 elapsed = time.monotonic() - started_at
                 logger.info(
-                    "[Scheduler] Sync completada en %.2fs | deletions=%s pushed=%s pulled=%s",
+                    "[Scheduler] Sync completada en %.2fs | deletions=%s promoted=%s pushed=%s pulled=%s",
                     elapsed,
                     deleted if isinstance(deleted, int) else 0,
+                    promoted if isinstance(promoted, int) else 0,
                     pushed if isinstance(pushed, int) else 0,
                     pulled if isinstance(pulled, int) else 0,
                 )
@@ -118,13 +121,16 @@ def trigger_sync_now(app):
             sync_all_collections,
             sync_local_to_remote,
         )
+        from model.project_document_model import ProjectDocumentModel
         ensure_remote_connection(app)
         deleted = flush_deletion_queue()
+        promoted = ProjectDocumentModel.promote_pending_remote_uploads(app=app)
         pushed = sync_local_to_remote()
         pulled = sync_all_collections()
         logger.info(
-            "[Scheduler] Sync manual completada | deletions=%s pushed=%s pulled=%s",
+            "[Scheduler] Sync manual completada | deletions=%s promoted=%s pushed=%s pulled=%s",
             deleted if isinstance(deleted, int) else 0,
+            promoted if isinstance(promoted, int) else 0,
             pushed if isinstance(pushed, int) else 0,
             pulled if isinstance(pulled, int) else 0,
         )

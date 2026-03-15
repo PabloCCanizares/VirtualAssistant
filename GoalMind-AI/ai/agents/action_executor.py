@@ -1,6 +1,5 @@
 import json
 import logging
-from pathlib import Path
 from typing import Any, Dict, Optional, Tuple
 
 from bson import ObjectId
@@ -136,12 +135,6 @@ def _delete_project_cascade(project_id: str, user_id: str) -> None:
 
     docs = ProjectDocumentModel.get_by_project(project_id, usuario_id=user_id)
     for doc in docs:
-        local_path = doc.get("local_path")
-        if local_path:
-            try:
-                Path(local_path).unlink(missing_ok=True)
-            except Exception:
-                pass
         try:
             ProjectDocumentModel.delete_document(doc.get("_id"), usuario_id=user_id)
         except Exception:

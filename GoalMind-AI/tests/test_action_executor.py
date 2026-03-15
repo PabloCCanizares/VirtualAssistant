@@ -51,7 +51,7 @@ def test_delete_project_cascade_invokes_models(monkeypatch):
     monkeypatch.setattr(
         executor_module.ProjectDocumentModel,
         "get_by_project",
-        lambda project_id, usuario_id=None: [{"_id": "d1", "local_path": None}],
+        lambda project_id, usuario_id=None: [{"_id": "d1", "local_upload_id": None}],
     )
     monkeypatch.setattr(
         executor_module.ProjectDocumentModel,

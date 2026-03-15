@@ -15,44 +15,10 @@ from bootstrap import (
     load_project_env,
     should_start_scheduler_process,
 )
+from config.storage import configure_storage
 from database.mongo_conn import get_app_user_id, init_app
 from database.scheduler import init_scheduler
 from model.category_model import CategoryModel
-
-# === Configuración de constantes y funciones de utilidad ===
-DEFAULT_UPLOAD_EXTENSIONS = {
-    "pdf",
-    "doc",
-    "docx",
-    "txt",
-    "png",
-    "jpg",
-    "jpeg",
-    "csv",
-    "xlsx",
-    "pptx",
-    "zip",
-}
-
-def _configure_upload_settings(flask_app: Flask) -> None:
-    upload_root_value = os.getenv("UPLOAD_ROOT", "uploads").strip()
-    upload_root = Path(upload_root_value)
-    if not upload_root.is_absolute():
-        upload_root = Path(__file__).resolve().parent / upload_root
-
-    flask_app.config["UPLOAD_ROOT"] = str(upload_root)
-    Path(flask_app.config["UPLOAD_ROOT"]).mkdir(parents=True, exist_ok=True)
-
-    allowed_ext_env = os.getenv("UPLOAD_ALLOWED_EXTENSIONS", "").strip()
-    if allowed_ext_env:
-        allowed_ext = {
-            ext.strip().lower() for ext in allowed_ext_env.split(",") if ext.strip()
-        }
-    else:
-        allowed_ext = set(DEFAULT_UPLOAD_EXTENSIONS)
-
-    flask_app.config["UPLOAD_ALLOWED_EXTENSIONS"] = allowed_ext
-    flask_app.config["MAX_CONTENT_LENGTH"] = env_int("MAX_CONTENT_LENGTH_MB", 25, minimum=1) * 1024 * 1024
 
 def _register_blueprints(flask_app: Flask) -> None:
     # Importación de blueprints
@@ -111,7 +77,7 @@ local, remote = init_app(app)
 app.mongo_local = local
 app.mongo_remote = remote
 
-_configure_upload_settings(app)
+configure_storage(app, env_int)
 _register_blueprints(app)
 
 
