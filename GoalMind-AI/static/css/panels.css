@@ -1766,6 +1766,27 @@
   font-size: 14px;
 }
 
+.project-document-card .item-card-header {
+  flex-wrap: wrap;
+}
+
+.project-document-card .item-content {
+  min-width: 0;
+  width: 100%;
+}
+
+.project-document-card .item-title-small {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  overflow-wrap: anywhere;
+}
+
+.project-document-card .panel-actions-compact {
+  width: 100%;
+  justify-content: flex-start;
+}
+
 .panel-actions-compact {
   gap: 6px;
   flex-shrink: 0;
@@ -1916,6 +1937,17 @@
 
   .item-card-header {
     flex-wrap: wrap;
+  }
+
+  .project-document-card .item-title-small {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    overflow-wrap: anywhere;
+  }
+
+  .project-document-card .panel-actions-compact {
+    justify-content: flex-start;
   }
 
   .item-meta {
