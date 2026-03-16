@@ -124,6 +124,7 @@ def test_build_llm_selects_expected_provider(monkeypatch):
     llm_openai = config.build_llm()
     assert isinstance(llm_openai, _DummyOpenAI)
     assert llm_openai.kwargs["model"] == "gpt-test"
+    assert llm_openai.kwargs["temperature"] == 1
 
     monkeypatch.setenv("LLM_PROVIDER", "gemini")
     monkeypatch.setenv("GEMINI_MODEL", "gemini-test")

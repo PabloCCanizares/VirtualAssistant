@@ -150,4 +150,5 @@ def build_llm(model: str | None = None):
         return ChatGroq(model=model or settings.groq_model)
     else:
         from langchain_openai import ChatOpenAI
-        return ChatOpenAI(model=model or settings.openai_model)
+        # gpt-5-nano solo acepta temperature por defecto (=1) en chat completions.
+        return ChatOpenAI(model=model or settings.openai_model, temperature=1)
