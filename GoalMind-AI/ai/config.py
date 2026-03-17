@@ -38,6 +38,15 @@ class Settings:
     deep_search_timeout_seconds: int
     deep_search_max_sources: int
     deep_search_mode_default: str
+    deep_research_max_iterations: int
+    deep_research_max_tasks: int
+    deep_research_max_queries_per_task: int
+    deep_research_quality_threshold: float
+    deep_research_stagnation_limit: int
+    deep_research_loop_repeat_limit: int
+    deep_research_max_report_sources: int
+    deep_research_internal_source_limit: int
+    deep_research_parallel_queries: bool
 
 
 @dataclass(frozen=True)
@@ -91,6 +100,23 @@ def _env_choice(name: str, allowed: set[str], default: str) -> str:
     return default
 
 
+def _env_float(name: str, default: float, minimum: float | None = None, maximum: float | None = None) -> float:
+    raw = os.getenv(name)
+    if raw is None:
+        value = default
+    else:
+        try:
+            value = float(str(raw).strip())
+        except Exception:
+            logger.warning("Valor inválido para %s=%r. Se usará default=%s", name, raw, default)
+            value = default
+    if minimum is not None:
+        value = max(minimum, value)
+    if maximum is not None:
+        value = min(maximum, value)
+    return value
+
+
 def get_settings() -> Settings:
     load_env()
     provider = _env_choice("LLM_PROVIDER", {"openai", "gemini", "groq"}, "openai")
@@ -123,6 +149,45 @@ def get_settings() -> Settings:
             {"auto", "on", "off"},
             "auto",
         ),
+        deep_research_max_iterations=_env_int("DEEP_RESEARCH_MAX_ITERATIONS", 6, minimum=1, maximum=15),
+        deep_research_max_tasks=_env_int("DEEP_RESEARCH_MAX_TASKS", 5, minimum=1, maximum=12),
+        deep_research_max_queries_per_task=_env_int(
+            "DEEP_RESEARCH_MAX_QUERIES_PER_TASK",
+            3,
+            minimum=1,
+            maximum=8,
+        ),
+        deep_research_quality_threshold=_env_float(
+            "DEEP_RESEARCH_QUALITY_THRESHOLD",
+            0.62,
+            minimum=0.0,
+            maximum=1.0,
+        ),
+        deep_research_stagnation_limit=_env_int(
+            "DEEP_RESEARCH_STAGNATION_LIMIT",
+            2,
+            minimum=1,
+            maximum=8,
+        ),
+        deep_research_loop_repeat_limit=_env_int(
+            "DEEP_RESEARCH_LOOP_REPEAT_LIMIT",
+            2,
+            minimum=1,
+            maximum=6,
+        ),
+        deep_research_max_report_sources=_env_int(
+            "DEEP_RESEARCH_MAX_REPORT_SOURCES",
+            8,
+            minimum=1,
+            maximum=20,
+        ),
+        deep_research_internal_source_limit=_env_int(
+            "DEEP_RESEARCH_INTERNAL_SOURCE_LIMIT",
+            10,
+            minimum=0,
+            maximum=30,
+        ),
+        deep_research_parallel_queries=_env_bool("DEEP_RESEARCH_PARALLEL_QUERIES", True),
     )
 
 
@@ -136,6 +201,23 @@ def get_deep_search_config(settings: Settings | None = None) -> DeepSearchConfig
         timeout_seconds=current.deep_search_timeout_seconds,
         max_sources=current.deep_search_max_sources,
         mode_default=current.deep_search_mode_default,
+    )
+
+
+def get_deep_research_runtime_config(settings: Settings | None = None):
+    from ai.deep_research.types import DeepResearchRuntimeConfig
+
+    current = settings or get_settings()
+    return DeepResearchRuntimeConfig(
+        max_iterations=current.deep_research_max_iterations,
+        max_tasks=current.deep_research_max_tasks,
+        max_queries_per_task=current.deep_research_max_queries_per_task,
+        quality_threshold=current.deep_research_quality_threshold,
+        stagnation_limit=current.deep_research_stagnation_limit,
+        loop_repeat_limit=current.deep_research_loop_repeat_limit,
+        max_report_sources=current.deep_research_max_report_sources,
+        internal_source_limit=current.deep_research_internal_source_limit,
+        parallel_queries=current.deep_research_parallel_queries,
     )
 
 

@@ -1,12 +1,10 @@
-import json
 import logging
 
-from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_core.messages import HumanMessage
 
-from ai.config import get_deep_search_config
-from ai.prompts.deep_research_prompt import DEEP_RESEARCH_PROMPT
+from ai.config import get_deep_research_runtime_config, get_deep_search_config
+from ai.deep_research import run_deep_research
 from ai.services.deep_search_service import DeepSearchError, deep_search
-from ai.services.llm_utils import LLMInvokeError, invoke_with_retry
 from ai.state import AppState
 
 
@@ -18,21 +16,6 @@ def _last_user_message_text(messages) -> str:
         if isinstance(message, HumanMessage):
             return (message.content or "").strip()
     return ""
-
-
-def _to_sources(results: list[dict], max_sources: int) -> list[dict]:
-    sources = []
-    for item in (results or [])[:max_sources]:
-        sources.append(
-            {
-                "title": item.get("title", ""),
-                "url": item.get("url", ""),
-                "snippet": item.get("snippet", ""),
-                "score": item.get("score", 0.0),
-                "provider": item.get("provider", ""),
-            }
-        )
-    return sources
 
 
 def deep_research_node(state: AppState, llm) -> AppState:
@@ -53,7 +36,15 @@ def deep_research_node(state: AppState, llm) -> AppState:
 
     try:
         config = get_deep_search_config()
-        results = deep_search(query, config=config)
+        runtime_config = get_deep_research_runtime_config()
+        result = run_deep_research(
+            user_query=query,
+            context_json=state.get("context_json", "{}"),
+            llm=llm,
+            search_config=config,
+            runtime_config=runtime_config,
+            web_search_tool=deep_search,
+        )
     except DeepSearchError as exc:
         logger.warning("deep_research_node: deep search no disponible: %s", exc)
         print(f"   ✗ Error deep search: {exc}")
@@ -69,37 +60,39 @@ def deep_research_node(state: AppState, llm) -> AppState:
             "deep_research_sources": [],
         }
 
-    sources = _to_sources(results, config.max_sources)
-    if not sources:
+    if result.error:
+        print(f"   ✗ Error deep research: {result.error}")
+        print("="*60 + "\n")
+        return {
+            "deep_search_error": result.error,
+            "deep_search_results": result.raw_results,
+            "deep_research_sources": result.sources,
+            "deep_research_plan": result.plan,
+            "deep_research_iterations": result.iterations,
+            "deep_research_warnings": result.warnings,
+        }
+
+    notes = (result.report or "").strip()
+    if not notes:
         print("   ✗ No se encontraron fuentes útiles")
         print("="*60 + "\n")
         return {
             "deep_search_error": "No se encontraron fuentes relevantes en la búsqueda profunda.",
-            "deep_search_results": results,
+            "deep_search_results": result.raw_results,
             "deep_research_sources": [],
         }
 
-    prompt_messages = [
-        SystemMessage(content=DEEP_RESEARCH_PROMPT),
-        SystemMessage(content=f"Consulta del usuario: {query}"),
-        SystemMessage(content=f"Fuentes (JSON): {json.dumps(sources, ensure_ascii=True)}"),
-    ]
-    prompt_messages.extend(state.get("messages", []))
-
-    try:
-        notes = invoke_with_retry(llm, prompt_messages, retries=1)
-    except LLMInvokeError:
-        logger.exception("deep_research_node: error invocando LLM")
-        notes = ""
-
-    print(f"   ✓ Fuentes recopiladas: {len(sources)}")
+    print(f"   ✓ Fuentes recopiladas: {len(result.sources)}")
     print(f"   ✓ Notas de deep research: {len(notes)} caracteres")
     print("="*60 + "\n")
     return {
         "deep_search_error": "",
-        "deep_search_results": results,
-        "deep_research_sources": sources,
+        "deep_search_results": result.raw_results,
+        "deep_research_sources": result.sources,
         "deep_research_notes": notes,
+        "deep_research_plan": result.plan,
+        "deep_research_iterations": result.iterations,
+        "deep_research_warnings": result.warnings,
         # Compatibilidad futura: si se enruta a writer sin cambios adicionales
         "research_notes": notes or state.get("research_notes", ""),
     }

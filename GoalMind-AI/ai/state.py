@@ -18,6 +18,9 @@ class AppState(TypedDict, total=False):
     deep_search_results: list[dict[str, Any]]  # resultados crudos de proveedor de búsqueda
     deep_research_notes: str  # notas/sintesis de investigación profunda
     deep_research_sources: list[dict[str, Any]]  # fuentes normalizadas con URL/título/snippet
+    deep_research_plan: list[dict[str, Any]]  # plan de investigacion generado por planner
+    deep_research_iterations: list[dict[str, Any]]  # trazas de cada iteracion ejecutada
+    deep_research_warnings: list[str]  # advertencias no fatales durante la investigacion
     route: str
     use_critic: bool
     fallback_route: str  # deprecated: mantenido por compatibilidad

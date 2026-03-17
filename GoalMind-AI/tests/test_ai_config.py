@@ -43,6 +43,15 @@ def _clear_provider_env(monkeypatch):
         "DEEP_SEARCH_TIMEOUT_SECONDS",
         "DEEP_SEARCH_MAX_SOURCES",
         "DEEP_SEARCH_MODE_DEFAULT",
+        "DEEP_RESEARCH_MAX_ITERATIONS",
+        "DEEP_RESEARCH_MAX_TASKS",
+        "DEEP_RESEARCH_MAX_QUERIES_PER_TASK",
+        "DEEP_RESEARCH_QUALITY_THRESHOLD",
+        "DEEP_RESEARCH_STAGNATION_LIMIT",
+        "DEEP_RESEARCH_LOOP_REPEAT_LIMIT",
+        "DEEP_RESEARCH_MAX_REPORT_SOURCES",
+        "DEEP_RESEARCH_INTERNAL_SOURCE_LIMIT",
+        "DEEP_RESEARCH_PARALLEL_QUERIES",
         "DEFAULT_USER_ID",
     ):
         monkeypatch.delenv(key, raising=False)
@@ -100,9 +109,14 @@ def test_deep_search_defaults_and_clamping(monkeypatch):
     monkeypatch.setenv("DEEP_SEARCH_TIMEOUT_SECONDS", "1")
     monkeypatch.setenv("DEEP_SEARCH_MAX_SOURCES", "99")
     monkeypatch.setenv("DEEP_SEARCH_MODE_DEFAULT", "invalid")
+    monkeypatch.setenv("DEEP_RESEARCH_MAX_ITERATIONS", "0")
+    monkeypatch.setenv("DEEP_RESEARCH_MAX_TASKS", "99")
+    monkeypatch.setenv("DEEP_RESEARCH_QUALITY_THRESHOLD", "1.8")
+    monkeypatch.setenv("DEEP_RESEARCH_PARALLEL_QUERIES", "off")
 
     settings = config.get_settings()
     deep_cfg = config.get_deep_search_config(settings)
+    runtime_cfg = config.get_deep_research_runtime_config(settings)
 
     assert settings.deep_search_enabled is True
     assert settings.deep_search_provider == "tavily"
@@ -112,6 +126,10 @@ def test_deep_search_defaults_and_clamping(monkeypatch):
     assert settings.deep_search_mode_default == "auto"
     assert deep_cfg.provider == "tavily"
     assert deep_cfg.mode_default == "auto"
+    assert runtime_cfg.max_iterations == 1
+    assert runtime_cfg.max_tasks == 12
+    assert runtime_cfg.quality_threshold == 1.0
+    assert runtime_cfg.parallel_queries is False
 
 
 def test_build_llm_selects_expected_provider(monkeypatch):
