@@ -39,6 +39,17 @@ _configured_remote_uri = ""
 logger = logging.getLogger(__name__)
 
 
+_SYNC_TIMESTAMP_FIELDS = (
+    "updated_at",
+    "uploaded_at",
+    "created_at",
+    "fecha_creacion",
+    "fecha_actualizacion",
+    "fecha_modificacion",
+    "fecha_inicio",
+)
+
+
 def generate_user_id_from_nickname(nickname: str) -> str:
     """Genera un ObjectId determinista (24 hex chars) desde un nickname."""
     digest = hashlib.sha256(nickname.strip().lower().encode("utf-8")).hexdigest()
@@ -211,6 +222,84 @@ def sync_to_remote(collection_name, obj):
     return True
 
 
+def _parse_datetime(value):
+    """Parsea un valor a datetime (si es posible)."""
+    if isinstance(value, datetime):
+        return value
+    if value is None:
+        return None
+    try:
+        return datetime.fromisoformat(str(value).replace("Z", "").strip())
+    except Exception:
+        return None
+
+
+def _doc_timestamp(doc):
+    """Obtiene la mejor marca temporal disponible para resolver conflictos."""
+    if not isinstance(doc, dict):
+        return None
+    for field in _SYNC_TIMESTAMP_FIELDS:
+        parsed = _parse_datetime(doc.get(field))
+        if parsed is not None:
+            return parsed
+    return None
+
+
+def _remote_should_replace_local(local_doc, remote_doc):
+    """
+    Regla de reconciliación:
+    - Si remoto es más nuevo por timestamp -> remoto gana.
+    - Si no hay timestamps pero el contenido difiere -> remoto gana
+      (garantiza que remoto -> local no se quede bloqueado).
+    """
+    if local_doc is None:
+        return True
+
+    local_ts = _doc_timestamp(local_doc)
+    remote_ts = _doc_timestamp(remote_doc)
+    if local_ts is not None and remote_ts is not None:
+        return remote_ts > local_ts
+    if remote_ts is not None and local_ts is None:
+        return True
+    if local_ts is not None and remote_ts is None:
+        return False
+    return local_doc != remote_doc
+
+
+def _id_variants(raw_id):
+    """Genera variantes compatibles de un _id (string/ObjectId) para búsquedas tolerantes."""
+    variants = []
+    seen = set()
+
+    def _push(candidate):
+        if candidate is None:
+            return
+        key = (type(candidate).__name__, str(candidate))
+        if key in seen:
+            return
+        seen.add(key)
+        variants.append(candidate)
+
+    _push(raw_id)
+    _push(str(raw_id) if raw_id is not None else None)
+    try:
+        if raw_id is not None and ObjectId.is_valid(str(raw_id)):
+            normalized = ObjectId(str(raw_id))
+            _push(normalized)
+            _push(str(normalized))
+    except Exception:
+        pass
+    return variants
+
+
+def _find_by_id_variants(collection, raw_id):
+    for candidate in _id_variants(raw_id):
+        found = collection.find_one({"_id": candidate})
+        if found:
+            return found
+    return None
+
+
 def sync_all_collections():
     """Sincroniza todas las colecciones desde la base remota hacia local."""
     from flask import current_app
@@ -222,35 +311,51 @@ def sync_all_collections():
     for col in collections:
         pending_ids = get_pending_deletions(col)
         local_col, remote_col = get_collection(col)
-        if remote_col is not None:
-            if pending_ids:
-                object_ids = []
-                string_ids = []
-                for pid in pending_ids:
-                    try:
-                        if ObjectId.is_valid(str(pid)):
-                            object_ids.append(ObjectId(str(pid)))
-                        else:
-                            string_ids.append(str(pid))
-                    except Exception:
+        if remote_col is None:
+            continue
+
+        if pending_ids:
+            object_ids = []
+            string_ids = []
+            for pid in pending_ids:
+                try:
+                    if ObjectId.is_valid(str(pid)):
+                        object_ids.append(ObjectId(str(pid)))
+                    else:
                         string_ids.append(str(pid))
+                except Exception:
+                    string_ids.append(str(pid))
 
-                delete_query = {"$or": []}
-                if object_ids:
-                    delete_query["$or"].append({"_id": {"$in": object_ids}})
-                if string_ids:
-                    delete_query["$or"].append({"_id": {"$in": string_ids}})
-                if delete_query["$or"]:
-                    local_col.delete_many(delete_query)
+            delete_query = {"$or": []}
+            if object_ids:
+                delete_query["$or"].append({"_id": {"$in": object_ids}})
+            if string_ids:
+                delete_query["$or"].append({"_id": {"$in": string_ids}})
+            if delete_query["$or"]:
+                local_col.delete_many(delete_query)
 
-            existing_ids = {doc["_id"] for doc in local_col.find({}, {"_id": 1})}
-            new_docs = [
-                doc for doc in remote_col.find()
-                if doc["_id"] not in existing_ids and str(doc.get("_id")) not in pending_ids
-            ]
-            if new_docs:
-                local_col.insert_many(new_docs)
-                pulled_docs += len(new_docs)
+        for remote_doc in remote_col.find():
+            remote_id = remote_doc.get("_id")
+            if remote_id is None:
+                continue
+            if str(remote_id) in pending_ids:
+                continue
+
+            local_doc = _find_by_id_variants(local_col, remote_id)
+            if local_doc is None:
+                local_col.insert_one(remote_doc)
+                pulled_docs += 1
+                continue
+
+            if _remote_should_replace_local(local_doc, remote_doc):
+                local_id = local_doc.get("_id")
+                if local_id == remote_id:
+                    local_col.replace_one({"_id": remote_id}, remote_doc, upsert=True)
+                else:
+                    # Corrige inconsistencias históricas de tipos de _id (string/ObjectId).
+                    local_col.delete_one({"_id": local_id})
+                    local_col.insert_one(remote_doc)
+                pulled_docs += 1
     return pulled_docs
 
 
@@ -268,15 +373,29 @@ def sync_local_to_remote():
 
         if remote_col is None:
             continue
+        remote_docs = {
+            str(doc.get("_id")): doc
+            for doc in remote_col.find({}, None)
+            if doc.get("_id") is not None
+        }
         docs = []
         for doc in local_col.find():
-            if str(doc.get("_id")) in pending_ids:
+            local_id = doc.get("_id")
+            local_id_key = str(local_id)
+            if local_id_key in pending_ids:
                 continue
             if col == "ProjectDocuments":
                 if doc.get("remote_sync_pending"):
                     continue
                 doc = dict(doc)
                 doc.pop("local_upload_id", None)
+            remote_doc = remote_docs.get(local_id_key)
+            if remote_doc is not None and _remote_should_replace_local(doc, remote_doc):
+                # Evita sobrescribir en remoto documentos más recientes.
+                continue
+            if remote_doc is not None and doc.get("_id") != remote_doc.get("_id"):
+                doc = dict(doc)
+                doc["_id"] = remote_doc.get("_id")
             docs.append(doc)
         ops = [
             ReplaceOne({"_id": doc["_id"]}, doc, upsert=True)

@@ -12,6 +12,47 @@ _scheduler = None
 logger = logging.getLogger(__name__)
 
 
+def _run_sync_cycle(app, *, manual=False):
+    """Ejecuta un ciclo completo de sync (pull y push) dentro del contexto Flask."""
+    started_at = time.monotonic()
+    with app.app_context():
+        from database.mongo_conn import (
+            ensure_remote_connection,
+            flush_deletion_queue,
+            sync_all_collections,
+            sync_local_to_remote,
+        )
+        from model.project_document_model import ProjectDocumentModel
+
+        if not ensure_remote_connection(app):
+            logger.info("[Scheduler] Remoto no disponible, sync omitida.")
+            return 0, 0, 0, 0
+
+        deleted = flush_deletion_queue()
+        promoted = ProjectDocumentModel.promote_pending_remote_uploads(app=app)
+        # Pull primero para que local tenga el estado remoto más reciente
+        # antes de trabajar offline y antes del siguiente ciclo de uso.
+        pulled = sync_all_collections()
+        pushed = sync_local_to_remote()
+        elapsed = time.monotonic() - started_at
+        prefix = "manual" if manual else "completada"
+        logger.info(
+            "[Scheduler] Sync %s en %.2fs | deletions=%s promoted=%s pulled=%s pushed=%s",
+            prefix,
+            elapsed,
+            deleted if isinstance(deleted, int) else 0,
+            promoted if isinstance(promoted, int) else 0,
+            pulled if isinstance(pulled, int) else 0,
+            pushed if isinstance(pushed, int) else 0,
+        )
+        return (
+            deleted if isinstance(deleted, int) else 0,
+            promoted if isinstance(promoted, int) else 0,
+            pulled if isinstance(pulled, int) else 0,
+            pushed if isinstance(pushed, int) else 0,
+        )
+
+
 def init_scheduler(app, sync_interval_minutes=1):
     """
     Inicializa el scheduler de sincronización en background.
@@ -31,32 +72,10 @@ def init_scheduler(app, sync_interval_minutes=1):
 
     def sync_job():
         """Job que ejecuta la sincronización dentro del contexto de Flask."""
-        started_at = time.monotonic()
-        with app.app_context():
-            from database.mongo_conn import (
-                ensure_remote_connection,
-                flush_deletion_queue,
-                sync_all_collections,
-                sync_local_to_remote,
-            )
-            from model.project_document_model import ProjectDocumentModel
-            try:
-                ensure_remote_connection(app)
-                deleted = flush_deletion_queue()
-                promoted = ProjectDocumentModel.promote_pending_remote_uploads(app=app)
-                pushed = sync_local_to_remote()
-                pulled = sync_all_collections()
-                elapsed = time.monotonic() - started_at
-                logger.info(
-                    "[Scheduler] Sync completada en %.2fs | deletions=%s promoted=%s pushed=%s pulled=%s",
-                    elapsed,
-                    deleted if isinstance(deleted, int) else 0,
-                    promoted if isinstance(promoted, int) else 0,
-                    pushed if isinstance(pushed, int) else 0,
-                    pulled if isinstance(pulled, int) else 0,
-                )
-            except Exception as e:
-                logger.warning("[Scheduler] Error en sincronización: %s", e, exc_info=True)
+        try:
+            _run_sync_cycle(app, manual=False)
+        except Exception as e:
+            logger.warning("[Scheduler] Error en sincronización: %s", e, exc_info=True)
 
     # Añadir job de sincronización periódica
     _scheduler.add_job(
@@ -114,23 +133,4 @@ def trigger_sync_now(app):
     Args:
         app: Instancia de Flask
     """
-    with app.app_context():
-        from database.mongo_conn import (
-            ensure_remote_connection,
-            flush_deletion_queue,
-            sync_all_collections,
-            sync_local_to_remote,
-        )
-        from model.project_document_model import ProjectDocumentModel
-        ensure_remote_connection(app)
-        deleted = flush_deletion_queue()
-        promoted = ProjectDocumentModel.promote_pending_remote_uploads(app=app)
-        pushed = sync_local_to_remote()
-        pulled = sync_all_collections()
-        logger.info(
-            "[Scheduler] Sync manual completada | deletions=%s promoted=%s pushed=%s pulled=%s",
-            deleted if isinstance(deleted, int) else 0,
-            promoted if isinstance(promoted, int) else 0,
-            pushed if isinstance(pushed, int) else 0,
-            pulled if isinstance(pulled, int) else 0,
-        )
+    _run_sync_cycle(app, manual=True)
