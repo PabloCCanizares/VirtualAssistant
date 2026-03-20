@@ -46,3 +46,15 @@ class AppState(TypedDict, total=False):
     action_result_message: str      # mensaje resultado de action_executor (para la cola)
     # --- Contexto de mutaciones de sesión ---
     session_mutations_json: str     # JSON string de las mutaciones de esta sesión
+    # --- Operaciones sobre documentos ---
+    doc_op: str                    # "read" | "write"
+    doc_read_mode: str             # "full" | "summary" | "analyze"
+    doc_target_id: str             # _id del documento (para lectura)
+    doc_target_name: str           # original_name del documento
+    doc_target_project_id: str     # project_id resuelto
+    doc_target_goal_id: str        # goal_id resuelto (opcional)
+    doc_content_text: str          # texto extraído del documento
+    doc_analyze_points: str        # puntos concretos a analizar
+    doc_write_format: str          # "txt" | "pdf"
+    doc_write_filename: str        # nombre del archivo generado
+    doc_error: str                 # error si algo falla en rama document

@@ -18,6 +18,7 @@ VALID_CATEGORIES = {
     "progress",
     "deep_research",
     "research",
+    "document",
     "off_topic",
 }
 

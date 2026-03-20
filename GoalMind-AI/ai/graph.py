@@ -9,6 +9,9 @@ from ai.agents import (
     action_planner_node,
     critic_node,
     deep_research_node,
+    doc_organizer_node,
+    doc_reader_node,
+    doc_writer_node,
     progress_tracker_node,
     queue_executor_node,
     recommendations_node,
@@ -72,6 +75,7 @@ def _route_after_supervisor(state: AppState) -> str:
         "progress": "progress_tracker",
         "deep_research": "deep_research",
         "research": "research",
+        "document": "doc_organizer",
         "off_topic": "finalize",
         "finalize": "finalize",
     }
@@ -110,6 +114,15 @@ def _route_after_action_executor(state: AppState) -> str:
 
 def _route_after_writer(state: AppState) -> str:
     return "critic" if state.get("use_critic", False) else "finalize"
+
+
+def _route_after_doc_organizer(state: AppState) -> str:
+    """doc_organizer → doc_reader | doc_writer | finalize (error)."""
+    if state.get("doc_error"):
+        return "finalize"
+    if state.get("doc_op") == "write":
+        return "doc_writer"
+    return "doc_reader"
 
 
 def _route_after_deep_research(state: AppState) -> str:
@@ -174,6 +187,9 @@ def build_chat_graph(llm):
     graph.add_node("weekly_summary", lambda state: weekly_summary_node(state, llm))
     graph.add_node("weekly_planner", lambda state: weekly_planner_node(state, llm))
     graph.add_node("progress_tracker", lambda state: progress_tracker_node(state, llm))
+    graph.add_node("doc_organizer", lambda state: doc_organizer_node(state))
+    graph.add_node("doc_reader", lambda state: doc_reader_node(state, llm))
+    graph.add_node("doc_writer", lambda state: doc_writer_node(state, llm))
     graph.add_node("writer", lambda state: writer_node(state, llm))
     graph.add_node("critic", lambda state: critic_node(state, llm))
     graph.add_node("finalize", _finalize_node)
@@ -195,6 +211,7 @@ def build_chat_graph(llm):
             "progress_tracker": "progress_tracker",
             "deep_research": "deep_research",
             "research": "research",
+            "doc_organizer": "doc_organizer",
             "finalize": "finalize",
         },
     )
@@ -256,6 +273,31 @@ def build_chat_graph(llm):
     # recommendations → finalize (directo, opcionalmente via critic)
     graph.add_conditional_edges(
         "recommendations",
+        _route_after_writer,
+        {"critic": "critic", "finalize": "finalize"},
+    )
+
+    # doc_organizer → doc_reader | doc_writer | finalize (error)
+    graph.add_conditional_edges(
+        "doc_organizer",
+        _route_after_doc_organizer,
+        {
+            "doc_reader": "doc_reader",
+            "doc_writer": "doc_writer",
+            "finalize": "finalize",
+        },
+    )
+
+    # doc_reader → critic o finalize
+    graph.add_conditional_edges(
+        "doc_reader",
+        _route_after_writer,
+        {"critic": "critic", "finalize": "finalize"},
+    )
+
+    # doc_writer → critic o finalize
+    graph.add_conditional_edges(
+        "doc_writer",
         _route_after_writer,
         {"critic": "critic", "finalize": "finalize"},
     )

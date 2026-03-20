@@ -20,3 +20,7 @@ pytz
 six>=1.4.0
 tzlocal>=2.0
 Werkzeug==3.1.4
+pdfplumber>=0.10.0
+fpdf2>=2.7.0
+python-docx>=1.0.0
+openpyxl>=3.1.0
