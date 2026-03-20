@@ -103,7 +103,7 @@ def _load_goal_context():
 
 
 # -------------------------------------------------------------
-# 📋 LISTAR TODAS LAS TAREAS
+# LISTAR TODAS LAS TAREAS
 # -------------------------------------------------------------
 @task_bp.route("/", methods=["GET"])
 def list_tasks():
@@ -127,7 +127,7 @@ def list_tasks():
     )
 
 # -------------------------------------------------------------
-# 🔍 OBTENER UNA TAREA POR ID
+# OBTENER UNA TAREA POR ID
 # -------------------------------------------------------------
 @task_bp.route("/<task_id>", methods=["GET"])
 def view_task(task_id):
@@ -157,7 +157,7 @@ def view_task(task_id):
         return redirect(url_for("task_bp.list_tasks"))
     
 # -------------------------------------------------------------
-# 🔍 OBTENER UNA TAREA POR USUARIO
+# OBTENER UNA TAREA POR USUARIO
 # -------------------------------------------------------------
 @task_bp.route("/user", methods=["GET"])
 @task_bp.route("/user/<user_id>", methods=["GET"])
@@ -190,7 +190,7 @@ def list_tasks_by_user(user_id=None):
         flash(f"Error al obtener las tareas del usuario: {e}", "danger")
         return redirect(url_for("task_bp.list_tasks"))
 # -------------------------------------------------------------
-# ➕ CREAR UNA NUEVA TAREA
+# CREAR UNA NUEVA TAREA
 # -------------------------------------------------------------
 @task_bp.route("/add", methods=["POST"])
 def add_task():
@@ -238,7 +238,7 @@ def add_task():
 
 
 # -------------------------------------------------------------
-# ✏️ ACTUALIZAR UNA TAREA EXISTENTE
+# ACTUALIZAR UNA TAREA EXISTENTE
 # -------------------------------------------------------------
 @task_bp.route("/update/<task_id>", methods=["POST"])
 def update_task(task_id):
@@ -285,16 +285,16 @@ def update_task(task_id):
 
 
 # -------------------------------------------------------------
-# 🗑️ ELIMINAR UNA TAREA
+#  ELIMINAR UNA TAREA
 # -------------------------------------------------------------
 @task_bp.route("/delete/<task_id>", methods=["POST"])
 def delete_task(task_id):
     """Elimina una tarea local y remota."""
     try:
         TaskModel.delete_task(task_id, usuario_id=DEFAULT_USER_ID)
-        flash("🗑️ Tarea eliminada correctamente", "success")
+        flash(" Tarea eliminada correctamente", "success")
     except Exception as e:
-        flash(f"❌ Error al eliminar la tarea: {e}", "danger")
+        flash(f" Error al eliminar la tarea: {e}", "danger")
 
     return redirect(url_for("task_bp.list_tasks"))
 
@@ -334,7 +334,7 @@ def filter_by_category():
     )
 
 # -------------------------------------------------------------
-# 🔎 BUSCAR POR ID 07-11-2025
+#  BUSCAR POR ID 07-11-2025
 # -------------------------------------------------------------
 @task_bp.route("/search", methods=["GET"])
 def search_by_id():
@@ -368,7 +368,7 @@ def search_by_id():
 
 
 # -------------------------------------------------------------
-# 🗑️🗑️ ELIMINACIÓN MASIVA (POST)
+#  ELIMINACIÓN MASIVA (POST)
 # -------------------------------------------------------------
 @task_bp.route("/bulk-delete", methods=["POST"])
 def bulk_delete_tasks():
@@ -441,7 +441,7 @@ def bulk_assign_goal():
 
 
 # -------------------------------------------------------------
-# 📅 API: TAREAS POR RANGO DE FECHAS (para mini calendario)
+# API: TAREAS POR RANGO DE FECHAS (para mini calendario)
 # -------------------------------------------------------------
 @task_bp.route("/api/by-date-range", methods=["GET"])
 def get_tasks_by_date_range():

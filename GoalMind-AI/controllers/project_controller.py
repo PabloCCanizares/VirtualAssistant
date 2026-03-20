@@ -519,9 +519,9 @@ def delete_project(project_id):
         errors.append(f"sync remoto: {e}")
 
     if errors:
-        flash("🗑️ Proyecto eliminado con advertencias. Revisa logs para detalles.", "warning")
+        flash("Proyecto eliminado con advertencias. Revisa logs para detalles.", "warning")
     else:
-        flash("🗑️ Proyecto eliminado correctamente", "success")
+        flash("Proyecto eliminado correctamente", "success")
 
     return redirect(url_for("project_bp.list_projects"))
 

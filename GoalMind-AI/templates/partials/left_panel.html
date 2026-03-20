@@ -34,13 +34,7 @@
       <span class="sidebar-nav-icon"></span>
       Tareas
     </a>
-    <a href="{{ url_for('dashboard_bp.estadisticas') }}"
-       class="sidebar-nav-item"
-       {% if page == 'estadisticas' %}aria-current="page"{% endif %}>
-      <span class="sidebar-nav-icon"></span>
-      Estadisticas
-    </a>
-
+    
     <a href="{{ url_for('dashboard_bp.config') }}"
        class="sidebar-nav-item"
        {% if page == 'config' %}aria-current="page"{% endif %}>
