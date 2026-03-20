@@ -72,13 +72,8 @@ def supervisor_node(state: AppState, llm) -> AppState:
       Fase 1 (Python puro): detectar confirmacion/cancelacion de acciones pendientes.
       Fase 2 (LLM): clasificar la intencion. NO recibe context_json.
     """
-    print("\n" + "="*60)
-    print("SUPERVISOR_NODE: Clasificando intencion del usuario...")
-    print("="*60)
     messages = state.get("messages", [])
     user_text = _last_user_text(messages)
-    print(f"   Ultimo mensaje del usuario: '{user_text}'")
-    print(f"   ¿Hay accion pendiente? {bool(state.get('pending_action_intent'))}")
 
     # ── Fase 1: Acciones pendientes (Python puro) ──────────────────
     pending_action = state.get("pending_action_intent")
@@ -164,8 +159,6 @@ def supervisor_node(state: AppState, llm) -> AppState:
 
     # Si es off_topic, inyectar respuesta fija y enrutar a finalize
     if category == "off_topic":
-        print(f"\n   ✓ RUTA DECIDIDA: 'finalize' (off_topic)")
-        print("="*60 + "\n")
         return {
             "route": "finalize",
             "query_type": "off_topic",
@@ -173,8 +166,6 @@ def supervisor_node(state: AppState, llm) -> AppState:
             "final_response": OFF_TOPIC_MESSAGE,
         }
 
-    print(f"\n   ✓ RUTA DECIDIDA: '{category}' (use_critic={use_critic})")
-    print("="*60 + "\n")
     return {
         "route": category,
         "query_type": category,

@@ -52,18 +52,10 @@ def _generate_filename(user_text: str, fmt: str) -> str:
 
 
 def doc_writer_node(state: AppState, llm) -> AppState:
-    print("\n" + "=" * 60)
-    print("DOC_WRITER_NODE: Generando documento con LLM...")
-    print("=" * 60)
-
     user_id = state.get("user_id", "")
     write_format = state.get("doc_write_format", "txt")
     project_id = state.get("doc_target_project_id") or None
     goal_id = state.get("doc_target_goal_id") or None
-
-    print(f"   Formato: {write_format}")
-    print(f"   Proyecto: {project_id}")
-    print(f"   Objetivo: {goal_id}")
 
     # ── Generar contenido con LLM ─────────────────────────────────
     messages = [
@@ -72,7 +64,6 @@ def doc_writer_node(state: AppState, llm) -> AppState:
     ]
     messages.extend(state.get("messages", []))
 
-    print("   Llamando LLM para generar contenido...")
     try:
         generated_text = invoke_with_retry(llm, messages, retries=1)
     except LLMInvokeError:
@@ -81,8 +72,6 @@ def doc_writer_node(state: AppState, llm) -> AppState:
 
     if not generated_text or not generated_text.strip():
         return {"final_response": "El modelo no genero contenido para el documento."}
-
-    print(f"   Contenido generado ({len(generated_text)} caracteres)")
 
     # ── Crear archivo ─────────────────────────────────────────────
     filename = _generate_filename("", write_format)
@@ -118,8 +107,6 @@ def doc_writer_node(state: AppState, llm) -> AppState:
 
     if not local_upload_id:
         return {"final_response": "No se pudo guardar el documento en el almacenamiento."}
-
-    print(f"   Archivo subido a GridFS local: {local_upload_id}")
 
     # ── Intentar promover a remoto ────────────────────────────────
     remote_upload_id = None
@@ -185,6 +172,4 @@ def doc_writer_node(state: AppState, llm) -> AppState:
         parts.append(f"Objetivo: {goal_id}")
 
     final_msg = "\n".join(parts)
-    print(f"   {final_msg}")
-    print("=" * 60 + "\n")
     return {"final_response": final_msg}

@@ -187,17 +187,12 @@ def _download_document_bytes(doc: dict) -> bytes | None:
 
 def doc_organizer_node(state: AppState) -> AppState:
     """Nodo organizador: clasifica read/write y prepara contexto (sin LLM)."""
-    print("\n" + "=" * 60)
-    print("DOC_ORGANIZER_NODE: Clasificando operacion sobre documento...")
-    print("=" * 60)
-
     messages = state.get("messages", [])
     user_text = ""
     for msg in reversed(messages):
         if hasattr(msg, "content") and getattr(msg, "type", None) == "human":
             user_text = (msg.content or "").strip()
             break
-    print(f"   Mensaje del usuario: '{user_text[:80]}'")
 
     context = {}
     try:
@@ -207,15 +202,11 @@ def doc_organizer_node(state: AppState) -> AppState:
 
     user_id = state.get("user_id", "")
     doc_op = _detect_operation(user_text)
-    print(f"   Operacion detectada: {doc_op}")
 
     # ── WRITE ─────────────────────────────────────────────────────
     if doc_op == "write":
         write_format = _detect_write_format(user_text)
         project_id, goal_id = _resolve_project_from_message(user_text, context)
-        print(f"   Formato: {write_format}")
-        print(f"   Proyecto: {project_id}, Objetivo: {goal_id}")
-        print("=" * 60 + "\n")
         return {
             "doc_op": "write",
             "doc_write_format": write_format,
@@ -231,19 +222,14 @@ def doc_organizer_node(state: AppState) -> AppState:
     doc, error = _find_document(user_text, user_id, project_id)
 
     if error:
-        print(f"   Error: {error}")
-        print("=" * 60 + "\n")
         return {"doc_error": error, "final_response": error}
 
     doc_name = doc.get("original_name") or doc.get("filename") or "documento"
     content_type = doc.get("content_type") or ""
-    print(f"   Documento encontrado: {doc_name} ({content_type})")
 
     raw_bytes = _download_document_bytes(doc)
     if not raw_bytes:
         msg = f"No se pudo descargar el archivo '{doc_name}' desde el almacenamiento."
-        print(f"   Error: {msg}")
-        print("=" * 60 + "\n")
         return {"doc_error": msg, "final_response": msg}
 
     text_content = extract_text(raw_bytes, content_type, doc_name)
@@ -252,11 +238,6 @@ def doc_organizer_node(state: AppState) -> AppState:
         text_content = text_content[:MAX_CONTENT_CHARS] + "\n\n[... contenido truncado por longitud ...]"
         if read_mode == "full":
             read_mode = "summary"
-            print("   Contenido muy largo, forzando modo resumen")
-
-    print(f"   Modo lectura: {read_mode}")
-    print(f"   Texto extraido: {len(text_content)} caracteres")
-    print("=" * 60 + "\n")
 
     return {
         "doc_op": "read",

@@ -27,23 +27,13 @@ _MODE_PROMPTS = {
 
 
 def doc_reader_node(state: AppState, llm) -> AppState:
-    print("\n" + "=" * 60)
-    print("DOC_READER_NODE: Procesando documento con LLM...")
-    print("=" * 60)
-
     doc_name = state.get("doc_target_name", "documento")
     read_mode = state.get("doc_read_mode", "full")
     text_content = state.get("doc_content_text", "")
     analyze_points = state.get("doc_analyze_points", "")
 
-    print(f"   Documento: {doc_name}")
-    print(f"   Modo: {read_mode}")
-    print(f"   Texto: {len(text_content)} caracteres")
-
     if not text_content:
         msg = f"No hay contenido de texto disponible para el documento '{doc_name}'."
-        print(f"   Error: {msg}")
-        print("=" * 60 + "\n")
         return {"draft_response": msg}
 
     base_prompt = _MODE_PROMPTS.get(read_mode, DOC_READER_FULL_PROMPT)
@@ -57,14 +47,11 @@ def doc_reader_node(state: AppState, llm) -> AppState:
     ]
     messages.extend(state.get("messages", []))
 
-    print("   Llamando LLM...")
     try:
         response = invoke_with_retry(llm, messages, retries=1)
     except LLMInvokeError:
         logger.exception("doc_reader_node: error invocando LLM")
         response = f"No pude procesar el documento '{doc_name}' en este momento."
-
-    print(f"   Respuesta generada ({len(response)} caracteres)")
 
     mode_labels = {"full": "lectura completa", "summary": "resumen", "analyze": "analisis"}
     description = f"{mode_labels.get(read_mode, read_mode)} de '{doc_name}'"
@@ -79,5 +66,4 @@ def doc_reader_node(state: AppState, llm) -> AppState:
         "description": description,
     })
 
-    print("=" * 60 + "\n")
     return {"draft_response": response}

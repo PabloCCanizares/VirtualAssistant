@@ -50,22 +50,11 @@ def _append_missing_sources(draft, sources):
 
 
 def writer_node(state: AppState, llm) -> AppState:
-    print("\n" + "="*60)
-    print("WRITER_NODE: Formateando respuesta...")
-    print("="*60)
-    # Prioridad: deep_research_notes > research_notes > progress_analysis
     notes = (
         state.get("deep_research_notes")
         or state.get("research_notes")
         or state.get("progress_analysis", "")
     )
-    if state.get("deep_research_notes"):
-        source = "deep_research_notes"
-    elif state.get("research_notes"):
-        source = "research_notes"
-    else:
-        source = "progress_analysis"
-    print(f"   Origen de notas: {source} ({len(notes)} caracteres)")
 
     sources = _normalize_sources(state.get("deep_research_sources", []))
     messages = [
@@ -77,7 +66,6 @@ def writer_node(state: AppState, llm) -> AppState:
             SystemMessage(content=f"Fuentes disponibles (JSON): {json.dumps(sources, ensure_ascii=True)}")
         )
     messages.extend(state.get("messages", []))
-    print(f"   Llamando LLM para formatear respuesta...")
     try:
         draft = invoke_with_retry(llm, messages, retries=1)
     except LLMInvokeError:
@@ -85,6 +73,4 @@ def writer_node(state: AppState, llm) -> AppState:
         draft = "No pude generar una respuesta en este momento."
 
     draft = _append_missing_sources(draft, sources)
-    print(f"   ✓ Respuesta formateada ({len(draft)} caracteres)")
-    print("="*60 + "\n")
     return {"draft_response": draft}

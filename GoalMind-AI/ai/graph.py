@@ -1,5 +1,7 @@
 import logging
-from typing import Any, Iterable
+import queue
+import threading
+from typing import Any, Generator, Iterable
 
 from langchain_core.messages import AIMessage, HumanMessage
 from langgraph.graph import END, START, StateGraph
@@ -23,6 +25,7 @@ from ai.agents import (
     writer_node,
 )
 from ai.config import build_llm
+from ai.services.node_status import NODE_STATUS
 from ai.state import AppState
 
 logger = logging.getLogger(__name__)
@@ -140,9 +143,6 @@ def _route_after_deep_research(state: AppState) -> str:
 
 
 def _finalize_node(state: AppState) -> AppState:
-    print("\n" + "="*60)
-    print("✅ FINALIZE_NODE: Finalizando respuesta...")
-    print("="*60)
     final_response = (state.get("final_response") or "").strip()
     deep_search_error = (state.get("deep_search_error") or "").strip()
     deep_search_mode = (state.get("deep_search_mode") or "").strip().lower()
@@ -156,8 +156,6 @@ def _finalize_node(state: AppState) -> AppState:
     if final_response:
         if deep_search_notice and deep_search_notice not in final_response:
             final_response = f"{deep_search_notice}\n\n{final_response}"
-        print(f"   ✓ final_response ya establecido ({len(final_response)} caracteres)")
-        print("="*60 + "\n")
         return {"final_response": final_response}
 
     draft = (state.get("draft_response") or "").strip()
@@ -165,34 +163,40 @@ def _finalize_node(state: AppState) -> AppState:
         draft = "No pude generar una respuesta en este momento."
     if deep_search_notice and deep_search_notice not in draft:
         draft = f"{deep_search_notice}\n\n{draft}"
-    print(f"   ✓ Usando draft_response como final ({len(draft)} caracteres)")
-    print("="*60 + "\n")
     return {"final_response": draft}
 
 
 # ── Graph builder ──────────────────────────────────────────────────
 
 
-def build_chat_graph(llm):
+def build_chat_graph(llm, on_node_start=None):
     graph = StateGraph(AppState)
 
+    def _wrap(node_key, fn):
+        """Envuelve un nodo para emitir su estado al iniciar."""
+        def wrapped(state):
+            if on_node_start:
+                on_node_start(node_key)
+            return fn(state)
+        return wrapped
+
     # Nodos
-    graph.add_node("supervisor", lambda state: supervisor_node(state, llm))
-    graph.add_node("action_planner", lambda state: action_planner_node(state, llm))
-    graph.add_node("queue_executor", lambda state: queue_executor_node(state, llm))
-    graph.add_node("action_executor", lambda state: action_executor_node(state, llm))
-    graph.add_node("deep_research", lambda state: deep_research_node(state, llm))
-    graph.add_node("research", lambda state: research_node(state, llm))
-    graph.add_node("recommendations", lambda state: recommendations_node(state, llm))
-    graph.add_node("weekly_summary", lambda state: weekly_summary_node(state, llm))
-    graph.add_node("weekly_planner", lambda state: weekly_planner_node(state, llm))
-    graph.add_node("progress_tracker", lambda state: progress_tracker_node(state, llm))
-    graph.add_node("doc_organizer", lambda state: doc_organizer_node(state))
-    graph.add_node("doc_reader", lambda state: doc_reader_node(state, llm))
-    graph.add_node("doc_writer", lambda state: doc_writer_node(state, llm))
-    graph.add_node("writer", lambda state: writer_node(state, llm))
-    graph.add_node("critic", lambda state: critic_node(state, llm))
-    graph.add_node("finalize", _finalize_node)
+    graph.add_node("supervisor", _wrap("supervisor", lambda s: supervisor_node(s, llm)))
+    graph.add_node("action_planner", _wrap("action_planner", lambda s: action_planner_node(s, llm)))
+    graph.add_node("queue_executor", _wrap("queue_executor", lambda s: queue_executor_node(s, llm)))
+    graph.add_node("action_executor", _wrap("action_executor", lambda s: action_executor_node(s, llm)))
+    graph.add_node("deep_research", _wrap("deep_research", lambda s: deep_research_node(s, llm)))
+    graph.add_node("research", _wrap("research", lambda s: research_node(s, llm)))
+    graph.add_node("recommendations", _wrap("recommendations", lambda s: recommendations_node(s, llm)))
+    graph.add_node("weekly_summary", _wrap("weekly_summary", lambda s: weekly_summary_node(s, llm)))
+    graph.add_node("weekly_planner", _wrap("weekly_planner", lambda s: weekly_planner_node(s, llm)))
+    graph.add_node("progress_tracker", _wrap("progress_tracker", lambda s: progress_tracker_node(s, llm)))
+    graph.add_node("doc_organizer", _wrap("doc_organizer", lambda s: doc_organizer_node(s)))
+    graph.add_node("doc_reader", _wrap("doc_reader", lambda s: doc_reader_node(s, llm)))
+    graph.add_node("doc_writer", _wrap("doc_writer", lambda s: doc_writer_node(s, llm)))
+    graph.add_node("writer", _wrap("writer", lambda s: writer_node(s, llm)))
+    graph.add_node("critic", _wrap("critic", lambda s: critic_node(s, llm)))
+    graph.add_node("finalize", _wrap("finalize", _finalize_node))
 
     # START → supervisor
     graph.add_edge(START, "supervisor")
@@ -220,40 +224,28 @@ def build_chat_graph(llm):
     graph.add_conditional_edges(
         "deep_research",
         _route_after_deep_research,
-        {
-            "writer": "writer",
-            "research": "research",
-        },
+        {"writer": "writer", "research": "research"},
     )
 
     # action_planner → queue_executor (cola lista) o finalize (confirmacion/clarificacion)
     graph.add_conditional_edges(
         "action_planner",
         _route_after_action_planner,
-        {
-            "queue_executor": "queue_executor",
-            "finalize": "finalize",
-        },
+        {"queue_executor": "queue_executor", "finalize": "finalize"},
     )
 
     # queue_executor → action_executor (cola no vacia) o finalize (cola vacia)
     graph.add_conditional_edges(
         "queue_executor",
         _route_after_queue_executor,
-        {
-            "action_executor": "action_executor",
-            "finalize": "finalize",
-        },
+        {"action_executor": "action_executor", "finalize": "finalize"},
     )
 
     # action_executor → queue_executor (modo cola) o finalize (modo simple)
     graph.add_conditional_edges(
         "action_executor",
         _route_after_action_executor,
-        {
-            "queue_executor": "queue_executor",
-            "finalize": "finalize",
-        },
+        {"queue_executor": "queue_executor", "finalize": "finalize"},
     )
 
     # weekly_summary → finalize (directo, opcionalmente via critic)
@@ -281,11 +273,7 @@ def build_chat_graph(llm):
     graph.add_conditional_edges(
         "doc_organizer",
         _route_after_doc_organizer,
-        {
-            "doc_reader": "doc_reader",
-            "doc_writer": "doc_writer",
-            "finalize": "finalize",
-        },
+        {"doc_reader": "doc_reader", "doc_writer": "doc_writer", "finalize": "finalize"},
     )
 
     # doc_reader → critic o finalize
@@ -324,6 +312,90 @@ def build_chat_graph(llm):
     return graph.compile()
 
 
+# ── Build initial state ───────────────────────────────────────────
+
+
+def _build_initial_state(
+    user_message, history, context_json, user_id,
+    pending_action_intent, session_mutations_json,
+    deep_search_mode, deep_search_requested, deep_search_error,
+):
+    return {
+        "messages": _history_to_messages(history) + [HumanMessage(content=user_message)],
+        "context_json": context_json or "{}",
+        "user_id": user_id,
+        "pending_action_intent": pending_action_intent,
+        "session_mutations_json": session_mutations_json,
+        "deep_search_mode": deep_search_mode,
+        "deep_search_requested": deep_search_requested,
+        "deep_search_error": deep_search_error,
+    }
+
+
+# ── Streaming execution (SSE) ────────────────────────────────────
+
+
+def stream_graph_chat(
+    user_message: str,
+    history,
+    context_json: str,
+    model: str,
+    user_id: str,
+    pending_action_intent: dict | None = None,
+    session_mutations_json: str = "[]",
+    deep_search_mode: str = "auto",
+    deep_search_requested: bool = False,
+    deep_search_error: str = "",
+) -> Generator[tuple[str, dict], None, None]:
+    """Ejecuta el grafo y genera eventos (type, data) para SSE."""
+    status_queue: queue.Queue = queue.Queue()
+
+    def on_node_start(node_name: str):
+        status_queue.put(node_name)
+
+    llm = build_llm(model)
+    app = build_chat_graph(llm, on_node_start=on_node_start)
+    state = _build_initial_state(
+        user_message, history, context_json, user_id,
+        pending_action_intent, session_mutations_json,
+        deep_search_mode, deep_search_requested, deep_search_error,
+    )
+
+    result_holder: list = [None]
+    error_holder: list = [None]
+
+    def _run():
+        try:
+            result_holder[0] = app.invoke(state, config={"recursion_limit": 50})
+        except Exception as exc:
+            logger.exception("stream_graph_chat: fallo en ejecucion del grafo")
+            error_holder[0] = exc
+        finally:
+            status_queue.put(None)
+
+    thread = threading.Thread(target=_run, daemon=True)
+    thread.start()
+
+    while True:
+        node_name = status_queue.get()
+        if node_name is None:
+            break
+        status = NODE_STATUS.get(node_name)
+        if status:
+            yield ("status", status)
+
+    thread.join()
+
+    if error_holder[0]:
+        yield ("error", {"message": str(error_holder[0])})
+    else:
+        final = (result_holder[0] or {}).get("final_response", "").strip()
+        yield ("done", {"reply": final or "No se recibió respuesta."})
+
+
+# ── Synchronous execution (backward compatibility) ────────────────
+
+
 def run_graph_chat(
     user_message: str,
     history,
@@ -336,40 +408,17 @@ def run_graph_chat(
     deep_search_requested: bool = False,
     deep_search_error: str = "",
 ) -> str:
-    print("\n" + "#"*60)
-    print("# INICIANDO GRAFO DE CHAT")
-    print("#"*60)
-    print(f"   Usuario: {user_id}")
-    print(f"   Modelo: {model}")
-    print(f"   Mensaje: '{user_message[:80]}{'...' if len(user_message) > 80 else ''}'")
-    print(f"   Historial: {len(history)} mensajes")
-    print(f"   Accion pendiente: {'Sí' if pending_action_intent else 'No'}")
-    print("#"*60 + "\n")
-
     llm = build_llm(model)
     app = build_chat_graph(llm)
-
-    state = {
-        "messages": _history_to_messages(history) + [HumanMessage(content=user_message)],
-        "context_json": context_json or "{}",
-        "user_id": user_id,
-        "pending_action_intent": pending_action_intent,
-        "session_mutations_json": session_mutations_json,
-        "deep_search_mode": deep_search_mode,
-        "deep_search_requested": deep_search_requested,
-        "deep_search_error": deep_search_error,
-    }
+    state = _build_initial_state(
+        user_message, history, context_json, user_id,
+        pending_action_intent, session_mutations_json,
+        deep_search_mode, deep_search_requested, deep_search_error,
+    )
     try:
         result = app.invoke(state, config={"recursion_limit": 50})
     except Exception as exc:
         logger.exception("run_graph_chat: fallo en ejecucion del grafo")
         raise RuntimeError("No se pudo ejecutar el flujo de chat.") from exc
 
-    final_response = (result.get("final_response") or "").strip()
-    print("#"*60)
-    print("#GRAFO COMPLETADO")
-    print("#"*60)
-    print(f"   Respuesta final ({len(final_response)} caracteres):")
-    print(f"   {final_response[:100]}{'...' if len(final_response) > 100 else ''}")
-    print("#"*60 + "\n")
-    return final_response
+    return (result.get("final_response") or "").strip()

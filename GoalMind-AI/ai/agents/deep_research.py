@@ -19,19 +19,11 @@ def _last_user_message_text(messages) -> str:
 
 
 def deep_research_node(state: AppState, llm) -> AppState:
-    print("\n" + "="*60)
-    print("DEEP_RESEARCH_NODE: Ejecutando búsqueda profunda...")
-    print("="*60)
-
     if not state.get("deep_search_requested", False):
-        print("   ↷ deep_search_requested=False, no se ejecuta búsqueda profunda")
-        print("="*60 + "\n")
         return {}
 
     query = _last_user_message_text(state.get("messages", []))
     if not query:
-        print("   ✗ No hay query de usuario para deep research")
-        print("="*60 + "\n")
         return {"deep_search_error": "No hay consulta para realizar búsqueda profunda."}
 
     try:
@@ -47,13 +39,9 @@ def deep_research_node(state: AppState, llm) -> AppState:
         )
     except DeepSearchError as exc:
         logger.warning("deep_research_node: deep search no disponible: %s", exc)
-        print(f"   ✗ Error deep search: {exc}")
-        print("="*60 + "\n")
         return {"deep_search_error": str(exc), "deep_search_results": [], "deep_research_sources": []}
     except Exception as exc:
         logger.exception("deep_research_node: error inesperado en búsqueda profunda")
-        print(f"   ✗ Error inesperado deep search: {exc}")
-        print("="*60 + "\n")
         return {
             "deep_search_error": "No se pudo completar la búsqueda profunda.",
             "deep_search_results": [],
@@ -61,8 +49,6 @@ def deep_research_node(state: AppState, llm) -> AppState:
         }
 
     if result.error:
-        print(f"   ✗ Error deep research: {result.error}")
-        print("="*60 + "\n")
         return {
             "deep_search_error": result.error,
             "deep_search_results": result.raw_results,
@@ -74,17 +60,12 @@ def deep_research_node(state: AppState, llm) -> AppState:
 
     notes = (result.report or "").strip()
     if not notes:
-        print("   ✗ No se encontraron fuentes útiles")
-        print("="*60 + "\n")
         return {
             "deep_search_error": "No se encontraron fuentes relevantes en la búsqueda profunda.",
             "deep_search_results": result.raw_results,
             "deep_research_sources": [],
         }
 
-    print(f"   ✓ Fuentes recopiladas: {len(result.sources)}")
-    print(f"   ✓ Notas de deep research: {len(notes)} caracteres")
-    print("="*60 + "\n")
     return {
         "deep_search_error": "",
         "deep_search_results": result.raw_results,

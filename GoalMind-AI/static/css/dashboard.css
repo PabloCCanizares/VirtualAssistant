@@ -1062,6 +1062,11 @@
   animation: ai-chat-thinking-pulse 1.2s ease-in-out infinite;
 }
 
+.ai-chat-message.assistant.thinking .ai-chat-bubble strong {
+  color: rgba(248, 251, 255, 1);
+  font-weight: 600;
+}
+
 @keyframes ai-chat-thinking-pulse {
   0%, 100% {
     opacity: 0.55;
