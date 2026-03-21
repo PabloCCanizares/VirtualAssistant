@@ -262,7 +262,7 @@ def delete_goal(goal_id):
 @goal_bp.route("/api/<goal_id>", methods=["PUT", "PATCH"])
 def api_update_goal(goal_id):
     """Actualiza un objetivo via JSON y devuelve el resultado."""
-    from bson import ObjectId
+    
 
     try:
         payload = request.get_json(silent=True) or {}

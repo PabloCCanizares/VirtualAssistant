@@ -2,17 +2,28 @@
 
 {% block content %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+{% if page == "config" %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/config.css') }}">
+{% else %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/calendar.css') }}">
+{% endif %}
 
 <section class="mission-shell">
-  
+
   <div class="mission-heading">
     <h1 class="mission-title">GoalMind - AI</h1>
     <p class="mission-subtitle">Resumen ejecutivo del asistente personal · estado operativo en tiempo real</p>
   </div>
   {% include "partials/header.html" %}
+
+  {% if page == "config" %}
+  <div class="mission-grid mission-grid--fullwidth">
+    <section class="mission-main">
+      {% include "partials/config_panel.html" %}
+    </section>
+  </div>
+  {% else %}
   <div class="mission-grid">
-    
     <section class="mission-main">
       {% include "partials/center_panel.html" %}
     </section>
@@ -20,8 +31,13 @@
       {% include "partials/right_panel.html" %}
     </aside>
   </div>
+  {% endif %}
 </section>
 
+{% if page == "config" %}
+<script src="{{ url_for('static', filename='js/config.js') }}"></script>
+{% else %}
 <script src="{{ url_for('static', filename='js/calendar.js') }}" type="module"></script>
 <script src="{{ url_for('static', filename='js/dashboard_stats.js') }}"></script>
+{% endif %}
 {% endblock %}

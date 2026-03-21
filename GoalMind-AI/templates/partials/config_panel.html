@@ -1,0 +1,265 @@
+<section class="config-panel" id="configPanel">
+
+  <h1 class="config-title">Configuración</h1>
+
+  <!-- ===== Seccion: Aplicacion ===== -->
+  <div class="config-section" data-section="app">
+    <h3 class="config-section-heading">Aplicación</h3>
+    <div class="dashboard-form config-form" data-section="app">
+
+      <div class="dashboard-form-group">
+        <label class="dashboard-form-label" for="cfg-APP_USER_NICKNAME">Nickname de usuario</label>
+        <input id="cfg-APP_USER_NICKNAME" name="APP_USER_NICKNAME" class="dashboard-form-input"
+               placeholder="shared_user">
+      </div>
+
+      <div class="dashboard-form-row">
+        <div class="dashboard-form-group">
+          <label class="dashboard-form-label" for="cfg-FLASK_DEBUG">Modo debug</label>
+          <select id="cfg-FLASK_DEBUG" name="FLASK_DEBUG" class="dashboard-form-select">
+            <option value="0">0 (Desactivado)</option>
+            <option value="1">1 (Activado)</option>
+          </select>
+        </div>
+        <div class="dashboard-form-group">
+          <label class="dashboard-form-label" for="cfg-LOG_LEVEL">Nivel de log</label>
+          <select id="cfg-LOG_LEVEL" name="LOG_LEVEL" class="dashboard-form-select">
+            <option value="DEBUG">DEBUG</option>
+            <option value="INFO">INFO</option>
+            <option value="WARNING">WARNING</option>
+            <option value="ERROR">ERROR</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="dashboard-form-group">
+        <label class="dashboard-form-label" for="cfg-TZ">Zona horaria</label>
+        <input id="cfg-TZ" name="TZ" class="dashboard-form-input" placeholder="Europe/Madrid">
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Seccion: IA / LLM ===== -->
+  <div class="config-section" data-section="ai">
+    <h3 class="config-section-heading">IA / LLM</h3>
+    <div class="dashboard-form config-form" data-section="ai">
+
+      <div class="dashboard-form-group">
+        <label class="dashboard-form-label" for="cfg-LLM_PROVIDER">Proveedor LLM</label>
+        <select id="cfg-LLM_PROVIDER" name="LLM_PROVIDER" class="dashboard-form-select">
+          <option value="openai">OpenAI</option>
+          <option value="gemini">Gemini</option>
+          <option value="groq">Groq</option>
+        </select>
+      </div>
+
+      <div class="dashboard-form-row">
+        <div class="dashboard-form-group">
+          <label class="dashboard-form-label" for="cfg-OPENAI_API_KEY">OpenAI API Key</label>
+          <input id="cfg-OPENAI_API_KEY" name="OPENAI_API_KEY" class="dashboard-form-input"
+                 placeholder="sk-...">
+        </div>
+        <div class="dashboard-form-group">
+          <label class="dashboard-form-label" for="cfg-OPENAI_MODEL">Modelo OpenAI</label>
+          <input id="cfg-OPENAI_MODEL" name="OPENAI_MODEL" class="dashboard-form-input"
+                 placeholder="gpt-5-nano">
+        </div>
+      </div>
+
+      <div class="dashboard-form-row">
+        <div class="dashboard-form-group">
+          <label class="dashboard-form-label" for="cfg-GEMINI_API_KEY">Gemini API Key</label>
+          <input id="cfg-GEMINI_API_KEY" name="GEMINI_API_KEY" class="dashboard-form-input"
+                 placeholder="AIza...">
+        </div>
+        <div class="dashboard-form-group">
+          <label class="dashboard-form-label" for="cfg-GEMINI_MODEL">Modelo Gemini</label>
+          <input id="cfg-GEMINI_MODEL" name="GEMINI_MODEL" class="dashboard-form-input"
+                 placeholder="gemini-3-flash-preview">
+        </div>
+      </div>
+
+      <div class="dashboard-form-row">
+        <div class="dashboard-form-group">
+          <label class="dashboard-form-label" for="cfg-GROQ_API_KEY">Groq API Key</label>
+          <input id="cfg-GROQ_API_KEY" name="GROQ_API_KEY" class="dashboard-form-input"
+                 placeholder="gsk_...">
+        </div>
+        <div class="dashboard-form-group">
+          <label class="dashboard-form-label" for="cfg-GROQ_MODEL">Modelo Groq</label>
+          <input id="cfg-GROQ_MODEL" name="GROQ_MODEL" class="dashboard-form-input"
+                 placeholder="llama-3.1-8b-instant">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Seccion: Busqueda Profunda ===== -->
+  <div class="config-section" data-section="deep_search">
+    <h3 class="config-section-heading">Busqueda Profunda</h3>
+    <div class="dashboard-form config-form" data-section="deep_search">
+
+      <div class="dashboard-form-row">
+        <div class="dashboard-form-group">
+          <label class="dashboard-form-label" for="cfg-DEEP_SEARCH_ENABLED">Habilitada</label>
+          <select id="cfg-DEEP_SEARCH_ENABLED" name="DEEP_SEARCH_ENABLED" class="dashboard-form-select">
+            <option value="0">0 (Desactivada)</option>
+            <option value="1">1 (Activada)</option>
+          </select>
+        </div>
+        <div class="dashboard-form-group">
+          <label class="dashboard-form-label" for="cfg-DEEP_SEARCH_PROVIDER">Proveedor</label>
+          <select id="cfg-DEEP_SEARCH_PROVIDER" name="DEEP_SEARCH_PROVIDER" class="dashboard-form-select">
+            <option value="tavily">Tavily</option>
+            <option value="serper">Serper</option>
+            <option value="brave">Brave</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="dashboard-form-group">
+        <label class="dashboard-form-label" for="cfg-DEEP_SEARCH_API_KEY">API Key</label>
+        <input id="cfg-DEEP_SEARCH_API_KEY" name="DEEP_SEARCH_API_KEY" class="dashboard-form-input"
+               placeholder="Clave del proveedor de busqueda">
+      </div>
+
+      <div class="dashboard-form-row">
+        <div class="dashboard-form-group">
+          <label class="dashboard-form-label" for="cfg-DEEP_SEARCH_MAX_RESULTS">Max resultados</label>
+          <input id="cfg-DEEP_SEARCH_MAX_RESULTS" name="DEEP_SEARCH_MAX_RESULTS"
+                 type="number" min="1" max="20" class="dashboard-form-input">
+        </div>
+        <div class="dashboard-form-group">
+          <label class="dashboard-form-label" for="cfg-DEEP_SEARCH_TIMEOUT_SECONDS">Timeout (seg)</label>
+          <input id="cfg-DEEP_SEARCH_TIMEOUT_SECONDS" name="DEEP_SEARCH_TIMEOUT_SECONDS"
+                 type="number" min="3" max="60" class="dashboard-form-input">
+        </div>
+      </div>
+
+      <div class="dashboard-form-row">
+        <div class="dashboard-form-group">
+          <label class="dashboard-form-label" for="cfg-DEEP_SEARCH_MAX_SOURCES">Max fuentes</label>
+          <input id="cfg-DEEP_SEARCH_MAX_SOURCES" name="DEEP_SEARCH_MAX_SOURCES"
+                 type="number" min="1" max="12" class="dashboard-form-input">
+        </div>
+        <div class="dashboard-form-group">
+          <label class="dashboard-form-label" for="cfg-DEEP_SEARCH_MODE_DEFAULT">Modo por defecto</label>
+          <select id="cfg-DEEP_SEARCH_MODE_DEFAULT" name="DEEP_SEARCH_MODE_DEFAULT" class="dashboard-form-select">
+            <option value="auto">auto</option>
+            <option value="on">on</option>
+            <option value="off">off</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Seccion: MongoDB ===== -->
+  <div class="config-section" data-section="mongodb">
+    <h3 class="config-section-heading">MongoDB</h3>
+    <div class="dashboard-form config-form" data-section="mongodb">
+
+      <div class="dashboard-form-group">
+        <label class="dashboard-form-label" for="cfg-MONGO_LOCAL_URI">URI Local</label>
+        <div class="config-uri-row">
+          <input id="cfg-MONGO_LOCAL_URI" name="MONGO_LOCAL_URI" class="dashboard-form-input"
+                 placeholder="mongodb://127.0.0.1:27017">
+          <button type="button" class="config-test-btn" data-uri-field="cfg-MONGO_LOCAL_URI">
+            Probar
+          </button>
+        </div>
+        <span class="config-test-result" id="test-MONGO_LOCAL_URI"></span>
+      </div>
+
+      <div class="dashboard-form-group">
+        <label class="dashboard-form-label" for="cfg-MONGO_LOCAL_DB">Base de datos Local</label>
+        <input id="cfg-MONGO_LOCAL_DB" name="MONGO_LOCAL_DB" class="dashboard-form-input"
+               placeholder="VirtualAssistantDB">
+      </div>
+
+      <div class="dashboard-form-group">
+        <label class="dashboard-form-label" for="cfg-MONGO_REMOTE_URI">URI Remota (Atlas)</label>
+        <div class="config-uri-row">
+          <input id="cfg-MONGO_REMOTE_URI" name="MONGO_REMOTE_URI" class="dashboard-form-input"
+                 placeholder="mongodb+srv://user:pass@cluster...">
+          <button type="button" class="config-test-btn" data-uri-field="cfg-MONGO_REMOTE_URI">
+            Probar
+          </button>
+        </div>
+        <span class="config-test-result" id="test-MONGO_REMOTE_URI"></span>
+      </div>
+
+      <div class="dashboard-form-group">
+        <label class="dashboard-form-label" for="cfg-MONGO_REMOTE_DB">Base de datos Remota</label>
+        <input id="cfg-MONGO_REMOTE_DB" name="MONGO_REMOTE_DB" class="dashboard-form-input"
+               placeholder="VirtualAssistantDB">
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Seccion: Almacenamiento ===== -->
+  <div class="config-section" data-section="storage">
+    <h3 class="config-section-heading">Almacenamiento y Sincronizacion</h3>
+    <div class="dashboard-form config-form" data-section="storage">
+
+      <div class="dashboard-form-row">
+        <div class="dashboard-form-group">
+          <label class="dashboard-form-label" for="cfg-SYNC_INTERVAL_MINUTES">Intervalo sync (min)</label>
+          <input id="cfg-SYNC_INTERVAL_MINUTES" name="SYNC_INTERVAL_MINUTES"
+                 type="number" min="1" class="dashboard-form-input">
+        </div>
+        <div class="dashboard-form-group">
+          <label class="dashboard-form-label" for="cfg-MAX_CONTENT_LENGTH_MB">Tamano max archivo (MB)</label>
+          <input id="cfg-MAX_CONTENT_LENGTH_MB" name="MAX_CONTENT_LENGTH_MB"
+                 type="number" min="1" class="dashboard-form-input">
+        </div>
+      </div>
+
+      <div class="dashboard-form-row">
+        <div class="dashboard-form-group">
+          <label class="dashboard-form-label" for="cfg-UPLOAD_ROOT">Carpeta uploads</label>
+          <input id="cfg-UPLOAD_ROOT" name="UPLOAD_ROOT" class="dashboard-form-input"
+                 placeholder="uploads">
+        </div>
+        <div class="dashboard-form-group">
+          <label class="dashboard-form-label" for="cfg-UPLOAD_ALLOWED_EXTENSIONS">Extensiones permitidas</label>
+          <input id="cfg-UPLOAD_ALLOWED_EXTENSIONS" name="UPLOAD_ALLOWED_EXTENSIONS" class="dashboard-form-input"
+                 placeholder="pdf,doc,docx,txt,...">
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Barra de botones ===== -->
+<div class="config-actions-bar">
+  <button type="button" class="config-btn config-btn-apply" id="configApplyBtn" disabled>
+    Aplicar
+  </button>
+  <button type="button" class="config-btn config-btn-accept" id="configAcceptBtn">
+    Aceptar
+  </button>
+  <button type="button" class="config-btn config-btn-exit" id="configExitBtn">
+    Salir
+  </button>
+</div>
+
+<!-- Spinner overlay -->
+<div class="config-spinner-overlay" id="configSpinner" style="display:none;">
+  <div class="config-spinner"></div>
+  <span class="config-spinner-text">Aplicando cambios...</span>
+</div>
+
+<!-- Snackbar -->
+<div class="config-snackbar" id="configSnackbar" style="display:none;"></div>
+
+<!-- Modal de confirmacion -->
+<div class="config-modal-overlay" id="configConfirmModal" style="display:none;">
+  <div class="config-modal">
+    <p class="config-modal-message" id="configModalMessage"></p>
+    <div class="config-modal-actions">
+      <button type="button" class="config-btn config-btn-accept" id="configModalConfirm">Confirmar</button>
+      <button type="button" class="config-btn config-btn-exit" id="configModalCancel">Cancelar</button>
+    </div>
+  </div>
+</div>

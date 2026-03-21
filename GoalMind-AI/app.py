@@ -30,6 +30,7 @@ def _register_blueprints(flask_app: Flask) -> None:
     from controllers.project_controller import project_bp
     from controllers.stats_controller import stats_bp
     from controllers.task_controller import task_bp
+    from controllers.config_controller import config_bp
 
     flask_app.register_blueprint(task_bp)
     flask_app.register_blueprint(dashboard_bp)
@@ -39,6 +40,7 @@ def _register_blueprints(flask_app: Flask) -> None:
     flask_app.register_blueprint(stats_bp)
     flask_app.register_blueprint(category_bp)
     flask_app.register_blueprint(ai_chat_bp)
+    flask_app.register_blueprint(config_bp)
 
 def setup_scheduler(flask_app: Flask, logger: logging.Logger) -> None:
     sync_interval = env_int("SYNC_INTERVAL_MINUTES", 1, minimum=1)

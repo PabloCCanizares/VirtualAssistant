@@ -1,0 +1,284 @@
+/* ============================================================
+   CONFIG.CSS - Pantalla de configuracion
+   ============================================================ */
+
+/* Grid a 1 columna (sin right panel) */
+.mission-grid--fullwidth {
+  grid-template-columns: 100%;
+}
+
+/* Panel principal */
+.config-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  max-width: 100%;
+  margin: 0 150px;
+  padding-bottom: 100px; /* espacio para la barra de botones sticky */
+}
+
+/* Titulo grande */
+.config-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+  letter-spacing: 0.3px;
+}
+
+/* Secciones */
+.config-section {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  box-shadow: var(--card-shadow);
+  padding: 24px;
+}
+
+.config-section-heading {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--accent);
+  margin: 0 0 18px 0;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+  letter-spacing: 0.3px;
+}
+
+/* Form layout dentro de secciones */
+.config-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Campo modificado */
+.config-field-dirty {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 2px rgba(108, 243, 255, .15) !important;
+}
+
+/* URI row con boton de test */
+.config-uri-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.config-test-btn {
+  padding: 12px 18px;
+  border-radius: 10px;
+  border: 1px solid rgba(108, 243, 255, .25);
+  background: var(--btn-gradient);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.25s ease;
+  font-family: inherit;
+}
+
+.config-test-btn:hover {
+  background: var(--btn-gradient-hover);
+  transform: translateY(-1px);
+}
+
+.config-test-btn.testing {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.config-test-result {
+  font-size: 12px;
+  font-weight: 600;
+  min-height: 16px;
+  display: block;
+}
+
+.config-test-result.ok {
+  color: var(--good);
+}
+
+.config-test-result.fail {
+  color: var(--bad);
+}
+
+/* ===== Barra de botones ===== */
+.config-actions-bar {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  gap: 12px;
+  padding: 18px 24px;
+  background: rgba(11, 15, 26, .85);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--border);
+  border-radius: 0 0 var(--radius) var(--radius);
+  margin: 0 -40px -40px;
+  z-index: 10;
+}
+
+.config-btn {
+  padding: 12px 28px;
+  border-radius: 12px;
+  border: none;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.config-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.config-btn-apply {
+  background: var(--btn-primary);
+  color: #0a1628;
+}
+
+.config-btn-apply:hover:not(:disabled) {
+  filter: brightness(1.1);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(108, 243, 255, .25);
+}
+
+.config-btn-accept {
+  background: var(--btn-success);
+  color: #0a1628;
+}
+
+.config-btn-accept:hover {
+  filter: brightness(1.1);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(55, 225, 143, .25);
+}
+
+.config-btn-exit {
+  background: var(--btn-danger);
+  color: var(--bad);
+  border: 1px solid rgba(255, 107, 136, .3);
+}
+
+.config-btn-exit:hover {
+  background: var(--btn-danger-hover);
+  transform: translateY(-2px);
+}
+
+/* ===== Spinner overlay ===== */
+.config-spinner-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(11, 15, 26, .75);
+  backdrop-filter: blur(4px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  z-index: 9999;
+}
+
+.config-spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid rgba(108, 243, 255, .15);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: config-spin 0.8s linear infinite;
+}
+
+@keyframes config-spin {
+  to { transform: rotate(360deg); }
+}
+
+.config-spinner-text {
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+/* ===== Snackbar ===== */
+.config-snackbar {
+  position: fixed;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-20px);
+  padding: 16px 28px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  z-index: 10000;
+  max-width: 600px;
+  text-align: center;
+  opacity: 0;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, .4);
+}
+
+.config-snackbar.visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.config-snackbar.success {
+  background: rgba(55, 225, 143, .15);
+  border: 1px solid rgba(55, 225, 143, .4);
+  color: var(--good);
+}
+
+.config-snackbar.error {
+  background: rgba(255, 107, 136, .15);
+  border: 1px solid rgba(255, 107, 136, .4);
+  color: var(--bad);
+}
+
+.config-snackbar .config-snackbar-errors {
+  margin-top: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  text-align: left;
+}
+
+/* ===== Modal de confirmacion ===== */
+.config-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(11, 15, 26, .7);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+.config-modal {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  box-shadow: var(--card-shadow);
+  padding: 28px 32px;
+  max-width: 440px;
+  width: 90%;
+}
+
+.config-modal-message {
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.6;
+  margin: 0 0 22px 0;
+}
+
+.config-modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
