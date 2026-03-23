@@ -6,9 +6,18 @@ from flask import Blueprint, jsonify, request
 from dotenv import set_key
 from pymongo import MongoClient
 import certifi
-from openai import OpenAI
-import google.generativeai as genai
-from groq import Groq
+try:
+    from openai import OpenAI
+except ModuleNotFoundError:
+    OpenAI = None
+try:
+    from groq import Groq
+except ModuleNotFoundError:
+    Groq = None
+try:
+    import google.generativeai as genai
+except ModuleNotFoundError:
+    genai = None
 
 from database.mongo_conn import reconnect_databases
 
@@ -315,28 +324,46 @@ def _validate_api_keys(data, changed_keys):
     if "OPENAI_API_KEY" in changed_keys:
         key = data["OPENAI_API_KEY"]
         if key:
-            try:
-                client = OpenAI(api_key=key)
-                client.models.list()
-            except Exception as exc:
-                errors["OPENAI_API_KEY"] = f"Clave invalida: {exc}"
+            if OpenAI is None:
+                errors["OPENAI_API_KEY"] = (
+                    "Falta dependencia opcional 'openai'. "
+                    "Instala requirements para validar claves de OpenAI."
+                )
+            else:
+                try:
+                    client = OpenAI(api_key=key)
+                    client.models.list()
+                except Exception as exc:
+                    errors["OPENAI_API_KEY"] = f"Clave invalida: {exc}"
 
     if "GEMINI_API_KEY" in changed_keys:
         key = data["GEMINI_API_KEY"]
         if key:
-            try:
-                genai.configure(api_key=key)
-                list(genai.list_models())
-            except Exception as exc:
-                errors["GEMINI_API_KEY"] = f"Clave invalida: {exc}"
+            if genai is None:
+                errors["GEMINI_API_KEY"] = (
+                    "Falta dependencia opcional 'google-generativeai'. "
+                    "Instala requirements para validar claves de Gemini."
+                )
+            else:
+                try:
+                    genai.configure(api_key=key)
+                    list(genai.list_models())
+                except Exception as exc:
+                    errors["GEMINI_API_KEY"] = f"Clave invalida: {exc}"
 
     if "GROQ_API_KEY" in changed_keys:
         key = data["GROQ_API_KEY"]
         if key:
-            try:
-                client = Groq(api_key=key)
-                client.models.list()
-            except Exception as exc:
-                errors["GROQ_API_KEY"] = f"Clave invalida: {exc}"
+            if Groq is None:
+                errors["GROQ_API_KEY"] = (
+                    "Falta dependencia opcional 'groq'. "
+                    "Instala requirements para validar claves de Groq."
+                )
+            else:
+                try:
+                    client = Groq(api_key=key)
+                    client.models.list()
+                except Exception as exc:
+                    errors["GROQ_API_KEY"] = f"Clave invalida: {exc}"
 
     return errors
