@@ -144,23 +144,15 @@ def _finalize_node(state: AppState) -> AppState:
     final_response = (state.get("final_response") or "").strip()
     deep_search_error = (state.get("deep_search_error") or "").strip()
     deep_search_mode = (state.get("deep_search_mode") or "").strip().lower()
-    deep_search_notice = ""
     if deep_search_error and deep_search_mode != "off":
-        deep_search_notice = (
-            "Aviso: no se pudo completar la busqueda profunda. "
-            f"Motivo: {deep_search_error}"
-        )
+        logger.warning("Deep search no disponible durante esta respuesta: %s", deep_search_error)
 
     if final_response:
-        if deep_search_notice and deep_search_notice not in final_response:
-            final_response = f"{deep_search_notice}\n\n{final_response}"
         return {"final_response": final_response}
 
     draft = (state.get("draft_response") or "").strip()
     if not draft:
         draft = "No pude generar una respuesta en este momento."
-    if deep_search_notice and deep_search_notice not in draft:
-        draft = f"{deep_search_notice}\n\n{draft}"
     return {"final_response": draft}
 
 
