@@ -19,13 +19,7 @@ VALID_CATEGORIES = {
     "deep_research",
     "research",
     "document",
-    "off_topic",
 }
-
-OFF_TOPIC_MESSAGE = (
-    "Lo siento, solo puedo ayudarte con la gestion de tus proyectos, objetivos, "
-    "tareas y calendario. ¿Hay algo relacionado en lo que pueda ayudarte?"
-)
 
 CONFIRM_WORDS = {"si", "sí", "confirmo", "confirmar", "adelante", "ejecuta", "ok", "vale"}
 CANCEL_WORDS = {"no", "cancela", "cancelar", "anula", "detener"}
@@ -153,18 +147,9 @@ def supervisor_node(state: AppState, llm) -> AppState:
     if not isinstance(use_critic, bool):
         use_critic = False
 
-    # Si el usuario/cliente forzó deep search (modo ON), escalar research → deep_research.
+    # Si es una consulta profunda, research → deep_research. Por defecto = False. 
     if state.get("deep_search_requested", False) and category == "research":
         category = "deep_research"
-
-    # Si es off_topic, inyectar respuesta fija y enrutar a finalize
-    if category == "off_topic":
-        return {
-            "route": "finalize",
-            "query_type": "off_topic",
-            "use_critic": False,
-            "final_response": OFF_TOPIC_MESSAGE,
-        }
 
     return {
         "route": category,

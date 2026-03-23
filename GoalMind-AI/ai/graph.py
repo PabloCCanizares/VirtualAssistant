@@ -63,7 +63,6 @@ def _route_after_supervisor(state: AppState) -> str:
       progress         → progress_tracker
       deep_research    → deep_research
       research         → research
-      off_topic        → finalize
       finalize         → finalize
     """
     route = route_after_supervisor(state)
@@ -79,7 +78,6 @@ def _route_after_supervisor(state: AppState) -> str:
         "deep_research": "deep_research",
         "research": "research",
         "document": "doc_organizer",
-        "off_topic": "finalize",
         "finalize": "finalize",
     }
     return route_map.get(route, "research")
