@@ -362,7 +362,7 @@
 
 /* Tamaño fijo cuando está cargado */
 .dashboard-stats-cell.loaded {
-  width: 600px;
+  width: 100%;
   height: 500px;
   min-height: 500px;
   max-height: 500px;
