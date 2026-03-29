@@ -1,14 +1,16 @@
 import json
 import logging
 
-from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_core.messages import SystemMessage
 
-from ai.prompts.supervisor_prompt import SUPERVISOR_PROMPT
+from ai.prompts.supervisor_prompt import DOC_RESOLVER_PROMPT, PENDING_ACTION_PROMPT, SUPERVISOR_PROMPT
+from ai.repositories.context_repository import load_user_collections
 from ai.services.action_state import clear_pending_action
 from ai.services.llm_utils import LLMInvokeError, invoke_with_retry
 from ai.state import AppState
 
 logger = logging.getLogger(__name__)
+
 
 VALID_CATEGORIES = {
     "action",
@@ -21,25 +23,30 @@ VALID_CATEGORIES = {
     "document",
 }
 
-CONFIRM_WORDS = {"si", "sí", "confirmo", "confirmar", "adelante", "ejecuta", "ok", "vale"}
-CANCEL_WORDS = {"no", "cancela", "cancelar", "anula", "detener"}
 
+def _classify_pending_action(llm, messages: list, pending_action: dict) -> str:
+    """Usa el LLM para determinar si el usuario confirma, cancela u otra cosa."""
+    action_name = pending_action.get("action_name", "accion desconocida")
+    params = pending_action.get("parameters", {})
+    if action_name == "__queue__":
+        queue = params.get("queue", [])
+        action_summary = f"Cola de {len(queue)} acciones: " + ", ".join(
+            a.get("action_name", "?") for a in queue[:5]
+        )
+    else:
+        action_summary = f"{action_name} con parámetros: {json.dumps(params, ensure_ascii=False)}"
 
-def _last_user_text(messages: list) -> str:
-    for message in reversed(messages):
-        if isinstance(message, HumanMessage):
-            return (message.content or "").strip().lower()
-    return ""
-
-
-def _is_confirmation(user_text: str) -> bool:
-    normalized = (user_text or "").strip().lower()
-    return normalized in CONFIRM_WORDS or normalized.startswith("confirm")
-
-
-def _is_cancellation(user_text: str) -> bool:
-    normalized = (user_text or "").strip().lower()
-    return normalized in CANCEL_WORDS or normalized.startswith("cancel")
+    prompt = PENDING_ACTION_PROMPT.replace("{action_summary}", action_summary)
+    llm_messages = [SystemMessage(content=prompt)] + list(messages)
+    try:
+        raw = invoke_with_retry(llm, llm_messages, retries=1)
+        parsed = _parse_supervisor_json(raw)
+        intent = parsed.get("intent", "other")
+        if intent in {"confirm", "cancel", "other"}:
+            return intent
+    except LLMInvokeError:
+        logger.exception("supervisor_node: error clasificando accion pendiente")
+    return "other"
 
 
 def _parse_supervisor_json(text: str) -> dict:
@@ -60,6 +67,42 @@ def _parse_supervisor_json(text: str) -> dict:
     return {}
 
 
+
+def _build_doc_list_for_resolver(docs: list, context: dict) -> str:
+    """Construye una lista legible de documentos para el prompt del resolvedor LLM."""
+    projects_by_id = {str(p.get("_id", "")): p for p in context.get("projects", [])}
+    lines = []
+    for doc in docs:
+        doc_id = str(doc.get("_id", ""))
+        name = doc.get("original_name") or doc.get("filename") or "sin nombre"
+        project_id = str(doc.get("project_id", ""))
+        project = projects_by_id.get(project_id, {})
+        project_title = project.get("titulo") or "sin proyecto"
+        # Categorías del proyecto son ObjectIds; usamos los nombres si están en el contexto
+        categories = project.get("categorias", [])
+        cat_names = []
+        for cat in context.get("categories", []):
+            if str(cat.get("_id", "")) in [str(c) for c in categories]:
+                cat_names.append(cat.get("nombre") or cat.get("name") or "")
+        cats_str = ", ".join(c for c in cat_names if c) or "sin categoría"
+        lines.append(f"- ID: {doc_id} | Nombre: {name} | Proyecto: {project_title} | Categorías: {cats_str}")
+    return "\n".join(lines)
+
+
+def _resolve_doc_with_llm(llm, messages: list, doc_list_text: str) -> dict:
+    """Llama al LLM para resolver qué documento(s) quiere el usuario."""
+    prompt = DOC_RESOLVER_PROMPT.replace("{doc_list}", doc_list_text)
+    llm_messages = [SystemMessage(content=prompt)] + list(messages)
+    try:
+        raw = invoke_with_retry(llm, llm_messages, retries=1)
+        result = _parse_supervisor_json(raw)
+        if result and isinstance(result.get("doc_ids"), list):
+            return result
+    except LLMInvokeError:
+        logger.exception("supervisor_node: error en resolución de documento")
+    return {"doc_ids": [], "ambiguous": True, "clarification": ""}
+
+
 def supervisor_node(state: AppState, llm) -> AppState:
     """
     Doble fase:
@@ -67,16 +110,17 @@ def supervisor_node(state: AppState, llm) -> AppState:
       Fase 2 (LLM): clasificar la intencion. NO recibe context_json.
     """
     messages = state.get("messages", [])
-    user_text = _last_user_text(messages)
 
-    # ── Fase 1: Acciones pendientes (Python puro) ──────────────────
+    # ── Fase 1: Acciones pendientes (LLM) ─────────────────────────
     pending_action = state.get("pending_action_intent")
     if pending_action:
-        # Caso especial: cola de acciones con confirmacion pendiente
-        if pending_action.get("action_name") == "__queue__":
-            if _is_confirmation(user_text):
+        intent = _classify_pending_action(llm, messages, pending_action)
+        is_queue = pending_action.get("action_name") == "__queue__"
+
+        if intent == "confirm":
+            clear_pending_action(state.get("user_id"))
+            if is_queue:
                 queue = pending_action.get("parameters", {}).get("queue", [])
-                clear_pending_action(state.get("user_id"))
                 return {
                     "route": "queue_executor",
                     "action_confirmed": True,
@@ -88,27 +132,9 @@ def supervisor_node(state: AppState, llm) -> AppState:
                     "action_result_message": None,
                     "pending_action_intent": None,
                 }
-            if _is_cancellation(user_text):
-                clear_pending_action(state.get("user_id"))
-                return {
-                    "route": "finalize",
-                    "pending_action_intent": None,
-                    "action_confirmed": False,
-                    "final_response": "Accion cancelada.",
-                }
-            return {
-                "route": "finalize",
-                "final_response": (
-                    "Tienes acciones pendientes de confirmacion. "
-                    "Responde 'confirmo' para ejecutarlas o 'cancela' para abortar."
-                ),
-                "pending_action_intent": pending_action,
-            }
-
-        # Caso normal: accion unica pendiente
-        if _is_confirmation(user_text):
             return {"route": "action_executor", "action_confirmed": True}
-        if _is_cancellation(user_text):
+
+        if intent == "cancel":
             clear_pending_action(state.get("user_id"))
             return {
                 "route": "finalize",
@@ -116,12 +142,16 @@ def supervisor_node(state: AppState, llm) -> AppState:
                 "action_confirmed": False,
                 "final_response": "Accion cancelada.",
             }
+
+        # intent == "other": recordar al usuario que hay una accion pendiente
+        msg = (
+            "Tienes acciones pendientes de confirmacion. "
+            if is_queue
+            else "Tienes una accion pendiente. "
+        )
         return {
             "route": "finalize",
-            "final_response": (
-                "Tienes una accion pendiente. Responde 'confirmo' para ejecutarla "
-                "o 'cancela' para abortar."
-            ),
+            "final_response": msg + "Confirma para ejecutarla o cancela para abortar.",
             "pending_action_intent": pending_action,
         }
 
@@ -147,15 +177,59 @@ def supervisor_node(state: AppState, llm) -> AppState:
     if not isinstance(use_critic, bool):
         use_critic = False
 
-    # Si es una consulta profunda, research → deep_research. Por defecto = False. 
+    # Si es una consulta profunda, research → deep_research. Por defecto = False.
     if state.get("deep_search_requested", False) and category == "research":
         category = "deep_research"
 
-    return {
+    # ── Fase 3a: Carga selectiva de contexto ──────────────────────
+    user_id = state.get("user_id", "")
+    context_needed = parsed.get("context_needed", [])
+    if not isinstance(context_needed, list):
+        context_needed = []
+    valid_collections = {"projects", "goals", "tasks", "events", "documents", "categories"}
+    context_needed = [c for c in context_needed if c in valid_collections]
+
+    loaded_context_json = "{}"
+    if context_needed:
+        try:
+            loaded_context_json = load_user_collections(user_id, context_needed)
+        except Exception:
+            logger.exception("supervisor_node: error cargando colecciones %s", context_needed)
+
+    result = {
         "route": category,
         "query_type": category,
         "use_critic": use_critic,
+        "context_json": loaded_context_json,
     }
+
+    # ── Fase 3b: Resolución de documento (solo lectura) ────────────
+    if category == "document" and parsed.get("doc_op") == "read":
+        context = {}
+        try:
+            context = json.loads(loaded_context_json)
+        except Exception:
+            pass
+
+        docs = context.get("documents", [])
+        if docs:
+            doc_list_text = _build_doc_list_for_resolver(docs, context)
+            resolution = _resolve_doc_with_llm(llm, messages, doc_list_text)
+
+            if resolution.get("ambiguous"):
+                clarification = resolution.get("clarification") or "¿Qué documento deseas consultar?"
+                return {
+                    **result,
+                    "route": "finalize",
+                    "use_critic": False,
+                    "final_response": clarification,
+                }
+
+            doc_ids = resolution.get("doc_ids", [])
+            if doc_ids:
+                result["doc_target_id"] = doc_ids[0]
+
+    return result
 
 
 def route_after_supervisor(state: AppState) -> str:

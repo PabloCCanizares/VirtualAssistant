@@ -218,11 +218,20 @@ def doc_organizer_node(state: AppState) -> AppState:
     read_mode = _detect_read_mode(user_text)
     analyze_points = _extract_analyze_points(user_text) if read_mode == "analyze" else ""
 
-    project_id, goal_id = _resolve_project_from_message(user_text, context)
-    doc, error = _find_document(user_text, user_id, project_id)
-
-    if error:
-        return {"doc_error": error, "final_response": error}
+    # Si el supervisor ya resolvió el documento, usarlo directamente
+    preresolved_id = state.get("doc_target_id", "")
+    if preresolved_id:
+        doc = ProjectDocumentModel.get_document_by_id(preresolved_id, usuario_id=user_id)
+        if not doc:
+            msg = f"No se encontró el documento con ID '{preresolved_id}'."
+            return {"doc_error": msg, "final_response": msg}
+        project_id = str(doc.get("project_id", ""))
+        goal_id = str(doc.get("goal_id", "")) if doc.get("goal_id") else ""
+    else:
+        project_id, goal_id = _resolve_project_from_message(user_text, context)
+        doc, error = _find_document(user_text, user_id, project_id)
+        if error:
+            return {"doc_error": error, "final_response": error}
 
     doc_name = doc.get("original_name") or doc.get("filename") or "documento"
     content_type = doc.get("content_type") or ""
