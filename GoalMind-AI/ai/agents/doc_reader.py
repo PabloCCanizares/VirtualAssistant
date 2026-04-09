@@ -11,6 +11,7 @@ from langchain_core.messages import SystemMessage
 from ai.prompts.doc_reader_prompt import (
     DOC_READER_ANALYZE_PROMPT,
     DOC_READER_FULL_PROMPT,
+    DOC_READER_NOTES_PROMPT,
     DOC_READER_SUMMARY_PROMPT,
 )
 from ai.services.llm_utils import LLMInvokeError, invoke_with_retry
@@ -26,7 +27,49 @@ _MODE_PROMPTS = {
 }
 
 
+def _read_notes_node(state: AppState, llm) -> AppState:
+    """Presenta las anotaciones (notas) de un proyecto al usuario."""
+    notas = state.get("doc_notes_data") or []
+    project_id = state.get("doc_target_project_id", "")
+
+    if notas:
+        lines = []
+        for i, nota in enumerate(notas, 1):
+            text = nota.get("text", "")
+            created = nota.get("created_at", "")
+            if isinstance(created, dict):
+                created = created.get("$date", "")
+            date_str = f" ({str(created)[:10]})" if created else ""
+            lines.append(f"{i}. {text}{date_str}")
+        notes_text = "\n".join(lines)
+    else:
+        notes_text = "(sin anotaciones)"
+
+    messages = [
+        SystemMessage(content=DOC_READER_NOTES_PROMPT),
+        SystemMessage(content=f"Anotaciones (proyecto ID: {project_id}):\n{notes_text}"),
+    ]
+    messages.extend(state.get("messages", []))
+
+    try:
+        response = invoke_with_retry(llm, messages, retries=1)
+    except LLMInvokeError:
+        logger.exception("_read_notes_node: error invocando LLM")
+        response = "No pude mostrar las anotaciones en este momento."
+
+    append_session_mutation(state.get("user_id", ""), {
+        "action": "read",
+        "type": "project_notes",
+        "id": project_id,
+        "description": f"lectura de {len(notas)} anotacion(es)",
+    })
+    return {"draft_response": response}
+
+
 def doc_reader_node(state: AppState, llm) -> AppState:
+    if state.get("doc_op") == "read_notes":
+        return _read_notes_node(state, llm)
+
     doc_name = state.get("doc_target_name", "documento")
     read_mode = state.get("doc_read_mode", "full")
     text_content = state.get("doc_content_text", "")

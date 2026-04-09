@@ -12,7 +12,8 @@ SUPERVISOR_PROMPT = (
     "  document        – El usuario quiere leer, resumir, analizar o crear/generar un documento "
     "                    asociado a un proyecto u objetivo. Incluye peticiones como 'lee mi documento', "
     "                    'resume el PDF del proyecto X', 'crea un informe sobre...', 'genera un documento "
-    "                    con...', 'analiza los puntos clave del documento Y'.\n\n"
+    "                    con...', 'analiza los puntos clave del documento Y'. "
+    "                    Tambien incluye ver o añadir anotaciones (notas) de un proyecto.\n\n"
     "Tambien debes decidir si la respuesta final necesita revision critica (use_critic=true). "
     "Activa el critic SOLO si el usuario pide explicitamente que revises, mejores o critiques "
     "la respuesta (palabras como 'revisa', 'mejora', 'critica', 'corrige').\n\n"
@@ -26,10 +27,13 @@ SUPERVISOR_PROMPT = (
     "  - documents:  documentos subidos a proyectos (original_name, project_id, content_type)\n"
     "  - categories: etiquetas/categorias del usuario (name, _id). "
     "Cargar junto a projects cuando se necesiten los nombres de las categorias de un proyecto.\n\n"
-    "Cuando category sea 'document', indica tambien doc_op: 'read' si el usuario quiere leer, "
-    "resumir o analizar un documento existente; 'write' si quiere crear o generar uno nuevo.\n\n"
+    "Cuando category sea 'document', indica tambien doc_op:\n"
+    "  'read'       – leer, resumir o analizar un archivo existente (PDF, TXT, etc.)\n"
+    "  'write'      – crear o generar un nuevo archivo\n"
+    "  'read_notes' – ver, mostrar o listar las anotaciones (notas) de un proyecto\n"
+    "  'write_note' – añadir o agregar una nueva anotacion a un proyecto\n\n"
     "Responde UNICAMENTE con un JSON valido, sin texto adicional:\n"
-    "{\"category\": \"<una de las 8>\", \"use_critic\": <true|false>, \"context_needed\": [\"col1\", ...], \"doc_op\": \"read|write|null\"}\n"
+    "{\"category\": \"<una de las 8>\", \"use_critic\": <true|false>, \"context_needed\": [\"col1\", ...], \"doc_op\": \"read|write|read_notes|write_note|null\"}\n"
     "El campo doc_op solo es relevante cuando category='document'; en los demas casos usa null.\n\n"
     "Ejemplos:\n"
     "- 'Crea un proyecto llamado TFG' → {\"category\": \"action\", \"use_critic\": false, \"context_needed\": [\"projects\", \"goals\"], \"doc_op\": null}\n"
@@ -51,6 +55,10 @@ SUPERVISOR_PROMPT = (
     "- 'Cuéntame un chiste' → {\"category\": \"research\", \"use_critic\": false, \"context_needed\": [], \"doc_op\": null}\n"
     "- 'Escribe un poema sobre el mar' → {\"category\": \"research\", \"use_critic\": false, \"context_needed\": [], \"doc_op\": null}\n"
     "- 'Crea un documento con el resumen del proyecto TFG' → {\"category\": \"document\", \"use_critic\": false, \"context_needed\": [\"projects\", \"goals\", \"tasks\"], \"doc_op\": \"write\"}\n"
+    "- 'Muéstrame las notas del proyecto TFG' → {\"category\": \"document\", \"use_critic\": false, \"context_needed\": [\"projects\"], \"doc_op\": \"read_notes\"}\n"
+    "- 'Que anotaciones tiene el proyecto X?' → {\"category\": \"document\", \"use_critic\": false, \"context_needed\": [\"projects\"], \"doc_op\": \"read_notes\"}\n"
+    "- 'Añade una nota al proyecto TFG: completé la revisión' → {\"category\": \"document\", \"use_critic\": false, \"context_needed\": [\"projects\"], \"doc_op\": \"write_note\"}\n"
+    "- 'Agrega la anotacion siguiente al proyecto X: recordar revisar el diagrama' → {\"category\": \"document\", \"use_critic\": false, \"context_needed\": [\"projects\"], \"doc_op\": \"write_note\"}\n"
 )
 
 PENDING_ACTION_PROMPT = (
@@ -65,6 +73,21 @@ PENDING_ACTION_PROMPT = (
     "Ejemplos de cancelacion: 'no', 'cancela', 'mejor no', 'olvídalo', 'detener', "
     "'para', 'abort', 'no quiero', 'no lo hagas'.\n"
     "Si el mensaje es ambiguo o habla de otra cosa: 'other'.\n"
+)
+
+NOTE_RESOLVER_PROMPT = (
+    "Eres un resolvedor de proyectos de GoalMind AI. El usuario quiere acceder a las "
+    "anotaciones de uno de sus proyectos.\n"
+    "PROYECTOS DISPONIBLES:\n{project_list}\n\n"
+    "Analiza el ultimo mensaje del usuario y determina a que proyecto se refiere. "
+    "El usuario puede referirse al proyecto por nombre completo o parcial.\n\n"
+    "Responde UNICAMENTE con JSON valido, sin texto adicional:\n"
+    "{\"project_id\": \"<id o null>\", \"ambiguous\": false, \"clarification\": \"\"}\n\n"
+    "Reglas:\n"
+    "- Si identificas el proyecto con certeza: su ID en \"project_id\", \"ambiguous\": false\n"
+    "- Si hay ambiguedad o no puedes determinar cual: \"project_id\": null, \"ambiguous\": true, "
+    "\"clarification\": \"<pregunta concreta al usuario para aclarar>\"\n"
+    "- Si el usuario solo tiene un proyecto: seleccionalo directamente aunque no lo nombre\n"
 )
 
 DOC_RESOLVER_PROMPT = (

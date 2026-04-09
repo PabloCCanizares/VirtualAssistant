@@ -7,3 +7,10 @@ DOC_WRITER_PROMPT = (
     "Utiliza el contexto del usuario (proyectos, objetivos, tareas) para enriquecer el contenido "
     "si es relevante para lo que se pide."
 )
+
+DOC_WRITER_NOTE_PROMPT = (
+    "Eres el agente de anotaciones de GoalMind AI. "
+    "El usuario quiere añadir una nueva anotacion a uno de sus proyectos. "
+    "Extrae el texto exacto de la anotacion del mensaje del usuario. "
+    "Responde UNICAMENTE con el texto de la anotacion, sin explicaciones ni formato adicional."
+)

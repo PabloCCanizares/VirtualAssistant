@@ -58,3 +58,4 @@ class AppState(TypedDict, total=False):
     doc_write_format: str          # "txt" | "pdf"
     doc_write_filename: str        # nombre del archivo generado
     doc_error: str                 # error si algo falla en rama document
+    doc_notes_data: list[dict]     # array notas extraído de context_json para read_notes

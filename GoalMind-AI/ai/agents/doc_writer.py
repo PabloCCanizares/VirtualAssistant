@@ -16,7 +16,8 @@ from database.gridfs_storage import (
     upload_stream_to_local_storage,
 )
 from model.project_document_model import ProjectDocumentModel
-from ai.prompts.doc_writer_prompt import DOC_WRITER_PROMPT
+from model.project_model import ProjectModel
+from ai.prompts.doc_writer_prompt import DOC_WRITER_NOTE_PROMPT, DOC_WRITER_PROMPT
 from ai.services.llm_utils import LLMInvokeError, invoke_with_retry
 from ai.services.session_mutations_state import append_session_mutation
 from ai.state import AppState
@@ -51,7 +52,63 @@ def _generate_filename(user_text: str, fmt: str) -> str:
     return f"doc_{ts}_{short_id}.{ext}"
 
 
+def _write_note_node(state: AppState, llm) -> AppState:
+    """Extrae el texto de la nota del mensaje del usuario y la añade al proyecto."""
+    user_id = state.get("user_id", "")
+    project_id = state.get("doc_target_project_id", "")
+
+    if not project_id:
+        return {"final_response": "No se pudo identificar el proyecto para agregar la anotación."}
+
+    messages = [SystemMessage(content=DOC_WRITER_NOTE_PROMPT)]
+    messages.extend(state.get("messages", []))
+
+    try:
+        note_text = (invoke_with_retry(llm, messages, retries=1) or "").strip()
+    except LLMInvokeError:
+        logger.exception("_write_note_node: error extrayendo texto de nota")
+        return {"final_response": "No pude procesar el texto de la anotación en este momento."}
+
+    if not note_text:
+        return {"final_response": "No pude identificar el texto de la anotación en tu mensaje."}
+
+    try:
+        project = ProjectModel.get_project_by_id(project_id, usuario_id=user_id)
+    except Exception:
+        logger.exception("_write_note_node: error obteniendo proyecto %s", project_id)
+        project = None
+
+    if not project:
+        return {"final_response": f"No se encontró el proyecto con ID '{project_id}'."}
+
+    project_title = project.get("titulo") or project_id
+    new_note = {
+        "_id": uuid.uuid4().hex,
+        "text": note_text,
+        "created_at": datetime.now(timezone.utc),
+    }
+    notes = list(project.get("notas") or [])
+    notes.append(new_note)
+
+    try:
+        ProjectModel.update_project(project_id, {"notas": notes}, usuario_id=user_id)
+    except Exception:
+        logger.exception("_write_note_node: error actualizando proyecto %s", project_id)
+        return {"final_response": "No se pudo guardar la anotación en la base de datos."}
+
+    append_session_mutation(user_id, {
+        "action": "created",
+        "type": "project_note",
+        "id": new_note["_id"],
+        "description": f"nota en '{project_title}': {note_text[:80]}",
+    })
+    return {"final_response": f"Anotación añadida al proyecto **{project_title}**:\n\n> {note_text}"}
+
+
 def doc_writer_node(state: AppState, llm) -> AppState:
+    if state.get("doc_op") == "write_note":
+        return _write_note_node(state, llm)
+
     user_id = state.get("user_id", "")
     write_format = state.get("doc_write_format", "txt")
     project_id = state.get("doc_target_project_id") or None

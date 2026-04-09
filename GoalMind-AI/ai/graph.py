@@ -121,7 +121,7 @@ def _route_after_doc_organizer(state: AppState) -> str:
     """doc_organizer → doc_reader | doc_writer | finalize (error)."""
     if state.get("doc_error"):
         return "finalize"
-    if state.get("doc_op") == "write":
+    if state.get("doc_op") in ("write", "write_note"):
         return "doc_writer"
     return "doc_reader"
 

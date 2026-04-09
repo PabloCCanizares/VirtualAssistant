@@ -3,7 +3,7 @@ import logging
 
 from langchain_core.messages import SystemMessage
 
-from ai.prompts.supervisor_prompt import DOC_RESOLVER_PROMPT, PENDING_ACTION_PROMPT, SUPERVISOR_PROMPT
+from ai.prompts.supervisor_prompt import DOC_RESOLVER_PROMPT, NOTE_RESOLVER_PROMPT, PENDING_ACTION_PROMPT, SUPERVISOR_PROMPT
 from ai.repositories.context_repository import load_user_collections
 from ai.services.action_state import clear_pending_action
 from ai.services.llm_utils import LLMInvokeError, invoke_with_retry
@@ -101,6 +101,30 @@ def _resolve_doc_with_llm(llm, messages: list, doc_list_text: str) -> dict:
     except LLMInvokeError:
         logger.exception("supervisor_node: error en resolución de documento")
     return {"doc_ids": [], "ambiguous": True, "clarification": ""}
+
+
+def _build_project_list_for_resolver(projects: list) -> str:
+    """Construye lista legible de proyectos para el resolvedor de notas."""
+    lines = []
+    for p in projects:
+        pid = str(p.get("_id", ""))
+        title = p.get("titulo") or "sin titulo"
+        lines.append(f"- ID: {pid} | Titulo: {title}")
+    return "\n".join(lines)
+
+
+def _resolve_project_with_llm(llm, messages: list, project_list_text: str) -> dict:
+    """Llama al LLM para resolver a qué proyecto se refiere el usuario (para notas)."""
+    prompt = NOTE_RESOLVER_PROMPT.replace("{project_list}", project_list_text)
+    llm_messages = [SystemMessage(content=prompt)] + list(messages)
+    try:
+        raw = invoke_with_retry(llm, llm_messages, retries=1)
+        result = _parse_supervisor_json(raw)
+        if result and "project_id" in result:
+            return result
+    except LLMInvokeError:
+        logger.exception("supervisor_node: error resolviendo proyecto para notas")
+    return {"project_id": None, "ambiguous": True, "clarification": ""}
 
 
 def supervisor_node(state: AppState, llm) -> AppState:
@@ -203,8 +227,15 @@ def supervisor_node(state: AppState, llm) -> AppState:
         "context_json": loaded_context_json,
     }
 
-    # ── Fase 3b: Resolución de documento (solo lectura) ────────────
-    if category == "document" and parsed.get("doc_op") == "read":
+    # ── Fase 3b: Resolución de documento / proyecto ────────────────
+    doc_op = parsed.get("doc_op")
+
+    # Siempre propagar doc_op al state en operaciones de documento
+    if category == "document" and doc_op:
+        result["doc_op"] = doc_op
+
+    # Fase 3b-A: Resolver archivo para lectura (comportamiento existente)
+    if category == "document" and doc_op == "read":
         context = {}
         try:
             context = json.loads(loaded_context_json)
@@ -228,6 +259,39 @@ def supervisor_node(state: AppState, llm) -> AppState:
             doc_ids = resolution.get("doc_ids", [])
             if doc_ids:
                 result["doc_target_id"] = doc_ids[0]
+
+    # Fase 3b-B: Resolver proyecto para operaciones de notas (nuevo)
+    elif category == "document" and doc_op in ("read_notes", "write_note"):
+        context = {}
+        try:
+            context = json.loads(loaded_context_json)
+        except Exception:
+            pass
+
+        projects = context.get("projects", [])
+        if not projects:
+            return {
+                **result,
+                "route": "finalize",
+                "use_critic": False,
+                "final_response": "No encontré proyectos en tu cuenta. ¿A qué proyecto te refieres?",
+            }
+
+        if len(projects) == 1:
+            result["doc_target_project_id"] = str(projects[0].get("_id", ""))
+        else:
+            project_list_text = _build_project_list_for_resolver(projects)
+            resolution = _resolve_project_with_llm(llm, messages, project_list_text)
+            if resolution.get("ambiguous"):
+                clarification = resolution.get("clarification") or "¿A qué proyecto te refieres?"
+                return {
+                    **result,
+                    "route": "finalize",
+                    "use_critic": False,
+                    "final_response": clarification,
+                }
+            if resolution.get("project_id"):
+                result["doc_target_project_id"] = resolution["project_id"]
 
     return result
 

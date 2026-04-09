@@ -201,9 +201,35 @@ def doc_organizer_node(state: AppState) -> AppState:
         pass
 
     user_id = state.get("user_id", "")
-    doc_op = _detect_operation(user_text)
 
-    # ── WRITE ─────────────────────────────────────────────────────
+    # Si el supervisor ya resolvió doc_op, usarlo; si no, detectar por keywords
+    doc_op = state.get("doc_op") or _detect_operation(user_text)
+
+    # ── NOTE READ ─────────────────────────────────────────────────
+    if doc_op == "read_notes":
+        project_id = state.get("doc_target_project_id", "")
+        projects = context.get("projects", [])
+        project = next((p for p in projects if str(p.get("_id", "")) == project_id), None)
+        if not project and len(projects) == 1:
+            project = projects[0]
+        if not project:
+            msg = "No se encontró el proyecto para leer las anotaciones."
+            return {"doc_op": "read_notes", "doc_error": msg, "final_response": msg}
+        return {
+            "doc_op": "read_notes",
+            "doc_target_project_id": str(project.get("_id", "")),
+            "doc_notes_data": project.get("notas") or [],
+        }
+
+    # ── NOTE WRITE ────────────────────────────────────────────────
+    if doc_op == "write_note":
+        project_id = state.get("doc_target_project_id", "")
+        if not project_id:
+            msg = "No se pudo identificar el proyecto para agregar la anotación."
+            return {"doc_op": "write_note", "doc_error": msg, "final_response": msg}
+        return {"doc_op": "write_note", "doc_target_project_id": project_id}
+
+    # ── FILE WRITE ────────────────────────────────────────────────
     if doc_op == "write":
         write_format = _detect_write_format(user_text)
         project_id, goal_id = _resolve_project_from_message(user_text, context)
@@ -214,7 +240,7 @@ def doc_organizer_node(state: AppState) -> AppState:
             "doc_target_goal_id": goal_id or "",
         }
 
-    # ── READ ──────────────────────────────────────────────────────
+    # ── FILE READ ─────────────────────────────────────────────────
     read_mode = _detect_read_mode(user_text)
     analyze_points = _extract_analyze_points(user_text) if read_mode == "analyze" else ""
 
