@@ -213,6 +213,10 @@ def supervisor_node(state: AppState, llm) -> AppState:
     valid_collections = {"projects", "goals", "tasks", "events", "documents", "categories"}
     context_needed = [c for c in context_needed if c in valid_collections]
 
+    # Si se cargan documents, siempre incluir projects para poder correlacionar project_id
+    if "documents" in context_needed and "projects" not in context_needed:
+        context_needed.append("projects")
+
     loaded_context_json = "{}"
     if context_needed:
         try:
