@@ -244,6 +244,43 @@ def doc_organizer_node(state: AppState) -> AppState:
     read_mode = _detect_read_mode(user_text)
     analyze_points = _extract_analyze_points(user_text) if read_mode == "analyze" else ""
 
+    # ── Multi-doc: el supervisor resolvió varios documentos ───────────
+    preresolved_ids = state.get("doc_target_ids") or []
+    if preresolved_ids:
+        contents = []
+        loaded_ids = []
+        for did in preresolved_ids:
+            doc = ProjectDocumentModel.get_document_by_id(did, usuario_id=user_id)
+            if not doc:
+                logger.warning("doc_organizer: documento %s no encontrado", did)
+                continue
+            name = doc.get("original_name") or doc.get("filename") or "documento"
+            raw_bytes = _download_document_bytes(doc)
+            if not raw_bytes:
+                contents.append(f"=== {name} ===\n[No se pudo descargar el archivo]\n")
+                loaded_ids.append(did)
+                continue
+            content_type = doc.get("content_type") or ""
+            text = extract_text(raw_bytes, content_type, name)
+            if len(text) > MAX_CONTENT_CHARS:
+                text = text[:MAX_CONTENT_CHARS] + "\n[... contenido truncado ...]"
+            contents.append(f"=== {name} ===\n{text}\n")
+            loaded_ids.append(did)
+
+        if not contents:
+            msg = "No se pudo descargar ninguno de los documentos solicitados."
+            return {"doc_error": msg, "final_response": msg}
+
+        return {
+            "doc_op": "read",
+            "doc_read_mode": read_mode,
+            "doc_target_ids": loaded_ids,
+            "doc_target_name": f"{len(contents)} documentos",
+            "doc_target_project_id": "",
+            "doc_content_text": "\n".join(contents),
+            "doc_analyze_points": analyze_points,
+        }
+
     # Si el supervisor ya resolvió el documento, usarlo directamente
     preresolved_id = state.get("doc_target_id", "")
     if preresolved_id:

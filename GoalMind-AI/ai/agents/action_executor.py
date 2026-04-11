@@ -51,7 +51,7 @@ def _resolve_project_id(params: Dict[str, Any], context: Dict[str, Any]) -> Tupl
     pid = params.get("project_id")
     if pid:
         return str(pid), None
-    title = params.get("project_title") or params.get("titulo_proyecto") or params.get("proyecto")
+    title = params.get("titulo")
     project, matches = _match_by_title(context.get("projects", []), "titulo", title)
     if project:
         return str(project.get("_id")), None
@@ -64,7 +64,7 @@ def _resolve_goal_id(params: Dict[str, Any], context: Dict[str, Any]) -> Tuple[O
     gid = params.get("goal_id")
     if gid:
         return str(gid), None
-    title = params.get("goal_title") or params.get("titulo_objetivo") or params.get("objetivo")
+    title = params.get("titulo")
     goal, matches = _match_by_title(context.get("goals", []), "titulo", title)
     if goal:
         return str(goal.get("_id")), None
@@ -77,7 +77,7 @@ def _resolve_task_id(params: Dict[str, Any], context: Dict[str, Any]) -> Tuple[O
     tid = params.get("task_id")
     if tid:
         return str(tid), None
-    title = params.get("task_title") or params.get("contenido") or params.get("tarea")
+    title = params.get("contenido")
     task, matches = _match_by_title(context.get("tasks", []), "contenido", title)
     if task:
         return str(task.get("_id")), None
@@ -90,7 +90,7 @@ def _resolve_event_id(params: Dict[str, Any], context: Dict[str, Any]) -> Tuple[
     eid = params.get("event_id")
     if eid:
         return str(eid), None
-    title = params.get("event_title") or params.get("titulo_evento") or params.get("titulo")
+    title = params.get("titulo")
     event, matches = _match_by_title(context.get("events", []), "titulo", title)
     if event:
         return str(event.get("_id")), None
@@ -277,7 +277,7 @@ def action_executor_node(state: AppState, _llm) -> AppState:
             return _result(f"Tarea creada: {contenido}.", new_id)
 
         if action_name == "create_event":
-            titulo = parameters.get("titulo") or parameters.get("title")
+            titulo = parameters.get("titulo")
             if not titulo:
                 return _result("Necesito el titulo del evento para crearlo.")
             fecha_inicio = parameters.get("fecha_inicio")
@@ -313,7 +313,7 @@ def action_executor_node(state: AppState, _llm) -> AppState:
                 return _result("No se indicaron campos para actualizar en el proyecto.")
             ProjectModel.update_project(project_id, updates, usuario_id=user_id)
             clear_pending_action(user_id)
-            nombre = parameters.get("titulo") or parameters.get("project_title", "")
+            nombre = parameters.get("titulo")
             append_session_mutation(user_id, {"action": "updated", "type": "project", "id": project_id, "name": nombre})
             campos = ", ".join(updates.keys())
             return _result(f"Proyecto actualizado ({campos}).", project_id)
@@ -330,7 +330,7 @@ def action_executor_node(state: AppState, _llm) -> AppState:
                 updates["progreso"] = _safe_int(updates["progreso"], 0)
             GoalModel.update_goal(goal_id, updates, usuario_id=user_id)
             clear_pending_action(user_id)
-            nombre = parameters.get("titulo") or parameters.get("goal_title", "")
+            nombre = parameters.get("titulo")
             append_session_mutation(user_id, {"action": "updated", "type": "goal", "id": goal_id, "name": nombre})
             campos = ", ".join(updates.keys())
             return _result(f"Objetivo actualizado ({campos}).", goal_id)
@@ -345,7 +345,7 @@ def action_executor_node(state: AppState, _llm) -> AppState:
                 return _result("No se indicaron campos para actualizar en la tarea.")
             TaskModel.update_task(task_id, updates, usuario_id=user_id)
             clear_pending_action(user_id)
-            nombre = parameters.get("contenido") or parameters.get("task_title", "")
+            nombre = parameters.get("contenido")
             append_session_mutation(user_id, {"action": "updated", "type": "task", "id": task_id, "name": nombre})
             campos = ", ".join(updates.keys())
             return _result(f"Tarea actualizada ({campos}).", task_id)
@@ -356,7 +356,7 @@ def action_executor_node(state: AppState, _llm) -> AppState:
                 return _result(clar)
             TaskModel.update_task(task_id, {"estado": "completada"}, usuario_id=user_id)
             clear_pending_action(user_id)
-            nombre = parameters.get("contenido") or parameters.get("task_title", "")
+            nombre = parameters.get("contenido")
             append_session_mutation(user_id, {"action": "updated", "type": "task", "id": task_id, "name": nombre})
             return _result("Tarea marcada como completada.", task_id)
 
@@ -365,7 +365,7 @@ def action_executor_node(state: AppState, _llm) -> AppState:
             project_id, clar = _resolve_project_id(parameters, context)
             if clar:
                 return _result(clar)
-            nombre = parameters.get("project_title") or parameters.get("titulo", "")
+            nombre = parameters.get("titulo")
             _delete_project_cascade(project_id, user_id)
             try:
                 flush_deletion_queue()
@@ -379,7 +379,7 @@ def action_executor_node(state: AppState, _llm) -> AppState:
             goal_id, clar = _resolve_goal_id(parameters, context)
             if clar:
                 return _result(clar)
-            nombre = parameters.get("goal_title") or parameters.get("titulo", "")
+            nombre =parameters.get("titulo")
             _delete_goal_cascade(goal_id, user_id)
             try:
                 flush_deletion_queue()
@@ -393,7 +393,7 @@ def action_executor_node(state: AppState, _llm) -> AppState:
             task_id, clar = _resolve_task_id(parameters, context)
             if clar:
                 return _result(clar)
-            nombre = parameters.get("task_title") or parameters.get("contenido", "")
+            nombre = parameters.get("contenido")
             TaskModel.delete_task(task_id, usuario_id=user_id)
             queue_deletion("Tasks", task_id)
             try:
@@ -408,7 +408,7 @@ def action_executor_node(state: AppState, _llm) -> AppState:
             event_id, clar = _resolve_event_id(parameters, context)
             if clar:
                 return _result(clar)
-            nombre = parameters.get("event_title") or parameters.get("titulo", "")
+            nombre = parameters.get("titulo")
             eventModel.delete_event(event_id, usuario_id=user_id)
             queue_deletion("Events", event_id)
             try:

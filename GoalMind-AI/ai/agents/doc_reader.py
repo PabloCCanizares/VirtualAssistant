@@ -101,12 +101,24 @@ def doc_reader_node(state: AppState, llm) -> AppState:
     if read_mode == "analyze" and analyze_points:
         description += f" ({analyze_points[:80]})"
 
-    append_session_mutation(state.get("user_id", ""), {
-        "action": "read",
-        "type": "document",
-        "id": state.get("doc_target_id", ""),
-        "name": doc_name,
-        "description": description,
-    })
+    user_id = state.get("user_id", "")
+    doc_target_ids = state.get("doc_target_ids") or []
+    if doc_target_ids:
+        for did in doc_target_ids:
+            append_session_mutation(user_id, {
+                "action": "read",
+                "type": "document",
+                "id": did,
+                "name": doc_name,
+                "description": description,
+            })
+    else:
+        append_session_mutation(user_id, {
+            "action": "read",
+            "type": "document",
+            "id": state.get("doc_target_id", ""),
+            "name": doc_name,
+            "description": description,
+        })
 
     return {"draft_response": response}

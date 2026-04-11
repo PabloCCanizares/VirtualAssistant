@@ -427,7 +427,10 @@
 
 .project-note-modal-content {
   position: relative;
-  width: min(520px, 92vw);
+  width: min(820px, 92vw);
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
   background: rgba(10,15,30,.98);
   border: 1px solid var(--panel-border);
   border-radius: 14px;
@@ -475,6 +478,8 @@
   white-space: pre-wrap;
   word-break: break-word;
   overflow-wrap: anywhere;
+  overflow-y: auto;
+  flex: 1;
 }
 
 .project-notes-modal-subtitle {

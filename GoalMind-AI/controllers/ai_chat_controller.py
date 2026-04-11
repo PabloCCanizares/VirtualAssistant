@@ -1,8 +1,11 @@
 import json
+import logging
 
 from flask import Blueprint, Response, jsonify, request, stream_with_context
 
 from ai.chat import stream_chat
+
+logger = logging.getLogger(__name__)
 
 ai_chat_bp = Blueprint("ai_chat_bp", __name__)
 ALLOWED_DEEP_SEARCH_MODES = {"auto", "on", "off"}
@@ -41,3 +44,24 @@ def ai_chat():
         content_type="text/event-stream",
         headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
     )
+
+
+@ai_chat_bp.post("/api/ai/summarize-document")
+def summarize_document():
+    from ai.services.doc_summarize_service import summarize_and_save_note
+
+    payload = request.get_json(silent=True) or {}
+    doc_id = (payload.get("doc_id") or "").strip()
+    project_id = (payload.get("project_id") or "").strip()
+
+    if not doc_id or not project_id:
+        return jsonify({"success": False, "message": "Faltan parámetros"}), 400
+
+    try:
+        message = summarize_and_save_note(doc_id, project_id)
+        return jsonify({"success": True, "message": message})
+    except ValueError as e:
+        return jsonify({"success": False, "message": str(e)}), 404
+    except Exception:
+        logger.exception("summarize_document: error inesperado")
+        return jsonify({"success": False, "message": "Error al generar el resumen"}), 500

@@ -68,6 +68,35 @@ def _parse_supervisor_json(text: str) -> dict:
 
 
 
+def _extract_docs_from_mutations(session_mutations_json: str) -> list:
+    """Extrae docs de session_mutations (action listed/read) como fallback para el resolver."""
+    try:
+        mutations = json.loads(session_mutations_json)
+    except Exception:
+        return []
+    if not isinstance(mutations, list):
+        return []
+    seen_ids = set()
+    docs = []
+    for mut in mutations:
+        if mut.get("type") != "document":
+            continue
+        if mut.get("action") not in ("listed", "read"):
+            continue
+        doc_id = str(mut.get("id", ""))
+        if not doc_id or doc_id in seen_ids:
+            continue
+        seen_ids.add(doc_id)
+        description = mut.get("description", "")
+        project_name = description[len("proyecto: "):] if description.startswith("proyecto: ") else ""
+        docs.append({
+            "_id": doc_id,
+            "original_name": mut.get("name", "sin nombre"),
+            "_project_name": project_name,
+        })
+    return docs
+
+
 def _build_doc_list_for_resolver(docs: list, context: dict) -> str:
     """Construye una lista legible de documentos para el prompt del resolvedor LLM."""
     projects_by_id = {str(p.get("_id", "")): p for p in context.get("projects", [])}
@@ -77,7 +106,7 @@ def _build_doc_list_for_resolver(docs: list, context: dict) -> str:
         name = doc.get("original_name") or doc.get("filename") or "sin nombre"
         project_id = str(doc.get("project_id", ""))
         project = projects_by_id.get(project_id, {})
-        project_title = project.get("titulo") or "sin proyecto"
+        project_title = project.get("titulo") or doc.get("_project_name") or "sin proyecto"
         # Categorías del proyecto son ObjectIds; usamos los nombres si están en el contexto
         categories = project.get("categorias", [])
         cat_names = []
@@ -246,7 +275,14 @@ def supervisor_node(state: AppState, llm) -> AppState:
         except Exception:
             pass
 
-        docs = context.get("documents", [])
+        docs_from_context = context.get("documents", [])
+        docs_from_mutations = _extract_docs_from_mutations(
+            state.get("session_mutations_json", "[]")
+        )
+        context_ids = {str(d.get("_id", "")) for d in docs_from_context}
+        extra_docs = [d for d in docs_from_mutations if d["_id"] not in context_ids]
+        docs = docs_from_context + extra_docs
+
         if docs:
             doc_list_text = _build_doc_list_for_resolver(docs, context)
             resolution = _resolve_doc_with_llm(llm, messages, doc_list_text)
@@ -261,7 +297,9 @@ def supervisor_node(state: AppState, llm) -> AppState:
                 }
 
             doc_ids = resolution.get("doc_ids", [])
-            if doc_ids:
+            if len(doc_ids) > 1:
+                result["doc_target_ids"] = doc_ids
+            elif len(doc_ids) == 1:
                 result["doc_target_id"] = doc_ids[0]
 
     # Fase 3b-B: Resolver proyecto para operaciones de notas (nuevo)

@@ -111,6 +111,10 @@
                 </div>
               </div>
               <div class="panel-actions panel-actions-compact">
+                <button class="panel-action-btn panel-action-btn-small success js-summarize-doc"
+                        data-doc-id="{{ doc['_id'] }}"
+                        data-project-id="{{ project['_id'] }}"
+                        title="Resumir y guardar como nota">Resumir</button>
                 <a class="panel-action-btn panel-action-btn-small js-view-document"
                    href="{{ url_for('project_bp.view_document', doc_id=doc['_id']) }}"
                    data-view-url="{{ url_for('project_bp.view_document', doc_id=doc['_id']) }}"
@@ -372,6 +376,8 @@
       <div class="project-note-modal-body" id="projectNoteModalBody"></div>
     </div>
   </div>
+
+  <div id="docActionSnackbar" class="snackbar" style="display:none;"></div>
 
 </section>
 

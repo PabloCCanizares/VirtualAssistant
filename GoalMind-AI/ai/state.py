@@ -49,7 +49,8 @@ class AppState(TypedDict, total=False):
     # --- Operaciones sobre documentos ---
     doc_op: str                    # "read" | "write"
     doc_read_mode: str             # "full" | "summary" | "analyze"
-    doc_target_id: str             # _id del documento (para lectura)
+    doc_target_id: str             # _id del documento (para lectura individual)
+    doc_target_ids: list[str]      # _ids de múltiples documentos (para lectura múltiple)
     doc_target_name: str           # original_name del documento
     doc_target_project_id: str     # project_id resuelto
     doc_target_goal_id: str        # goal_id resuelto (opcional)
