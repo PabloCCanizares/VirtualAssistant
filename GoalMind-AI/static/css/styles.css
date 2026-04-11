@@ -464,7 +464,7 @@ main{
   transition: all 0.25s ease;
 }
 
-/* 🟦 Cuando pasas el ratón encima */
+/* Cuando pasas el ratón encima */
 .form .submit:hover {
   background: linear-gradient(180deg, rgba(108, 243, 255, .35), rgba(139, 123, 255, .30));
   border-color: rgba(108, 243, 255, .6);
@@ -474,7 +474,7 @@ main{
   box-shadow: 0 6px 14px rgba(108, 243, 255, .25);
 }
 
-/* 🟩 Cuando haces clic */
+/* Cuando haces clic */
 .form .submit:active {
   transform: translateY(0);
   box-shadow: 0 3px 8px rgba(108, 243, 255, .2);

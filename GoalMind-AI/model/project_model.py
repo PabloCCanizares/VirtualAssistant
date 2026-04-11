@@ -102,7 +102,7 @@ class ProjectModel:
         updated_project = local_col.find_one({"_id": _id})
 
         sync_to_remote(ProjectModel.COLLECTION, updated_project)
-        print(f"♻️ Proyecto {_id} actualizado y sincronizado.")
+        print(f"Proyecto {_id} actualizado y sincronizado.")
         return updated_project
 
     @staticmethod

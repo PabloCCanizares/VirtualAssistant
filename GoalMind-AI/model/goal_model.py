@@ -165,7 +165,7 @@ class GoalModel:
 
         sync_to_remote(GoalModel.COLLECTION, updated_goal)
 
-        print(f"♻️ Objetivo {_id} actualizado y sincronizado.")
+        print(f"Objetivo {_id} actualizado y sincronizado.")
         return updated_goal
     
 
@@ -264,9 +264,9 @@ class GoalModel:
                     upsert=False
                 )
             except Exception as e:
-                print(f"⚠️ Error al sincronizar add_event_to_goal en remoto: {e}")
+                print(f"Error al sincronizar add_event_to_goal en remoto: {e}")
 
-        print(f"📅 Evento {_eid} asociado a objetivo {_gid}.")
+        print(f"Evento {_eid} asociado a objetivo {_gid}.")
 
     @staticmethod
     def remove_event_from_goal(goal_id, event_id, usuario_id=None):
@@ -292,9 +292,9 @@ class GoalModel:
                     {"$pull": {"event_ids": _eid}}
                 )
             except Exception as e:
-                print(f"⚠️ Error al sincronizar remove_event_from_goal en remoto: {e}")
+                print(f"Error al sincronizar remove_event_from_goal en remoto: {e}")
 
-        print(f"🗑️ Evento {_eid} desasociado de objetivo {_gid}.")
+        print(f"Evento {_eid} desasociado de objetivo {_gid}.")
 
     @staticmethod
     def delete_goal(goal_id, usuario_id=None):
@@ -335,9 +335,9 @@ class GoalModel:
                     deleted_remote += res.deleted_count
                 except Exception:
                     pass
-            print("🗑️ Objetivo eliminado en local y remoto.")
+            print("Objetivo eliminado en local y remoto.")
         else:
-            print("⚠️ Objetivo eliminado solo localmente (sin conexión remota).")
+            print("Objetivo eliminado solo localmente (sin conexión remota).")
 
         return (deleted_local + deleted_remote) > 0
 

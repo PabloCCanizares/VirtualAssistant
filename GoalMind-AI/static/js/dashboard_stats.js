@@ -56,7 +56,7 @@
       cell.classList.remove('loading');
       cell.innerHTML = `
         <div class="panel-placeholder error">
-          <span class="panel-placeholder-icon">⚠️</span>
+          <span class="panel-placeholder-icon">!</span>
           <span>Error al cargar</span>
           <button class="stat-retry-btn" data-stat="${statName}">Reintentar</button>
         </div>

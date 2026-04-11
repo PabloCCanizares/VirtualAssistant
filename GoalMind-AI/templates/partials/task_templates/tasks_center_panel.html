@@ -150,7 +150,7 @@
                 {{ task['estado'] }}
               </span>
               <span class="item-meta-tag">
-                ⚡ {{ task.get('prioridad', 'media') }}
+                {{ task.get('prioridad', 'media') }}
               </span>
             </div>
           </div>
@@ -291,7 +291,7 @@
         </div>
         {% else %}
         <div class="no-goals-state">
-          <div class="no-goals-icon">📭</div>
+          <div class="no-goals-icon"></div>
           <p class="no-goals-title">No hay objetivos disponibles</p>
           <p class="no-goals-description">Para asignar tareas a un objetivo, primero debes crear objetivos dentro de un proyecto.</p>
         </div>

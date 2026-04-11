@@ -210,11 +210,11 @@ class TaskModel:
         if remote_col is not None:
             try:
                 remote_col.delete_one(query)
-                print(f"🗑️ Tarea eliminada en local y remoto: {_id}")
+                print(f"Tarea eliminada en local y remoto: {_id}")
             except Exception:
-                print(f"🗑️ Tarea eliminada solo localmente: {_id}")
+                print(f"Tarea eliminada solo localmente: {_id}")
         else:
-            print(f"⚠️ Tarea eliminada solo localmente (sin conexión remota): {_id}")
+            print(f"Tarea eliminada solo localmente (sin conexión remota): {_id}")
 
     @staticmethod
     def delete_tasks_by_ids(task_ids, usuario_id=None):
@@ -258,7 +258,7 @@ class TaskModel:
 
         sync_to_remote(TaskModel.COLLECTION, updated_task)
 
-        print(f"♻️ Tarea {_id} actualizada y sincronizada.")
+        print(f"Tarea {_id} actualizada y sincronizada.")
         return updated_task
 
     # -------------------------------------------------------------
@@ -290,9 +290,9 @@ class TaskModel:
                     upsert=False
                 )
             except Exception as e:
-                print(f"⚠️ Error al sincronizar add_event_to_task en remoto: {e}")
+                print(f"Error al sincronizar add_event_to_task en remoto: {e}")
 
-        print(f"📅 Evento {_eid} asociado a tarea {_tid}.")
+        print(f"Evento {_eid} asociado a tarea {_tid}.")
 
     @staticmethod
     def remove_event_from_task(task_id, event_id, usuario_id=None):
@@ -318,9 +318,9 @@ class TaskModel:
                     {"$pull": {"event_ids": _eid}}
                 )
             except Exception as e:
-                print(f"⚠️ Error al sincronizar remove_event_from_task en remoto: {e}")
+                print(f"Error al sincronizar remove_event_from_task en remoto: {e}")
 
-        print(f"🗑️ Evento {_eid} desasociado de tarea {_tid}.")
+        print(f"Evento {_eid} desasociado de tarea {_tid}.")
 
     # -------------------------------------------------------------
     #  ASIGNAR OBJETIVO A MÚLTIPLES TAREAS
