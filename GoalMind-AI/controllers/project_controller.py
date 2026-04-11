@@ -14,7 +14,6 @@ from model.project_model import ProjectModel
 from model.task_model import TaskModel
 from model.category_model import CategoryModel
 from database.gridfs_storage import (
-    delete_file_from_local_storage,
     download_file_from_local_storage,
     download_file_from_remote_storage,
     promote_local_file_to_remote,
@@ -586,10 +585,8 @@ def upload_document(project_id):
     )
     if remote_upload_id is not None:
         doc_data["upload_id"] = remote_upload_id
-        doc_data["local_upload_id"] = None
         doc_data["remote_sync_pending"] = False
         ProjectDocumentModel.insert_document(doc_data, usuario_id=DEFAULT_USER_ID)
-        delete_file_from_local_storage(local_upload_id)
         flash("Documento subido correctamente y sincronizado en remoto.", "success")
         return redirect(url_for("project_bp.view_project", project_id=project_id))
 

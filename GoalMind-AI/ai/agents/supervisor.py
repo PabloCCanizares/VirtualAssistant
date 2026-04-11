@@ -3,7 +3,7 @@ import logging
 
 from langchain_core.messages import SystemMessage
 
-from ai.prompts.supervisor_prompt import DOC_RESOLVER_PROMPT, NOTE_RESOLVER_PROMPT, PENDING_ACTION_PROMPT, SUPERVISOR_PROMPT
+from ai.prompts.supervisor_prompt import DOC_RESOLVER_PROMPT, DOC_WRITE_RESOLVER_PROMPT, NOTE_RESOLVER_PROMPT, PENDING_ACTION_PROMPT, SUPERVISOR_PROMPT
 from ai.repositories.context_repository import load_user_collections
 from ai.services.action_state import clear_pending_action
 from ai.services.llm_utils import LLMInvokeError, invoke_with_retry
@@ -142,9 +142,10 @@ def _build_project_list_for_resolver(projects: list) -> str:
     return "\n".join(lines)
 
 
-def _resolve_project_with_llm(llm, messages: list, project_list_text: str) -> dict:
-    """Llama al LLM para resolver a qué proyecto se refiere el usuario (para notas)."""
-    prompt = NOTE_RESOLVER_PROMPT.replace("{project_list}", project_list_text)
+def _resolve_project_with_llm(llm, messages: list, project_list_text: str, prompt_template=None) -> dict:
+    """Llama al LLM para resolver a qué proyecto se refiere el usuario."""
+    template = prompt_template if prompt_template is not None else NOTE_RESOLVER_PROMPT
+    prompt = template.replace("{project_list}", project_list_text)
     llm_messages = [SystemMessage(content=prompt)] + list(messages)
     try:
         raw = invoke_with_retry(llm, llm_messages, retries=1)
@@ -266,6 +267,11 @@ def supervisor_node(state: AppState, llm) -> AppState:
     # Siempre propagar doc_op al state en operaciones de documento
     if category == "document" and doc_op:
         result["doc_op"] = doc_op
+        if doc_op == "read":
+            result["doc_read_mode"] = parsed.get("doc_read_mode") or "full"
+            result["doc_analyze_points"] = parsed.get("doc_analyze_points") or ""
+        elif doc_op == "write":
+            result["doc_write_format"] = parsed.get("doc_write_format") or "txt"
 
     # Fase 3b-A: Resolver archivo para lectura (comportamiento existente)
     if category == "document" and doc_op == "read":
@@ -302,7 +308,7 @@ def supervisor_node(state: AppState, llm) -> AppState:
             elif len(doc_ids) == 1:
                 result["doc_target_id"] = doc_ids[0]
 
-    # Fase 3b-B: Resolver proyecto para operaciones de notas (nuevo)
+    # Fase 3b-B: Resolver proyecto para operaciones de notas
     elif category == "document" and doc_op in ("read_notes", "write_note"):
         context = {}
         try:
@@ -334,6 +340,34 @@ def supervisor_node(state: AppState, llm) -> AppState:
                 }
             if resolution.get("project_id"):
                 result["doc_target_project_id"] = resolution["project_id"]
+
+    # Fase 3b-C: Resolver proyecto para operaciones de escritura de archivo
+    elif category == "document" and doc_op == "write":
+        context = {}
+        try:
+            context = json.loads(loaded_context_json)
+        except Exception:
+            pass
+
+        projects = context.get("projects", [])
+        if projects:
+            if len(projects) == 1:
+                result["doc_target_project_id"] = str(projects[0].get("_id", ""))
+            else:
+                project_list_text = _build_project_list_for_resolver(projects)
+                resolution = _resolve_project_with_llm(
+                    llm, messages, project_list_text, DOC_WRITE_RESOLVER_PROMPT
+                )
+                if resolution.get("ambiguous"):
+                    clarification = resolution.get("clarification") or "¿En qué proyecto quieres crear el documento?"
+                    return {
+                        **result,
+                        "route": "finalize",
+                        "use_critic": False,
+                        "final_response": clarification,
+                    }
+                if resolution.get("project_id"):
+                    result["doc_target_project_id"] = resolution["project_id"]
 
     return result
 

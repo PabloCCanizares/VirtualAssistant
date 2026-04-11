@@ -1,12 +1,12 @@
 """Nodo organizador de operaciones sobre documentos (NO LLM).
 
-Determina si la operacion es READ o WRITE, identifica el documento
-o proyecto/objetivo asociado, y prepara el state para doc_reader o doc_writer.
+Prepara el state para doc_reader o doc_writer usando los valores
+ya resueltos por el supervisor (doc_op, doc_read_mode, doc_write_format,
+doc_analyze_points, doc_target_id/ids, doc_target_project_id).
 """
 
 import json
 import logging
-import re
 import unicodedata
 
 from database.gridfs_storage import (
@@ -21,117 +21,12 @@ logger = logging.getLogger(__name__)
 
 MAX_CONTENT_CHARS = 15_000
 
-# ── Keywords para detectar operacion ──────────────────────────────
-
-WRITE_KEYWORDS = [
-    "crea un documento", "crea un informe", "genera un documento", "genera un informe",
-    "haz un documento", "haz un informe", "hazme un documento", "hazme un informe",
-    "escribe un documento", "escribe un informe", "redacta un documento", "redacta un informe",
-    "elabora un documento", "elabora un informe",
-    "genera", "generar", "redacta", "redactar", "elabora", "elaborar",
-    "escribe", "escribir", "crea un doc", "write", "create a document", "generate",
-]
-
-READ_KEYWORDS = [
-    "lee el documento", "lee mi documento", "lee el archivo", "leer el documento",
-    "abre el documento", "abre el archivo", "abrir el documento",
-    "muestra el documento", "muestra el archivo", "mostrar el documento",
-    "resume el documento", "resume el archivo", "resume el pdf", "resumeme el documento",
-    "analiza el documento", "analiza el archivo", "analiza el pdf",
-    "que dice el documento", "que contiene el documento", "contenido del documento",
-    "puntos clave del documento", "puntos principales del documento",
-    "lee", "leer", "abre", "abrir", "muestra", "mostrar",
-    "resume", "resumir", "resumen", "resumeme",
-    "analiza", "analizar", "analisis",
-    "que dice", "que contiene", "contenido de",
-    "puntos clave", "puntos principales",
-    "read", "open", "show", "summarize", "analyze",
-]
-
-SUMMARY_KEYWORDS = {"resume", "resumir", "resumen", "resumeme", "resumir", "summarize", "summary"}
-ANALYZE_KEYWORDS = {"analiza", "analizar", "analisis", "puntos clave", "puntos principales", "analyze", "analysis"}
-
-PDF_FORMAT_KEYWORDS = {"en pdf", "formato pdf", "como pdf", "un pdf", "en formato pdf"}
-
 
 def _normalize(text: str) -> str:
     """Minusculas y sin acentos."""
     text = (text or "").strip().lower()
     nfkd = unicodedata.normalize("NFKD", text)
     return "".join(c for c in nfkd if not unicodedata.combining(c))
-
-
-def _detect_operation(text: str) -> str:
-    normalized = _normalize(text)
-    for kw in WRITE_KEYWORDS:
-        if _normalize(kw) in normalized:
-            return "write"
-    for kw in READ_KEYWORDS:
-        if _normalize(kw) in normalized:
-            return "read"
-    return "read"
-
-
-def _detect_read_mode(text: str) -> str:
-    normalized = _normalize(text)
-    for kw in ANALYZE_KEYWORDS:
-        if _normalize(kw) in normalized:
-            return "analyze"
-    for kw in SUMMARY_KEYWORDS:
-        if _normalize(kw) in normalized:
-            return "summary"
-    return "full"
-
-
-def _detect_write_format(text: str) -> str:
-    normalized = _normalize(text)
-    for kw in PDF_FORMAT_KEYWORDS:
-        if kw in normalized:
-            return "pdf"
-    return "txt"
-
-
-def _extract_analyze_points(text: str) -> str:
-    """Intenta extraer los puntos concretos que el usuario quiere analizar."""
-    patterns = [
-        r"analiza\s+(.+)",
-        r"puntos\s+(?:clave|principales)\s+(?:de|del|sobre)\s+(.+)",
-        r"analyze\s+(.+)",
-    ]
-    normalized = (text or "").strip()
-    for pat in patterns:
-        match = re.search(pat, normalized, re.IGNORECASE)
-        if match:
-            return match.group(1).strip()
-    return ""
-
-
-def _resolve_project_from_message(text: str, context: dict):
-    """Busca un proyecto mencionado en el mensaje. Devuelve (project_id, goal_id) o (None, None)."""
-    normalized = _normalize(text)
-    best_project = None
-    for project in context.get("projects", []):
-        title = _normalize(project.get("titulo") or "")
-        if title and title in normalized:
-            best_project = project
-            break
-
-    if not best_project:
-        return None, None
-
-    project_id = str(best_project.get("_id", ""))
-
-    best_goal = None
-    for goal in context.get("goals", []):
-        goal_proj = str(goal.get("project_id", ""))
-        if goal_proj == project_id:
-            goal_title = _normalize(goal.get("titulo") or "")
-            if goal_title and goal_title in normalized:
-                best_goal = goal
-                break
-
-    goal_id = str(best_goal["_id"]) if best_goal else None
-    return project_id, goal_id
 
 
 def _find_document(text: str, user_id: str, project_id: str = None):
@@ -186,27 +81,17 @@ def _download_document_bytes(doc: dict) -> bytes | None:
 
 
 def doc_organizer_node(state: AppState) -> AppState:
-    """Nodo organizador: clasifica read/write y prepara contexto (sin LLM)."""
-    messages = state.get("messages", [])
-    user_text = ""
-    for msg in reversed(messages):
-        if hasattr(msg, "content") and getattr(msg, "type", None) == "human":
-            user_text = (msg.content or "").strip()
-            break
-
-    context = {}
-    try:
-        context = json.loads(state.get("context_json") or "{}")
-    except Exception:
-        pass
-
+    """Nodo organizador: prepara contexto para doc_reader o doc_writer usando valores del supervisor."""
     user_id = state.get("user_id", "")
-
-    # Si el supervisor ya resolvió doc_op, usarlo; si no, detectar por keywords
-    doc_op = state.get("doc_op") or _detect_operation(user_text)
+    doc_op = state.get("doc_op", "read")
 
     # ── NOTE READ ─────────────────────────────────────────────────
     if doc_op == "read_notes":
+        context = {}
+        try:
+            context = json.loads(state.get("context_json") or "{}")
+        except Exception:
+            pass
         project_id = state.get("doc_target_project_id", "")
         projects = context.get("projects", [])
         project = next((p for p in projects if str(p.get("_id", "")) == project_id), None)
@@ -231,18 +116,16 @@ def doc_organizer_node(state: AppState) -> AppState:
 
     # ── FILE WRITE ────────────────────────────────────────────────
     if doc_op == "write":
-        write_format = _detect_write_format(user_text)
-        project_id, goal_id = _resolve_project_from_message(user_text, context)
         return {
             "doc_op": "write",
-            "doc_write_format": write_format,
-            "doc_target_project_id": project_id or "",
-            "doc_target_goal_id": goal_id or "",
+            "doc_write_format": state.get("doc_write_format") or "txt",
+            "doc_target_project_id": state.get("doc_target_project_id") or "",
+            "doc_target_goal_id": state.get("doc_target_goal_id") or "",
         }
 
     # ── FILE READ ─────────────────────────────────────────────────
-    read_mode = _detect_read_mode(user_text)
-    analyze_points = _extract_analyze_points(user_text) if read_mode == "analyze" else ""
+    read_mode = state.get("doc_read_mode") or "full"
+    analyze_points = state.get("doc_analyze_points") or ""
 
     # ── Multi-doc: el supervisor resolvió varios documentos ───────────
     preresolved_ids = state.get("doc_target_ids") or []
@@ -281,7 +164,7 @@ def doc_organizer_node(state: AppState) -> AppState:
             "doc_analyze_points": analyze_points,
         }
 
-    # Si el supervisor ya resolvió el documento, usarlo directamente
+    # ── Single doc: el supervisor resolvió el documento ──────────
     preresolved_id = state.get("doc_target_id", "")
     if preresolved_id:
         doc = ProjectDocumentModel.get_document_by_id(preresolved_id, usuario_id=user_id)
@@ -291,10 +174,17 @@ def doc_organizer_node(state: AppState) -> AppState:
         project_id = str(doc.get("project_id", ""))
         goal_id = str(doc.get("goal_id", "")) if doc.get("goal_id") else ""
     else:
-        project_id, goal_id = _resolve_project_from_message(user_text, context)
-        doc, error = _find_document(user_text, user_id, project_id)
+        # Fallback: buscar documento por nombre en el último mensaje
+        user_text = ""
+        for msg in reversed(state.get("messages", [])):
+            if hasattr(msg, "content") and getattr(msg, "type", None) == "human":
+                user_text = (msg.content or "").strip()
+                break
+        doc, error = _find_document(user_text, user_id)
         if error:
             return {"doc_error": error, "final_response": error}
+        project_id = str(doc.get("project_id", ""))
+        goal_id = str(doc.get("goal_id", "")) if doc.get("goal_id") else ""
 
     doc_name = doc.get("original_name") or doc.get("filename") or "documento"
     content_type = doc.get("content_type") or ""
@@ -316,8 +206,8 @@ def doc_organizer_node(state: AppState) -> AppState:
         "doc_read_mode": read_mode,
         "doc_target_id": str(doc.get("_id", "")),
         "doc_target_name": doc_name,
-        "doc_target_project_id": project_id or str(doc.get("project_id", "")),
-        "doc_target_goal_id": goal_id or str(doc.get("goal_id", "")),
+        "doc_target_project_id": project_id,
+        "doc_target_goal_id": goal_id,
         "doc_content_text": text_content,
         "doc_analyze_points": analyze_points,
     }
