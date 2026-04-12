@@ -146,6 +146,40 @@ class ProjectModel:
         return (deleted_local + deleted_remote) > 0
 
     @staticmethod
+    def calculate_progress_from_goals(goals: list) -> float:
+        """
+        Calcula el progreso medio de un proyecto a partir de una lista de
+        objetivos ya cargada, haciendo la media de su campo 'progreso'.
+
+        Returns:
+            float: Media de progreso (0.0–100.0), o 0.0 si la lista está vacía.
+        """
+        if not goals:
+            return 0.0
+        progresos = []
+        for g in goals:
+            raw = g.get("progreso")
+            try:
+                progresos.append(float(raw or 0.0))
+            except Exception:
+                progresos.append(0.0)
+        return round(sum(progresos) / len(progresos), 2)
+
+    @staticmethod
+    def calculate_progress(project_id, usuario_id=None) -> float:
+        """
+        Calcula el progreso medio de un proyecto como la media del campo
+        'progreso' de todos sus objetivos asociados.
+
+        Returns:
+            float: Media de progreso (0.0–100.0), o 0.0 si no hay objetivos.
+        """
+        from model.goal_model import GoalModel
+
+        goals = GoalModel.get_by_project(project_id, usuario_id=usuario_id)
+        return ProjectModel.calculate_progress_from_goals(goals)
+
+    @staticmethod
     def find_by_category(category_id, usuario_id=None):
         """
         Devuelve todos los proyectos que contengan una categoría específica.

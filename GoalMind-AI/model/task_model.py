@@ -1,6 +1,7 @@
 from database.mongo_conn import get_collection, sync_to_remote, sync_from_remote, get_app_user_id
 from bson import ObjectId
 from datetime import datetime
+from model.goal_model import GoalModel
 
 
 def _uid_filter(usuario_id):
@@ -20,9 +21,6 @@ class TaskModel:
 
     COLLECTION = "Tasks"
 
-    # -------------------------------------------------------------
-    #  INSERTAR
-    # -------------------------------------------------------------
     @staticmethod
     def insert_task(task_data, usuario_id=None):
         """
@@ -51,10 +49,6 @@ class TaskModel:
         print(f"Tarea insertada localmente y sincronizada: {task_data['_id']}")
         return task_data
     
-
-    # -------------------------------------------------------------
-    #  OBTENER POR ID
-    # -------------------------------------------------------------
     @staticmethod
     def get_task_by_id(task_id, usuario_id=None):
         """
@@ -73,21 +67,12 @@ class TaskModel:
             task = local_col.find_one(query)
 
         return task
-    
-    # -------------------------------------------------------------
-    #  OBTENER POR CATEGORÍA
-    # -------------------------------------------------------------
+
     @staticmethod
     def get_tasks_by_category(category_id, usuario_id=None):
         """
         Devuelve todas las tareas que contengan una categoría específica.
         
-        Args:
-            category_id: ObjectId o string del ID de la categoría
-            usuario_id: ID del usuario para filtrar
-            
-        Returns:
-            list: Lista de tareas que pertenecen a la categoría especificada
         """
         local_col, _ = get_collection(TaskModel.COLLECTION)
         _id = ObjectId(category_id) if not isinstance(category_id, ObjectId) else category_id
@@ -95,23 +80,12 @@ class TaskModel:
         query = {"categorias": _id, **_uid_filter(usuario_id)}
         return list(local_col.find(query).sort("fecha_creacion", -1))
 
-    # -------------------------------------------------------------
-    #  BUSCAR TAREAS POR NOMBRE Y/O CATEGORÍA
-    # -------------------------------------------------------------
     @staticmethod
     def search_tasks(nombre=None, categoria=None, category_ids=None, usuario_id=None):
         """
         Busca tareas por nombre (contenido) y/o categoría.
         La búsqueda por nombre es case-insensitive y parcial (regex).
         
-        Args:
-            nombre (str): Texto a buscar en el campo 'contenido' (opcional)
-            categoria (str): Texto para buscar en nombres de categorías - DEPRECADO, usar category_ids
-            category_ids (list): Lista de IDs de categorías para filtrar (opcional)
-            usuario_id: ID del usuario para filtrar
-            
-        Returns:
-            list: Lista de tareas que coinciden con los criterios
         """
         local_col, _ = get_collection(TaskModel.COLLECTION)
         
@@ -137,9 +111,6 @@ class TaskModel:
         
         return list(local_col.find(query).sort("fecha_creacion", -1))
 
-    # -------------------------------------------------------------
-    #  OBTENER TODAS
-    # -------------------------------------------------------------
     @staticmethod
     def get_all_tasks(usuario_id=None):
         """
@@ -149,9 +120,6 @@ class TaskModel:
         local_col, _ = get_collection(TaskModel.COLLECTION)
         return list(local_col.find(_uid_filter(usuario_id)))
 
-    # -------------------------------------------------------------
-    #  OBTENER POR USUARIO
-    # -------------------------------------------------------------
     @staticmethod
     def get_task_by_user(usuario_id):
         """
@@ -160,9 +128,6 @@ class TaskModel:
         local_col, _ = get_collection(TaskModel.COLLECTION)
         return list(local_col.find(_uid_filter(usuario_id)))
 
-    # -------------------------------------------------------------
-    #  OBTENER POR OBJETIVO (GOAL)
-    # -------------------------------------------------------------
     @staticmethod
     def get_tasks_by_goal(goal_id, usuario_id=None):
         """
@@ -192,9 +157,6 @@ class TaskModel:
         base_query = {"$and": [{"$or": queries}, uid_filter]}
         return list(local_col.find(base_query).sort("fecha_creacion", -1))
 
-    # -------------------------------------------------------------
-    #  ELIMINAR
-    # -------------------------------------------------------------
     @staticmethod
     def delete_task(task_id, usuario_id=None):
         """
@@ -239,9 +201,6 @@ class TaskModel:
 
         return res_local.deleted_count
 
-    # -------------------------------------------------------------
-    #  ACTUALIZAR
-    # -------------------------------------------------------------
     @staticmethod
     def update_task(task_id, updates, usuario_id=None):
         """
@@ -259,11 +218,38 @@ class TaskModel:
         sync_to_remote(TaskModel.COLLECTION, updated_task)
 
         print(f"Tarea {_id} actualizada y sincronizada.")
+
+        if "estado" in updates and updated_task and updated_task.get("objetivo_id"):
+            TaskModel.recalculate_goal_progress(updated_task["objetivo_id"], usuario_id=usuario_id)
+
         return updated_task
 
-    # -------------------------------------------------------------
-    #  EVENT_IDS: Añadir / Eliminar evento asociado
-    # -------------------------------------------------------------
+    @staticmethod
+    def recalculate_goal_progress(goal_id, usuario_id=None):
+        """
+        Recalcula el progreso de un objetivo como la media de los porcentajes
+        de sus tareas asociadas y lo guarda en el campo 'progreso' como decimal.
+        """
+        estado_pct = {"pendiente": 0.0, "en curso": 50.0, "completada": 100.0}
+
+        tasks = TaskModel.get_tasks_by_goal(goal_id, usuario_id=usuario_id)
+        if not tasks:
+            progreso = 0.0
+        else:
+            total = sum(estado_pct.get(t.get("estado"), 0.0) for t in tasks)
+            progreso = round(total / len(tasks), 2)
+
+        local_col, _ = get_collection(GoalModel.COLLECTION)
+        _id = ObjectId(goal_id) if not isinstance(goal_id, ObjectId) else goal_id
+        query = {"_id": _id, **_uid_filter(usuario_id)}
+        local_col.update_one(query, {"$set": {"progreso": progreso, "updated_at": datetime.utcnow()}})
+
+        updated_goal = local_col.find_one({"_id": _id})
+        sync_to_remote(GoalModel.COLLECTION, updated_goal)
+
+        print(f"Progreso del objetivo {_id} recalculado: {progreso}%")
+        return progreso
+
     @staticmethod
     def add_event_to_task(task_id, event_id, usuario_id=None):
         """
@@ -322,9 +308,6 @@ class TaskModel:
 
         print(f"Evento {_eid} desasociado de tarea {_tid}.")
 
-    # -------------------------------------------------------------
-    #  ASIGNAR OBJETIVO A MÚLTIPLES TAREAS
-    # -------------------------------------------------------------
     @staticmethod
     def assign_goal_to_tasks(task_ids, goal_id, usuario_id=None):
         """

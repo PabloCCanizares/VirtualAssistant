@@ -3,10 +3,10 @@
 from flask import Blueprint, render_template, current_app
 from datetime import datetime, timezone
 import uuid
-from bson import ObjectId
 
 from model.task_model import TaskModel
 from model.goal_model import GoalModel
+from model.project_model import ProjectModel
 from model.event_model import eventModel
 from database.mongo_conn import get_app_user_id
 
@@ -90,31 +90,6 @@ def _load_all_tasks():
         out.append(t)
     return out
 
-def _load_all_goals():
-    goals = GoalModel.get_all_goals(usuario_id=DEFAULT_USER_ID)
-    out = []
-    for g in goals:
-        g = dict(g) if not isinstance(g, dict) else g.copy()
-        if "_id" in g and not isinstance(g["_id"], str):
-            try:
-                g["_id"] = str(g["_id"])
-            except Exception:
-                pass
-        out.append(g)
-    return out
-
-# Estado -> valor
-_ESTADO_VAL = {
-    "pendiente": 0,
-    "en curso": 50, "encurso": 50, "en_curso": 50,
-    "completada": 100, "completado": 100, "completed": 100,
-}
-
-def _estado_to_value(estado: str) -> int:
-    if not estado:
-        return 0
-    return _ESTADO_VAL.get(estado.strip().lower(), 0)
-
 # Estadísticas (mismas funciones que antes, pero devolviendo uid y palette)
 def stats_tasks_completed_month():
     tasks = _load_all_tasks()
@@ -133,35 +108,24 @@ def stats_tasks_completed_month():
         "meta": {"year": year},
     }
 
-def stats_goals_progress():
-    goals = _load_all_goals()
-    tasks = _load_all_tasks()
-    tasks_by_goal = {}
-    for t in tasks:
-        obj_id = t.get("objetivo_id")
-        if isinstance(obj_id, dict) and "$oid" in obj_id:
-            obj_id = obj_id["$oid"]
-        if isinstance(obj_id, ObjectId):
-            obj_id = str(obj_id)
-        if obj_id is None: continue
-        obj_id = str(obj_id)
-        tasks_by_goal.setdefault(obj_id, []).append(t)
+def stats_projects_progress():
+    projects = ProjectModel.get_all_projects(usuario_id=DEFAULT_USER_ID)
     result = []
-    for g in goals:
-        gid = g.get("_id")
-        if isinstance(gid, dict) and "$oid" in gid: gid = gid["$oid"]
-        gid = str(gid) if gid is not None else None
-        task_list = tasks_by_goal.get(gid, [])
-        if task_list:
-            vals = [_estado_to_value(t.get("estado")) for t in task_list]
-            avg = sum(vals) / len(vals)
-        else:
-            raw = g.get("progreso")
-            try: avg = float(raw or 0.0)
-            except Exception: avg = 0.0
-        result.append({"goal_id": gid, "titulo": g.get("titulo"), "progreso": round(avg,2), "num_tasks": len(task_list)})
-    result.sort(key=lambda x: x["progreso"], reverse=True)
-    return {"uid": uuid.uuid4().hex, "palette": PALETTE, "goals": result, "count": len(result)}
+    for p in projects:
+        pid = p.get("_id")
+        if isinstance(pid, dict) and "$oid" in pid:
+            pid = pid["$oid"]
+        pid_str = str(pid) if pid is not None else None
+        goals = GoalModel.get_by_project(pid, usuario_id=DEFAULT_USER_ID)
+        avg = ProjectModel.calculate_progress_from_goals(goals)
+        result.append({
+            "project_id": pid_str,
+            "titulo": p.get("titulo") or p.get("nombre"),
+            "progreso_medio": avg,
+            "num_goals": len(goals),
+        })
+    result.sort(key=lambda x: x["progreso_medio"], reverse=True)
+    return {"uid": uuid.uuid4().hex, "palette": PALETTE, "projects": result, "count": len(result)}
 
 def stats_tasks_relevance_month():
     PRIOR_POINTS = {"alta":1, "media":1, "baja":1, "high":1, "medium":1, "low":1}
@@ -175,7 +139,7 @@ def stats_tasks_relevance_month():
     month_points = sum(priority_points(t) for t in month_tasks)
     pct = round((month_points / total_points * 100.0) if total_points else 0.0, 2)
     table = [{"id": t.get("_id"), "contenido": t.get("contenido"), "prioridad": t.get("prioridad"),
-              "points": priority_points(t), "estado": t.get("estado"), "fecha_limite": _date_to_iso(t.get("fecha_limite"))}
+              "estado": t.get("estado"), "fecha_limite": _date_to_iso(t.get("fecha_limite"))}
              for t in month_tasks]
     return {"uid": uuid.uuid4().hex, "palette": PALETTE, "total_points": total_points,
             "month_points": month_points, "percentage_of_relevance": pct, "month_tasks": table,
@@ -205,7 +169,7 @@ def stats_events_by_type_month():
 # Mapa de rutas -> template parcial (autónomo)
 _STAT_MAP = {
     "tasks_completed_month": {"fn": stats_tasks_completed_month, "template": "partials/stats_templates/stat_tasks_completed_panel.html", "title": "   Tareas cumplidas (mes actual)"},
-    "goals_progress": {"fn": stats_goals_progress, "template": "partials/stats_templates/stat_goals_progress_panel.html", "title": "   Progreso por objetivos"},
+    "projects_progress": {"fn": stats_projects_progress, "template": "partials/stats_templates/stat_projects_progress_panel.html", "title": "   Progreso por proyectos"},
     "tasks_relevance": {"fn": stats_tasks_relevance_month, "template": "partials/stats_templates/stat_tasks_relevance_panel.html", "title": "   Relevancia de tareas (este mes)"},
     "events_by_type": {"fn": stats_events_by_type_month, "template": "partials/stats_templates/stat_events_by_type_panel.html", "title": "   Eventos por tipo"},
 }

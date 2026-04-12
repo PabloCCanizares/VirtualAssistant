@@ -30,9 +30,6 @@ class GoalModel:
         return list(cursor)
     
 
-    # -------------------------------------------------------------
-    #  OBTENER TODAS
-    # -------------------------------------------------------------
     @staticmethod
     def get_all_goals(usuario_id=None):
         """
@@ -41,9 +38,7 @@ class GoalModel:
         local_col, _ = get_collection(GoalModel.COLLECTION)
         return list(local_col.find(_uid_filter(usuario_id)).sort("created_at", -1))
 
-    # -------------------------------------------------------------
-    #  OBTENER UNA POR ID
-    # -------------------------------------------------------------
+
     @staticmethod
     def get_goal_by_id(goal_id, usuario_id=None):
         """
@@ -152,7 +147,7 @@ class GoalModel:
 
         if "progreso" in norm and norm["progreso"] is not None:
             try:
-                norm["progreso"] = int(norm["progreso"])
+                norm["progreso"] = float(norm["progreso"])
             except Exception:
                 pass
 
@@ -173,13 +168,7 @@ class GoalModel:
     def find_by_category(category_id, usuario_id=None):
         """
         Devuelve todos los objetivos que contengan una categoría específica.
-        
-        Args:
-            category_id: ObjectId o string del ID de la categoría
-            usuario_id: ID del usuario para filtrar
-            
-        Returns:
-            list: Lista de objetivos que pertenecen a la categoría especificada
+
         """
         local_col, _ = get_collection(GoalModel.COLLECTION)
         _id = ObjectId(category_id) if not isinstance(category_id, ObjectId) else category_id
@@ -190,13 +179,7 @@ class GoalModel:
     def search_by_categories(category_ids: list, usuario_id=None):
         """
         Busca objetivos que contengan al menos una de las categorías especificadas.
-        
-        Args:
-            category_ids (list): Lista de IDs de categorías
-            usuario_id: ID del usuario para filtrar
-            
-        Returns:
-            list: Lista de objetivos que coinciden con los criterios
+
         """
         local_col, _ = get_collection(GoalModel.COLLECTION)
         
@@ -234,10 +217,7 @@ class GoalModel:
         query = {"titulo": {"$regex": regex}, **_uid_filter(usuario_id)}
         cursor = local_col.find(query).sort("created_at", -1).limit(limit)
         return list(cursor)
-
-    # -------------------------------------------------------------
-    #  EVENT_IDS: Añadir / Eliminar evento asociado
-    # -------------------------------------------------------------
+    
     @staticmethod
     def add_event_to_goal(goal_id, event_id, usuario_id=None):
         """
