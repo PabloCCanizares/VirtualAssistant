@@ -270,8 +270,6 @@ def supervisor_node(state: AppState, llm) -> AppState:
         if doc_op == "read":
             result["doc_read_mode"] = parsed.get("doc_read_mode") or "full"
             result["doc_analyze_points"] = parsed.get("doc_analyze_points") or ""
-        elif doc_op == "write":
-            result["doc_write_format"] = parsed.get("doc_write_format") or "txt"
 
     # Fase 3b-A: Resolver archivo para lectura (comportamiento existente)
     if category == "document" and doc_op == "read":

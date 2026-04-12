@@ -5,6 +5,7 @@ asociado a un proyecto/objetivo.
 """
 
 import logging
+import re
 import uuid
 from datetime import datetime, timezone
 from io import BytesIO
@@ -25,31 +26,34 @@ from ai.state import AppState
 logger = logging.getLogger(__name__)
 
 
-def _generate_pdf_bytes(text: str, title: str = "") -> bytes:
-    """Genera un PDF simple a partir de texto plano."""
-    from fpdf import FPDF
-
-    pdf = FPDF()
-    pdf.add_page()
-    pdf.set_auto_page_break(auto=True, margin=15)
-    pdf.set_font("Helvetica", size=12)
-    if title:
-        pdf.set_font("Helvetica", "B", size=16)
-        pdf.cell(0, 10, title, ln=True, align="C")
-        pdf.ln(10)
-        pdf.set_font("Helvetica", size=12)
-    pdf.multi_cell(0, 7, text)
-    buffer = BytesIO()
-    pdf.output(buffer)
-    return buffer.getvalue()
+def _slugify(title: str) -> str:
+    slug = title.lower()
+    slug = re.sub(r"[^\w\s]", "", slug)
+    slug = re.sub(r"\s+", "_", slug.strip())
+    return slug[:50]
 
 
-def _generate_filename(user_text: str, fmt: str) -> str:
-    """Genera un nombre de archivo unico basado en timestamp + uuid corto."""
+def _parse_llm_output(raw: str) -> tuple[str, str]:
+    """Separa el titulo y el contenido de la respuesta del LLM.
+
+    Espera que la primera linea sea 'TITULO: <titulo>'.
+    Devuelve (titulo, contenido). Si no se encuentra el prefijo,
+    devuelve ('documento', raw) como fallback.
+    """
+    lines = raw.strip().splitlines()
+    if lines and lines[0].upper().startswith("TITULO:"):
+        title = lines[0][len("TITULO:"):].strip()
+        content = "\n".join(lines[1:]).lstrip("\n")
+        return title or "documento", content
+    return "documento", raw
+
+
+def _generate_filename(title: str = "") -> str:
+    """Genera un nombre de archivo unico a partir del titulo, timestamp y uuid corto."""
     ts = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
     short_id = uuid.uuid4().hex[:6]
-    ext = "pdf" if fmt == "pdf" else "txt"
-    return f"doc_{ts}_{short_id}.{ext}"
+    slug = _slugify(title) if title else "doc"
+    return f"{slug}_{ts}_{short_id}.txt"
 
 
 def _write_note_node(state: AppState, llm) -> AppState:
@@ -110,7 +114,6 @@ def doc_writer_node(state: AppState, llm) -> AppState:
         return _write_note_node(state, llm)
 
     user_id = state.get("user_id", "")
-    write_format = state.get("doc_write_format", "txt")
     project_id = state.get("doc_target_project_id") or None
     goal_id = state.get("doc_target_goal_id") or None
 
@@ -130,21 +133,13 @@ def doc_writer_node(state: AppState, llm) -> AppState:
     if not generated_text or not generated_text.strip():
         return {"final_response": "El modelo no genero contenido para el documento."}
 
-    # ── Crear archivo ─────────────────────────────────────────────
-    filename = _generate_filename("", write_format)
+    # ── Separar titulo y contenido ────────────────────────────────
+    doc_title, doc_content = _parse_llm_output(generated_text)
 
-    if write_format == "pdf":
-        try:
-            file_bytes = _generate_pdf_bytes(generated_text)
-            content_type = "application/pdf"
-        except Exception:
-            logger.exception("doc_writer_node: error generando PDF, fallback a TXT")
-            file_bytes = generated_text.encode("utf-8")
-            content_type = "text/plain"
-            filename = filename.replace(".pdf", ".txt")
-    else:
-        file_bytes = generated_text.encode("utf-8")
-        content_type = "text/plain"
+    # ── Crear archivo ─────────────────────────────────────────────
+    filename = _generate_filename(doc_title)
+    file_bytes = doc_content.encode("utf-8")
+    content_type = "text/plain"
 
     # ── Subir a GridFS ────────────────────────────────────────────
     stream = BytesIO(file_bytes)
@@ -208,11 +203,11 @@ def doc_writer_node(state: AppState, llm) -> AppState:
         "type": "document",
         "id": doc_id,
         "name": filename,
-        "description": f"documento generado ({write_format}) para proyecto {project_id or 'sin proyecto'}",
+        "description": f"documento generado para proyecto {project_id or 'sin proyecto'}",
     })
 
     # ── Respuesta final ───────────────────────────────────────────
-    parts = [f"Documento generado correctamente: **{filename}**"]
+    parts = [f"Documento generado correctamente: **{doc_title}**\n`{filename}`"]
     if project_id:
         project_name = ""
         try:

@@ -56,7 +56,6 @@ class AppState(TypedDict, total=False):
     doc_target_goal_id: str        # goal_id resuelto (opcional)
     doc_content_text: str          # texto extraído del documento
     doc_analyze_points: str        # puntos concretos a analizar
-    doc_write_format: str          # "txt" | "pdf"
     doc_write_filename: str        # nombre del archivo generado
     doc_error: str                 # error si algo falla en rama document
     doc_notes_data: list[dict]     # array notas extraído de context_json para read_notes

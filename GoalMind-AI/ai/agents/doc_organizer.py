@@ -1,7 +1,7 @@
 """Nodo organizador de operaciones sobre documentos (NO LLM).
 
 Prepara el state para doc_reader o doc_writer usando los valores
-ya resueltos por el supervisor (doc_op, doc_read_mode, doc_write_format,
+ya resueltos por el supervisor (doc_op, doc_read_mode,
 doc_analyze_points, doc_target_id/ids, doc_target_project_id).
 """
 
@@ -118,7 +118,6 @@ def doc_organizer_node(state: AppState) -> AppState:
     if doc_op == "write":
         return {
             "doc_op": "write",
-            "doc_write_format": state.get("doc_write_format") or "txt",
             "doc_target_project_id": state.get("doc_target_project_id") or "",
             "doc_target_goal_id": state.get("doc_target_goal_id") or "",
         }
