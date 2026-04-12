@@ -15,10 +15,15 @@
       <div class="panel-kpi">
         <div class="panel-kpi-label">Filtros activos</div>
         <div class="panel-kpi-value" style="font-size: 14px;">
-          {% if selected_nombre or selected_category %}
+          {% set has_cats = selected_categories and selected_categories|length > 0 %}
+          {% if selected_nombre or has_cats %}
             {% if selected_nombre %}"{{ selected_nombre }}"{% endif %}
-            {% if selected_nombre and selected_category %} · {% endif %}
-            {% if selected_category %}{{ selected_category }}{% endif %}
+            {% if selected_nombre and has_cats %} · {% endif %}
+            {% if has_cats %}
+              {% for cat_id in selected_categories %}
+                {{ category_names.get(cat_id, cat_id) }}{% if not loop.last %}, {% endif %}
+              {% endfor %}
+            {% endif %}
           {% else %}
             Ninguno
           {% endif %}
@@ -35,7 +40,7 @@
         Buscar tareas
       </h3>
     </div>
-    <form method="get" action="{{ url_for('task_bp.filter_by_category') }}" class="filter-section">
+    <form id="task-filter-form" method="get" action="{{ url_for('task_bp.filter_by_category') }}" class="filter-section">
       <div class="panel-form-row">
         <div class="panel-form-group">
           <label class="panel-form-label" for="nombre">Nombre de tarea</label>
@@ -47,13 +52,11 @@
                  value="{{ selected_nombre or '' }}">
         </div>
         <div class="panel-form-group">
-          <label class="panel-form-label" for="categoria">Categoria</label>
-          <input type="text"
-                 name="categoria"
-                 id="categoria"
-                 class="panel-form-input"
-                 placeholder="p.ej. trabajo, personal"
-                 value="{{ selected_category or '' }}">
+          <label class="panel-form-label">Categoria</label>
+          <div data-category-selector
+               data-name="categoria"
+               data-selected="{{ (selected_categories or []) | join(',') }}"
+               data-allow-create="false"></div>
         </div>
       </div>
       <div class="panel-form-row" style="gap: 8px;">

@@ -122,7 +122,8 @@ def list_tasks():
         projects_with_goals=projects_with_goals,
         categories=categories,
         category_names=category_names,
-        selected_category=None,
+        selected_categories=[],
+        selected_nombre="",
         page="list"
     )
 
@@ -309,9 +310,15 @@ def filter_by_category():
     Busca en todas las tareas sin importar el usuario dueno.
     """
     nombre = request.args.get("nombre", "").strip()
-    categoria_ids = request.args.getlist("categoria")
-    
-    # Usar el nuevo metodo de busqueda combinada
+    # Acepta tanto ?categoria=id1&categoria=id2 como ?categoria=id1,id2,id3
+    raw_cats = request.args.getlist("categoria")
+    categoria_ids = []
+    for item in raw_cats:
+        for part in item.split(","):
+            part = part.strip()
+            if part:
+                categoria_ids.append(part)
+
     tasks = TaskModel.search_tasks(nombre=nombre, category_ids=categoria_ids if categoria_ids else None, usuario_id=DEFAULT_USER_ID)
     tasks_view = [_serialize_task(t) for t in tasks]
     goals_view, goal_titles, goal_project_titles, projects_with_goals = _load_goal_context()
@@ -330,7 +337,7 @@ def filter_by_category():
         selected_task=None,
         page="filter",
         selected_categories=categoria_ids,
-        selected_nombre=nombre
+        selected_nombre=nombre,
     )
 
 # -------------------------------------------------------------
