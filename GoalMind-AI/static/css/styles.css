@@ -167,6 +167,8 @@ main{
 .mission-side-panel{
   position: sticky;
   top: 24px;
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
   padding:0;
   background:transparent;
   border:none;
