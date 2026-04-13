@@ -653,7 +653,23 @@ def delete_document(doc_id):
         flash("Documento no encontrado.", "warning")
         return redirect(url_for("project_bp.list_projects"))
 
-    ProjectDocumentModel.delete_document(doc_id, usuario_id=DEFAULT_USER_ID)
-    flash("Documento eliminado", "success")
+    errors = []
+
+    try:
+        ProjectDocumentModel.delete_document(doc_id, usuario_id=DEFAULT_USER_ID)
+    except Exception as e:
+        errors.append(f"borrado local/remoto: {e}")
+
+    queue_deletion("ProjectDocuments", doc_id)
+
+    try:
+        flush_deletion_queue()
+    except Exception as e:
+        errors.append(f"sync remoto: {e}")
+
+    if errors:
+        flash(f"Documento eliminado localmente, con incidencias: {' | '.join(errors)}", "warning")
+    else:
+        flash("Documento eliminado", "success")
 
     return redirect(url_for("project_bp.view_project", project_id=doc.get("project_id")))
