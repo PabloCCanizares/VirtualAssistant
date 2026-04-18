@@ -1222,6 +1222,13 @@
   height: fit-content;
 }
 
+.filter-section-actions {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+  padding-bottom: 2px;
+}
+
 /* ===== ESTADO VACÍO ===== */
 .empty-state {
   display: flex;

@@ -41,25 +41,23 @@
       </h3>
     </div>
     <form id="task-filter-form" method="get" action="{{ url_for('task_bp.filter_by_category') }}" class="filter-section">
-      <div class="panel-form-row">
-        <div class="panel-form-group">
-          <label class="panel-form-label" for="nombre">Nombre de tarea</label>
-          <input type="text"
-                 name="nombre"
-                 id="nombre"
-                 class="panel-form-input"
-                 placeholder="Buscar por nombre..."
-                 value="{{ selected_nombre or '' }}">
-        </div>
-        <div class="panel-form-group">
-          <label class="panel-form-label">Categoria</label>
-          <div data-category-selector
-               data-name="categoria"
-               data-selected="{{ (selected_categories or []) | join(',') }}"
-               data-allow-create="false"></div>
-        </div>
+      <div class="panel-form-group">
+        <label class="panel-form-label" for="nombre">Nombre de tarea</label>
+        <input type="text"
+               name="nombre"
+               id="nombre"
+               class="panel-form-input"
+               placeholder="Buscar por nombre..."
+               value="{{ selected_nombre or '' }}">
       </div>
-      <div class="panel-form-row" style="gap: 8px;">
+      <div class="panel-form-group">
+        <label class="panel-form-label">Categoria</label>
+        <div data-category-selector
+             data-name="categoria"
+             data-selected="{{ (selected_categories or []) | join(',') }}"
+             data-allow-create="false"></div>
+      </div>
+      <div class="filter-section-actions">
         <button type="submit" class="panel-action-btn primary">Buscar</button>
         <a href="{{ url_for('task_bp.list_tasks') }}" class="panel-action-btn">Limpiar</a>
       </div>
