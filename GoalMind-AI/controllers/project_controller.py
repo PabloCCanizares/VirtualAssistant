@@ -274,7 +274,6 @@ def add_project():
             "categorias": categorias,
             "estado": request.form.get("estado") or "Activo",
             "prioridad": request.form.get("prioridad") or "Media",
-            "importancia": _parse_importance(request.form.get("importancia"), default=5),
             "fecha_inicio": request.form.get("fecha_inicio"),
             "fecha_fin": request.form.get("fecha_fin"),
             "usuario_id": user_id,
@@ -429,10 +428,6 @@ def update_project(project_id):
             "fecha_inicio": request.form.get("fecha_inicio"),
             "fecha_fin": request.form.get("fecha_fin"),
         }
-        importance_value = _parse_importance(request.form.get("importancia"))
-        if importance_value is not None:
-            updates["importancia"] = importance_value
-        
         # Solo actualizar categorias si se enviaron
         if categorias_raw:
             updates["categorias"] = categorias
