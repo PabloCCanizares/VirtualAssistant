@@ -176,7 +176,11 @@
                 </div>
                 <div class="item-detail-row">
                   <span class="item-detail-label">Categoría</span>
-                  <span class="item-detail-value task-cat-text">{{ task['categoria'] or "—" }}</span>
+                  <span class="item-detail-value task-cat-text">
+                    {% if task.get('categorias') %}
+                      {% for cid in task['categorias'] %}{{ category_names.get(cid|string, cid) }}{% if not loop.last %}, {% endif %}{% endfor %}
+                    {% else %}—{% endif %}
+                  </span>
                 </div>
                 <div class="item-detail-row">
                   <span class="item-detail-label">Prioridad</span>

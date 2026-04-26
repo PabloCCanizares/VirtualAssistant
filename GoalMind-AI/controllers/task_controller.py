@@ -202,14 +202,15 @@ def add_task():
             flash("Debes seleccionar un objetivo para crear una tarea.", "warning")
             return redirect(url_for("task_bp.list_tasks"))
 
-        # Procesar categorias (pueden venir como lista o string separado por comas)
-        categorias_raw = request.form.getlist("categorias")
-        if not categorias_raw:
-            # Intentar como string separado por comas
-            cat_str = request.form.get("categorias", "")
-            if cat_str:
-                categorias_raw = [c.strip() for c in cat_str.split(",") if c.strip()]
-        
+        # Procesar categorias: el selector envia un hidden input con IDs
+        # separados por comas, por lo que hay que aplanar cada entrada.
+        categorias_raw = []
+        for item in request.form.getlist("categorias"):
+            for part in str(item).split(","):
+                part = part.strip()
+                if part:
+                    categorias_raw.append(part)
+
         # Convertir a ObjectIds
         categorias = []
         for cat_id in categorias_raw:
@@ -245,13 +246,18 @@ def add_task():
 def update_task(task_id):
     """Actualiza una tarea existente y la sincroniza."""
     try:
-        # Procesar categorias
-        categorias_raw = request.form.getlist("categorias")
-        if not categorias_raw:
-            cat_str = request.form.get("categorias", "")
-            if cat_str:
-                categorias_raw = [c.strip() for c in cat_str.split(",") if c.strip()]
-        
+        # DEBUG: ver que manda realmente el form
+        print(f"[update_task] form = {dict(request.form.lists())}")
+
+        # Procesar categorias: aplanar CSV del hidden input del selector.
+        categorias_raw = []
+        for item in request.form.getlist("categorias"):
+            for part in str(item).split(","):
+                part = part.strip()
+                if part:
+                    categorias_raw.append(part)
+        print(f"[update_task] categorias_raw = {categorias_raw}")
+
         categorias = []
         for cat_id in categorias_raw:
             try:

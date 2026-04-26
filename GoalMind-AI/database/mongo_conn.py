@@ -408,6 +408,10 @@ def sync_all_collections():
                 continue
 
             if _remote_should_replace_local(local_doc, remote_doc):
+                # Preservar local_upload_id de GridFS local (no existe en remoto).
+                if col == "ProjectDocuments" and local_doc.get("local_upload_id"):
+                    remote_doc["local_upload_id"] = local_doc["local_upload_id"]
+
                 local_id = local_doc.get("_id")
                 if local_id == remote_id:
                     local_col.replace_one({"_id": remote_id}, remote_doc, upsert=True)
