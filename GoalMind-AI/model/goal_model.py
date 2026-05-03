@@ -1,18 +1,11 @@
-from database.mongo_conn import get_collection, sync_to_remote, get_app_user_id
+from database.mongo_conn import get_collection, sync_to_remote, get_app_user_id, remote_uid_filter
 from bson import ObjectId
 from datetime import datetime
 
 
-def _uid_filter(usuario_id):
-    """Construye filtro que matchea tanto string como ObjectId."""
-    uid = usuario_id or get_app_user_id()
-    conditions = [{"usuario_id": uid}]
-    try:
-        if ObjectId.is_valid(str(uid)):
-            conditions.append({"usuario_id": ObjectId(str(uid))})
-    except Exception:
-        pass
-    return {"$or": conditions} if len(conditions) > 1 else conditions[0]
+def _uid_filter(_=None):
+    """Local: sin filtro por usuario (BD de un solo usuario)."""
+    return {}
 
 
 class GoalModel:
@@ -229,17 +222,18 @@ class GoalModel:
         _gid = ObjectId(goal_id) if not isinstance(goal_id, ObjectId) else goal_id
         _eid = ObjectId(event_id) if not isinstance(event_id, ObjectId) else event_id
 
-        query = {"_id": _gid, **_uid_filter(usuario_id)}
+        local_query = {"_id": _gid}
         local_col.update_one(
-            query,
+            local_query,
             {"$addToSet": {"event_ids": _eid}},
             upsert=False
         )
 
         if remote_col is not None:
+            remote_query = {"_id": _gid, **remote_uid_filter(usuario_id)}
             try:
                 remote_col.update_one(
-                    query,
+                    remote_query,
                     {"$addToSet": {"event_ids": _eid}},
                     upsert=False
                 )
@@ -259,16 +253,17 @@ class GoalModel:
         _gid = ObjectId(goal_id) if not isinstance(goal_id, ObjectId) else goal_id
         _eid = ObjectId(event_id) if not isinstance(event_id, ObjectId) else event_id
 
-        query = {"_id": _gid, **_uid_filter(usuario_id)}
+        local_query = {"_id": _gid}
         local_col.update_one(
-            query,
+            local_query,
             {"$pull": {"event_ids": _eid}}
         )
 
         if remote_col is not None:
+            remote_query = {"_id": _gid, **remote_uid_filter(usuario_id)}
             try:
                 remote_col.update_one(
-                    query,
+                    remote_query,
                     {"$pull": {"event_ids": _eid}}
                 )
             except Exception as e:
@@ -299,18 +294,17 @@ class GoalModel:
         if not queries:
             return False
 
-        uid_filter = _uid_filter(usuario_id)
         deleted_local = 0
         for query in queries:
-            merged_query = {**query, **uid_filter}
-            res = local_col.delete_one(merged_query)
+            res = local_col.delete_one(query)
             deleted_local += res.deleted_count
 
         deleted_remote = 0
         if remote_col is not None:
+            remote_uid = remote_uid_filter(usuario_id)
             for query in queries:
                 try:
-                    merged_query = {**query, **uid_filter}
+                    merged_query = {**query, **remote_uid}
                     res = remote_col.delete_one(merged_query)
                     deleted_remote += res.deleted_count
                 except Exception:
@@ -352,14 +346,12 @@ class GoalModel:
         if string_ids:
             query["$or"].append({"_id": {"$in": string_ids}})
 
-        uid_filter = _uid_filter(usuario_id)
-        merged_query = {**query, **uid_filter}
-
-        res = local_col.delete_many(merged_query)
+        res = local_col.delete_many(query)
 
         if remote_col is not None:
+            remote_query = {"$and": [query, remote_uid_filter(usuario_id)]}
             try:
-                remote_col.delete_many(merged_query)
+                remote_col.delete_many(remote_query)
             except Exception:
                 pass
 

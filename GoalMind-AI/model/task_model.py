@@ -1,19 +1,12 @@
-from database.mongo_conn import get_collection, sync_to_remote, sync_from_remote, get_app_user_id
+from database.mongo_conn import get_collection, sync_to_remote, sync_from_remote, get_app_user_id, remote_uid_filter
 from bson import ObjectId
 from datetime import datetime
 from model.goal_model import GoalModel
 
 
-def _uid_filter(usuario_id):
-    """Construye filtro que matchea tanto string como ObjectId."""
-    uid = usuario_id or get_app_user_id()
-    conditions = [{"usuario_id": uid}]
-    try:
-        if ObjectId.is_valid(str(uid)):
-            conditions.append({"usuario_id": ObjectId(str(uid))})
-    except Exception:
-        pass
-    return {"$or": conditions} if len(conditions) > 1 else conditions[0]
+def _uid_filter(_=None):
+    """Local: sin filtro por usuario (BD de un solo usuario)."""
+    return {}
 
 
 class TaskModel:
@@ -166,12 +159,13 @@ class TaskModel:
         local_col, remote_col = get_collection(TaskModel.COLLECTION)
         _id = ObjectId(task_id) if not isinstance(task_id, ObjectId) else task_id
 
-        query = {"_id": _id, **_uid_filter(usuario_id)}
-        local_col.delete_one(query)
+        local_query = {"_id": _id}
+        local_col.delete_one(local_query)
 
         if remote_col is not None:
+            remote_query = {"_id": _id, **remote_uid_filter(usuario_id)}
             try:
-                remote_col.delete_one(query)
+                remote_col.delete_one(remote_query)
                 print(f"Tarea eliminada en local y remoto: {_id}")
             except Exception:
                 print(f"Tarea eliminada solo localmente: {_id}")
@@ -190,12 +184,13 @@ class TaskModel:
             for tid in task_ids if tid
         ]
         
-        query = {"_id": {"$in": ids}, **_uid_filter(usuario_id)}
-        res_local = local_col.delete_many(query)
+        local_query = {"_id": {"$in": ids}}
+        res_local = local_col.delete_many(local_query)
 
         if remote_col is not None:
+            remote_query = {"_id": {"$in": ids}, **remote_uid_filter(usuario_id)}
             try:
-                remote_col.delete_many(query)
+                remote_col.delete_many(remote_query)
             except Exception:
                 pass
 
@@ -261,17 +256,18 @@ class TaskModel:
         _tid = ObjectId(task_id) if not isinstance(task_id, ObjectId) else task_id
         _eid = ObjectId(event_id) if not isinstance(event_id, ObjectId) else event_id
 
-        query = {"_id": _tid, **_uid_filter(usuario_id)}
+        local_query = {"_id": _tid}
         local_col.update_one(
-            query,
+            local_query,
             {"$addToSet": {"event_ids": _eid}},
             upsert=False
         )
 
         if remote_col is not None:
+            remote_query = {"_id": _tid, **remote_uid_filter(usuario_id)}
             try:
                 remote_col.update_one(
-                    query,
+                    remote_query,
                     {"$addToSet": {"event_ids": _eid}},
                     upsert=False
                 )
@@ -291,16 +287,17 @@ class TaskModel:
         _tid = ObjectId(task_id) if not isinstance(task_id, ObjectId) else task_id
         _eid = ObjectId(event_id) if not isinstance(event_id, ObjectId) else event_id
 
-        query = {"_id": _tid, **_uid_filter(usuario_id)}
+        local_query = {"_id": _tid}
         local_col.update_one(
-            query,
+            local_query,
             {"$pull": {"event_ids": _eid}}
         )
 
         if remote_col is not None:
+            remote_query = {"_id": _tid, **remote_uid_filter(usuario_id)}
             try:
                 remote_col.update_one(
-                    query,
+                    remote_query,
                     {"$pull": {"event_ids": _eid}}
                 )
             except Exception as e:
@@ -324,16 +321,17 @@ class TaskModel:
         
         objetivo_oid = ObjectId(goal_id) if not isinstance(goal_id, ObjectId) else goal_id
         
-        query = {"_id": {"$in": object_ids}, **_uid_filter(usuario_id)}
+        local_query = {"_id": {"$in": object_ids}}
         result = local_col.update_many(
-            query,
+            local_query,
             {"$set": {"objetivo_id": objetivo_oid}}
         )
-        
+
         if remote_col is not None:
+            remote_query = {"_id": {"$in": object_ids}, **remote_uid_filter(usuario_id)}
             try:
                 remote_col.update_many(
-                    query,
+                    remote_query,
                     {"$set": {"objetivo_id": objetivo_oid}}
                 )
                 print(f" {result.modified_count} tareas asignadas al objetivo {goal_id} y sincronizadas.")

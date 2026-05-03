@@ -2,19 +2,12 @@ from datetime import datetime
 
 from bson import ObjectId
 
-from database.mongo_conn import get_collection, sync_from_remote, sync_to_remote, get_app_user_id
+from database.mongo_conn import get_collection, sync_from_remote, sync_to_remote, get_app_user_id, remote_uid_filter
 
 
-def _uid_filter(usuario_id):
-    """Construye filtro que matchea tanto string como ObjectId."""
-    uid = usuario_id or get_app_user_id()
-    conditions = [{"usuario_id": uid}]
-    try:
-        if ObjectId.is_valid(str(uid)):
-            conditions.append({"usuario_id": ObjectId(str(uid))})
-    except Exception:
-        pass
-    return {"$or": conditions} if len(conditions) > 1 else conditions[0]
+def _uid_filter(_=None):
+    """Local: sin filtro por usuario (BD de un solo usuario)."""
+    return {}
 
 
 class ProjectModel:
@@ -127,19 +120,14 @@ class ProjectModel:
         if not queries:
             return False
 
-        uid_filter = _uid_filter(usuario_id)
-        delete_queries = []
-        for q in queries:
-            merged = {**q, **uid_filter}
-            delete_queries.append(merged)
-
-        delete_query = {"$or": delete_queries}
-        deleted_local = local_col.delete_many(delete_query).deleted_count
+        local_delete_query = {"$or": queries}
+        deleted_local = local_col.delete_many(local_delete_query).deleted_count
 
         deleted_remote = 0
         if remote_col is not None:
+            remote_delete_query = {"$and": [local_delete_query, remote_uid_filter(usuario_id)]}
             try:
-                deleted_remote = remote_col.delete_many(delete_query).deleted_count
+                deleted_remote = remote_col.delete_many(remote_delete_query).deleted_count
             except Exception:
                 pass
 

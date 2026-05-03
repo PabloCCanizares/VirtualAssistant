@@ -17,14 +17,21 @@ import json
 # Módulo estándar de python para variables de entorno y hashing
 import os
 import hashlib
+from urllib.parse import urlparse
 # Certificados raíz (para evitar problemas TLS/SSL con Atlas en macOS, etc.) [si da error ejecutar en comandos: pip install certifi]
 import certifi
 from datetime import datetime
 from bson import ObjectId
 
+try:
+    from dotenv import set_key as _dotenv_set_key
+except ImportError:
+    _dotenv_set_key = None  # type: ignore[assignment]
+
 ############################### Configuracion de la base de datos MongoDB #############################
 # Ruta al archivo JSON que contiene las credenciales de la base de datos remota (fallback)
 CONFIG_PATH = Path(__file__).resolve().parent / "mongo_user.json"
+ENV_PATH = Path(__file__).resolve().parents[1] / ".env"
 
 # Objetos de conexión
 mongo_local = PyMongo()
@@ -49,6 +56,41 @@ _SYNC_TIMESTAMP_FIELDS = (
     "fecha_modificacion",
     "fecha_inicio",
 )
+
+
+def extract_username_from_uri(uri: str) -> str:
+    """Extrae el username de una URI MongoDB (p.ej. 'dani' de 'mongodb+srv://dani:pass@host')."""
+    if not uri:
+        return ""
+    try:
+        return urlparse(uri).username or ""
+    except Exception:
+        return ""
+
+
+def _persist_user_nickname(uri: str) -> None:
+    """Deriva APP_USER_NICKNAME del username de la URI y lo persiste (best-effort)."""
+    username = extract_username_from_uri(uri)
+    if not username or os.getenv("APP_USER_NICKNAME") == username:
+        return
+    os.environ["APP_USER_NICKNAME"] = username
+    if _dotenv_set_key is not None:
+        try:
+            _dotenv_set_key(str(ENV_PATH), "APP_USER_NICKNAME", username, quote_mode="never")
+        except Exception:
+            pass
+
+
+def remote_uid_filter(usuario_id=None) -> dict:
+    """Filtro remoto por usuario_id aceptando string u ObjectId."""
+    uid = usuario_id or get_app_user_id()
+    conditions = [{"usuario_id": uid}]
+    try:
+        if ObjectId.is_valid(str(uid)):
+            conditions.append({"usuario_id": ObjectId(str(uid))})
+    except Exception:
+        pass
+    return {"$or": conditions} if len(conditions) > 1 else conditions[0]
 
 
 def generate_user_id_from_nickname(nickname: str) -> str:
@@ -105,6 +147,7 @@ def init_app(app):
         except Exception:
             remote_uri = ""
     _configured_remote_uri = remote_uri
+    _persist_user_nickname(remote_uri)
 
     # ------------- CONEXIÓN LOCAL -------------
     app.config["MONGO_URI"] = f"{local_uri}/{_local_db_name}"
@@ -211,6 +254,7 @@ def reconnect_databases(app=None):
             app.mongo_remote = mongo_remote
             remote_ok = True
             logger.info("Reconexion remota completada: %s", new_remote_db)
+            _persist_user_nickname(new_remote_uri)
         except Exception as exc:
             mongo_remote = None
             app.mongo_remote = None
@@ -258,9 +302,10 @@ def sync_from_remote(collection_name, obj):
         return
 
     filtro = {"_id": obj["_id"]} if "_id" in obj else obj
+    remote_filtro = {"$and": [filtro, remote_uid_filter()]}
 
     if not local_col.find_one(filtro):
-        remoto = remote_col.find_one(filtro)
+        remoto = remote_col.find_one(remote_filtro)
         if remoto:
             local_col.insert_one(remoto)
 
@@ -394,7 +439,7 @@ def sync_all_collections():
             if delete_query["$or"]:
                 local_col.delete_many(delete_query)
 
-        for remote_doc in remote_col.find():
+        for remote_doc in remote_col.find(remote_uid_filter()):
             remote_id = remote_doc.get("_id")
             if remote_id is None:
                 continue
@@ -439,7 +484,7 @@ def sync_local_to_remote():
             continue
         remote_docs = {
             str(doc.get("_id")): doc
-            for doc in remote_col.find({}, None)
+            for doc in remote_col.find(remote_uid_filter(), None)
             if doc.get("_id") is not None
         }
         docs = []

@@ -7,19 +7,12 @@ from database.gridfs_storage import (
     delete_file_from_remote_storage,
     promote_local_file_to_remote,
 )
-from database.mongo_conn import get_app_user_id, get_collection, sync_from_remote, sync_to_remote
+from database.mongo_conn import get_app_user_id, get_collection, sync_from_remote, sync_to_remote, remote_uid_filter
 
 
-def _uid_filter(usuario_id):
-    """Construye filtro que matchea tanto string como ObjectId."""
-    uid = usuario_id or get_app_user_id()
-    conditions = [{"usuario_id": uid}]
-    try:
-        if ObjectId.is_valid(str(uid)):
-            conditions.append({"usuario_id": ObjectId(str(uid))})
-    except Exception:
-        pass
-    return {"$or": conditions} if len(conditions) > 1 else conditions[0]
+def _uid_filter(_=None):
+    """Local: sin filtro por usuario (BD de un solo usuario)."""
+    return {}
 
 
 class ProjectDocumentModel:
@@ -164,8 +157,8 @@ class ProjectDocumentModel:
         local_col, remote_col = get_collection(ProjectDocumentModel.COLLECTION)
         _id = ObjectId(doc_id) if not isinstance(doc_id, ObjectId) else doc_id
 
-        query = {"_id": _id, **_uid_filter(usuario_id)}
-        existing_doc = local_col.find_one(query)
+        local_query = {"_id": _id}
+        existing_doc = local_col.find_one(local_query)
 
         if existing_doc and existing_doc.get("local_upload_id"):
             delete_file_from_local_storage(existing_doc.get("local_upload_id"))
@@ -173,11 +166,12 @@ class ProjectDocumentModel:
         if existing_doc and existing_doc.get("upload_id"):
             delete_file_from_remote_storage(existing_doc.get("upload_id"))
 
-        res = local_col.delete_one(query)
+        res = local_col.delete_one(local_query)
 
         if remote_col is not None:
+            remote_query = {"_id": _id, **remote_uid_filter(usuario_id)}
             try:
-                remote_col.delete_one(query)
+                remote_col.delete_one(remote_query)
             except Exception:
                 pass
 

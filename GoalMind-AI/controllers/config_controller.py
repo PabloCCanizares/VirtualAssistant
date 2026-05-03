@@ -19,13 +19,11 @@ try:
 except ModuleNotFoundError:
     genai = None
 
-from database.mongo_conn import reconnect_databases
+from database.mongo_conn import reconnect_databases, ENV_PATH
 
 logger = logging.getLogger(__name__)
 
 config_bp = Blueprint("config_bp", __name__, url_prefix="/config")
-
-ENV_PATH = Path(__file__).resolve().parents[1] / ".env"
 
 # ---------------------------------------------------------------------------
 # Schema: secciones, campos, tipos, defaults y validacion
@@ -34,7 +32,6 @@ SETTINGS_SCHEMA = {
     "app": {
         "label": "Aplicacion",
         "fields": {
-            "APP_USER_NICKNAME": {"label": "Nickname de usuario", "type": "text", "default": "shared_user"},
             "FLASK_DEBUG": {
                 "label": "Modo debug",
                 "type": "select",
