@@ -17,6 +17,9 @@
     document.getElementById("configAcceptBtn").addEventListener("click", handleAccept);
     document.getElementById("configExitBtn").addEventListener("click", handleExit);
     document.getElementById("configModalCancel").addEventListener("click", hideModal);
+
+    const syncBtn = document.getElementById("syncNowBtn");
+    if (syncBtn) syncBtn.addEventListener("click", handleSyncNow);
   }
 
   // ── Load current values ───────────────────────────────────────
@@ -171,11 +174,34 @@
     }
   }
 
+  // ── Sync now ──────────────────────────────────────────────────
+  async function handleSyncNow() {
+    const btn = document.getElementById("syncNowBtn");
+    const originalText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = "Sincronizando...";
+    try {
+      const res = await fetch(`${API_BASE}/sync-now`, { method: "POST" });
+      const json = await res.json();
+      if (json.success) {
+        showSnackbar("Sincronización completada con éxito", "success");
+      } else {
+        showSnackbar(json.error || "Error durante la sincronización", "error");
+      }
+    } catch {
+      showSnackbar("Error de red durante la sincronización", "error");
+    } finally {
+      btn.disabled = false;
+      btn.textContent = originalText;
+    }
+  }
+
   // ── Test MongoDB buttons ──────────────────────────────────────
   function setupTestButtons() {
     document.querySelectorAll(".config-test-btn").forEach((btn) => {
       btn.addEventListener("click", async () => {
         const fieldId = btn.getAttribute("data-uri-field");
+        if (!fieldId) return;
         const input = document.getElementById(fieldId);
         const resultEl = document.getElementById("test-" + input.name);
         if (!input || !resultEl) return;

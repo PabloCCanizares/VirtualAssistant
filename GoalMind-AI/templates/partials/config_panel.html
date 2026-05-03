@@ -188,38 +188,11 @@
         <input id="cfg-MONGO_REMOTE_DB" name="MONGO_REMOTE_DB" class="dashboard-form-input"
                placeholder="VirtualAssistantDB">
       </div>
-    </div>
-  </div>
 
-  <!-- ===== Seccion: Almacenamiento ===== -->
-  <div class="config-section" data-section="storage">
-    <h3 class="config-section-heading">Almacenamiento y Sincronizacion</h3>
-    <div class="dashboard-form config-form" data-section="storage">
-
-      <div class="dashboard-form-row">
-        <div class="dashboard-form-group">
-          <label class="dashboard-form-label" for="cfg-SYNC_INTERVAL_MINUTES">Intervalo sync (min)</label>
-          <input id="cfg-SYNC_INTERVAL_MINUTES" name="SYNC_INTERVAL_MINUTES"
-                 type="number" min="1" class="dashboard-form-input">
-        </div>
-        <div class="dashboard-form-group">
-          <label class="dashboard-form-label" for="cfg-MAX_CONTENT_LENGTH_MB">Tamano max archivo (MB)</label>
-          <input id="cfg-MAX_CONTENT_LENGTH_MB" name="MAX_CONTENT_LENGTH_MB"
-                 type="number" min="1" class="dashboard-form-input">
-        </div>
-      </div>
-
-      <div class="dashboard-form-row">
-        <div class="dashboard-form-group">
-          <label class="dashboard-form-label" for="cfg-UPLOAD_ROOT">Carpeta uploads</label>
-          <input id="cfg-UPLOAD_ROOT" name="UPLOAD_ROOT" class="dashboard-form-input"
-                 placeholder="uploads">
-        </div>
-        <div class="dashboard-form-group">
-          <label class="dashboard-form-label" for="cfg-UPLOAD_ALLOWED_EXTENSIONS">Extensiones permitidas</label>
-          <input id="cfg-UPLOAD_ALLOWED_EXTENSIONS" name="UPLOAD_ALLOWED_EXTENSIONS" class="dashboard-form-input"
-                 placeholder="pdf,doc,docx,txt,...">
-        </div>
+      <div class="dashboard-form-group">
+        <button type="button" id="syncNowBtn" class="config-test-btn" style="width:100%;">
+          Sincronizar con la nube
+        </button>
       </div>
     </div>
   </div>

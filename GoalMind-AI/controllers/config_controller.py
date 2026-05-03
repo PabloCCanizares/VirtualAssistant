@@ -19,7 +19,14 @@ try:
 except ModuleNotFoundError:
     genai = None
 
-from database.mongo_conn import reconnect_databases, ENV_PATH
+from database.mongo_conn import (
+    reconnect_databases,
+    ENV_PATH,
+    ensure_remote_connection,
+    flush_deletion_queue,
+    sync_all_collections,
+    sync_local_to_remote,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -140,29 +147,6 @@ SETTINGS_SCHEMA = {
                 "label": "Base de datos Remota",
                 "type": "text",
                 "default": "VirtualAssistantDB",
-            },
-        },
-    },
-    "storage": {
-        "label": "Almacenamiento y Sincronizacion",
-        "fields": {
-            "SYNC_INTERVAL_MINUTES": {
-                "label": "Intervalo sync (min)",
-                "type": "number",
-                "default": "1",
-                "min": 1,
-            },
-            "UPLOAD_ROOT": {"label": "Carpeta uploads", "type": "text", "default": "uploads"},
-            "MAX_CONTENT_LENGTH_MB": {
-                "label": "Tamano max archivo (MB)",
-                "type": "number",
-                "default": "25",
-                "min": 1,
-            },
-            "UPLOAD_ALLOWED_EXTENSIONS": {
-                "label": "Extensiones permitidas",
-                "type": "text",
-                "default": "pdf,doc,docx,txt,png,jpg,jpeg,csv,xlsx,pptx,zip",
             },
         },
     },
@@ -310,6 +294,28 @@ def test_mongo_remote():
         return jsonify({"success": True, "message": "Conexion exitosa"})
     except Exception as exc:
         return jsonify({"success": False, "message": str(exc)}), 400
+
+
+# ---------------------------------------------------------------------------
+# POST /config/api/sync-now
+# ---------------------------------------------------------------------------
+@config_bp.route("/api/sync-now", methods=["POST"])
+def sync_now():
+    """Ejecuta sincronización completa manual entre BD local y remota."""
+    from flask import current_app
+    from model.project_document_model import ProjectDocumentModel
+
+    try:
+        if not ensure_remote_connection(current_app):
+            return jsonify({"success": False, "error": "No hay conexión con la base de datos remota"}), 503
+        flush_deletion_queue()
+        ProjectDocumentModel.promote_pending_remote_uploads(app=current_app)
+        sync_all_collections()
+        sync_local_to_remote()
+        return jsonify({"success": True})
+    except Exception as exc:
+        logger.error("[Config] Error en sincronización manual: %s", exc, exc_info=True)
+        return jsonify({"success": False, "error": str(exc)}), 500
 
 
 # ---------------------------------------------------------------------------

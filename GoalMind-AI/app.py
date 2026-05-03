@@ -13,11 +13,9 @@ from bootstrap import (
     is_debug_enabled,
     is_production,
     load_project_env,
-    should_start_scheduler_process,
 )
 from config.storage import configure_storage
 from database.mongo_conn import get_app_user_id, init_app
-from database.scheduler import init_scheduler
 from model.category_model import CategoryModel
 
 def _register_blueprints(flask_app: Flask) -> None:
@@ -41,18 +39,6 @@ def _register_blueprints(flask_app: Flask) -> None:
     flask_app.register_blueprint(category_bp)
     flask_app.register_blueprint(ai_chat_bp)
     flask_app.register_blueprint(config_bp)
-
-def setup_scheduler(flask_app: Flask, logger: logging.Logger) -> None:
-    sync_interval = env_int("SYNC_INTERVAL_MINUTES", 1, minimum=1)
-    debug_enabled = is_debug_enabled()
-
-    if not should_start_scheduler_process(debug_enabled):
-        logger.info("Scheduler no iniciado en el proceso de recarga de Flask.")
-        return
-
-    # Scheduler crítico: si falla, el arranque debe abortar.
-    init_scheduler(flask_app, sync_interval_minutes=sync_interval)
-
 
 # === Inicialización de entorno y logging ===
 env_root = Path(__file__).resolve().parent
@@ -105,10 +91,6 @@ def inject_now():
         "now": datetime.now,
         "sidebar_categories": sidebar_categories,
     }
-
-
-# === Scheduler en background ===
-setup_scheduler(app, logger)
 
 
 # === Ejecución de aplicación ===
