@@ -12,6 +12,19 @@ class LLMInvokeError(RuntimeError):
     """Error al invocar el modelo tras agotar retries."""
 
 
+def _extract_text(content) -> str:
+    if isinstance(content, str):
+        return content.strip()
+    if isinstance(content, list):
+        parts = [
+            block.get("text", "") if isinstance(block, dict) else str(block)
+            for block in content
+            if not isinstance(block, dict) or block.get("type") == "text"
+        ]
+        return "".join(parts).strip()
+    return str(content).strip()
+
+
 def invoke_with_retry(
     llm,
     messages: Sequence[BaseMessage],
@@ -40,7 +53,7 @@ def invoke_with_retry(
     for attempt in range(attempts):
         try:
             response = llm.invoke(list(messages))
-            return (response.content or "").strip()
+            return _extract_text(response.content or "")
         except Exception as exc:  # pragma: no cover - cobertura por tests de integración
             last_exc = exc
             if attempt >= attempts - 1:
