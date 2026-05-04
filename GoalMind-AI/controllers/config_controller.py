@@ -70,7 +70,7 @@ SETTINGS_SCHEMA = {
             "GEMINI_MODEL": {
                 "label": "Modelo Gemini",
                 "type": "text",
-                "default": "gemini-3-flash-preview",
+                "default": "gemini-2.5-flash",
             },
             "GROQ_API_KEY": {"label": "Groq API Key", "type": "text", "default": ""},
             "GROQ_MODEL": {

@@ -125,7 +125,7 @@ def get_settings() -> Settings:
         openai_api_key=os.getenv("OPENAI_API_KEY"),
         openai_model=os.getenv("OPENAI_MODEL", "gpt-5-nano"),
         gemini_api_key=os.getenv("GEMINI_API_KEY"),
-        gemini_model=os.getenv("GEMINI_MODEL", "gemini-1.5-flash-latest"),
+        gemini_model=os.getenv("GEMINI_MODEL", "gemini-2.5-flash"),
         groq_api_key=os.getenv("GROQ_API_KEY"),
         groq_model=os.getenv("GROQ_MODEL", "llama-3.1-8b-instant"),
         default_user_id=os.getenv("DEFAULT_USER_ID"),
