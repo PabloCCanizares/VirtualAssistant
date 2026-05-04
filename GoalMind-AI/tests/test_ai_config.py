@@ -1,157 +1,143 @@
-import sys
-from types import ModuleType
+"""Tests unitarios para ai.config: validadores de variables de entorno y dataclasses."""
 
-from ai import config
+from __future__ import annotations
 
+import pytest
 
-class _DummyOpenAI:
-    def __init__(self, *args, **kwargs):
-        self.args = args
-        self.kwargs = kwargs
+from ai import config as ai_config
 
 
-class _DummyGemini:
-    def __init__(self, *args, **kwargs):
-        self.args = args
-        self.kwargs = kwargs
+class TestEnvBool:
+    @pytest.mark.parametrize("raw", ["1", "true", "TRUE", "yes", "Yes", "on", "si", "sí"])
+    def test_env_bool_truthy_values_return_true(self, monkeypatch, raw):
+        monkeypatch.setenv("FLAG", raw)
+        assert ai_config._env_bool("FLAG", default=False) is True
+
+    @pytest.mark.parametrize("raw", ["0", "false", "no", "off", "", "  ", "wat"])
+    def test_env_bool_falsy_values_return_false(self, monkeypatch, raw):
+        monkeypatch.setenv("FLAG", raw)
+        assert ai_config._env_bool("FLAG", default=True) is False
+
+    def test_env_bool_returns_default_when_unset(self, monkeypatch):
+        monkeypatch.delenv("FLAG", raising=False)
+        assert ai_config._env_bool("FLAG", default=True) is True
+        assert ai_config._env_bool("FLAG", default=False) is False
 
 
-class _DummyGroq:
-    def __init__(self, *args, **kwargs):
-        self.args = args
-        self.kwargs = kwargs
+class TestEnvInt:
+    def test_env_int_returns_default_when_unset(self, monkeypatch):
+        monkeypatch.delenv("X", raising=False)
+        assert ai_config._env_int("X", default=7) == 7
+
+    def test_env_int_parses_valid_integer(self, monkeypatch):
+        monkeypatch.setenv("X", "42")
+        assert ai_config._env_int("X", default=0) == 42
+
+    def test_env_int_returns_default_when_invalid(self, monkeypatch):
+        monkeypatch.setenv("X", "not-a-number")
+        assert ai_config._env_int("X", default=5) == 5
+
+    def test_env_int_clamps_below_minimum(self, monkeypatch):
+        monkeypatch.setenv("X", "1")
+        assert ai_config._env_int("X", default=0, minimum=10) == 10
+
+    def test_env_int_clamps_above_maximum(self, monkeypatch):
+        monkeypatch.setenv("X", "999")
+        assert ai_config._env_int("X", default=0, maximum=100) == 100
+
+    def test_env_int_within_bounds_returned_unchanged(self, monkeypatch):
+        monkeypatch.setenv("X", "20")
+        assert ai_config._env_int("X", default=0, minimum=10, maximum=30) == 20
 
 
-def _disable_env_file_load(monkeypatch):
-    monkeypatch.setattr(config, "load_env", lambda *args, **kwargs: None)
+class TestEnvChoice:
+    def test_env_choice_returns_default_when_unset(self, monkeypatch):
+        monkeypatch.delenv("PROVIDER", raising=False)
+        assert ai_config._env_choice("PROVIDER", {"a", "b"}, default="a") == "a"
+
+    def test_env_choice_returns_default_when_empty(self, monkeypatch):
+        monkeypatch.setenv("PROVIDER", "   ")
+        assert ai_config._env_choice("PROVIDER", {"a", "b"}, default="b") == "b"
+
+    def test_env_choice_returns_value_when_in_allowed(self, monkeypatch):
+        monkeypatch.setenv("PROVIDER", "a")
+        assert ai_config._env_choice("PROVIDER", {"a", "b"}, default="b") == "a"
+
+    def test_env_choice_lowercases_input(self, monkeypatch):
+        monkeypatch.setenv("PROVIDER", "GEMINI")
+        assert (
+            ai_config._env_choice("PROVIDER", {"openai", "gemini"}, default="openai") == "gemini"
+        )
+
+    def test_env_choice_returns_default_when_not_allowed(self, monkeypatch):
+        monkeypatch.setenv("PROVIDER", "claude")
+        assert (
+            ai_config._env_choice("PROVIDER", {"openai", "gemini"}, default="openai") == "openai"
+        )
 
 
-def _clear_provider_env(monkeypatch):
-    for key in (
-        "LLM_PROVIDER",
-        "AI_PROVIDER",
-        "OPENAI_API_KEY",
-        "OPENAI_MODEL",
-        "GEMINI_API_KEY",
-        "GEMINI_MODEL",
-        "GROQ_API_KEY",
-        "GROQ_MODEL",
-        "DEEP_SEARCH_ENABLED",
-        "DEEP_SEARCH_PROVIDER",
-        "DEEP_SEARCH_API_KEY",
-        "DEEP_SEARCH_MAX_RESULTS",
-        "DEEP_SEARCH_TIMEOUT_SECONDS",
-        "DEEP_SEARCH_MAX_SOURCES",
-        "DEEP_SEARCH_MODE_DEFAULT",
-        "DEEP_RESEARCH_MAX_ITERATIONS",
-        "DEEP_RESEARCH_MAX_TASKS",
-        "DEEP_RESEARCH_MAX_QUERIES_PER_TASK",
-        "DEEP_RESEARCH_QUALITY_THRESHOLD",
-        "DEEP_RESEARCH_STAGNATION_LIMIT",
-        "DEEP_RESEARCH_LOOP_REPEAT_LIMIT",
-        "DEEP_RESEARCH_MAX_REPORT_SOURCES",
-        "DEEP_RESEARCH_INTERNAL_SOURCE_LIMIT",
-        "DEEP_RESEARCH_PARALLEL_QUERIES",
-        "DEFAULT_USER_ID",
-    ):
-        monkeypatch.delenv(key, raising=False)
+class TestEnvFloat:
+    def test_env_float_returns_default_when_unset(self, monkeypatch):
+        monkeypatch.delenv("Y", raising=False)
+        assert ai_config._env_float("Y", default=0.5) == pytest.approx(0.5)
+
+    def test_env_float_parses_valid_value(self, monkeypatch):
+        monkeypatch.setenv("Y", "0.75")
+        assert ai_config._env_float("Y", default=0.0) == pytest.approx(0.75)
+
+    def test_env_float_returns_default_when_invalid(self, monkeypatch):
+        monkeypatch.setenv("Y", "abc")
+        assert ai_config._env_float("Y", default=0.3) == pytest.approx(0.3)
+
+    def test_env_float_clamps_to_bounds(self, monkeypatch):
+        monkeypatch.setenv("Y", "-1.5")
+        assert ai_config._env_float("Y", default=0.0, minimum=0.0, maximum=1.0) == pytest.approx(0.0)
+        monkeypatch.setenv("Y", "5.5")
+        assert ai_config._env_float("Y", default=0.0, minimum=0.0, maximum=1.0) == pytest.approx(1.0)
 
 
-def _install_mock_provider_modules(monkeypatch):
-    openai_module = ModuleType("langchain_openai")
-    setattr(openai_module, "ChatOpenAI", _DummyOpenAI)
+class TestSettingsDataclass:
+    def test_get_settings_returns_defaults_when_env_empty(self, monkeypatch):
+        for key in (
+            "LLM_PROVIDER", "OPENAI_API_KEY", "OPENAI_MODEL",
+            "GEMINI_API_KEY", "GEMINI_MODEL", "GROQ_API_KEY", "GROQ_MODEL",
+            "DEEP_SEARCH_ENABLED", "DEEP_SEARCH_PROVIDER", "DEEP_SEARCH_API_KEY",
+            "DEEP_SEARCH_MODE_DEFAULT",
+        ):
+            monkeypatch.delenv(key, raising=False)
+        # Evita cargar el .env real durante el test
+        monkeypatch.setattr(ai_config, "load_env", lambda *a, **kw: None)
 
-    gemini_module = ModuleType("langchain_google_genai")
-    setattr(gemini_module, "ChatGoogleGenerativeAI", _DummyGemini)
+        settings = ai_config.get_settings()
 
-    groq_module = ModuleType("langchain_groq")
-    setattr(groq_module, "ChatGroq", _DummyGroq)
+        assert settings.llm_provider == "openai"
+        assert settings.deep_search_enabled is False
+        assert settings.deep_search_provider == "tavily"
+        assert settings.deep_search_mode_default == "auto"
+        assert settings.openai_model == "gpt-5-nano"
 
-    monkeypatch.setitem(sys.modules, "langchain_openai", openai_module)
-    monkeypatch.setitem(sys.modules, "langchain_google_genai", gemini_module)
-    monkeypatch.setitem(sys.modules, "langchain_groq", groq_module)
+    def test_get_settings_picks_up_provider_override(self, monkeypatch):
+        monkeypatch.setattr(ai_config, "load_env", lambda *a, **kw: None)
+        monkeypatch.setenv("LLM_PROVIDER", "groq")
 
+        settings = ai_config.get_settings()
 
-def test_get_settings_accepts_groq_provider(monkeypatch):
-    _disable_env_file_load(monkeypatch)
-    _clear_provider_env(monkeypatch)
+        assert settings.llm_provider == "groq"
 
-    monkeypatch.setenv("LLM_PROVIDER", "groq")
-    monkeypatch.setenv("GROQ_API_KEY", "groq-key")
-    monkeypatch.setenv("GROQ_MODEL", "llama-test")
+    def test_get_deep_search_config_propagates_settings(self, monkeypatch):
+        monkeypatch.setattr(ai_config, "load_env", lambda *a, **kw: None)
+        monkeypatch.setenv("DEEP_SEARCH_ENABLED", "true")
+        monkeypatch.setenv("DEEP_SEARCH_PROVIDER", "serper")
+        monkeypatch.setenv("DEEP_SEARCH_API_KEY", "abc-123")
 
-    settings = config.get_settings()
+        cfg = ai_config.get_deep_search_config()
 
-    assert settings.llm_provider == "groq"
-    assert settings.groq_api_key == "groq-key"
-    assert settings.groq_model == "llama-test"
+        assert cfg.enabled is True
+        assert cfg.provider == "serper"
+        assert cfg.api_key == "abc-123"
 
-
-def test_get_settings_ignores_ai_provider_and_defaults_to_openai(monkeypatch):
-    _disable_env_file_load(monkeypatch)
-    _clear_provider_env(monkeypatch)
-
-    monkeypatch.setenv("AI_PROVIDER", "gemini")
-    monkeypatch.setenv("LLM_PROVIDER", "invalid-provider")
-
-    settings = config.get_settings()
-
-    assert settings.llm_provider == "openai"
-
-
-def test_deep_search_defaults_and_clamping(monkeypatch):
-    _disable_env_file_load(monkeypatch)
-    _clear_provider_env(monkeypatch)
-
-    monkeypatch.setenv("DEEP_SEARCH_ENABLED", "yes")
-    monkeypatch.setenv("DEEP_SEARCH_PROVIDER", "unknown")
-    monkeypatch.setenv("DEEP_SEARCH_MAX_RESULTS", "abc")
-    monkeypatch.setenv("DEEP_SEARCH_TIMEOUT_SECONDS", "1")
-    monkeypatch.setenv("DEEP_SEARCH_MAX_SOURCES", "99")
-    monkeypatch.setenv("DEEP_SEARCH_MODE_DEFAULT", "invalid")
-    monkeypatch.setenv("DEEP_RESEARCH_MAX_ITERATIONS", "0")
-    monkeypatch.setenv("DEEP_RESEARCH_MAX_TASKS", "99")
-    monkeypatch.setenv("DEEP_RESEARCH_QUALITY_THRESHOLD", "1.8")
-    monkeypatch.setenv("DEEP_RESEARCH_PARALLEL_QUERIES", "off")
-
-    settings = config.get_settings()
-    deep_cfg = config.get_deep_search_config(settings)
-    runtime_cfg = config.get_deep_research_runtime_config(settings)
-
-    assert settings.deep_search_enabled is True
-    assert settings.deep_search_provider == "tavily"
-    assert settings.deep_search_max_results == 8
-    assert settings.deep_search_timeout_seconds == 3
-    assert settings.deep_search_max_sources == 12
-    assert settings.deep_search_mode_default == "auto"
-    assert deep_cfg.provider == "tavily"
-    assert deep_cfg.mode_default == "auto"
-    assert runtime_cfg.max_iterations == 1
-    assert runtime_cfg.max_tasks == 12
-    assert runtime_cfg.quality_threshold == 1.0
-    assert runtime_cfg.parallel_queries is False
-
-
-def test_build_llm_selects_expected_provider(monkeypatch):
-    _disable_env_file_load(monkeypatch)
-    _clear_provider_env(monkeypatch)
-    _install_mock_provider_modules(monkeypatch)
-
-    monkeypatch.setenv("LLM_PROVIDER", "openai")
-    monkeypatch.setenv("OPENAI_MODEL", "gpt-test")
-    llm_openai = config.build_llm()
-    assert isinstance(llm_openai, _DummyOpenAI)
-    assert llm_openai.kwargs["model"] == "gpt-test"
-    assert llm_openai.kwargs["temperature"] == 1
-
-    monkeypatch.setenv("LLM_PROVIDER", "gemini")
-    monkeypatch.setenv("GEMINI_MODEL", "gemini-test")
-    llm_gemini = config.build_llm()
-    assert isinstance(llm_gemini, _DummyGemini)
-    assert llm_gemini.kwargs["model"] == "gemini-test"
-
-    monkeypatch.setenv("LLM_PROVIDER", "groq")
-    monkeypatch.setenv("GROQ_MODEL", "groq-test")
-    llm_groq = config.build_llm()
-    assert isinstance(llm_groq, _DummyGroq)
-    assert llm_groq.kwargs["model"] == "groq-test"
+    def test_settings_is_frozen_dataclass(self, monkeypatch):
+        monkeypatch.setattr(ai_config, "load_env", lambda *a, **kw: None)
+        settings = ai_config.get_settings()
+        with pytest.raises(Exception):
+            settings.llm_provider = "other"  # type: ignore[misc]

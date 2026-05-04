@@ -1,6 +1,38 @@
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-ra --strict-markers"
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning",
+]
+
+[tool.coverage.run]
+branch = true
+source = ["ai", "controllers", "database", "model", "config", "bootstrap"]
+omit = [
+    "*/__pycache__/*",
+    "*/.venv/*",
+    "*/venv/*",
+    "tests/*",
+    "*/static/*",
+    "*/templates/*",
+    "ai/prompts/*",
+    "scripts/*",
+]
+
+[tool.coverage.report]
+precision = 2
+show_missing = false
+skip_empty = true
+exclude_lines = [
+    "pragma: no cover",
+    "if __name__ == .__main__.:",
+    "raise NotImplementedError",
+    "\\.\\.\\.",
+]
 
 [tool.ruff]
 line-length = 100
