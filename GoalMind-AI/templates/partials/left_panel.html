@@ -54,12 +54,6 @@
   <!-- Categorias -->
   <div class="sidebar-section">
     <div class="sidebar-section-title">Categorias</div>
-    {% if sidebar_categories and sidebar_categories|length > 0 %}
-      {% for category in sidebar_categories %}
-        <div class="sidebar-pill">{{ category.get("name", "") }}</div>
-      {% endfor %}
-    {% else %}
-      <div class="sidebar-pill">Sin categorias</div>
-    {% endif %}
+    <div id="sidebar-categories"></div>
   </div>
 </aside>
