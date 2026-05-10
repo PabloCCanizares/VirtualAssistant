@@ -1,70 +1,4 @@
 /**
- * Drag & Drop para subida de documentos
- */
-function initDropzone(dropzoneElement, options = {}) {
-  if (!dropzoneElement) return;
-
-  const {
-    onDrop = () => {},
-    onDragOver = () => {},
-    onDragLeave = () => {},
-    acceptedTypes = null // null = acepta todo, o array de tipos MIME
-  } = options;
-
-  // Prevenir comportamiento por defecto del navegador
-  ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-    dropzoneElement.addEventListener(eventName, preventDefaults, false);
-    document.body.addEventListener(eventName, preventDefaults, false);
-  });
-
-  function preventDefaults(e) {
-    e.preventDefault();
-    e.stopPropagation();
-  }
-
-  // Highlight al arrastrar
-  ['dragenter', 'dragover'].forEach(eventName => {
-    dropzoneElement.addEventListener(eventName, () => {
-      dropzoneElement.classList.add('dragover');
-      onDragOver();
-    }, false);
-  });
-
-  ['dragleave', 'drop'].forEach(eventName => {
-    dropzoneElement.addEventListener(eventName, () => {
-      dropzoneElement.classList.remove('dragover');
-      onDragLeave();
-    }, false);
-  });
-
-  // Handle drop
-  dropzoneElement.addEventListener('drop', (e) => {
-    const files = e.dataTransfer.files;
-    if (files.length > 0) {
-      const file = files[0]; // Solo aceptamos un archivo
-      
-      // Verificar tipo si hay restricciones
-      if (acceptedTypes && !acceptedTypes.includes(file.type)) {
-        showSnackbar('Tipo de archivo no permitido', 'error');
-        return;
-      }
-      
-      onDrop(file);
-    }
-  }, false);
-
-  // Handle click en input file (si existe)
-  const fileInput = dropzoneElement.querySelector('input[type="file"]');
-  if (fileInput) {
-    fileInput.addEventListener('change', (e) => {
-      if (e.target.files.length > 0) {
-        onDrop(e.target.files[0]);
-      }
-    });
-  }
-}
-
-/**
  * Modal de subida de documentos
  */
 class UploadModal {
@@ -201,7 +135,6 @@ function showSnackbar(message, type = 'success') {
 }
 
 // Exportar para uso global
-window.initDropzone = initDropzone;
 window.UploadModal = UploadModal;
 window.formatFileSize = formatFileSize;
 window.showSnackbar = showSnackbar;

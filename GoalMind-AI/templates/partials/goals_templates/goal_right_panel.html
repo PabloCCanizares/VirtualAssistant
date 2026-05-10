@@ -65,14 +65,13 @@
     </div>
   </div>
 
-  <!-- Asociar documento - Drag & Drop -->
+  <!-- Asociar documento -->
   <div class="side-panel-card" id="documentDropCard">
     <div class="side-panel-header">
       <h3 class="side-panel-title">Asociar documento</h3>
     </div>
 
     <div class="side-panel-card-content">
-      <!-- Zona de drag & drop -->
       <div class="dropzone" id="documentDropzone">
         <div class="dropzone-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -80,17 +79,9 @@
             <path d="M15 4v5h5"/>
           </svg>
         </div>
-        <p class="dropzone-text">
-          <strong>Arrastra un documento aqui</strong>
-          o haz click para seleccionar
-        </p>
+        <p class="dropzone-text">Haz clic para seleccionar un documento</p>
         <p class="dropzone-hint">PDF, Word, Excel, imagenes...</p>
         <input type="file" id="dropzoneFileInput" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.md,.png,.jpg,.jpeg,.gif,.webp">
-      </div>
-
-      <div class="empty-state" style="padding: 16px 0;">
-        <div class="empty-state-icon" style="font-size: 32px;"></div>
-        <p class="empty-state-desc" style="font-size: 12px;">Arrastra un archivo arriba para subirlo directamente a este objetivo.</p>
       </div>
     </div>
   </div>
@@ -261,53 +252,35 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   const dropzone = document.getElementById('documentDropzone');
-  const modalOverlay = document.getElementById('uploadModalOverlay');
   const modal = document.getElementById('uploadModal');
   const form = document.getElementById('uploadModalForm');
   const fileInput = document.getElementById('modalFileInput');
   const titleInput = document.getElementById('document_title');
+  const dropzoneInput = document.getElementById('dropzoneFileInput');
 
-  // Inicializar el modal
   const uploadModal = new UploadModal(modal, {
-    onSubmit: function(formData, file) {
-      form.submit();
-    },
+    onSubmit: function() { form.submit(); },
     onCancel: function() {
       fileInput.value = '';
       titleInput.value = '';
     }
   });
 
-  // Inicializar dropzone
-  initDropzone(dropzone, {
-    onDrop: function(file) {
-      const dataTransfer = new DataTransfer();
-      dataTransfer.items.add(file);
-      fileInput.files = dataTransfer.files;
+  if (dropzone) {
+    dropzone.addEventListener('click', function(e) {
+      if (e.target !== dropzoneInput) dropzoneInput.click();
+    });
+  }
 
-      const suggestedName = file.name.replace(/\.[^/.]+$/, '');
-      titleInput.value = suggestedName;
-
-      uploadModal.open(file);
-    }
-  });
-
-  // Manejar click en el input file del dropzone
-  const dropzoneInput = document.getElementById('dropzoneFileInput');
   if (dropzoneInput) {
     dropzoneInput.addEventListener('change', function(e) {
       if (e.target.files.length > 0) {
         const file = e.target.files[0];
-
         const dataTransfer = new DataTransfer();
         dataTransfer.items.add(file);
         fileInput.files = dataTransfer.files;
-
-        const suggestedName = file.name.replace(/\.[^/.]+$/, '');
-        titleInput.value = suggestedName;
-
+        titleInput.value = file.name.replace(/\.[^/.]+$/, '');
         uploadModal.open(file);
-
         dropzoneInput.value = '';
       }
     });
