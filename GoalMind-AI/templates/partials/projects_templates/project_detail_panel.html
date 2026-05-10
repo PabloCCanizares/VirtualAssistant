@@ -46,7 +46,6 @@
         {% if goals and goals|length > 0 %}
           {% for goal in goals %}
             <div class="tree-item folder tree-item-goal" data-goal-id="{{ goal['_id'] }}">
-              <span class="tree-item-toggle">▶</span>
               <span class="tree-item-icon"></span>
               <span class="tree-item-text">{{ goal.get('titulo') }}</span>
               <span class="tree-item-badge">{{ (goal_tasks.get(goal['_id'], [])|length) if goal_tasks else 0 }} tareas</span>
@@ -59,7 +58,7 @@
                 <button type="submit" class="panel-action-btn panel-action-btn-small danger tree-item-delete" title="Eliminar objetivo">Eliminar</button>
               </form>
             </div>
-            <div class="tree-children tree-tasks-container" data-goal-id="{{ goal['_id'] }}" style="display: none;">
+            <div class="tree-children tree-tasks-container" data-goal-id="{{ goal['_id'] }}" style="display: block;">
               {% set tasks = goal_tasks.get(goal['_id'], []) if goal_tasks else [] %}
               {% if tasks|length > 0 %}
                 {% for task in tasks %}
@@ -379,29 +378,6 @@
   <div id="docActionSnackbar" class="snackbar" style="display:none;"></div>
 
 </section>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  // Toggle para expandir/colapsar tareas de cada objetivo en el arbol
-  document.querySelectorAll('.tree-item-goal').forEach(item => {
-    item.addEventListener('click', function(e) {
-      if (e && e.target && e.target.closest('form, button')) {
-        return;
-      }
-      const goalId = this.dataset.goalId;
-      const tasksContainer = document.querySelector(`.tree-tasks-container[data-goal-id="${goalId}"]`);
-      const toggle = this.querySelector('.tree-item-toggle');
-      
-      if (tasksContainer) {
-        const isVisible = tasksContainer.style.display !== 'none';
-        tasksContainer.style.display = isVisible ? 'none' : 'block';
-        toggle.textContent = isVisible ? '▶' : '▼';
-        this.classList.toggle('expanded', !isVisible);
-      }
-    });
-  });
-});
-</script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {

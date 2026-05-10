@@ -1455,14 +1455,6 @@
   border-left: 2px solid rgba(108,243,255,.15);
 }
 
-/* Tree item toggle */
-.tree-item-toggle {
-  font-size: 10px;
-  color: var(--muted);
-  transition: transform 0.2s ease;
-  width: 12px;
-}
-
 .tree-item-goal {
   background: rgba(108,243,255,.05);
   border: 1px solid rgba(108,243,255,.1);
@@ -1470,11 +1462,6 @@
 
 .tree-item-goal:hover {
   background: rgba(108,243,255,.12);
-  border-color: rgba(108,243,255,.25);
-}
-
-.tree-item-goal.expanded {
-  background: rgba(108,243,255,.1);
   border-color: rgba(108,243,255,.25);
 }
 
