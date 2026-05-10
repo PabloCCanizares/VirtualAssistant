@@ -83,7 +83,10 @@ class GoalModel:
             goal_data["event_ids"] = []
 
         if goal_data.get("project_id") and not isinstance(goal_data["project_id"], ObjectId):
-            goal_data["project_id"] = ObjectId(str(goal_data["project_id"]))
+            raw_pid = str(goal_data["project_id"])
+            if raw_pid.startswith("$ref:"):
+                raw_pid = raw_pid[len("$ref:"):]
+            goal_data["project_id"] = ObjectId(raw_pid)
 
         if goal_data.get("usuario_id") and not isinstance(goal_data["usuario_id"], ObjectId):
             try:
