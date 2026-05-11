@@ -1,9 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(git log *)",
-      "Bash(grep -E \"\\\\.py$\")",
-      "Bash(pdflatex -interaction=nonstopmode -draftmode experimentacion.tex)"
-    ]
-  }
-}
