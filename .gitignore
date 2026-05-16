@@ -16,6 +16,8 @@ GoalMind-AI/coverage.json
 GoalMind-AI/.pytest_cache/
 GoalMind-AI/htmlcov/
 
+
+
 # === Archivos del sistema ===
 .DS_Store
 Thumbs.db
@@ -23,10 +25,14 @@ Thumbs.db
 # === Archivos de editores ===
 .vscode/
 .idea/
+/docs/
+*.md
+*.tex
 
 # === Archivos generados o personales ===
 documentation.pdf
 plantilla_tfg_word.docx
+experimentacion.txt
 mockup_inicial.html
 info.txt
 
