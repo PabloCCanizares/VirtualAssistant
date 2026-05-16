@@ -7,7 +7,7 @@ from types import SimpleNamespace
 import pytest
 
 from ai.services import llm_utils
-from ai.services.llm_utils import LLMInvokeError, invoke_with_retry
+from ai.services.llm_utils import LLMInvokeError, _extract_text, invoke_with_retry
 
 
 class _FakeLLM:
@@ -71,3 +71,41 @@ class TestInvokeWithRetry:
         # retries=-5 produce attempts = max(1, -4) = 1
         assert invoke_with_retry(llm, [], retries=-5) == "respuesta"
         assert llm.calls == 1
+
+
+class TestExtractText:
+    """Cobertura de la normalizacion del content devuelto por distintos providers."""
+
+    def test_plain_string_is_trimmed(self):
+        assert _extract_text("  hola  ") == "hola"
+
+    def test_list_of_text_blocks_concatenated(self):
+        # Formato Anthropic/Gemini: lista de bloques tipados.
+        content = [
+            {"type": "text", "text": "primera "},
+            {"type": "text", "text": "segunda"},
+        ]
+        assert _extract_text(content) == "primera segunda"
+
+    def test_list_filters_non_text_blocks(self):
+        content = [
+            {"type": "text", "text": "solo texto"},
+            {"type": "image", "url": "https://example.com/a.png"},
+            {"type": "tool_use", "id": "t1"},
+        ]
+        assert _extract_text(content) == "solo texto"
+
+    def test_list_with_non_dict_items_are_stringified(self):
+        # Items no-dict pasan el filtro y se concatenan via str(...).
+        assert _extract_text(["a", "b", "c"]) == "abc"
+
+    def test_empty_list_returns_empty_string(self):
+        assert _extract_text([]) == ""
+
+    def test_text_block_without_text_field_yields_empty(self):
+        # Si el bloque text no trae 'text', usa default "".
+        assert _extract_text([{"type": "text"}]) == ""
+
+    def test_non_string_non_list_content_stringified(self):
+        # Fallback final: cualquier otra cosa pasa por str(...).strip().
+        assert _extract_text(42) == "42"

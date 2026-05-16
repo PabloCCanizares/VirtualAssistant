@@ -10,6 +10,12 @@ GoalMind-AI/**/*.pyc
 GoalMind-AI/**/*.pyo
 GoalMind-AI/**/*.pyd
 
+# === Artefactos de tests / cobertura ===
+GoalMind-AI/.coverage
+GoalMind-AI/coverage.json
+GoalMind-AI/.pytest_cache/
+GoalMind-AI/htmlcov/
+
 # === Archivos del sistema ===
 .DS_Store
 Thumbs.db
