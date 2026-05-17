@@ -1,0 +1,9 @@
+participant_id,date,start_time,end_time,model,Q1_understanding,Q2_usefulness,Q3_naturalness,Q4_speed,Q5_trust_data,Q6_confirmations,Q7_clarifications,Q8_context_memory,Q9_few_errors,Q10_future_use,Q11_replace_others,Q12_better_than_generic,Q13_best,Q14_worst,Q15_changes,task1_success,task2_success,task3_success,task4_success,task5_success,task6_success,n_clarifications_asked,n_reformulations,evaluator_notes
+P0001,2026-MM-DD,HH:MM,HH:MM,openai,,,,,,,,,,,,,,,,,,,,,,,
+P0002,2026-MM-DD,HH:MM,HH:MM,openai,,,,,,,,,,,,,,,,,,,,,,,
+P0003,2026-MM-DD,HH:MM,HH:MM,openai,,,,,,,,,,,,,,,,,,,,,,,
+P0004,2026-MM-DD,HH:MM,HH:MM,gemini,,,,,,,,,,,,,,,,,,,,,,,
+P0005,2026-MM-DD,HH:MM,HH:MM,gemini,,,,,,,,,,,,,,,,,,,,,,,
+P0006,2026-MM-DD,HH:MM,HH:MM,gemini,,,,,,,,,,,,,,,,,,,,,,,
+P0007,2026-MM-DD,HH:MM,HH:MM,groq,,,,,,,,,,,,,,,,,,,,,,,
+P0008,2026-MM-DD,HH:MM,HH:MM,groq,,,,,,,,,,,,,,,,,,,,,,,
