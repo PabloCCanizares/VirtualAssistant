@@ -1,0 +1,1814 @@
+{
+  "timestamp": "20260525T162506Z",
+  "n_prompts": 80,
+  "results": [
+    {
+      "prompt_id": "p001",
+      "prompt": "crea una tarea para mañana llamada comprar pan",
+      "expected_intent": "action",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "action",
+      "intent_match": true,
+      "asked_clarification": true,
+      "clarification_pertinent": false,
+      "expected_actions": [
+        {
+          "op": "create",
+          "entity": "task",
+          "ref": "comprar pan"
+        }
+      ],
+      "actual_actions": null,
+      "actions_match": false,
+      "duration_seconds": 19.88625016700098,
+      "final_reply": "¿A qué objetivo pertenece la tarea 'comprar pan'? Por favor indica goal_id o goal_title para poder crear la tarea para mañana (2026-05-26).",
+      "error": null
+    },
+    {
+      "prompt_id": "p002",
+      "prompt": "borra el proyecto TFG",
+      "expected_intent": "action",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "action",
+      "intent_match": true,
+      "asked_clarification": true,
+      "clarification_pertinent": false,
+      "expected_actions": [
+        {
+          "op": "delete",
+          "entity": "project",
+          "ref": "TFG"
+        }
+      ],
+      "actual_actions": [
+        {
+          "action_name": "delete_project",
+          "action_parameters": {
+            "project_title": "TFG"
+          },
+          "ref_id": null
+        }
+      ],
+      "actions_match": true,
+      "duration_seconds": 12.060816332996183,
+      "final_reply": "Voy a ejecutar las siguientes acciones: delete_project. Alguna de ellas es destructiva. ¿Confirmas? Responde 'confirmo' o 'cancela'.",
+      "error": null
+    },
+    {
+      "prompt_id": "p003",
+      "prompt": "marca como completada la tarea redactar la introducción",
+      "expected_intent": "action",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "action",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": [
+        {
+          "op": "mark_complete",
+          "entity": "task",
+          "ref": "redactar la introducción"
+        }
+      ],
+      "actual_actions": [
+        {
+          "action_name": "mark_task_complete",
+          "action_parameters": {
+            "task_id": "662000000000000000000001"
+          },
+          "ref_id": null
+        }
+      ],
+      "actions_match": false,
+      "duration_seconds": 13.915033124998445,
+      "final_reply": "Tarea marcada como completada.",
+      "error": null
+    },
+    {
+      "prompt_id": "p004",
+      "prompt": "actualiza la fecha límite del proyecto tesis al 30 de junio",
+      "expected_intent": "action",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "action",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": [
+        {
+          "op": "update",
+          "entity": "project",
+          "ref": "tesis"
+        }
+      ],
+      "actual_actions": [
+        {
+          "action_name": "update_project",
+          "action_parameters": {
+            "project_id": "660000000000000000000003",
+            "fecha_fin": "2026-06-30"
+          },
+          "ref_id": null
+        }
+      ],
+      "actions_match": false,
+      "duration_seconds": 10.747285958997963,
+      "final_reply": "Proyecto actualizado (fecha_fin).",
+      "error": null
+    },
+    {
+      "prompt_id": "p005",
+      "prompt": "crea un objetivo nuevo bajo el proyecto tesis que se llame redactar capítulo 5",
+      "expected_intent": "action",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "action",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": [
+        {
+          "op": "create",
+          "entity": "goal",
+          "ref": "redactar capítulo 5"
+        }
+      ],
+      "actual_actions": [
+        {
+          "action_name": "create_goal",
+          "action_parameters": {
+            "titulo": "redactar capítulo 5",
+            "project_id": "660000000000000000000003",
+            "descripcion": null,
+            "progreso": 0,
+            "estado": "Pendiente"
+          },
+          "ref_id": null
+        }
+      ],
+      "actions_match": true,
+      "duration_seconds": 15.91802070900303,
+      "final_reply": "Objetivo creado: redactar capítulo 5.",
+      "error": null
+    },
+    {
+      "prompt_id": "p006",
+      "prompt": "elimina la tarea revisar bibliografía",
+      "expected_intent": "action",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "action",
+      "intent_match": true,
+      "asked_clarification": true,
+      "clarification_pertinent": false,
+      "expected_actions": [
+        {
+          "op": "delete",
+          "entity": "task",
+          "ref": "revisar bibliografía"
+        }
+      ],
+      "actual_actions": [
+        {
+          "action_name": "delete_task",
+          "action_parameters": {
+            "task_id": "662000000000000000000008"
+          },
+          "ref_id": null
+        }
+      ],
+      "actions_match": false,
+      "duration_seconds": 11.61203199999727,
+      "final_reply": "Voy a ejecutar las siguientes acciones: delete_task. Alguna de ellas es destructiva. ¿Confirmas? Responde 'confirmo' o 'cancela'.",
+      "error": null
+    },
+    {
+      "prompt_id": "p007",
+      "prompt": "crea un evento mañana a las 10 para defender el TFG",
+      "expected_intent": "action",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "action",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": [
+        {
+          "op": "create",
+          "entity": "event",
+          "ref": "defender el TFG"
+        }
+      ],
+      "actual_actions": [
+        {
+          "action_name": "create_event",
+          "action_parameters": {
+            "titulo": "defensa TFG",
+            "fecha_inicio": "2026-05-26T10:00:00Z",
+            "fecha_fin": "2026-05-26T11:30:00Z",
+            "tipo_evento": "academico",
+            "descripcion": "Defensa del TFG",
+            "id_tarea": null,
+            "id_objetivo": null
+          },
+          "ref_id": null
+        }
+      ],
+      "actions_match": false,
+      "duration_seconds": 18.586579791997792,
+      "final_reply": "Evento creado: defensa TFG.",
+      "error": null
+    },
+    {
+      "prompt_id": "p008",
+      "prompt": "borra el evento de la reunión del viernes",
+      "expected_intent": "action",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "action",
+      "intent_match": true,
+      "asked_clarification": true,
+      "clarification_pertinent": false,
+      "expected_actions": [
+        {
+          "op": "delete",
+          "entity": "event",
+          "ref": "reunión del viernes"
+        }
+      ],
+      "actual_actions": null,
+      "actions_match": false,
+      "duration_seconds": 14.122321374998137,
+      "final_reply": "¿Podrías confirmar el identificador (id) o el título exacto del evento que quieres borrar? En la lista hay un evento llamado 'reunion de seguimiento' con id 663000000000000000000001 programado para 2026-05-20 10:00–11:00Z. ¿Ese es el del viernes o te refieres a otro evento?",
+      "error": null
+    },
+    {
+      "prompt_id": "p009",
+      "prompt": "actualiza el progreso del objetivo redactar al 80%",
+      "expected_intent": "action",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "action",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": [
+        {
+          "op": "update",
+          "entity": "goal",
+          "ref": "redactar"
+        }
+      ],
+      "actual_actions": [
+        {
+          "action_name": "update_goal",
+          "action_parameters": {
+            "goal_id": "661000000000000000000001",
+            "progreso": 80
+          },
+          "ref_id": null
+        }
+      ],
+      "actions_match": false,
+      "duration_seconds": 10.225265875000332,
+      "final_reply": "Objetivo actualizado (progreso).",
+      "error": null
+    },
+    {
+      "prompt_id": "p010",
+      "prompt": "crea un proyecto llamado vacaciones con dos objetivos: reservar vuelos y hacer maletas",
+      "expected_intent": "action",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "action",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": [
+        {
+          "op": "create",
+          "entity": "project",
+          "ref": "vacaciones"
+        },
+        {
+          "op": "create",
+          "entity": "goal",
+          "ref": "reservar vuelos"
+        },
+        {
+          "op": "create",
+          "entity": "goal",
+          "ref": "hacer maletas"
+        }
+      ],
+      "actual_actions": [
+        {
+          "action_name": "create_project",
+          "action_parameters": {
+            "titulo": "vacaciones"
+          },
+          "ref_id": null
+        },
+        {
+          "action_name": "create_goal",
+          "action_parameters": {
+            "titulo": "reservar vuelos",
+            "project_title": "vacaciones"
+          },
+          "ref_id": null
+        },
+        {
+          "action_name": "create_goal",
+          "action_parameters": {
+            "titulo": "hacer maletas",
+            "project_title": "vacaciones"
+          },
+          "ref_id": null
+        }
+      ],
+      "actions_match": true,
+      "duration_seconds": 18.51313504200516,
+      "final_reply": "Acciones completadas:\n- Proyecto creado: vacaciones.\n- ¿Que proyecto quieres usar? Indica el nombre.\n- ¿Que proyecto quieres usar? Indica el nombre.",
+      "error": null
+    },
+    {
+      "prompt_id": "p011",
+      "prompt": "añade tres tareas al objetivo redactar capítulo 5: introducción, desarrollo y conclusión",
+      "expected_intent": "action",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "action",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": [
+        {
+          "op": "create",
+          "entity": "task",
+          "ref": "introducción"
+        },
+        {
+          "op": "create",
+          "entity": "task",
+          "ref": "desarrollo"
+        },
+        {
+          "op": "create",
+          "entity": "task",
+          "ref": "conclusión"
+        }
+      ],
+      "actual_actions": [
+        {
+          "action_name": "create_task",
+          "action_parameters": {
+            "contenido": "introducción",
+            "goal_id": "661000000000000000000005",
+            "descripcion": "Redactar la introducción del capítulo 5",
+            "fecha_limite": null,
+            "estado": "Pendiente",
+            "prioridad": "Media"
+          },
+          "ref_id": null
+        },
+        {
+          "action_name": "create_task",
+          "action_parameters": {
+            "contenido": "desarrollo",
+            "goal_id": "661000000000000000000005",
+            "descripcion": "Redactar la sección de desarrollo del capítulo 5",
+            "fecha_limite": null,
+            "estado": "Pendiente",
+            "prioridad": "Media"
+          },
+          "ref_id": null
+        },
+        {
+          "action_name": "create_task",
+          "action_parameters": {
+            "contenido": "conclusión",
+            "goal_id": "661000000000000000000005",
+            "descripcion": "Redactar la conclusión del capítulo 5",
+            "fecha_limite": null,
+            "estado": "Pendiente",
+            "prioridad": "Media"
+          },
+          "ref_id": null
+        }
+      ],
+      "actions_match": true,
+      "duration_seconds": 27.15869712499989,
+      "final_reply": "Acciones completadas:\n- Tarea creada: introducción.\n- Tarea creada: desarrollo.\n- Tarea creada: conclusión.",
+      "error": null
+    },
+    {
+      "prompt_id": "p012",
+      "prompt": "cambia la prioridad de la tarea bibliografía a alta",
+      "expected_intent": "action",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "action",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": [
+        {
+          "op": "update",
+          "entity": "task",
+          "ref": "bibliografía"
+        }
+      ],
+      "actual_actions": [
+        {
+          "action_name": "update_task",
+          "action_parameters": {
+            "task_id": "662000000000000000000008",
+            "prioridad": "alta"
+          },
+          "ref_id": null
+        }
+      ],
+      "actions_match": false,
+      "duration_seconds": 11.576150083004904,
+      "final_reply": "Tarea actualizada (prioridad).",
+      "error": null
+    },
+    {
+      "prompt_id": "p013",
+      "prompt": "termina la tarea de hoy",
+      "expected_intent": "action",
+      "expected_clarification": true,
+      "ambiguity": "high",
+      "actual_intent": "action",
+      "intent_match": true,
+      "asked_clarification": true,
+      "clarification_pertinent": true,
+      "expected_actions": [
+        {
+          "op": "mark_complete",
+          "entity": "task",
+          "ref": null
+        }
+      ],
+      "actual_actions": null,
+      "actions_match": false,
+      "duration_seconds": 13.614440999997896,
+      "final_reply": "¿A qué tarea te refieres con la tarea de hoy? Por favor indica el identificador (id) o el título exacto de la tarea que quieres terminar.",
+      "error": null
+    },
+    {
+      "prompt_id": "p014",
+      "prompt": "borra todo lo del TFG",
+      "expected_intent": "action",
+      "expected_clarification": true,
+      "ambiguity": "medium",
+      "actual_intent": "action",
+      "intent_match": true,
+      "asked_clarification": true,
+      "clarification_pertinent": true,
+      "expected_actions": [
+        {
+          "op": "delete",
+          "entity": "project",
+          "ref": "TFG"
+        }
+      ],
+      "actual_actions": [
+        {
+          "action_name": "delete_event",
+          "action_parameters": {
+            "event_id": "663000000000000000000001"
+          },
+          "ref_id": null
+        },
+        {
+          "action_name": "delete_event",
+          "action_parameters": {
+            "event_id": "6a146e0015279a588bd1b1f0"
+          },
+          "ref_id": null
+        },
+        {
+          "action_name": "delete_event",
+          "action_parameters": {
+            "event_id": "663000000000000000000002"
+          },
+          "ref_id": null
+        },
+        {
+          "action_name": "delete_task",
+          "action_parameters": {
+            "task_id": "662000000000000000000001"
+          },
+          "ref_id": null
+        },
+        {
+          "action_name": "delete_task",
+          "action_parameters": {
+            "task_id": "662000000000000000000002"
+          },
+          "ref_id": null
+        },
+        {
+          "action_name": "delete_task",
+          "action_parameters": {
+            "task_id": "662000000000000000000003"
+          },
+          "ref_id": null
+        },
+        {
+          "action_name": "delete_task",
+          "action_parameters": {
+            "task_id": "662000000000000000000004"
+          },
+          "ref_id": null
+        },
+        {
+          "action_name": "delete_task",
+          "action_parameters": {
+            "task_id": "662000000000000000000008"
+          },
+          "ref_id": null
+        },
+        {
+          "action_name": "delete_goal",
+          "action_parameters": {
+            "goal_id": "661000000000000000000001"
+          },
+          "ref_id": null
+        },
+        {
+          "action_name": "delete_goal",
+          "action_parameters": {
+            "goal_id": "661000000000000000000002"
+          },
+          "ref_id": null
+        },
+        {
+          "action_name": "delete_project",
+          "action_parameters": {
+            "project_id": "660000000000000000000001"
+          },
+          "ref_id": null
+        }
+      ],
+      "actions_match": false,
+      "duration_seconds": 49.95787908400234,
+      "final_reply": "Voy a ejecutar las siguientes acciones: delete_event, delete_event, delete_event, delete_task, delete_task, delete_task, delete_task, delete_task, delete_goal, delete_goal, delete_project. Alguna de ellas es destructiva. ¿Confirmas? Responde 'confirmo' o 'cancela'.",
+      "error": null
+    },
+    {
+      "prompt_id": "p015",
+      "prompt": "marca como hecho",
+      "expected_intent": "action",
+      "expected_clarification": true,
+      "ambiguity": "high",
+      "actual_intent": "action",
+      "intent_match": true,
+      "asked_clarification": true,
+      "clarification_pertinent": true,
+      "expected_actions": [
+        {
+          "op": "mark_complete",
+          "entity": "task",
+          "ref": null
+        }
+      ],
+      "actual_actions": null,
+      "actions_match": false,
+      "duration_seconds": 8.637343957998382,
+      "final_reply": "Para marcar como hecho, necesito identificar la tarea. ¿Cuál es el título de la tarea o su id que quieres marcar como completada?",
+      "error": null
+    },
+    {
+      "prompt_id": "p101",
+      "prompt": "qué objetivos tengo en el proyecto tesis",
+      "expected_intent": "research",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "research",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 27.74796837499889,
+      "final_reply": "Aquí tienes los objetivos asociados al proyecto tesis (ID del proyecto: 660000000000000000000003):\n\n- ID: 661000000000000000000005\n  Título: redactar capitulo 5\n  Progreso: 30%\n  Estado: En progreso\n\n- ID: 6a146de115279a588bd1b1ef\n  Título: redactar capítulo 5\n  Progreso: 0%\n  Estado: Pendiente\n\nObservación: los dos objetivos tienen títulos muy similares, con una leve diferencia en la acentuación. Podría tratarse de un duplicado.\n\nPróximos pasos recomendados:\n- Verificar si se trata de la misma tarea y fusionarla en un único objetivo \"Redactar capítulo 5\" con el progreso actual (30%) y un estado único.\n- Si se mantienen como separados, definir responsabilidades y fechas límite para cada uno.\n- Actualizar el progreso y el estado para reflejar la realidad (por ejemplo, consolidar en un único objetivo con progreso 30% y dejar Pendiente solo si corresponde a otra versión).\n\n¿Quieres que fusione estos dos objetivos en uno solo y actualice el registro? Si me dices “sí, fusionar”, lo hago y te presento la versión consolidada.",
+      "error": null
+    },
+    {
+      "prompt_id": "p102",
+      "prompt": "muéstrame todas mis tareas pendientes",
+      "expected_intent": "research",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "progress",
+      "intent_match": false,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 102.69786058400496,
+      "final_reply": "Aquí tienes todas tus tareas pendientes, agrupadas por proyecto. Si quieres, te doy un plan de acción con prioridades y fechas.\n\n1) Trabajo de Fin de Grado (TFG)\n- Conclusiones – Pendiente – asociado a Redactar memoria\n- Ensayar defensa – Pendiente – asociado a Preparar defensa\n- Preparar slides – Pendiente – asociado a Preparar defensa\n- Revisar bibliografía – Pendiente – asociado a Redactar memoria\n\n2) Vacaciones\n- Buscar vuelos baratos – Pendiente – asociado a Reservar vuelos\n\n3) Capítulo 5 (Tesis)\n- Introducción – Pendiente – asociado a Redactar capitulo 5\n- Desarrollo – Pendiente – asociado a Redactar capitulo 5\n- Conclusión – Pendiente – asociado a Redactar capitulo 5\n\n4) Sin objetivo\n- Comprar pan – Pendiente – tarea aislada\n\nSugerencias rápidas de prioridad\n- Alta prioridad: Conclusiones (TFG), Ensayar defensa (TFG), Preparar slides (TFG). Estas son acciones clave para completar el TFG y la defensa.\n- Media prioridad: Revisar bibliografía (TFG), Introducción/Desarrollo/Conclusión (Capítulo 5).\n- Baja/auxiliar: Buscar vuelos baratos (vacaciones) y Comprar pan (tarea aislada).\n\n¿Quieres que te monte un plan de acción de 2 semanas para desbloquear la tesis y avanzar Capítulo 5, con fechas y bloques de tiempo? También puedo asignarte fechas límite y responsables (si compartes tus horarios).",
+      "error": null
+    },
+    {
+      "prompt_id": "p103",
+      "prompt": "qué tareas tiene el objetivo redactar",
+      "expected_intent": "research",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "research",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 55.661189958998875,
+      "final_reply": "Hay ambigüedad en “el objetivo redactar”. En tus datos existen tres objetivos con esa palabra. A continuación te muestro las tareas asociadas a cada uno para que me indiques cuál quieres revisar o si quieres que tome alguna acción.\n\n1) Objetivo: redactar memoria\n- ID del objetivo: 661000000000000000000001\n- Proyecto: TFG (ID del proyecto: 660000000000000000000001)\n- Estado y progreso: En progreso, Progreso 80.0\n\nTareas asociadas:\n- 662000000000000000000001 | redactar introduccion | completada | prioridad alta\n- 662000000000000000000002 | redactar metodologia | completada | prioridad alta\n- 662000000000000000000003 | redactar experimentacion | en progreso | prioridad alta\n- 662000000000000000000004 | redactar conclusiones | pendiente | prioridad media\n- 662000000000000000000008 | revisar bibliografia | pendiente | prioridad alta\n\n2) Objetivo: redactar capitulo 5 (primera ocurrencia)\n- ID del objetivo: 661000000000000000000005\n- Proyecto: tesis (ID del proyecto: 660000000000000000000003)\n- Estado y progreso: En progreso, Progreso 30.0\n\nTareas asociadas:\n- 6a146e4615279a588bd1b1f2 | introducción | pendiente | prioridad media\n- 6a146e4615279a588bd1b1f3 | desarrollo | pendiente | prioridad media\n- 6a146e4615279a588bd1b1f4 | conclusión | pendiente | prioridad media\n\n3) Objetivo: redactar capitulo 5 (segunda ocurrencia)\n- ID del objetivo: 6a146de115279a588bd1b1ef\n- Proyecto: tesis (660000000000000000000003)\n- Estado y progreso: Pendiente, Progreso 0\n\nTareas asociadas: No hay tareas listadas vinculadas a este objetivo en los datos proporcionados.\n\nQué quieres hacer exactamente\n- ¿Quieres que te muestre solo uno de los objetivos anteriores y sus tareas?\n- ¿O prefieres que filtre por proyecto (TFG o tesis) para ver todas las tareas relacionadas?\n- ¿Deseas que actualice o añada información para el objetivo \"redactar capitulo 5\" que actualmente no tiene tareas en tus datos (segunda ocurrencia), por ejemplo creando tareas iniciales?\n\nSi me dices cuál objetivo te interesa, te devuelvo solo esas tareas de forma clara y actualizo lo que haga falta.\n\nFuentes\n- Datos proporcionados por el usuario (objetivos y tareas):\n  - Redactar memoria: ID 661000000000000000000001; TFG 660000000000000000000001; tareas 662000000000000000000001–000000000000000000000004, 000000000000000000000008\n  - Redactar capitulo 5 (primera ocurrencia): ID 661000000000000000000005; tesis 660000000000000000000003; tareas 6a146e4615279a588bd1b1f2–f4\n  - Redactar capitulo 5 (segunda ocurrencia): ID 6a146de115279a588bd1b1ef; tesis 660000000000000000000003; sin tareas asociadas\n- Proyectos mencionados: TFG (660000000000000000000001), tesis (660000000000000000000003)\n\nEnlaces internos (referencia a los IDs del sistema)\n- Objetivo redactar memoria: https://mi-sistema.local/objectivo/661000000000000000000001\n- Objetivo redactar capitulo 5 (primera ocurrencia): https://mi-sistema.local/objectivo/661000000000000000000005\n- Objetivo redactar capitulo 5 (segunda ocurrencia): https://mi-sistema.local/objectivo/6a146de115279a588bd1b1ef\n- Proyecto TFG: https://mi-sistema.local/proyecto/660000000000000000000001\n- Proyecto tesis: https://mi-sistema.local/proyecto/660000000000000000000003\n\nDime cuál de las opciones quieres que muestre o qué acción específica quieres realizar.",
+      "error": null
+    },
+    {
+      "prompt_id": "p104",
+      "prompt": "lista los proyectos activos",
+      "expected_intent": "research",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "research",
+      "intent_match": true,
+      "asked_clarification": true,
+      "clarification_pertinent": false,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 28.46513145800418,
+      "final_reply": "Aquí tienes los proyectos activos:\n\n1) ID: 6a146e2b15279a588bd1b1f1\n   Título: vacaciones\n   Descripción: null\n   Prioridad: Media\n   Fecha inicio: null\n   Fecha fin: null\n   Usuario_id: 66ffbbbbbbbbbbbbbbbb0100\n   Created_at: 2026-05-25T15:43:39.024000\n\n2) ID: 660000000000000000000001\n   Título: TFG\n   Descripción: Trabajo de fin de grado\n   Prioridad: Alta\n   Fecha inicio: null\n   Fecha fin: null\n   Usuario_id: 66ffbbbbbbbbbbbbbbbb0100\n\n3) ID: 660000000000000000000002\n   Título: vacaciones\n   Descripción: Planificacion de vacaciones de verano\n   Prioridad: Media\n   Fecha inicio: null\n   Fecha fin: null\n   Usuario_id: 66ffbbbbbbbbbbbbbbbb0100\n   Categorias: []\n\n¿Quieres que te muestre también los proyectos no activos o detalles de alguno en particular?",
+      "error": null
+    },
+    {
+      "prompt_id": "p105",
+      "prompt": "cuántas tareas tengo en total",
+      "expected_intent": "research",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "progress",
+      "intent_match": false,
+      "asked_clarification": true,
+      "clarification_pertinent": false,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 81.60540975000185,
+      "final_reply": "Actualmente tienes 12 tareas registradas en total.\n\n¿Quieres que te muestre el desglose por proyecto y estado (cuántas en cada uno, pendientes, en progreso, finalizadas) o prefieres que te genere un plan de acción para las próximas dos semanas?",
+      "error": null
+    },
+    {
+      "prompt_id": "p106",
+      "prompt": "qué categorías uso más",
+      "expected_intent": "research",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "research",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 46.79532045799715,
+      "final_reply": "Actualmente no hay datos para saber qué categorías usas más, porque todas las categorías en los proyectos están vacías.\n\nQué puedes hacer para descubrirlo (guía práctica)\n- Asigna categorías a tus proyectos (o a objetivos/tareas si los tienes). Ejemplos de asignación inicial:\n  - TFG y tesis → academico\n  - Vacaciones → viajes\n  - Personal → personal (cuando aplique)\n- Una vez asignadas, te puedo darte el conteo por categoría (cuántos proyectos/tareas están bajo cada categoría) y la frecuencia de uso.\n- Si ya tienes goals o tasks con categorías, compártelos y te monto un conteo por categoría de forma directa.\n\nPropuesta de asignación para empezar a medir (usa si te sirve)\n- 6a146e2b15279a588bd1b1f1 (vacaciones) → viajes\n- 660000000000000000000001 (TFG) → academico\n- 660000000000000000000002 (vacaciones) → viajes\n- 660000000000000000000003 (tesis) → academico\n\nCon esa asignación, tendríamos:\n- academico: 2 proyectos\n- viajes: 2 proyectos\n- personal: 0 proyectos\n\n¿Quieres que aplique esta asignación provisional a estos proyectos y te muestre el conteo actualizado? O, si prefieres, dime cómo quieres categorizarlos (por ejemplo, asignaciones distintas o usando otras reglas), y te hago el conteo en función de eso. También puedo esperar a que compartas goals/tasks si ya los tienes.",
+      "error": null
+    },
+    {
+      "prompt_id": "p107",
+      "prompt": "qué eventos tengo esta semana",
+      "expected_intent": "research",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "weekly_summary",
+      "intent_match": false,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 21.799275541998213,
+      "final_reply": "Resumen de la semana (del 25 al 31 de mayo de 2026)\n\nQué eventos tengo esta semana\n- Defensa del TFG — 26 de mayo de 2026, de 10:00 a 11:30 UTC (académico)\n\nAvances clave\n- Defensa del TFG confirmada para el 26 de mayo. Preparación en curso para ese evento.\n\nPendientes importantes con fecha límite cercana\n- Defensa del TFG: 26 de mayo, 10:00–11:30 UTC. Preparar materiales, presentación y revisión final.\n\nRiesgos o bloqueos\n- Posible riesgo de cambios de horario o de disponibilidad de sala/equipo. Recomendado confirmar lugar y requisitos técnicos y tener respaldo de presentación.\n\nSi quieres, puedo adaptar este resumen a otro periodo o añadir más detalle sobre cada evento.",
+      "error": null
+    },
+    {
+      "prompt_id": "p108",
+      "prompt": "dime los detalles del proyecto vacaciones",
+      "expected_intent": "research",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "progress",
+      "intent_match": false,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 87.25591033399542,
+      "final_reply": "Aquí tienes un resumen claro y accionable de tu Proyecto Vacaciones.\n\n1) Resumen del proyecto\n- Nombre: Vacaciones (Planificación de verano)\n- Estado: Activo\n- Progreso global de los objetivos: 0%\n- Comentario general: No hay avances reportados en los objetivos; ninguna tarea completada registrada.\n- Nota adicional: Existe un segundo proyecto llamado “Vacaciones (Sin descripción)” con datos ausentes (no hay objetivos ni tareas registrados).\n\n2) Detalles por objetivo (Vacaciones - Planificación de verano)\n- Reservar vuelos\n  - Progreso: 0%\n  - Tareas:\n    - Buscar vuelos baratos — Estado de la tarea: Pendiente (0 completadas, 0 en progreso, 1 pendiente)\n  - Comentario: Sin avances en este objetivo.\n\n- Hacer maletas\n  - Progreso: 0%\n  - Tareas:\n    - Ensayar defensa — Pendiente\n    - Preparar slides — Pendiente\n  - Comentario: Estas tareas parecen no guardar relación con “hacer maletas” (parece una posible confusión de etiquetas). Recomiendo revisar y renombrar para que la lista de tareas refleje realmente el objetivo de \"hacer maletas\" (por ejemplo: crear lista de packing, empacar objetos por día, revisar restricciones de aerolíneas).\n\n3) Vacaciones (Sin descripción)\n- Estado: Activo\n- Progreso de objetivos: No hay objetivos reportados\n- Tareas: No registradas\n- Comentario: No hay datos de objetivos ni tareas asociadas.\n\n4) Recomendaciones y plan de acción (para reactivar y avanzar)\n- Clarificar y alinear nombres de objetivos:\n  - Revisa si “ensayar defensa” y “preparar slides” pertenecen a otro objetivo (p. ej., TFG) y mueve esas tareas a su proyecto correspondiente. Si van a permanecer bajo “Hacer maletas”, cámbiales el nombre a algo acorde (p. ej., “Checklist de packing”).\n- Definir objetivos concretos y fechas para Vacaciones:\n  - Reservar vuelos: fijar un plazo (por ejemplo, en 10 días) y colocar como sub-tareas: buscar 5-7 opciones, comparar precios, seleccionar la mejor opción, reservar.\n  - Hacer maletas: crear y completar una lista de packing por días/actividad, revisar equipaje permitido, preparar baterías de viaje, etc.\n- Plan de acción en 2 semanas (ejemplo)\n  Semana 1:\n  - Reservar vuelos: buscar 5-7 opciones baratas en 3 plataformas, comparar precios y fechas.\n  - Hacer maletas: redactar una lista de packing detallada (ropa, documentos, cargadores, adaptadores, etc.). Empezar a empacar artículos no perecederos.\n- Semana 2:\n  - Reservar vuelos: elegir y reservar la mejor opción.\n  - Hacer maletas: completar el packing y dejar verificación final (chequeo de peso y restricciones de equipaje).\n- Seguimiento:\n  - Realizar una revisión rápida cada 3 días para ver avances y ajustar fechas si es necesario.\n- Sugerencias de organización (opcional):\n  - Usa una herramienta de gestión (Notion, Trello, etc.) para convertir estos puntos en tarjetas con fechas de vencimiento.\n  - Asigna responsables si es un equipo (si aplica) y añade recordatorios.\n\n5) Preguntas rápidas para afinar\n- ¿Quieres que rehaga y renombre las tareas de “Hacer maletas” para evitar confusión con “ensayar defensa” y “preparar slides”?\n- ¿Prefieres que te proponga fechas exactas y un plan de tareas con responsables y recordatorios en una plantilla de gestión?\n\nSi quieres, puedo convertir este plan en un formato listo para pegar en tu herramienta de gestión (Notion, Trello, etc.) con fechas y subtareas.",
+      "error": null
+    },
+    {
+      "prompt_id": "p109",
+      "prompt": "qué hay",
+      "expected_intent": "research",
+      "expected_clarification": true,
+      "ambiguity": "high",
+      "actual_intent": "progress",
+      "intent_match": false,
+      "asked_clarification": false,
+      "clarification_pertinent": false,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 66.33468604100199,
+      "final_reply": "Aquí va un resumen claro de lo que hay y un plan de acción inmediato para avanzar:\n\nResumen rápido\n- Progreso global: 20%.\n- Proyectos activos: 3 (TFG, Vacaciones planificación de verano, Tesis en pausa).\n- Enfoque principal (progreso significativo): Redactar memoria del TFG (80%).\n- Bloqueos críticos:\n  - Redactar cap. 5 de la tesis: 30% (3 tareas pendientes; fecha límite 30 jun 2026).\n  - Reservar vuelos: 0% (1 tarea pendiente; afecta planificación de vacaciones).\n  - Preparar defensa (TFG): 10% (pendientes).\n  - Duplicado de cap. 5 (tesis): duplicado sin tareas; conviene revisar.\n- Recomendación rápida: priorizar Capítulo 5 de la tesis y avanzar la memoria del TFG para evitar cuellos de botella cercanos a fechas importantes.\n\nPlan de acción propuesto (7–10 días)\nObjetivo A: Avanzar Capítulo 5 de la tesis (prioridad alta)\n- Tarea 1 (día 1): Definir y acordar la estructura definitiva del Capítulo 5 (qué secciones, qué resultados, qué evidencia).\n- Tarea 2 (día 2–3): Redactar borradores de las secciones 5.1 y 5.2 (o las secciones relevantes) con fechas, datos y referencias.\n- Tarea 3 (día 4–5): Revisión y consolidación del Capítulo 5 completo; eliminar duplicado del “Capítulo 5 (duplicado)” y unificar contenidos.\n- Fecha objetivo de cierre de este bloque: día 5–6.\n- Resultado esperado: Capítulo 5 listo para revisión o para enviar a tutor.\n\nObjetivo B: Terminar y dejar lista la Redacción de la Memoria (TFG)\n- Tarea 1 (día 1–2): Finalizar la tarea en progreso; completar el párrafo o sección pendiente y cerrar esa parte.\n- Tarea 2 (día 3): Revisión ortotipográfica y cohesión con las secciones anteriores; incorporar comentarios si hay.\n- Tarea 3 (día 4): Preparar un borrador de defensa rápida o resumen de la memoria para próxima revisión.\n- Fecha objetivo de cierre: día 4–5.\n- Resultado esperado: Memoria con la sección clave finalizada y lista para revisión final.\n\nObjetivo C: Preparar defensa del TFG\n- Tarea 1 (día 5–6): Crear un esquema de defensa (10–12 diap.) con puntos clave: objetivos, metodología, resultados, conclusiones y posibles preguntas.\n- Tarea 2 (día 7): Practicar la exposición (5–7 minutos) y ajustar tiempos.\n- Fecha objetivo de cierre: día 7–8.\n- Resultado esperado: Presentación lista para ensayo.\n\nObjetivo D: Reserva de vuelos y planificación de verano\n- Tarea 1 (día 1): Decidir rango de fechas de viaje y destinos.\n- Tarea 2 (día 2–3): Buscar y comparar vuelos; reservar si es posible.\n- Fecha objetivo: día 3–4.\n- Resultado esperado: Vuelos reservados o al menos opciones claras.\n\nObjetivo E: Vacaciones plan verano (otros pendientes)\n- Tarea 1 (día 4–5): Definir listado de tareas de viaje (maletas, documentación, seguros) y asignar responsables.\n- Tarea 2 (día 6): Cierre de pendientes menores o confirmaciones.\n- Resultado esperado: Vacaciones con plan mínimo establecido.\n\nNotas útiles\n- Eliminar duplicado: Revisa y consolida “Redactar capitulo 5 (tesis)” y “Redactar capítulo 5 (duplicado)”; conserva la versión final única para evitar confusiones.\n- Priorizar por impacto: Enfoca la mayor carga de tiempo en Capítulo 5 (tesis) y la defensa del TFG, ya que son fechas críticas cercanas.\n- Mantén un registro corto: usa una lista de verificación (checklist) diaria para cada tarea con estado (pendiente, en progreso, finalizado) y fecha objetivo.\n\n¿Quieres que te genere un plan detallado con fechas exactas y responsables para los próximos 7–10 días, adaptado a tu disponibilidad diaria? También puedo entregarte un checklist listo para convertir en un tablero (ej. Trello/Notion) si te resulta útil.",
+      "error": null
+    },
+    {
+      "prompt_id": "p110",
+      "prompt": "cuéntame",
+      "expected_intent": "research",
+      "expected_clarification": true,
+      "ambiguity": "high",
+      "actual_intent": "progress",
+      "intent_match": false,
+      "asked_clarification": true,
+      "clarification_pertinent": true,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 83.98095983299572,
+      "final_reply": "Aquí tienes un resumen claro y un plan accionable basado en el progreso actual:\n\nResumen rápido\n- Progreso global: 20% (promedio de progreso de todos los objetivos).\n- Observación clave: hay avances significativos en el Proyecto de Formación (TFG), especialmente en la tarea Redactar memoria, pero la mayoría de los demás objetivos están en fases tempranas o pendientes. El proyecto de Tesis (doctorado) está pausado y próximo a su fecha límite, lo que eleva el riesgo de retrasos.\n- Principales bloqueos:\n  - Tesis pausada con fecha límite cercana (30-06-2026).\n  - Capítulo 5 (tesis – objetivo 1): 30% de progreso y 3 tareas pendientes; pausa y pendientes dificultan avanzar.\n  - Otros pendientes (reservar vuelos, hacer maletas) dependen de fechas de viaje y aún no tienen fechas fijadas.\n\nProgreso por área (resumen práctico)\n- Proyecto TFG\n  - Progreso de objetivos: 0% (a nivel de proyecto), pero dentro del TFG: Redactar memoria 80% (2 tareas terminadas, 1 en progreso, 2 pendientes); Preparar defensa 10% (0 terminadas, 0 en progreso, 2 pendientes).\n- Vacaciones (Verano)\n  - Reservar vuelos: 0% (1 tarea pendiente)\n  - Hacer maletas: 0% (1 tarea pendiente)\n- Tesis (doctorado)\n  - Progreso de objetivos: 0% (3 tareas pendientes)\n\nQué significa esto para el futuro inmediato\n- La mayor parte del progreso real está en la Redactar memoria del TFG. Mantener ese impulso puede elevar significativamente el promedio si se cierran las tareas pendientes de ese objetivo.\n- La tesis está en riesgo de retraso si no se reactiva pronto, dado que ya está cerca de la fecha límite.\n- Los demás pendientes (vuelos, maletas) requieren fijar fechas para evitar bloqueos cuando llegue el momento de viajar.\n\nPlan de acción recomendado (próximos 2-3 semanas)\n1) Reactivar y definir la tesis doctoral (prioridad alta)\n   - Objetivo para la próxima semana: identificar las 3 tareas pendientes y priorizar las 2 más críticas para cerrar en 1–2 semanas.\n   - Acciones: asignar segmentos de trabajo de 1–2 horas diarias, bloquear calendario y definir una fecha objetivo clara (p. ej., 31-05 al 07-06) para completar al menos 2 tareas.\n   - Resultado esperado: tesis reactivada con al menos 2 tareas avanzadas o terminadas, disminuyendo el riesgo de retraso.\n\n2) Capítulo 5 (tesis – objetivo 1)\n   - Objetivo: convertir las 3 tareas pendientes en un plan concreto con responsables y fechas.\n   - Acciones: desglosar cada tarea, asignar responsables (si aplica) y fijar una fecha límite realista (p. ej., 07-06).\n   - Resultado esperado: progreso visible en este objetivo y salida del bloqueo.\n\n3) Redactar memoria (TFG)\n   - Objetivo: cerrar las 2 tareas pendientes y avanzar en la revisión/edición.\n   - Acciones: revisar pendientes actuales, asignar tiempos bloqueados y fijar una fecha para finalizar 100% ese objetivo (por ejemplo, 09-06).\n   - Resultado esperado: Redactar memoria completo o muy cercano a la versión final.\n\n4) Preparar defensa (TFG)\n   - Objetivo: dividir en tareas pequeñas y metódicas.\n   - Acciones: generar 2–3 tareas clave (p. ej., compilar diapositivas, ensayar discurso, revisar requisitos de defensa) y fijar fechas límite para cada una (p. ej., 10-06).\n   - Resultado esperado: defensa con pasos claros y plazos.\n\n5) Vacaciones (verano)\n   - Objetivo: fijar fechas y cerrar pendientes de viaje.\n   - Acciones:\n     - Reservar vuelos: confirmar fechas de salida/regreso y hacer la reserva.\n     - Hacer maletas: asignar día específico para empacar (después de fijar fechas de viaje).\n   - Resultado esperado: plan de viaje confirmado y pendientes reducidos.\n\nSeguimiento recomendado\n- Revisión rápida cada 3–4 días para actualizar el estado de cada tarea y ajustar las fechas si es necesario.\n- En caso de cuellos de botella (falta de información, dependencia de terceros), documentarlo y buscar apoyo inmediato para evitar retrasos.\n\nConclusión\n- El foco debe ser reactivar la tesis cuanto antes y asegurar el cierre de al menos 2 de las 3 tareas pendientes del capítulo 5 para reducir el riesgo de atraso.\n- Mantener el impulso en el TFG (especialmente en Redactar memoria) y avanzar en Preparar defensa para que todo el bloque de TFG esté en un estado sólido.\n- Definir fechas claras para los pendientes de viaje para evitar bloqueos posteriores.\n\nSi quieres, puedo convertir este plan en una lista de tareas con fechas específicas y recordatorios, o ajustar las fechas según tu disponibilidad real. Fuera de ello, ¿prefieres que priorice primero la tesis o la memoria del TFG?",
+      "error": null
+    },
+    {
+      "prompt_id": "p201",
+      "prompt": "investiga a fondo sobre tecnicas pomodoro y dame fuentes",
+      "expected_intent": "deep_research",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "deep_research",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 16.043675125001755,
+      "final_reply": "",
+      "error": "InvalidUpdateError: Expected node deep_research to update at least one of ['messages', 'context_json', 'user_id', 'deep_search_mode', 'deep_search_requested', 'deep_search_error', 'deep_search_results', 'deep_research_notes', 'deep_research_sources', 'deep_research_plan', 'deep_research_iterations', 'deep_research_warnings', 'route', 'use_critic', 'fallback_route', 'query_type', 'research_notes', 'progress_analysis', 'weekly_plan', 'draft_response', 'final_response', 'action_name', 'action_confidence', 'action_parameters', 'action_needs_confirmation', 'action_clarification_question', 'pending_action_intent', 'action_confirmed', 'action_queue', 'action_results', 'action_ref_map', 'current_action_ref_id', 'action_result_id', 'action_result_message', 'session_mutations_json', 'doc_op', 'doc_read_mode', 'doc_target_id', 'doc_target_ids', 'doc_target_name', 'doc_target_project_id', 'doc_target_goal_id', 'doc_content_text', 'doc_analyze_points', 'doc_write_filename', 'doc_error', 'doc_notes_data'], got {}"
+    },
+    {
+      "prompt_id": "p202",
+      "prompt": "busca en internet información sobre la metodología GTD",
+      "expected_intent": "deep_research",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "deep_research",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 4.191154167005152,
+      "final_reply": "",
+      "error": "InvalidUpdateError: Expected node deep_research to update at least one of ['messages', 'context_json', 'user_id', 'deep_search_mode', 'deep_search_requested', 'deep_search_error', 'deep_search_results', 'deep_research_notes', 'deep_research_sources', 'deep_research_plan', 'deep_research_iterations', 'deep_research_warnings', 'route', 'use_critic', 'fallback_route', 'query_type', 'research_notes', 'progress_analysis', 'weekly_plan', 'draft_response', 'final_response', 'action_name', 'action_confidence', 'action_parameters', 'action_needs_confirmation', 'action_clarification_question', 'pending_action_intent', 'action_confirmed', 'action_queue', 'action_results', 'action_ref_map', 'current_action_ref_id', 'action_result_id', 'action_result_message', 'session_mutations_json', 'doc_op', 'doc_read_mode', 'doc_target_id', 'doc_target_ids', 'doc_target_name', 'doc_target_project_id', 'doc_target_goal_id', 'doc_content_text', 'doc_analyze_points', 'doc_write_filename', 'doc_error', 'doc_notes_data'], got {}"
+    },
+    {
+      "prompt_id": "p203",
+      "prompt": "haz una investigación detallada sobre los mejores frameworks de productividad personal",
+      "expected_intent": "deep_research",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "deep_research",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 4.915378499994404,
+      "final_reply": "",
+      "error": "InvalidUpdateError: Expected node deep_research to update at least one of ['messages', 'context_json', 'user_id', 'deep_search_mode', 'deep_search_requested', 'deep_search_error', 'deep_search_results', 'deep_research_notes', 'deep_research_sources', 'deep_research_plan', 'deep_research_iterations', 'deep_research_warnings', 'route', 'use_critic', 'fallback_route', 'query_type', 'research_notes', 'progress_analysis', 'weekly_plan', 'draft_response', 'final_response', 'action_name', 'action_confidence', 'action_parameters', 'action_needs_confirmation', 'action_clarification_question', 'pending_action_intent', 'action_confirmed', 'action_queue', 'action_results', 'action_ref_map', 'current_action_ref_id', 'action_result_id', 'action_result_message', 'session_mutations_json', 'doc_op', 'doc_read_mode', 'doc_target_id', 'doc_target_ids', 'doc_target_name', 'doc_target_project_id', 'doc_target_goal_id', 'doc_content_text', 'doc_analyze_points', 'doc_write_filename', 'doc_error', 'doc_notes_data'], got {}"
+    },
+    {
+      "prompt_id": "p204",
+      "prompt": "investiga con fuentes externas qué dice la literatura sobre procrastinación",
+      "expected_intent": "deep_research",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "deep_research",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 6.238726208001026,
+      "final_reply": "",
+      "error": "InvalidUpdateError: Expected node deep_research to update at least one of ['messages', 'context_json', 'user_id', 'deep_search_mode', 'deep_search_requested', 'deep_search_error', 'deep_search_results', 'deep_research_notes', 'deep_research_sources', 'deep_research_plan', 'deep_research_iterations', 'deep_research_warnings', 'route', 'use_critic', 'fallback_route', 'query_type', 'research_notes', 'progress_analysis', 'weekly_plan', 'draft_response', 'final_response', 'action_name', 'action_confidence', 'action_parameters', 'action_needs_confirmation', 'action_clarification_question', 'pending_action_intent', 'action_confirmed', 'action_queue', 'action_results', 'action_ref_map', 'current_action_ref_id', 'action_result_id', 'action_result_message', 'session_mutations_json', 'doc_op', 'doc_read_mode', 'doc_target_id', 'doc_target_ids', 'doc_target_name', 'doc_target_project_id', 'doc_target_goal_id', 'doc_content_text', 'doc_analyze_points', 'doc_write_filename', 'doc_error', 'doc_notes_data'], got {}"
+    },
+    {
+      "prompt_id": "p205",
+      "prompt": "busca artículos académicos sobre planificación semanal",
+      "expected_intent": "deep_research",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "deep_research",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 4.132558292003523,
+      "final_reply": "",
+      "error": "InvalidUpdateError: Expected node deep_research to update at least one of ['messages', 'context_json', 'user_id', 'deep_search_mode', 'deep_search_requested', 'deep_search_error', 'deep_search_results', 'deep_research_notes', 'deep_research_sources', 'deep_research_plan', 'deep_research_iterations', 'deep_research_warnings', 'route', 'use_critic', 'fallback_route', 'query_type', 'research_notes', 'progress_analysis', 'weekly_plan', 'draft_response', 'final_response', 'action_name', 'action_confidence', 'action_parameters', 'action_needs_confirmation', 'action_clarification_question', 'pending_action_intent', 'action_confirmed', 'action_queue', 'action_results', 'action_ref_map', 'current_action_ref_id', 'action_result_id', 'action_result_message', 'session_mutations_json', 'doc_op', 'doc_read_mode', 'doc_target_id', 'doc_target_ids', 'doc_target_name', 'doc_target_project_id', 'doc_target_goal_id', 'doc_content_text', 'doc_analyze_points', 'doc_write_filename', 'doc_error', 'doc_notes_data'], got {}"
+    },
+    {
+      "prompt_id": "p206",
+      "prompt": "investiga",
+      "expected_intent": "deep_research",
+      "expected_clarification": true,
+      "ambiguity": "high",
+      "actual_intent": "deep_research",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": false,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 9.528307125001447,
+      "final_reply": "",
+      "error": "InvalidUpdateError: Expected node deep_research to update at least one of ['messages', 'context_json', 'user_id', 'deep_search_mode', 'deep_search_requested', 'deep_search_error', 'deep_search_results', 'deep_research_notes', 'deep_research_sources', 'deep_research_plan', 'deep_research_iterations', 'deep_research_warnings', 'route', 'use_critic', 'fallback_route', 'query_type', 'research_notes', 'progress_analysis', 'weekly_plan', 'draft_response', 'final_response', 'action_name', 'action_confidence', 'action_parameters', 'action_needs_confirmation', 'action_clarification_question', 'pending_action_intent', 'action_confirmed', 'action_queue', 'action_results', 'action_ref_map', 'current_action_ref_id', 'action_result_id', 'action_result_message', 'session_mutations_json', 'doc_op', 'doc_read_mode', 'doc_target_id', 'doc_target_ids', 'doc_target_name', 'doc_target_project_id', 'doc_target_goal_id', 'doc_content_text', 'doc_analyze_points', 'doc_write_filename', 'doc_error', 'doc_notes_data'], got {}"
+    },
+    {
+      "prompt_id": "p301",
+      "prompt": "resume mi semana",
+      "expected_intent": "weekly_summary",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "weekly_summary",
+      "intent_match": true,
+      "asked_clarification": true,
+      "clarification_pertinent": false,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 22.780831209005555,
+      "final_reply": "Aquí tienes un resumen de la semana basado en tus tareas, objetivos y eventos.\n\n1) Avances clave\n- Completadas:\n  - Redactar introducción\n  - Redactar metodología\n- En progreso y con avance notable:\n  - Memoria (redactar memoria): 80% completado\n  - Capítulo 5 (redactar capitulo 5): progreso ~30%\n  - Experimentación (redactar experimentacion): en progreso\n- Otras entradas relevantes:\n  - Preparación de la defensa y redacción de partes del capítulo 5 siguen en curso, con foco en avanzar las secciones pendientes (desarrollo, introducción y conclusión).\n\n2) Pendientes importantes con fecha límite cercana\n- Defensa del TFG: 26 de mayo de 2026, de 10:00 a 11:30 (evento académico próximo).\n- Otros pendientes de alta prioridad (sin fecha límite explícita):\n  - Ensayar defensa\n  - Revisar bibliografía\n- Otros hitos próximos (para planificar): defensa del TFG el 15 de junio de 2026.\n\n3) Riesgos o bloqueos\n- Riesgo de cuellos de botella si no avanza suficientemente el Capítulo 5 (actualmente 30%); podría afectar la defensa y la memori a final.\n- Dependencias logísticas para la defensa (ensayar, preparar presentaciones, coordinar viajes) que podrían verse afectadas si no se avanzan las tareas de alta prioridad.\n- Falta de fechas límite claras para algunos pendientes de alta prioridad (ensayar defensa, revisión bibliográfica) dificulta priorización precisa; conviene asignar plazos concretos para reducir bloqueos.\n\n¿Quieres que te proponga un plan de acción para las próximas 7 días enfocado en completar el Capítulo 5 y dejar lista la defensa?",
+      "error": null
+    },
+    {
+      "prompt_id": "p302",
+      "prompt": "qué he hecho esta semana",
+      "expected_intent": "weekly_summary",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "weekly_summary",
+      "intent_match": true,
+      "asked_clarification": true,
+      "clarification_pertinent": false,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 24.877642667001055,
+      "final_reply": "Resumen de la semana\n\n1) Avances clave\n- Tareas completadas:\n  - Redactar la introducción.\n  - Redactar la metodología.\n- Progreso relevante en el proyecto:\n  - Memoria: progreso del objetivo principal al 80% (en progreso).\n  - Capítulo 5: progreso del objetivo de redactar capitulo 5 en 30% (en progreso).\n- Nuevas subtareas para capitulo 5 creadas hoy:\n  - Introducción, Desarrollo y Conclusión (pendientes). \n\n2) Pendientes importantes con fecha límite cercana\n- Ensayar defensa y preparar slides para la defensa del TFG, que es mañana 26 de mayo. Prioridad alta.\n- Revisión de bibliografía (alta) pendiente.\n- Redactar conclusiones del capitulo 5 (media) – pendiente, sin fecha límite definida.\n- Otras tareas relacionadas sin fecha límite específica: buscar vuelos, hacer maletas (pendientes, pero sin plazo inmediato).\n\n3) Riesgos o bloqueos\n- Riesgo de retraso si no se cierran las secciones pendientes del capitulo 5 (introducción, desarrollo y conclusiones) y si no se concluye la preparación de la defensa (ensayo y slides) a tiempo.\n- Dependencia de terminar la defensa y la revisión bibliográfica para cerrar la memoria a tiempo; un atraso en estas áreas podría afectar el progreso general de los objetivos.\n\n¿Quieres que te proponga un plan corto para estos próximos días, priorizando la defensa y las partes críticas del capitulo 5?",
+      "error": null
+    },
+    {
+      "prompt_id": "p303",
+      "prompt": "dame un balance de la semana",
+      "expected_intent": "weekly_summary",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "weekly_summary",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 26.7216295420003,
+      "final_reply": "Balance de la semana (aprox. 19–25 de mayo de 2026)\n\n1) Avances clave\n- Completadas: redacción de la introducción y la metodología.\n- Progreso notable del conjunto:\n  - Memoria: avance del 80% (en progreso).\n  - Capítulo 5 (redactar capítulo 5): progreso del 30% (en progreso).\n\n2) Pendientes importantes con fecha límite cercana\n- Defensa del TFG: 26 de mayo de 2026, de 10:00 a 11:30 UTC. Preparación necesaria en slides y ensayo para presentar.\n- Otros pendientes de alto nivel (sin fechas explícitas registradas):\n  - Revisar bibliografía (alta prioridad).\n  - Ensayar defensa (alta prioridad) y preparar slides (media) para la defensa próxima.\n- Pendientes de menor prioridad sin fecha límite: buscar vuelos, hacer maletas, y entregas de capítulos/visiones para el Capítulo 5 que aún están en pendiente.\n\n3) Riesgos o bloqueos\n- Riesgo de cronograma cercano a la defensa: aún no están cerrados los apartados de cap. 5 y la bibliografía, lo que podría afectar la defensa si no se avanza.\n- Dependencias entre memòria, capítulo 5 y la presentación: si no se completa la revisión bibliográfica y el capítulo 5, podría haber presión adicional para las próximas semanas.\n- Falta de fechas límite para varios pendientes: dificulta priorización y seguimiento.\n\nRecomendaciones y próximos pasos\n- Priorizar la preparación para la defensa del TFG:\n  - Completar y cerrar el capítulo 5 (especialmente desarrollo y conclusión).\n  - Revisión final de la bibliografía.\n  - Preparar y ensayar la presentación/slides para la defensa.\n- Definir fechas límite claras para los pendientes pendientes (p. ej., cerrar revisión bibliográfica en 48–72 horas; terminar desarrollo y conclusión del capítulo 5 en la próxima semana).\n- Reservar tiempo para ensayos breves y revisión de la memoria antes de la defensa.\n\nSi quieres, puedo convertir esto en un plan de acción con fechas específicas y responsables (si hay más de una persona involucrada) y darte un listado de tareas priorizadas para estos próximos días.",
+      "error": null
+    },
+    {
+      "prompt_id": "p304",
+      "prompt": "cómo ha ido la semana en general",
+      "expected_intent": "weekly_summary",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "weekly_summary",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 21.185831916998723,
+      "final_reply": "Resumen de la semana\n\n1) Avances clave\n- Completadas las tareas de introducción y metodología para la memoria.\n- Progreso de la memoria general: 80% (en progreso).\n- Progreso del capítulo 5: 30% (en progreso).\n- Planificación de defensa: defensa del TFG programada para mañana; pendientes de preparación para esa defensa (ensayar y slides), junto con la revisión de bibliografía de la memoria.\n\n2) Pendientes importantes con fecha límite cercana\n- Defensa del TFG el 26 de mayo (mañana): ensayar la defensa, preparar las slides y revisar la bibliografía para apoyar la memoria.\n- Revisión de bibliografía (alta prioridad): tiene alta prioridad y está pendiente; importante para la defensa y la coherencia de la memoria.\n- Otros elementos ligados a la defensa (reservar vuelos, hacer maletas) siguen pendientes, pero no tienen fecha límite explícita en el calendario inmediato.\n\n3) Riesgos o bloqueos\n- Riesgo de no presentar una defensa bien preparada si no se completa la revisión bibliográfica y la preparación de slides a tiempo.\n- Progreso desigual entre memoria y capítulo 5 (80% vs 30%): riesgo de cuellos de botella al cerrar ambos componentes.\n- Logística de viaje (reservas de vuelos y maletas) sin avanzar podría generar estrés o retrasos próximos a las defensas.\n\nSugerencia rápida de próximos pasos\n- Priorizar: terminar la revisión bibliográfica y completar las slides para la defensa de mañana.\n- Afinar capitulo 5 (intención de consolidar introducción, desarrollo y conclusión) para asegurar cohesión con la memoria.\n- Si hay tiempo, empezar a avanzar las tareas logísticas de viaje para evitar prisas de última hora.",
+      "error": null
+    },
+    {
+      "prompt_id": "p305",
+      "prompt": "resumen semanal por favor",
+      "expected_intent": "weekly_summary",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "weekly_summary",
+      "intent_match": true,
+      "asked_clarification": true,
+      "clarification_pertinent": false,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 20.06726687500486,
+      "final_reply": "Aquí tienes un resumen semanal basado en tus tareas, proyectos y objetivos:\n\n1) Avances clave\n- Introducción y metodología: completadas con éxito.\n- Memoria: progreso general al 80%, en fase de revisión y consolidación.\n- Capítulo 5 (tareas creadas para redactarlo): progreso inicial del 30%, con tres subpartes en curso (introducción, desarrollo y conclusión).\n- Experimentación: redactar sección de experimentación está en progreso.\n- Preparación de defensa (objetivo asociado a TFG): progreso en curso para la defensa próxima.\n\n2) Pendientes importantes con fecha límite cercana\n- Defensa del TFG: martes 26 de mayo, de 10:00 a 11:30 UTC. \n  - Enfoque crítico para esta semana: ensayar la defensa (alta prioridad) y preparar las slides (media prioridad) para presentar con fluidez.\n- Revisión de bibliografía (alta prioridad): pendiente, sin fecha límite definida. Sería recomendable asignar una fecha esta semana.\n- Otros pendientes de capitulo 5 (sin fecha): completar la introducción, desarrollo y conclusión del capítulo 5 (ya en proceso) para no afectar la defensa.\n\n3) Riesgos o bloqueos\n- Riesgo de retrasos en las tareas clave del Capítulo 5 y en la sección de experimentación si no se destinan bloques de tiempo específicos para avanzar.\n- Riesgo logístico para la defensa si las slides y el ensayo no quedan listos a tiempo (amenaza directa a la claridad de la exposición).\n- Falta de fecha límite para revisión de bibliografía puede generar cuellos de botella si no se programa de inmediato.\n\nSi quieres, te monto un plan de acción breve para los próximos días con bloques de tiempo y fechas límite para las tareas críticas (ensayo y slides para la defensa, avances en experimentación y capítulo 5). ¿Te parece?",
+      "error": null
+    },
+    {
+      "prompt_id": "p306",
+      "prompt": "qué tareas completé esta semana",
+      "expected_intent": "weekly_summary",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "progress",
+      "intent_match": false,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 70.52014800000325,
+      "final_reply": "Actualmente no puedo confirmar qué tareas se completaron exactamente esta semana con la información que has compartido, porque el resumen no incluye fechas de finalización ni un registro semanal. Solo se muestran counts parciales por objetivo, sin indicar cuándo se realizaron las completadas.\n\nQué puedes hacer ahora (opciones rápidas)\n- Opción A: Dime la semana que quieres analizar (por ejemplo, 19-25 mayo 2026) y asumiré esa semana para devolverte las tareas completadas en ese periodo.\n- Opción B: Comparte la lista de tareas con sus fechas de finalización (o al menos las actualizaciones más recientes). Con eso te hago un informe claro de “tareas completadas esta semana”.\n\nSi quieres, también puedo:\n- Generar un informe semanal estructurado (Proyecto → Objetivo → Tarea) con las tareas completadas en la semana que determines.\n- Señalar alertas y próximos pasos para avanzar, especialmente para la tesis y el calendario cercano.\n\nPropuesta de siguiente paso rápido\n- Confírmame la semana (fechas) que quieres revisar o proporciona las fechas de finalización de las tareas. En cuanto me des eso, te mando el listado de las tareas completadas esta semana y un resumen por proyecto.\n\nNotas útiles para facilitar futuros informes\n- Puedo crear automáticamente un informe semanal si mantienes una fecha de cierre para cada tarea.\n- También puedo generar alertas para próximas fechas límite y priorizar tareas críticas (p. ej., tesis) si me das tus prioridades.",
+      "error": null
+    },
+    {
+      "prompt_id": "p401",
+      "prompt": "planifica mi próxima semana",
+      "expected_intent": "weekly_plan",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "weekly_plan",
+      "intent_match": true,
+      "asked_clarification": true,
+      "clarification_pertinent": false,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 41.93815262499993,
+      "final_reply": "Plan semanal para la próxima semana (26 mayo – 1 junio 2026)\n\n1) Prioridades de la semana (3-5 objetivos clave)\n- Preparar defensa del TFG: guion, diapositivas y ensayo completo para la defensa del lunes 26 de mayo.\n- Avanzar Capítulo 5 de la tesis: completar la sección de Desarrollo y avanzar la Conclusión.\n- Revisar y consolidar la bibliografía para la memoria del TFG (asegurar citas y referencias actuales).\n- Planificar vacaciones: reservar vuelos y preparar lista de maletas/packing.\n\n2) Distribución diaria sugerida (lunes a domingo)\nNotas:\n- El lunes 26 mayo tienes la defensa del TFG en horario identificado (recurso de calendario). Bloquea ese tiempo y ajusta las demás tareas alrededor.\n- Los bloques de tiempo son estimaciones. Ajusta según tu ritmo real.\n\nLunes 26 mayo\n- Preparar diapositivas y guion para la defensa del TFG — 1h 15m\n- Revisión rápida de puntos clave y última comprobación de datos — 0h 30m\n- Defensa del TFG (evento) — 1h 30m\n- Notas finales y plan de acción post-defensa — 0h 45m\n\nMartes 27 mayo\n- Capítulo 5: Desarrollo (redacción) — 1h 30m\n- Revisar bibliografía para la memoria (citas y referencias) — 1h 30m\n- Experimentación (redacción/validación de resultados) — 1h 30m\n\nMiércoles 28 mayo\n- Capítulo 5: Desarrollo (continuación) — 2h\n- Capítulo 5: Conclusión (borrador/estructura) — 1h\n- Revisión bibliográfica adicional o ajustes en memoria — 1h\n\nJueves 29 mayo\n- Capítulo 5: Conclusión (redacción) — 2h\n- Memoria: revisión de experimentación y coherencia con el capítulo 5 — 1h 30m\n\nViernes 30 mayo\n- Reservar vuelos (buscar/preseleccionar opciones) — 1h\n- Hacer maletas y checklist de viaje — 1h\n- Ajustes finales en memoria y Capítulo 5 (sincronizar avances) — 1h\n\nSábado 31 mayo\n- Sesión de contingencia / buffer para terminar pendientes — 2h\n\nDomingo 1 junio\n- Descanso o revisión ligera (lectura rápida, organización de notas) — 1h\n\n3) Tareas críticas (fechas próximas o que bloquean avances)\n- Preparar defensa del TFG (guion, slides y ensayo) — fecha límite cercana: 26 mayo 10:00–11:30. Es la tarea más crítica de la semana.\n- Capítulo 5: Desarrollo y Conclusión — impacto directo en la tesis; avance clave esta semana para no acumular retrasos.\n- Revisar bibliografía para la memoria — esencial para asegurar citas correctas y coherencia académica.\n- Reservar vuelos para vacaciones — urgente si tienes fechas fijas de viaje.\n\n4) Estimación de tiempo total por bloque\n- Cada bloque listado arriba tiene una duración estimada entre 30 minutos y 2 horas, con bloques de 1h-2h como norma para avanzar sin saturarte.\n- El día de defensa (lunes) ya tiene 1h30m de defensa y bloques previos/posteriores de 0h30m a 1h, para un total aproximado de 3h-4h de actividad estructurada ese día.\n\n5) Recomendaciones y ajustes\n- Si aparece sobrecarga: prioriza la defensa del TFG y la finalización de Desarrollo del Capítulo 5. Pospone tareas menores de vacaciones (vuelos) a la semana siguiente si es necesario.\n- Si necesitas más tiempo para la memoria, considera reasignar algún bloque de “Revisión bibliografía” para el fin de semana, manteniendo la prioridad de la defensa.\n- Mantén un registro corto de avances diarios para evitar pérdidas de foco (p. ej., 2-3 líneas al final del día sobre qué tocaste y próximos pasos).\n- Si la defensa se extiende o hay cambios de última hora, ajusta el martes para acelerar la preparación de Capítulo 5 y la bibliografía.\n- Considera 10–15 minutos diarios de revisión de bibliografía para evitar acumulación de citas desactualizadas.\n\n¿Quieres que lo adapte a tu zona horaria exacta o que te lo entregue en un formato de checklist para usar en tu app de tareas?",
+      "error": null
+    },
+    {
+      "prompt_id": "p402",
+      "prompt": "diseña un plan para la semana que viene",
+      "expected_intent": "weekly_plan",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "weekly_plan",
+      "intent_match": true,
+      "asked_clarification": true,
+      "clarification_pertinent": false,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 51.3726445420034,
+      "final_reply": "Plan de acción para la semana que viene\n\n1) Prioridades de la semana (3-5 objetivos clave)\n- Finalizar y pulir la memoria del proyecto (terminar la sección de experimentación y completar la revisión bibliográfica).\n- Preparar y ensayar la defensa del TFG (preparar slides y ensayar la presentación).\n- Avanzar en el Capítulo 5 (redactar introducción, desarrollo y conclusión).\n- (Si queda tiempo) Resolver logística de viaje para la defensa (buscar vuelos y hacer maletas).\n\n2) Distribución diaria sugerida (lunes a domingo)\nNotas: tienes una defensa el martes 26 de mayo a las 10:00-11:30 UTC; reserva ese día para la defensa y ajuste tus bloques alrededor de ese horario.\n\nLunes\n- Redactar experimentación (memoria): 2 horas\n- Revisar bibliografía (memoria): 1 hora\n- Planificar Capítulo 5 (estructurar próximas secciones): 0.5 hora\nTotal estimado: 3.5 horas\n\nMartes\n- Preparar slides (presentación de defensa): 2 horas\n- Ensayar defensa (práctica de presentación): 1.5 horas\n- Breve revisión de bibliografía adicional (si procede): 0.5 hora\n- Evento: Defensa TFG: 10:00–11:30 UTC (bloquear este horario)\nTotal estimado (sin contar el evento): 4 horas\nNotas: el bloque de defensa ocupa la mañana; agenda el resto del día para ajustes post-defensa si hiciera falta.\n\nMiércoles\n- Redactar conclusiones (memoria): 2 horas\n- Redactar introducción de Capítulo 5: 1 hora\n- Revisión rápida de memoria para cohesión: 0.5 hora\nTotal estimado: 3.5 horas\n\nJueves\n- Desarrollar Capítulo 5 (sección Desarrollo): 2 horas\n- Revisión general de memoria y notas de cohesión: 0.5–1 hora\nTotal estimado: 2.5–3 horas\n\nViernes\n- Redactar Capítulo 5 (Conclusión): 1.5 horas\n- Buscar vuelos (logística): 1 hora\n- Hacer maletas (logística): 0.5 hora\nTotal estimado: 3 horas\n\nSábado\n- Buffer/ajustes finales o tareas pendientes: 2 horas\nTotal estimado: 2 horas\n\nDomingo\n- Descanso o revisión ligera si hace falta: 0–1 hora\nTotal estimado: 0–1 hora\n\n3) Tareas críticas (plazos próximos o bloqueo de avances)\n- Defensa del TFG el martes 26 de mayo de 10:00–11:30 UTC: máxima prioridad. Bloquear bloques previos para slides y ensayo.\n- Preparar slides y ensayar defensa: deben estar listos antes del martes temprano; asignar tiempo en lunes y martes para este objetivo.\n- Redactar experimentación y revisión bibliográfica para cerrar la memoria: son necesarios para que puedas completar la memoria y evitar cuellos de botella después de la defensa.\n\n4) Estimación de tiempo total de la semana\n- Aproximadamente 18–20 horas de trabajo distribuido en los cinco días clave (Lunes a Viernes), con un bloque adicional de buffer el fin de semana.\n- Desglose por tarea clave:\n  - Finalizar memoria (experimentación + bibliografía): ~3–4.5 horas en Lunes y Miércoles.\n  - Preparar defensa (slides) + ensayar: ~3–4 horas (Lunes–Martes).\n  - Capítulo 5 (Introducción + Desarrollo + Conclusión): ~4–5 horas (Miércoles–Viernes).\n  - Logística de viaje (vuelos + maletas): ~1.5–2 horas (Viernes, con posible ajuste).\n\n5) Recomendaciones\n- Si sientes sobrecarga: prioriza la defensa y la finalización de la memoria. Pospone tareas logísticas no urgentes (por ejemplo, buscar vuelos si no hay confirmación de viaje o si la defensa ya se realizó) a fin de semana o después de la defensa.\n- Mantén bloques de defensa y presentación libres de reuniones externas para evitar conflictos.\n- Si algún bloque se extiende, reasigna tareas de menor prioridad (por ejemplo, parcialmente posponer tareas de “logística” o dividir en micro-bloques de 30 minutos para evitar saturarte).\n- Revisa a mitad de semana el progreso y ajusta el plan si hay cambios en la hora de la defensa o en la disponibilidad.\n\n¿Quieres que te entregue este plan en formato de agenda con fechas específicas (lunes 26/5 a domingo 1/6) o prefieres que lo adapte a tus horas de trabajo diarias habituales?",
+      "error": null
+    },
+    {
+      "prompt_id": "p403",
+      "prompt": "qué debería hacer cada día la próxima semana",
+      "expected_intent": "weekly_plan",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "weekly_plan",
+      "intent_match": true,
+      "asked_clarification": true,
+      "clarification_pertinent": false,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 60.128563332997146,
+      "final_reply": "Aquí tienes un plan concreto para la próxima semana (lunes 26 de mayo al domingo 31 de mayo), teniendo en cuenta tu agenda y los proyectos actuales.\n\n1) Prioridades de la semana\n- Preparar y ensayar la defensa del TFG para la defensa del lunes 26 de mayo. Incluir revisión de bibliografía y slides.\n- Avanzar Capítulo 5 de la tesis: completar Introducción, Desarrollo y Conclusión.\n- Continuar la redacción de la memoria (experimentación) y/o revisar bibliografía relevante para esa memoria.\n- Avanzar con la planificación de vacaciones: reservar vuelos y avanzar con la maleta/empacado cuando haya tiempo.\n\n2) Distribución diaria sugerida (lunes a domingo)\nNotas:\n- El evento clave de la semana es la Defensa del TFG el lunes 26 de mayo, de 10:00 a 11:30 UTC. Ajusta las horas según tu huso horario.\n- He distribuido bloques de trabajo compatibles con ese compromiso y con progreso de las tareas.\n\nLunes 26 de mayo\n- Preparar slides para la defensa del TFG (1.5-2 horas)\n- Revisión rápida de bibliografía clave para la defensa y memoria (1 hora)\n- Defensa del TFG (evento oficial) 10:00-11:30\n- Sesión corta de reflexión post-defensa y ajustes menores en memoria (0.5-1 hora)\n\nMartes 27 de mayo\n- Continuar trabajo en memoria: avanzar en la sección de experimentación (1.5-2 horas)\n- Revisión de bibliografía para memoria y/o capitulo 5 si queda pendiente (1 hora)\n\nMiércoles 28 de mayo\n- Capítulo 5 de la tesis: Introducción (1.5-2 horas)\n- Capítulo 5 de la tesis: Revisión de estructura y objetivos (0.5-1 hora)\n\nJueves 29 de mayo\n- Capítulo 5 de la tesis: Desarrollo (2 horas)\n- Capítulo 5 de la tesis: Ajustes y notas finales (0.5-1 hora)\n\nViernes 30 de mayo\n- Capítulo 5 de la tesis: Conclusión (1.5-2 horas)\n- Planificación de vacaciones: reservar vuelos (30-45 minutos)\n- Preparar maletas (si queda tiempo) o dejarlo para el sábado (45 minutos)\n\nSábado 31 de mayo\n- Reservar vuelos (si no quedó hecho) y/o buscar vuelos baratos (30-45 minutos)\n- Hacer maletas (1 hora)\n\nDomingo 1 de junio\n- Revisión general de progreso de la semana y ajuste de la agenda de la siguiente; descanso breve y organización de tareas ligeras (30-45 minutos)\n- Bloque corto de avance ligero en memoria o capitulo 5 si hay carga adicional (30-45 minutos)\n\n3) Tareas críticas (las que requieren atención prioritaria)\n- Defensa del TFG (evento el 26 de mayo). Es la fecha límite más cercana y bloquea otras actividades de la semana. Prioriza la preparación de slides y revisión de bibliografía antes de esa fecha.\n- Redactar experimentación (memoria) y revisar bibliografía asociada. Estas tareas bloquean el progreso de la memoria completa y del capítulo 5 si vas correlacionando con la tesis; trata de avanzar de forma constante cada día.\n- Avance del Capítulo 5 (Introducción, Desarrollo, Conclusión). Es crucial para cerrar ese capítulo a tiempo.\n\n4) Estimación de tiempo (aproximado)\n- Preparar slides: 1.5-2 horas\n- Revisión bibliografía (memoria/defensa): 1 hora\n- Ensayar defensa (si se hace aparte del ensayo final): 1-2 horas\n- Redactar experimentación: 1.5-2 horas\n- Capítulo 5: Introducción: 1.5-2 horas\n- Capítulo 5: Desarrollo: 2 horas\n- Capítulo 5: Conclusión: 1.5-2 horas\n- Reservar vuelos: 30-45 minutos\n- Hacer maletas: 45-60 minutos\n- Revisión semanal/progreso: 30-45 minutos\n\n5) Recomendaciones\n- Si sientes sobrecarga, reduce algunas tareas ligeras de fin de semana (por ejemplo, pospone la maleta o la revisión de bibliografía menor para la semana siguiente y prioriza las actividades críticas de TFG y tesis).\n- Mantén un bloque de “buffer” diario de 15-30 minutos para imprevistos (cambios en el horario de defensa, correcciones de último momento).\n- Si el tiempo es limitado para la defensa, prioriza slides y bibliografía esa semana y reserva el ensayo de defensa para el lunes temprano si ya está disponible; evita solapamientos con la defensa.\n- Evita cambios de último minuto en la agenda de vacaciones que consuman más de 1 hora en un mismo día; mejor distribuirlo entre martes y viernes de la semana.\n\n¿Quieres que adapte los bloques a tu hora local exacta o que te entregue una versión en formato de lista con horarios detallados por hora para cada día?",
+      "error": null
+    },
+    {
+      "prompt_id": "p404",
+      "prompt": "organiza mi agenda para los próximos siete días",
+      "expected_intent": "weekly_plan",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "weekly_plan",
+      "intent_match": true,
+      "asked_clarification": true,
+      "clarification_pertinent": false,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 34.99570416699862,
+      "final_reply": "Plan de acción para la próxima semana (26 May al 1 Jun)\n\n1) Prioridades de la semana\n- Preparar defensa del TFG: ensayo intensivo y ajustes finales de la presentación para el martes 26 a las 10:00–11:30.\n- Redactar capitulo 5 (tesis): avanzar en Introducción, Desarrollo y Conclusión.\n- Revisión bibliográfica: completar revisión y citación relevante para capitulo 5 y el TFG.\n- Elaboración y ajuste de las slides de defensa: estructura clara, diapositivas de apoyo y notas del presentador.\n- Planificación logística de viaje (opcional si aplica): iniciar búsqueda de vuelos y organización de gastos para la defensa o viaje relacionado.\n\n2) Distribución diaria sugerida (lunes a domingo)\nNotas: El lunes 26 hay defensa programada de 10:00–11:30; evitar tareas pesadas durante ese bloque. Cada bloque tiene estimación de tiempo.\n\nLunes 26 May\n- 07:45–09:00 Revisión bibliográfica (1 h 15 m)\n- 09:15–10:45 Preparar slides (1 h 30 m)\n- 10:00–11:30 Defensa del TFG (evento)\n- 12:00–13:30 Afinar Introducción del Capítulo 5 (1 h 30 m)\n- 16:00–17:00 Resumen de mejoras y próximos pasos (1 h)\n\nMartes 27 May\n- 08:00–09:30 Introducción del Capítulo 5 (redactar) (1 h 30 m)\n- 10:00–11:30 Desarrollo del Capítulo 5 (1 h 30 m)\n- 15:00–16:00 Revisión bibliográfica adicional (1 h)\n\nMiércoles 28 May\n- 09:00–10:30 Conclusión del Capítulo 5 (redactar) (1 h 30 m)\n- 11:00–12:30 Revisión y consolidación de las tres secciones del Capítulo 5 (1 h 30 m)\n- 15:00–16:00 Ajustes menores a slides y notas de defensa (1 h)\n\nJueves 29 May\n- 08:30–10:00 Ensayar defensa (presentación y respuestas) (1 h 30 m)\n- 10:30–12:00 Ajustes finales a slides y guion de presentación (1 h 30 m)\n- 14:00–15:30 Preparar resumen o one-pager para defensa (1 h 30 m)\n\nViernes 30 May\n- 09:00–10:30 Revisión final del Capítulo 5 (lectura rápida y correcciones) (1 h 30 m)\n- 11:00–12:30 Preparar entrega de documentos / archivos finales (1 h 30 m)\n- 15:00–16:00 Revisión de bibliografía y citas finales (1 h)\n\nSábado 31 May\n- 10:00–11:30 Lectura complementaria y notas finales (1 h 30 m)\n- 12:00–13:30 Planificación de próximos pasos y buffer para tareas no terminadas (1 h 30 m)\n\nDomingo 1 Jun\n- Día de descanso ligero o buffer. Si queda alguna tarea pendiente, asigna 1–2 bloques cortos de 30–45 min cada una.\n\n3) Tareas críticas\n- Defensa del TFG (martes 26, 10:00–11:30): es la fecha límite más próxima y condiciona avances mayores.\n- Ensayo de defensa y preparación de slides (26–29 May): tareas críticas para presentar con confianza.\n- Revisión bibliográfica (continuada): sustenta las secciones de Introducción y Desarrollo; imprescindible para coherencia y citas.\n- Redacción de Capítulo 5 (Introducción, Desarrollo y Conclusión): avances necesarios para completar el capítulo y evitar cuellos de botella al cierre.\n\n4) Estimación de tiempo (por bloques)\n- Revisión bibliográfica: 1 h 15 m – 1 h 30 m por bloque.\n- Preparar slides: 1 h 30 m.\n- Defensa y ensayos: bloques de 1 h 30 m orientativos (ensayos), defensa real 1 h 30 m.\n- Redacción Introducción/Desarrollo/Conclusión Capítulo 5: 1 h 30 m por sección (Introduce variaciones si ya tienes borrador parcial).\n- Afines y ajustes finales: 1 h a 1 h 30 m por bloque.\n- Planificación logística (viajes): 1 h 30 m en un bloque cuando corresponda.\n\n5) Recomendaciones\n- Si sientes sobrecarga: reduce o aplaza tareas menos críticas (por ejemplo, posponer la búsqueda de vuelos para la semana próxima o distribuirla en un par de bloques de 30–45 minutos).\n- Evita bloques de alto enfoque justo antes de la defensa; reserva tiempos de calma y revisión ligera el día anterior.\n- Mantén un bloque diario de revisión bibliográfica para asegurar consistencia de citas y referencias.\n- Si hay conflictos de horario con compromisos imprevistos, reasigna el bloque de “Revisión bibliográfica” a la tarde y deja una mañana libre para defensa.\n\n¿Quieres que adapte este plan a otro huso horario o a un formato más compacto (por ejemplo, una agenda diaria en 3 bloques) o que priorice enfocarnos solo en Capítulo 5 y la defensa para esta semana?",
+      "error": null
+    },
+    {
+      "prompt_id": "p405",
+      "prompt": "plan semanal con las tareas pendientes",
+      "expected_intent": "weekly_plan",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "weekly_plan",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 36.330647791000956,
+      "final_reply": "Plan semanal propuesto para la semana siguiente (basado en tareas pendientes y proyectos actuales)\n\n1) Prioridades de la semana (3-5 objetivos clave)\n- Cierre de la memoria del TFG (redactar experimentación, revisar bibliografía y redactar conclusiones) para avanzar hacia la entrega final.\n- Preparación de la defensa: crear diapositivas y ensayar la defensa.\n- Avance del Capítulo 5 de la tesis: completar introducción, desarrollo y concluir el capítulo.\n- Planificación y gestión de viaje/traslado asociado a la defensa o vacaciones (reservar vuelos) si aplica pronto; si no, dejarlo como tarea de menor prioridad.\n- Revisión general de bibliografía y estructura de la memoria para asegurar coherencia y citación.\n\n2) Distribución diaria sugerida (lunes a domingo)\nNotas:\n- Sin eventos de calendario detectados, se propone bloques de trabajo de 1.5–2.5 horas cada uno. Ajusta según tu energía y disponibilidad.\n\nLunes\n- Bloque 1 (2 h): Redactar experimentación (Memoria) – avanzar en la sección de experimentación.\n- Bloque 2 (1 h): Revisar bibliografía relevante para el capítulo de memoria.\n\nMartes\n- Bloque 1 (2 h): Redactar conclusiones (Memoria) – bosquejo de conclusiones y posibles aportes.\n- Bloque 2 (2 h): Preparar slides para la defensa (estructura general y borrador de diapositivas).\n\nMiércoles\n- Bloque 1 (2 h): Ensayar defensa (práctica de ponencia) – guion y timing.\n- Bloque 2 (1 h): Buscar vuelos (si aplica) o revisión de fechas y costos de viaje; si no hay viaje inmediato, dedicar este bloque a avances de memoria.\n\nJueves\n- Bloque 1 (2 h): Introducción del Capítulo 5 (tesis) – redactar la introducción.\n- Bloque 2 (1.5 h): Desarrollo del Capítulo 5 – avances en la sección principal.\n\nViernes\n- Bloque 1 (2 h): Desarrollo del Capítulo 5 – continuar y pulir secciones.\n- Bloque 2 (1 h): Conclusión del Capítulo 5 – borrador de conclusión y próximos pasos.\n\nSábado\n- Bloque 1 (2 h): Revisión integral de la memoria (coherencia, citas, estilo).\n- Bloque 2 (1 h): Ajustes finales en diapositivas y guion de defensa.\n\nDomingo\n- Bloque 1 (1.5 h): Planificación de la próxima semana y objetivos de entrega.\n- Bloque 2 (0.5–1 h): Descanso activo o revisión ligera de pendientes menores.\n\n3) Tareas críticas (aquellas con fecha límite próxima o que bloquean otros avances)\n- Redactar experimentación (Memoria) – bloquea avance de la memoria y entrega final.\n- Redactar conclusiones (Memoria) – imprescindible para cerrar la memoria.\n- Preparar diapositivas y ensayar defensa – críticas para la defensa exitosa y fecha de defensa.\n- Capítulo 5 (Introducción, Desarrollo, Conclusión) – núcleo del capítulo; su atraso retrasa la tesis completa.\n\n4) Estimación de tiempo (aproximado por bloque)\n- Redactar experimentación: 2 horas\n- Revisar bibliografía: 1–1.5 horas\n- Redactar conclusiones: 1.5–2 horas\n- Preparar slides: 2 horas\n- Ensayar defensa: 2 horas\n- Introducción Capítulo 5: 1.5–2 horas\n- Desarrollo Capítulo 5: 2–2.5 horas\n- Conclusión Capítulo 5: 1.5–2 horas\n- Planificación de próxima semana / revisión general: 1–1.5 horas\nNotas: si algún bloque se alarga, ajusta con bloques más cortos repartidos a lo largo de la semana para evitar saturación.\n\n5) Recomendaciones\n- Si sientes carga excesiva, prioriza las tareas críticas de la memoria y la defensa. Considera dejar para la próxima semana cualquier tarea menos urgente (por ejemplo, algunos ajustes finos de diapositivas si la defensa está más lejana).\n- Si hay fechas fijas de defensa o viajes, reajusta el calendario para asegurar bloques de mayor concentración justo antes de esas fechas (evitando picos de trabajo al día anterior).\n- En caso de falta de claridad sobre las fechas límite, conviene definir plazos internos (p. ej., concluir cada capítulo de Capítulo 5 para el miércoles) para mantener ritmo.\n- Si surgen imprevistos, agrupa tareas por bloques de 90 minutos para mantener progreso constante sin agotarte.\n\nSi quieres, dime tus horarios habituales (horas de trabajo, descansos y posibles citas) y ajustaré el plan con bloques de tiempo que encajen mejor con tu calendario. También puedo adaptar la distribución para priorizar primero la memoria o el Capítulo 5 según tus fechas límite.",
+      "error": null
+    },
+    {
+      "prompt_id": "p406",
+      "prompt": "ayúdame a planificar la semana priorizando lo urgente",
+      "expected_intent": "weekly_plan",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "weekly_plan",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 36.64506000000256,
+      "final_reply": "Aquí tienes un plan de acción concreto para la próxima semana, priorizando lo urgente (defensa del TFG y cierre de memoria/capítulo 5). Está organizado por prioridades, distribución diaria, tareas críticas, estimación de tiempo y recomendaciones para evitar sobrecargas.\n\n1) Prioridades de la semana (4 elementos clave)\n- Defensa del TFG: preparar y ensayar la defensa, y terminar los slides para la presentación del martes.\n- Cierre de la memoria: completar la sección de experimentación, revisar bibliografía y afinar la redacción para que el capítulo 5 llegue a término.\n- Redactar capítulo 5 (Intro, Desarrollo y Conclusión): avanzar significativamente para que el capítulo esté en estado final o muy próximo a ello.\n- Revisión y consolidación de bibliografía y citaciones: asegurar consistencia y fuentes para memoria y capítulo 5.\n\n2) Distribución diaria sugerida (lunes a domingo)\nNotas: todos los bloques tienen duración estimada; evita solapar con la defensa del martes. Los horarios se entienden como bloques de trabajo, no horarios fijos.\n\nLunes\n- Bloque 1 (1.5 h): Revisión bibliografía para la memoria (fuentes clave y citas recientes).\n- Bloque 2 (2 h): Avanzar la sección de experimentación de la memoria (pulir redacción y resultados).\n- Bloque 3 (1 h): Revisión rápida de coherencia entre introducción y experimentación.\n\nMartes (día de defensa)\n- Bloque 1 (2 h, por la mañana): Preparar slides para la defensa (estructura, puntos clave, figuras).\n- Bloque 2 (1.5 h, antes de la defensa): Ensayar defensa (guion, tiempos, respuestas a posibles preguntas).\n- Evento de defensa: Defensas TFG (10:00–11:30) (ya agendado).\n- Bloque 3 (1 h, tras la defensa): Revisión rápida de notas post-defensa y plan de ajustes si hacen falta.\n\nMiércoles\n- Bloque 1 (1.5 h): Redactar introducción del capítulo 5.\n- Bloque 2 (1.5 h): Avanzar desarrollo del capítulo 5.\n- Bloque 3 (1 h): Integrar fragmentos de memoria con las referencias.\n\nJueves\n- Bloque 1 (2 h): Revisión de bibliografía y citaciones para memoria y capítulo 5.\n- Bloque 2 (1.5 h): Redactar conclusiones del capítulo 5.\n- Bloque 3 (1 h): Ajustes de formato y coherencia entre secciones.\n\nViernes\n- Bloque 1 (2 h): Pulido general de la memoria (coherencia, estilo, citas).\n- Bloque 2 (1.5 h): Afinar slides para la defensa (últimos toques, notas de apoyo).\n- Bloque 3 (1 h): Revisión de checklist final antes de entregar o compartir.\n\nSábado\n- Bloque 1 (2 h): Buffer para imprevistos o retrasos; resolver pequeñas inconsistencias.\n- Bloque 2 (1 h): Revisión rápida de progreso general y próximos pasos.\n\nDomingo\n- Bloque 1 (2 h): Buffer final; preparación mental y descanso activo para la semana siguiente.\n\n3) Tareas críticas (las que requieren atención prioritaria)\n- Defensa del TFG (martes 26 de mayo, 10:00–11:30): es la fecha inminente y el resultado depende de la preparación de slides y ensayos. Necesita 2 bloques de preparación y 1 bloque de ensayo previo.\n- Terminación de la memoria (experimento y revisión bibliográfica): hay progreso existente (memoria en desarrollo, 80%), pero falta completar experimentación y bibliografía para presentar un trabajo sólido en defensa y entregar a tiempo.\n- Preparar slides y ensayar defensa: crucial para una defensa fluida y para poder responder a preguntas con claridad.\n\n4) Estimación de tiempo total (aproximado)\n- Preparar slides para defensa: ~2 h.\n- Ensayar defensa: ~1.5 h.\n- Revisión bibliografía: ~4 h repartidos a lo largo de la semana.\n- Redactar experimentación y consolidar memoria: ~4–5 h.\n- Introducción capítulo 5: ~1.5–2 h.\n- Desarrollo capítulo 5: ~1.5–2 h.\n- Conclusiones cap. 5: ~1.5 h.\n- Pulido y formato: ~2 h.\n- Buffer/imprevistos: ~4 h repartidos.\n\n5) Recomendaciones\n- Si la carga se siente alta, prioriza primero la defensa (slides y ensayo) y la finalización de la memoria; pospon si es necesario cualquier tarea de menor urgencia (por ejemplo, tareas no críticas como organizar viajes o compras menores).\n- Mantén bloques de foco corto y sin interrupciones cercanos a la hora de ensayar defensa para maximizar retención y fluidez.\n- Reserva un bloque corto al final de la semana para revisar el progreso semanal y reajustar el plan de la próxima.\n- Si surge un conflicto de horario, considera mover bloques de menor impacto (por ejemplo, revisión de bibliografía ligera o edición de formato) a otro día y liberar tiempo para ensayar con mayor concentración.\n- Comunica cualquier impedimento de entrega o de preparación lo antes posible para reprogramar bloques sin perder impulso.\n\n¿Quieres que te devuelva este plan en formato de agenda con horas específicas para cada bloque o que lo adapte a un huso horario concreto? También puedo generar un resumen breve para compartir con tu equipo o asesor.",
+      "error": null
+    },
+    {
+      "prompt_id": "p501",
+      "prompt": "dame recomendaciones sobre qué hacer ahora",
+      "expected_intent": "recommendations",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "recommendations",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 39.93079350000335,
+      "final_reply": "1) Top prioridades inmediatas\n- Defensa del TFG (26 mayo, 10:00 UTC): ensayar defensa y preparar slides\n  - Por qué: fecha inminente; máximo impacto en desempeño y resultados.\n  - Acciones sugeridas ahora: hacer una práctica corta con 3-4 puntos clave y empezar un borrador rápido de las slides (estructura: introducción, métodos, resultados, conclusiones, defensa). Programa 2 sesiones de 30–45 min hoy y mañana.\n\n- Memoria del TFG (redactar memoria) – avanzar en memoria y bibliografía\n  - Por qué: 80% de progreso; cerrar la sección de experimentación y dejar lista la bibliografía es clave para la defensa.\n  - Acciones sugeridas ahora: 1) terminar la sección de experimentación (bloque de 60–90 min). 2) revisión rápida de bibliografía: añade 5–8 referencias clave y verifica formato.\n\n- Capítulo 5 de la tesis – avanzar en introducción, desarrollo y conclusión\n  - Por qué: tarea en progreso (30%) dentro de un objetivo de alto nivel; útil para no atrasarse con la tesis.\n  - Acciones sugeridas ahora: esbozar introducción del capítulo 5 y un primer borrador de desarrollo en bloques de 45 min.\n\n2) Riesgos por fechas cercanas\n- Defensa del TFG el 26 mayo: riesgo de que la práctica insuficiente afecte la claridad de la exposición y el uso de slides.\n- Memoria del TFG: riesgo de no finalizar a tiempo si la experimentación no se concluye y la bibliografía no está verificada.\n- Tesis (capítulo 5): riesgo de retraso en la entrega de la tesis si el capítulo no avanza a buen ritmo, especialmente con la fecha límite de 30-06-2026.\n- Nota: tareas de vacaciones (reservar vuelos, hacer maletas) no requieren atención ahora mismo; no se deben mezclar con estas prioridades.\n\n3) 2 a 4 ideas nuevas realistas para hacer esta semana\n- Practicar la defensa de forma focalizada: realiza 2 ensayos de 15–20 minutos cada uno ante un amigo o colega; solicita retroalimentación específica sobre claridad de argumentos y manejo de preguntas.\n- Crear un borrador de slides: bosqueja 6–8 diapositivas clave (portada, objetivos, métodos, resultados, conclusiones, preguntas). Convierte ese borrador en un primer set para revisión rápida.\n- Refrescar y validar la bibliografía: añade 5 referencias nuevas relevantes y verifica citas en el texto; guarda un mini-dossier de citas para la defensa.\n- Avanzar en el Capítulo 5: escribe la introducción del capítulo 5 y un primer borrador del desarrollo en bloques de 45 minutos; deja fijada una meta pequeña (p. ej., 2–3 apartados) para cerrar antes del fin de la semana.",
+      "error": null
+    },
+    {
+      "prompt_id": "p502",
+      "prompt": "qué consejos me das para mis prioridades",
+      "expected_intent": "recommendations",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "recommendations",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 31.741795957997965,
+      "final_reply": "1) Top prioridades inmediatas\n- Terminar Capítulo 5 de la tesis (capítulo 5: Introducción, Desarrollo, Conclusión). Motivo: proyecto de tesis activo, progreso actual ~30%, fecha límite próxima (30 de junio). Enfócate en completar Introducción, luego Desarrollo y Finaliza Conclusión.\n- Cerrar y pulir la memoria del TFG. Motivo: memoria ya está 80% avanzada; requiere revisión de bibliografía y ajustes finales para no bloquear la entrega del TFG.\n- Preparar defensa: ensayar la defensa y crear/actualizar las slides. Motivo: alta prioridad para presentar con confianza y reducir sorpresas durante la defensa.\n- Revisar bibliografía relacionada con la memoria y cap. 5. Motivo: fundamenta la tesis y evita lagunas de referencias justo antes de la entrega.\n\n2) Riesgos por fechas cercanas\n- Riesgo: no completar Capítulo 5 antes del 30 de junio. Consecuencia: retraso en la defensa y entrega de la tesis. Mitigación: asignar bloques diarios de escritura (60–90 minutos) y fijar micro-objetivos (introducción, desarrollo, conclusión) para esta y la próxima semana.\n- Riesgo: falta de revisión bibliográfica clave para la memoria. Consecuencia: referencias incompletas o débiles. Mitigación: dedicar 2 sesiones this week para asegurar 5–7 fuentes relevantes y must-have citas.\n- Riesgo: defensa sin suficientes ensayos y slides terminados. Consecuencia: presentación débil o nerviosismo. Mitigación: programar 2 ensayos breves y terminar las slides en la primera mitad de la semana.\n- Riesgo: plan de vacaciones desorganizado (reservar vuelos, maletas) si se deja para último momento. Consecuencia: costos mayores o cambios de planes. Mitigación: reservar vuelos y preparar maletas en los próximos días, aunque sea una tarea rápida.\n\n3) Ideas nuevas y realistas para hacer esta semana\n- Idea 1: Crea un esquema detallado del Capítulo 5 con objetivos para Introducción, Desarrollo y Conclusión. Anota 2–3 ideas clave para cada sección y asigna premetas de escritura.\n- Idea 2: Establece una rutina de escritura diaria de 60–90 minutos enfocada en Introducción y Desarrollo del Capítulo 5, con una meta de avance concreto (p. ej., 500–800 palabras por sesión).\n- Idea 3: Sesión de revisión bibliográfica dirigida: busca 5–7 fuentes clave para Capítulo 5 y la memoria, registra citas y genera una breve nota de cómo cada fuente apoya cada sección.\n- Idea 4: Plan de defensa: prepara una versión inicial de las slides y realiza 1–2 ensayos cortos para practicar la exposición y respuestas a posibles preguntas.\n\nSi quieres, puedo convertir estas ideas en un plan de acción con fechas y tareas específicas para cada día de la semana.",
+      "error": null
+    },
+    {
+      "prompt_id": "p503",
+      "prompt": "qué me sugieres priorizar hoy",
+      "expected_intent": "recommendations",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "recommendations",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 33.747627374999865,
+      "final_reply": "1) Principales prioridades inmediatas de hoy\n- Ensayar defensa del TFG (alta) — por la defensa mañana (26 mayo 10:00–11:30 UTC). Razon: fecha inminente; clave para presentar con confianza y responder preguntas.\n- Preparar slides para la defensa (media) — para completar la presentación antes de la defensa. Razon: apoyo visual esencial.\n- Redactar memoria (alta) — avanzar/concluir las partes críticas para el TFG. Razon: está en progreso y es central para la defensa.\n- Revisar bibliografía (alta) — verificar citas y fundamentos para reforzar la memoria. Razon: mejora la solidez argumental y evita lagunas en la defensa.\n\n2) Riesgos por fechas cercanas\n- Defensas y entrega inminentes: si no se ensaya bien y no se tienen slides listas, podría afectar la calidad de la presentación y las respuestas a preguntas.\n- Progreso de la memoria y capítulo 5: sin revisión de bibliografía y avances finales, el resultado podría no estar suficientemente fundamentado para la defensa o para la fecha límite de la tesis.\n- Plan de viaje/fin de proyecto: si hay fechas límite de junio (p. ej., tesis) y no se avanza a tiempo, podrían verse comprometidos próximos hitos.\n\n3) 2 a 4 ideas nuevas realistas para hacer esta semana\n- Sesión de práctica de defensa de 30 minutos con grabación: ensayos prácticos, grabarte y revisar respuestas a posibles preguntas.\n- Crear una lista de preguntas potenciales y respuestas cortas: prepara respuestas para preguntas difíciles sobre memoria, metodología y resultados.\n- Revisión rápida de bibliografía clave: elige 5 fuentes centrales y verifica citas y coherencia en la memoria.\n- Plan de trabajo por bloques para capítulo 5: asigna 2 bloques de 60 minutos esta semana para esquema y redacción de secciones (introducción, desarrollo y conclusión), con objetivos claros para cada bloque.",
+      "error": null
+    },
+    {
+      "prompt_id": "p504",
+      "prompt": "necesito ideas para avanzar en el TFG",
+      "expected_intent": "recommendations",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "recommendations",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 22.933780374994967,
+      "final_reply": "Aquí tienes un plan enfocado para avanzar en el TFG esta semana.\n\n1) Top prioridades inmediatas\n- Terminar la memoria del TFG (TFG: memoria)\n  - Motivo: está en progreso al 80%; es la entrega central y facilita la defensa si está completa y bien fundamentada.\n  - Acciones rápidas: terminar la revisión bibliográfica pendiente y cerrar la sección de resultados/experimentos; un borrador estable ayuda a avanzar en el resto.\n\n- Avanzar en el Capítulo 5 de la tesis\n  - Motivo: varias partes están pendientes (introducción, desarrollo y conclusión) y el cap. 5 está ligado a la defensa futura.\n  - Acciones rápidas: definir un borrador para cada sección (3 bloques) y dejar comentarios o notas para el tutor.\n\n- Preparar la defensa (diapositivas y guion)\n  - Motivo: 10% de progreso; crucial para presentar con claridad.\n  - Acciones rápidas: esbozar la estructura de las diapositivas y preparar un guion de unos 5–7 minutos para la defensa inicial.\n\n- Revisión de bibliografía\n  - Motivo: alta prioridad para respaldar la memoria y las secciones técnicas.\n  - Acciones rápidas: identificar 8–12 referencias clave relevantes y verificar formato/citas.\n\n2) Riesgos por fechas cercanas\n- Desfase entre memoria completa y defensa: si la memoria y el Capítulo 5 no están terminados y revisados, la defensa podría verse afectada.\n- Falta de bibliografía actualizada: puede retrasar la redacción y la defensa si no se integran las fuentes adecuadas.\n- Capítulo 5 incompleto: la falta de un borrador sólido en introducción, desarrollo y conclusión puede alargar el tiempo de revisión.\n- Plazo de la fecha límite 30 de junio: aún queda algo de tiempo, pero cualquier atraso en estas partes críticas aumenta el riesgo de no presentar una versión pulida.\n\n3) 2 a 4 ideas nuevas para esta semana (realistas)\n- Plan de defensa en 3 pasos\n  - Córtalo en: estructura de diapositivas (qué temas), guion de defensa (qué decir en cada diapositiva) y un ensayo corto de 5–7 minutos. Practícalo dos veces y ajusta según el tiempo.\n\n- Borrador rápido de Capítulo 5\n  - Dedica bloques de 2–3 días a cada sección (Introducción, Desarrollo, Conclusión) y cierra con un primer borrador coherente. Enfócate en unir los resultados con las conclusiones.\n\n- Revisión de bibliografía clave en 2 sesiones\n  - Sesión 1: identifica y anota 8–12 referencias críticas para las secciones clave.\n  - Sesión 2: verifica citas y formato, y añade las fuentes a la memoria.\n\n- Sesión de feedback breve\n  - agenda una reunión corta (30 minutos) con tu tutor o compañero para obtener feedback específico sobre la estructura de Capítulo 5 y la memoria. Un par de observaciones puede ahorrar mucho tiempo luego.\n\nSi quieres, puedo convertir estas ideas en un plan diario (qué hacer cada día, con objetivos y tiempos estimados) para las próximas 5–7 días.",
+      "error": null
+    },
+    {
+      "prompt_id": "p505",
+      "prompt": "recomiéndame por dónde empezar mañana",
+      "expected_intent": "recommendations",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "recommendations",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 30.333908874999906,
+      "final_reply": "1) Top prioridades inmediatas para mañana (con razón breve)\n- Capítulo 5 de la tesis – redactar/avanzar el contenido (En progreso, 30%). Razon: fecha límite 30/06 y queda bastante por completar; empezar por la introducción y avanzar el desarrollo para no acumular trabajo.\n- Revisar bibliografía relevante – pendiente (Alta). Razon: sustenta cap. 5 y la memoria; ayuda a avanzar en el borrador de forma sólida.\n- Ensayar defensa – pendiente (Alta). Razon: preparación temprana evita prisas; clave para la presentación.\n- Preparar slides (borrador) – pendiente (Media). Razon: tener una estructura de diapositivas lista facilita el ensayo y la defensa.\n\n2) Riesgos por fechas cercanas\n- Riesgo de retrasos en Capítulo 5 si no se avanza en introducción/desarrollo/conclusión; puede impactar en la entrega del capítulo completo.\n- Riesgo de defensa sin slides o guion sólido si no se ensaya y se organizan los puntos clave.\n- Riesgo de revisión bibliográfica insuficiente para sustentar afirmaciones en cap. 5 y en la memoria, especialmente si la bibliografía clave no está identificada a tiempo.\n- Riesgo de que el progreso de la memoria (80% ya redactada) no se sincronice con las demandas de la defensa si cap. 5 no avanza a la par.\n\n3) 2 a 4 ideas nuevas realistas que puedes hacer esta semana\n- Esbozar y escribir la introducción del cap. 5 (5–7 párrafos) para fijar el marco y objetivos, dejando ya un borrador para el desarrollo.\n- Identificar 5–7 referencias clave para cap. 5 y para la memoria; anotar cómo cada una apoya las secciones (introducción, desarrollo, conclusiones).\n- Crear un borrador de diapositivas para la defensa: estructura general (título, objetivos, métodos, resultados clave, conclusiones) y una diapositiva por cada sección.\n- Programar una revisión de progreso a mitad de semana (por ejemplo, miércoles por la mañana) para ajustar el plan: qué ha avanzado, qué falta y posibles bloqueos.",
+      "error": null
+    },
+    {
+      "prompt_id": "p506",
+      "prompt": "dame consejos para no procrastinar",
+      "expected_intent": "recommendations",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "recommendations",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 27.941681999996945,
+      "final_reply": "1) Top prioridades inmediatas\n- Empieza ya con la tarea que más pospones: divídela en 3 microtareas de 15–25 minutos cada una y realiza la primera. Razón: el arranque reduce la resistencia y te da progreso visible.\n- Reserva 2 bloques de 25 minutos hoy para avanzar en esa tarea o en una subtarea clave. Razón: tiempos breves y enfocados facilitan el inicio.\n- Activa un ritual anti-distracciones: entorno despejado, móvil en modo silencio y sin pestañas innecesarias. Razón: condiciona tu cerebro para concentrarte.\n- Aplica la regla de 2 minutos: si una tarea puede hacerse en 2 minutos, hazla ahora mismo. Razón: ganar impulso rápidamente.\n- Define un entregable mínimo para hoy (un paso concreto que puedas mostrar, no todo perfecto). Razón: claridad de progreso y motivación.\n\n2) Riesgos por fechas cercanas\n- Falta de claridad sobre por dónde empezar puede hacer que pospongas aún más.\n- Subestimación o sobreestimación del tiempo real necesario para las tareas.\n- Perfeccionismo que bloquea la acción inicial.\n- Fatiga o burnout si no hay descansos adecuados.\n- Distracciones constantes o multitarea que diluyen el enfoque.\n- Falta de responsabilidad o rendición de cuentas externas.\n\n3) 2 a 4 ideas nuevas realistas que puedes hacer esta semana\n- Prueba la técnica Pomodoro con un objetivo concreto: elige una tarea y completa 4 bloques de 25 minutos esta semana, dejando un entregable mínimo al final de cada sesión.\n- Implementa la regla de 2 minutos durante 3 días: atiende inmediatamente todas las tareas que puedas completar en 2 minutos (lecturas cortas, respuestas rápidas, organizar una carpeta). Evalúa el impacto al cierre de la semana.\n- Planificación nocturna breve: 5 minutos cada noche para identificar la tarea más importante de mañana y bloquear un tiempo específico para empezar.\n- Rendición de cuentas breve: comparte tu plan de mañana con un amigo o colega y acuerda un check-in al final del día para confirmar avances.\n\nSi quieres, dime qué tareas o fechas límite tienes y te devuelvo un plan personalizado con prioridades ajustadas a tu contexto.",
+      "error": null
+    },
+    {
+      "prompt_id": "p601",
+      "prompt": "cómo va mi progreso",
+      "expected_intent": "progress",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "progress",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 78.04160566700011,
+      "final_reply": "Aquí tienes un estado claro y accionable de tu progreso actual.\n\nResumen rápido\n- Progreso global actual: 20% (promedio de 6 objetivos).\n- Avances notables: Redactar memoria (TFG) al 80%, Redactar capítulo 5 (tesis) al 30%.\n- Áreas con poco o ningún avance: preparación de defensa, reservas de vuelos, maletas, conclusiones, y varios subpendientes de tesis.\n\nDetalle por proyecto\n- Vacaciones (Proyecto principal)\n  - Progreso: 0% de 0 objetivos asignados\n  - Comentario: sin objetivos/tareas definidos aún\n\n- Trabajo de fin de grado (TFG)\n  - Progreso de objetivos: 0% de 2\n  - Tareas finales vs pendientes:\n    - Finalizadas: 2\n    - En progreso: 1\n    - Pendientes: 3\n  - Comentario: dos objetivos activos con avance limitado; hay una parte clave ya terminada, pero quedan tareas para avanzar.\n\n- Planificación de vacaciones de verano (Segundo proyecto de vacaciones)\n  - Progreso de objetivos: 0% de 2\n  - Tareas: sin tareas asociadas\n  - Comentario: sin avances concretos\n\n- Tesis (Pausado)\n  - Estado: Pausado (no activo para este análisis de proyectos en curso)\n  - Nota: no se incluyen en el recuento de proyectos activos\n\nProgreso por objetivo (títulos visibles)\n- Redactar memoria (TFG)\n  - Progreso: 80%\n  - Estado: En progreso\n  - Tareas: 5 totales\n    - Finalizadas: 2\n    - En progreso: 1\n    - Pendientes: 2\n\n- Preparar defensa (TFG)\n  - Progreso: 10%\n  - Estado: Pendiente\n  - Tareas: 2\n    - Finalizadas: 0\n    - En progreso: 0\n    - Pendientes: 2\n\n- Reservar vuelos (Planificación de vacaciones)\n  - Progreso: 0%\n  - Estado: Pendiente\n  - Tareas: 1\n    - Finalizadas: 0\n    - En progreso: 0\n    - Pendientes: 1\n\n- Hacer maletas (Planificación de vacaciones)\n  - Progreso: 0%\n  - Estado: Pendiente\n  - Tareas: 0\n  - Observación: sin tareas definidas\n\n- Redactar capitulo 5 (tesis)\n  - Progreso: 30%\n  - Estado: En progreso\n  - Tareas: 3\n    - Finalizadas: 0\n    - En progreso: 0\n    - Pendientes: 3\n\n- Redactar capítulo 5 (segundo objetivo, tesis)\n  - Progreso: 0%\n  - Estado: Pendiente\n  - Tareas: 0\n\nElementos bloqueados (qué está frenando el avance)\n- Preparar defensa (TFG): 2 tareas pendientes\n- Buscar vuelos baratos (Planificación de vacaciones): 1 tarea pendiente\n- Redactar conclusiones (Redactar memoria): 1 tarea pendiente\n- Redactar capitulo 5 (tesis, objetivo activo 5): 3 tareas pendientes\n- Observación: varios pendientes sin tareas asignadas en otros objetivos; conviene desglosar y asignar tareas para mover el progreso\n\nPlan de acción recomendado (próximas 1–2 semanas)\nPrioridades clave (alto impacto)\n1) TFG - Preparar defensa\n   - Crear/definir las 2 tareas pendientes\n   - Objetivo: avanzar al menos 2–3% adicionales en este objetivo\n   - Plazo sugerido: 1 semana\n\n2) Tesis - Redactar capitulo 5 (capítulo 5)\n   - Desglosar las 3 tareas pendientes en subtareas concretas\n   - Objetivo: completar al menos 1–2 tareas en 1 semana; avanzar en el capítulo\n   - Plazo sugerido: 1–2 semanas\n\n3) Planificación de vacaciones\n   - Reserva de vuelos baratos (1 tarea pendiente)\n   - Hacer maletas (1 tarea pendiente o definir fechas)\n   - Plazo sugerido: 1–2 semanas\n\n4) Redactar conclusiones (memoria)\n   - Definir y redactar la conclusión final\n   - Plazo sugerido: 1–2 semanas\n\nAcciones rápidas para hoy\n- Abrir las dos tareas pendientes de Preparar defensa y empezar a trabajar en ellas.\n- Desglosar las 3 tareas de capitulo 5 en subtareas concretas y asignar responsables/fechas.\n- Buscar al menos 2 opciones de vuelos baratos y elegir una para reservar.\n- Esbozar un borrador de la conclusión de la memoria (un párrafo inicial).\n\n¿Quieres que te cree un plan de acción con fechas exactas y responsables para cada tarea? Puedo generar un calendario semanal con hitos y recordatorios. También puedo ajustar las prioridades si me dices qué fecha límite tienes para cada proyecto.",
+      "error": null
+    },
+    {
+      "prompt_id": "p602",
+      "prompt": "qué porcentaje llevo del TFG",
+      "expected_intent": "progress",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "progress",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 90.59529020799528,
+      "final_reply": "El avance del TFG es 45%.\n\nCómo se obtiene: es el promedio entre los dos objetivos del TFG:\n- Redactar memoria: 80% de progreso\n- Preparar defensa: 10% de progreso\n\nEstado actual (para contexto):\n- Memoria: 2 tareas completas, 1 en progreso, 1 pendiente\n- Preparar defensa: 0 completadas, 0 en progreso, 2 pendientes\n\nRecomendación de acción rápida:\n- Priorizar Preparar defensa: completa las 2 tareas pendientes para subir el promedio.\n- Identificar bloqueos específicos en esa parte y aplicar una micro-tarea diaria (p. ej., redactar un esquema de defensa y preparar diapositivas para 1 sesión).\n- Si es posible, asigna un bloque de tiempo dedicado hoy para avanzar al menos en 1 tarea de defensa y 1 tarea de memoria para mantener el impulso.",
+      "error": null
+    },
+    {
+      "prompt_id": "p603",
+      "prompt": "estado de mis objetivos",
+      "expected_intent": "progress",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "progress",
+      "intent_match": true,
+      "asked_clarification": true,
+      "clarification_pertinent": false,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 75.51219091700477,
+      "final_reply": "Aquí tienes el estado actualizado de tus objetivos, con foco en los puntos críticos y un plan de acción rápido para desbloquearlos en 2–4 semanas.\n\nResumen rápido\n- Progreso global estimado: ~20%\n- Tendencia: estancada en la mayoría de proyectos; la mayor parte del avance está en el Trabajo de Fin de Grado (TFG) con la redacción de la memoria.\n- Tesis doctoral: pausada con fecha límite próxima (30 de junio).\n- Vacaciones (2 proyectos): sin avances.\n- Bloqueos relevantes: Pausa de la tesis y un objetivo duplicado sin tareas visibles; tarea aislada de “comprar pan” sin asignación.\n\nEstado por proyecto\n\n1) Trabajo de Fin de Grado (TFG)\n- Progreso de objetivos:\n  - Redactar memoria: 80% de avance (introducción y metodología ya completadas; experimento en progreso; pendientes: conclusiones, revisión de bibliografía).\n  - Preparar defensa: 10% (pendientes: ensayar defensa, preparar slides).\n- Tareas y estado:\n  - Tareas finalizadas: 2 de 6.\n  - En progreso: 1 (experimento).\n  - Pendientes: 3 (conclusiones, revisión bibliografía, y una tarea adicional relacionada con la defensa).\n- Observaciones: buena avance en la memoria, pero la preparación de defensa necesita cierre para evitar cuello de botella antes de la defensa.\n\n2) Vacaciones — Planificación verano (Proyecto 1)\n- Progreso de objetivos: 0%\n- Tareas: 2 pendientes\n- Observación: sin avances aún; tocará planificar paso a paso.\n\n3) Vacaciones — Planificación verano (Proyecto 2)\n- Progreso de objetivos: 0%\n- Tareas: 2 pendientes\n- Observación: preparar viaje está pendiente; definir prioridades y presupuestos.\n\n4) Tesis doctoral\n- Progreso de objetivos: 0% (ningún objetivo completo)\n- Tareas finalizadas: 0\n- Pendientes: 3 (tiene un objetivo en progreso ~30%; otras tareas pendientes)\n- Estado: Pausada; fecha límite próxima (30 de junio) añade presión.\n- Observación: el bloqueo actual es la pausa; esto afecta el avance global.\n\n5) Elementos bloqueados y observaciones\n- Tesis doctoral: bloqueada por pausa; fecha límite 30 de junio.\n- Capítulo 5 (duplicado de tesis): estado Pendiente sin tareas visibles (podría bloquear consolidación del objetivo).\n- Comprar pan: tarea aislada sin objetivo asignado (carece de trazabilidad).\n\nPlan de acción rápido para 2–4 semanas\nObjetivo principal: desbloquear la tesis y avanzar la memoria del TFG para acercarte a la meta global.\n\nSemana 1\n- Tesis doctoral: definir y acordar un plan de acción claro para Capítulo 5.\n  - Paso 1: acordar alcance exacto de Capítulo 5 (qué se cubre, qué estructura).\n  - Paso 2: asignar un objetivo concreto de 1–2 días (p. ej., redactar introducción del Capítulo 5 y bosquejo de desarrollo).\n  - Paso 3: establecer una micro-matriz de tareas diarias con fechas límite (ej.: 4 días para primer borrador).\n- TFG: cerrar pendientes críticos de la memoria.\n  - Paso 1: concluir conclusiones (esqueleto y borrador inicial).\n  - Paso 2: revisión de bibliografía clave y formato de referencias.\n  - Paso 3: preparar borrador de los slides de defensa para empezar a ensayar.\n\nSemana 2\n- Tesis doctoral: completar primer borrador del Capítulo 5 y revisión rápida.\n  - Paso 1: terminar desarrollo y conclusión para Capítulo 5.\n  - Paso 2: revisión de estilo y referencias.\n- TFG: ensayar defensa y primeros borradores de slides.\n  - Paso 1: ensayar defensa (primera sesión).\n  - Paso 2: finalizar estructura de slides y puntos clave.\n\nSemana 3\n- Tesis doctoral: revisión final del Capítulo 5 y entrega de borrador para revisión.\n- TFG: consolidar memoria (revisión bibliografía, formato final) y preparar versión para defensa.\n\nSemana 4\n- Tesis doctoral: revisar comentarios y preparar defensa si corresponde.\n- TFG: ensayo final de defensa, ajustes finales y revisión de bibliografía.\n- Vacaciones: decidir fechas clave y avanzar pequeños hitos (reservar vuelos, hacer maletas, etc.) para no dejar todo para último momento.\n- Pan y pan-demás: si ya está descontextualizado, eliminar o asignar a un objetivo concreto (por ejemplo, “comprar pan” como tarea de la semana si es relevante).\n\nSiguientes pasos propuestos\n- ¿Quieres que filtre este informe por tipo de tarea (bloqueos críticos) y te devuelva solo ese listado?\n- ¿Prefieres que desarrolle un plan detallado de 2–4 semanas con fechas exactas y responsables (tareas, entregables y fechas límite) para la tesis y el TFG?\n\nSi te parece, puedo adaptar el plan a tus fechas límite reales y a tu ritmo de trabajo (día de la semana disponible, duración de sesiones, etc.). ¿Cómo prefieres continuar?",
+      "error": null
+    },
+    {
+      "prompt_id": "p604",
+      "prompt": "cuánto he avanzado en el proyecto vacaciones",
+      "expected_intent": "progress",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "progress",
+      "intent_match": true,
+      "asked_clarification": true,
+      "clarification_pertinent": false,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 89.8112661250052,
+      "final_reply": "Resumen de avance del proyecto \"Vacaciones\"\n\n- Avance global del proyecto Vacaciones (promedio de sus objetivos): 22.5% (se promedia 80% + 10% + 0% + 0% de sus cuatro objetivos).\n- Desglose por subproyecto y objetivo:\n  - Vacaciones (Redacción de memoria)\n    - Progreso del objetivo: 80%\n    - Tareas: 2 finalizadas, 1 en progreso, 1 pendiente\n  - Vacaciones (Planificación de vacaciones de verano)\n    - Progreso del objetivo 1 (reservar vuelos): 0%\n      - Tareas: 1 pendiente (buscar vuelos baratos)\n    - Progreso del objetivo 2 (hacer maletas): 0%\n      - Tareas: sin tareas asociadas\n\nNotas rápidas:\n- El bloque de tesis no se incluye en este proyecto; corresponde a otro proyecto.\n- El único avance significativo está en la redacción de memoria; los otros objetivos siguen sin progreso o en pausa.\n\nAcciones recomendadas (opciones para avanzar rápido)\n- Para Redacción de memoria (en progreso, objetivo 80%):\n  - Completar la tarea en progreso en los próximos días.\n  - Finalizar la tarea pendiente restante una vez cierre la de progreso.\n  - Revisión rápida del texto para asegurar coherencia y fecha límite.\n- Para Planificación de verano (ambos objetivos 0%):\n  - Definir fechas de viaje y presupuesto estimado.\n  - Buscar y comparar al menos 5-7 opciones de vuelos baratos y horarios.\n  - Reservar vuelos y luego preparar la maleta (tareas rápidas y secuenciales).\n\n¿Quieres que te proponga un plan de sprint de 2 semanas para estos subproyectos o prefieres que priorice automáticamente la tarea en progreso de la memoria y la de buscar vuelos primero?",
+      "error": null
+    },
+    {
+      "prompt_id": "p605",
+      "prompt": "dame un análisis de mi avance",
+      "expected_intent": "progress",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "progress",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 88.43569658399792,
+      "final_reply": "Aquí tienes un análisis claro y accionable de tu avance basado en la información que compartiste.\n\nResumen ejecutivo\n- Progreso general: 20%.\n- Principales avances: Memoria del TFG está muy avanzada (80%). El proyecto de Tesis está pausado con fecha límite próxima (30 de junio de 2026) y bloquea el avance del Capítulo 5.\n- Áreas pendientes y riesgos: La mayor parte de los objetivos restantes están estancados o sin avance reciente (Reservar vuelos, Preparar defensa, Hacer maletas). El Capítulo 5 de la Tesis tiene 3 tareas pendientes y depende de reactivación del proyecto Tesis para avanzar.\n\nAnálisis por proyecto\n\n- Trabajo de Fin de Grado (TFG)\n  - Redactar memoria: 80% completo. 5 tareas en total:\n    - Finalizadas: Introducción, Metodología\n    - En progreso: Experimentación\n    - Pendientes: Conclusiones, Revisar bibliografía\n  - Preparar defensa: 10% completo. 2 tareas pendientes (Ensayar defensa, Preparar slides)\n  - Observación: El progreso de la memoria es sólido, pero la defensa y las partes finales aún requieren atención. El proyecto de TFG no está bloqueado, pero requiere continuidad para cerrar las últimas secciones y la defensa.\n\n- Vacaciones (Segunda versión)\n  - Reservar vuelos: Pendiente (0%).\n  - Hacer maletas: Pendiente (0%).\n  - Observación: Sin avance; son tareas de corto plazo. Potencial para posponer o reprogramar si no hay prioridad inminente.\n\n- Tesis (Pausado)\n  - Estado general: Pausado. Fecha límite 30 de junio de 2026.\n  - Capítulo 5 (objetivo 1): 30% completo; 3 tareas pendientes (Introducción, Desarrollo, Conclusión). No hay tareas para el segundo objetivo de Capítulo 5.\n  - Observación: Este bloqueo es crítico ya que impide avanzar el Capítulo 5 y, en conjunto, el progreso de la Tesis. Aun cuando hay un objetivo duplicado sin tareas, no puede progresar sin definir y activar las tareas correspondientes.\n\nAnálisis de objetivos clave\n- Redactar memoria (TFG): En progreso; 80% completo; sigue habiendo 2 tareas pendientes y una en proceso. Mantener el ritmo para evitar demoras en la entrega de TFG.\n- Preparar defensa (TFG): Pendiente; 2 tareas pendientes. Necesita planificación de ensayo y slides.\n- Redactar capitulo 5 (Tesis) — objetivo 1: En progreso 30%; 3 tareas pendientes. Bloqueo por pausa de Tesis.\n- Redactar capitulo 5 (Tesis) — objetivo duplicado: 0% sin tareas asociadas. No avanzará por sí mismo; conviene consolidar o eliminar duplicado.\n- Reservar vuelos (Vacaciones 2ª versión): Pendiente. Sin avance.\n- Hacer maletas (Vacaciones 2ª versión): Pendiente, sin tareas.\n\nObstáculos y riesgos\n- Bloqueo principal: Tesis (Capítulo 5) está pausado y la fecha límite cercana. Esto bloquea el progreso del Capítulo 5 y el progreso global en la Tesis.\n- Duplicados/ambigüedad: Un objetivo duplicado de Capítulo 5 sin tareas separadas puede generar confusión o dispersión de esfuerzos.\n- Otros pendientes: Vacaciones y preparación de defensa requieren atención, pero no tienen bloqueos inmediatos si se reasignan prioridades.\n\nRecomendaciones prioritarias\n1) Reactivar la Tesis (Capítulo 5) de forma prioritaria.\n   - Acción: definir de inmediato una fecha de reactivación y confirmar con tu tutor. Evita que el Capítulo 5 siga detenido.\n2) Definir y asignar tareas concretas para Capítulo 5.\n   - Acción: para el Capítulo 5, establecer 3 tareas claras (Introducción, Desarrollo, Conclusión) con responsables o como puede hacerse tú mismo, y asignar fechas límite realistas antes del 30 de junio.\n3) Consolidar objetivo duplicado de Capítulo 5.\n   - Acción: si el objetivo duplicado no aporta valor adicional, eliminarlo o integrarlo como una subtarea del Capítulo 5 principal para evitar duplicación de esfuerzos.\n4) Mantener progreso de la memoria del TFG y la defensa en paralelo.\n   - Acción: priorizar terminar las conclusiones y la revisión de bibliografía de la memoria; planificar ensayos y slides de defensa para fechas próximas.\n5) Gestión de otros pendientes sin bloqueo estructural inmediato.\n   - Acción: para Reservar vuelos y Hacer maletas, asignar fechas límite en una semana y, si el viaje no es inmediato, considerar posponer estas tareas para después de cerrar Capítulo 5 o durante ventanas de menor carga de trabajo.\n\nSugerencia de plan de acción (propuesta rápida)\n- Semana 1 (inmediato): Reactivar la Tesis Capítulo 5. Definir 3 tareas específicas (Introducción, Desarrollo, Conclusión) con fechas límite; confirmar con el tutor.\n- Semana 2: Avanzar en Capítulo 5. Completar al menos Introducción y un primer borrador de Desarrollo; dejar Conclusión para la semana 3. Paralelamente, completar las últimas dos tareas de la memoria del TFG (Conclusions y Revisar bibliografía) si es posible.\n- Semana 3: Terminación de Capítulo 5 (Conclusión) y revisión general de Capítulo 5; iniciar preparación de defensa (ensayo y slides) si Capítulo 5 está en un borrador estable.\n- Semana 4 (y hasta la fecha límite): Revisión final y entrega. Ajustes finales al TFG y a la Tesis según comentarios del tutor.\n\nNotas rápidas para la organización\n- Considera usar un plan Kanban sencillo (Backlog, En progreso, Pendiente, Completado) para cada proyecto y objetivo.\n- Mantén un único objetivo para Capítulo 5 y evita duplicados; así evitas dispersión.\n- Programa revisiones semanales (15–30 minutos) para asegurar que no haya bloqueos no detectados a tiempo.\n\n¿Quieres que te genere un plan de acción detallado con fechas exactas y responsables (por ejemplo, tú y tu tutor) en un formato lista o calendario? También puedo convertir este análisis en un informe listo para compartir.",
+      "error": null
+    },
+    {
+      "prompt_id": "p606",
+      "prompt": "qué tareas están bloqueadas",
+      "expected_intent": "progress",
+      "expected_clarification": false,
+      "ambiguity": "medium",
+      "actual_intent": "progress",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": false,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 82.0883241670017,
+      "final_reply": "Tareas actualmente bloqueadas y la razón:\n\n- Capítulo 5 (Tesis): Introducción, Desarrollo y Conclusión\n  - Motivo: todas las partes están en Pendiente; el objetivo Redactar Capítulo 5 tiene solo 30% de avance, bloqueando el progreso de este bloque contenido.\n\n- Preparar defensa (TFG)\n  - Motivo: objetivo con progreso mínimo (10%), por lo que ensayar la defensa y preparar los slides quedan bloqueados.\n\n- Reservar vuelos (Planificación de vacaciones)\n  - Motivo: Buscar vuelos baratos permanece en Pendiente con 0% de progreso.\n\n- Hacer maletas (Planificación de vacaciones)\n  - Motivo: Pendiente con 0% de progreso; bloquea la ejecución logística.\n\n- Revisar bibliografía (Redactar memoria)\n  - Motivo: pertenece al objetivo Redactar memoria (80% completado); la tarea está Pendiente, impide completar la revisión bibliográfica y cerrar ese bloque.\n\nSugerencia rápida para desbloquear (prioridad):\n- Capítulo 5: definir un microobjetivo inmediato (p. ej., redactar la Introducción en un bloque de 2–3 horas) para subir el progreso del capítulo y desbloquear las tareas dependientes.\n- Revisar bibliografía: seleccionar y revisar 5 referencias clave para poder cerrar esa tarea y avanzar en la memoria.\n- Una vez Capítulo 5 y bibliografía avanzadas, continuar con la preparación de defensa y, por separado, avanzar en la planificación de viaje (buscar vuelos) y empaquetado.\n- Evitar nuevos bloqueos manteniendo una revisión semanal de progreso y reprogramando tareas bloqueadas en bloques de tiempo específicos.",
+      "error": null
+    },
+    {
+      "prompt_id": "p701",
+      "prompt": "resume el documento plan_de_trabajo.pdf",
+      "expected_intent": "document",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "document",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 8.327908499995829,
+      "final_reply": "No se pudo descargar el archivo 'plan_de_trabajo.pdf' desde el almacenamiento.",
+      "error": null
+    },
+    {
+      "prompt_id": "p702",
+      "prompt": "léeme el documento de la memoria",
+      "expected_intent": "document",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "document",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 6.855331124999793,
+      "final_reply": "No se pudo descargar el archivo 'memoria.docx' desde el almacenamiento.",
+      "error": null
+    },
+    {
+      "prompt_id": "p703",
+      "prompt": "analiza el documento riesgos.docx centrándote en los riesgos técnicos",
+      "expected_intent": "document",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "document",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 7.1593944580017705,
+      "final_reply": "No se pudo descargar el archivo 'riesgos.docx' desde el almacenamiento.",
+      "error": null
+    },
+    {
+      "prompt_id": "p704",
+      "prompt": "crea un documento con el plan de trabajo del TFG",
+      "expected_intent": "document",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "document",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 23.34733804199641,
+      "final_reply": "Documento generado correctamente: **Plan de Trabajo TFG**\n`plan_de_trabajo_tfg_20260525_161602_f0d238.txt`\nProyecto: TFG",
+      "error": null
+    },
+    {
+      "prompt_id": "p705",
+      "prompt": "muestra las notas del proyecto TFG",
+      "expected_intent": "document",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "document",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 15.454694374995597,
+      "final_reply": "Notas del proyecto TFG:\n\n1) Proyecto ID: 660000000000000000000001\n   - Anotaciones: sin anotaciones.",
+      "error": null
+    },
+    {
+      "prompt_id": "p706",
+      "prompt": "añade una nota al proyecto TFG: revisar bibliografía adicional",
+      "expected_intent": "document",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "document",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 9.413229207995755,
+      "final_reply": "Anotación añadida al proyecto **TFG**:\n\n> revisar bibliografía adicional",
+      "error": null
+    },
+    {
+      "prompt_id": "p707",
+      "prompt": "genera un informe del proyecto vacaciones",
+      "expected_intent": "document",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "document",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 13.720755250004004,
+      "final_reply": "Existen dos proyectos llamados 'vacaciones'. ¿Cuál quieres? 1) ID 6a146e2b15279a588bd1b1f1 o 2) ID 660000000000000000000002.",
+      "error": null
+    },
+    {
+      "prompt_id": "p708",
+      "prompt": "abre el archivo de la introducción",
+      "expected_intent": "document",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "document",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 9.063148000001092,
+      "final_reply": "No se pudo descargar el archivo 'introduccion.pdf' desde el almacenamiento.",
+      "error": null
+    },
+    {
+      "prompt_id": "p709",
+      "prompt": "resume",
+      "expected_intent": "document",
+      "expected_clarification": true,
+      "ambiguity": "high",
+      "actual_intent": "weekly_summary",
+      "intent_match": false,
+      "asked_clarification": false,
+      "clarification_pertinent": false,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 26.955750250002893,
+      "final_reply": "A continuación un resumen de la semana basado en tu contexto:\n\n1) Avances clave\n- Task completadas: redacción de introducción y redacción de metodología ya finalizadas.\n- Progreso destacado: memoria (progreso 80%, estado En progreso) y capítulo 5 (progreso 30%, En progreso).\n- Actividad reciente: reunión de seguimiento realizada el 20 de mayo.\n- Eventos relevantes: defensa del TFG programada para el 26 de mayo; defensa adicional prevista para el 15 de junio.\n- Otros avances: la tarea de redactar experimentación está en progreso (alta prioridad).\n\n2) Pendientes importantes con fecha límite cercana\n- Defensa TFG (alta prioridad): ensayo para defensa y preparación de slides antes del 26 de mayo (la defensa está en esa fecha). \n- Revisión bibliográfica (alta prioridad): pendiente, debe completarse para respaldar la memoria y capítulos.\n- Preparar slides (prioridad media): pendiente para la defensa próxima y para presentar el contenido resumido.\n- Otros pendientes de alto/mediano interés (sin fecha clara): completar la redacción de introducción, desarrollo y conclusión del capitulo 5 (son parte de los elementos pendientes para dicho capítulo).\n\n3) Riesgos o bloqueos\n- Falta de ensayo y de slides listos para la defensa próxima podría afectar la duración y la calidad de la defensa del TFG; clave completar ensayo y slides cuanto antes.\n- Dependencia de la revisión bibliográfica para sustentar la memoria y los capítulos; si se retrasa, podría afectar la cohesión y calidad de la versión final.\n- Progreso desigual entre las secciones del capítulo 5 y la memoria podría generar desalineación entre capítulos si no se sincronizan pronto.\n\nSugerencia rápida de próximos pasos (opcional):\n- Priorizar ensayo de defensa y preparación de slides para el 26 de mayo.\n- Finalizar revisión bibliográfica y avanzar en la redacción de la introducción, desarrollo y conclusión del capitulo 5.\n- Verificar si hay fechas para vuelos y maletas para evitar contratiempos post-defensa. \n- Programar un ensaye adicional de defensa tras terminar slides y revisión bibliográfica para afinar la presentación.",
+      "error": null
+    },
+    {
+      "prompt_id": "p710",
+      "prompt": "lee el archivo",
+      "expected_intent": "document",
+      "expected_clarification": true,
+      "ambiguity": "high",
+      "actual_intent": "document",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": false,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 8.289083750001737,
+      "final_reply": "No especificaste qué archivo leer. ¿A cuál documento te refieres? Indica el ID, el nombre del documento o el proyecto (TFG o tesis) para poder identificarlo.",
+      "error": null
+    },
+    {
+      "prompt_id": "p801",
+      "prompt": "lo de ayer",
+      "expected_intent": "unknown",
+      "expected_clarification": true,
+      "ambiguity": "high",
+      "actual_intent": "progress",
+      "intent_match": false,
+      "asked_clarification": false,
+      "clarification_pertinent": false,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 93.44143287499901,
+      "final_reply": "Aquí tienes una actualización accionable basada en lo de ayer (según el estado actual):\n\nResumen rápido\n- Progreso global: 20% (6 objetivos, 2 en progreso, 4 pendientes, 0 completados).\n- Proyectos activos: Vacaciones (planificación de verano) y TFG y la tesis en curso.\n- Principales pendientes: memoria del TFG definidamente avanzada, preparación de la defensa, reserva de vuelos, y capítulos de tesis pendientes.\n\nHallazgos clave (desde ayer)\n- Redactar memoria (TFG): sigue en 80% y en progreso; quedan 2 tareas finalizadas, 1 en progreso y 2 pendientes. Es la ruta con mayor impacto para avanzar.\n- Preparar defensa (TFG): 10% completo; 2 tareas pendientes. Priorización alta para evitar cuello de botella.\n- Red Acta Capítulo 5 (tesis): 30%; 3 tareas pendientes. Requiere descomposición rápida para reencauzar.\n- Vacaciones: Reservar vuelos y hacer maletas no avanzaron (0%). Riesgo logístico si no se atienden.\n- Tesis doctoral: Pausada; fecha límite 30/06/2026. Riesgo alto si no se reactivan los esfuerzos.\n\nPlan de acción recomendado (para los próximos 2–3 días)\n1) TFG – Redactar memoria (prioridad alta)\n- Acción específica: completar las 2 tareas pendientes y avanzar 1 de las tareas en progreso; revisar la estructura y completar la sección faltante.\n- Meta: tener la memoria lista para revisión inicial mañana o pasado.\n- Bloques de tiempo sugeridos: 2 bloques de 60 minutos hoy.\n\n2) TFG – Preparar defensa (prioridad alta)\n- Acción específica: terminar las 2 tareas pendientes; preparar un guion corto de defensa y reunir documentos clave (fechas, salvaguardas, slide de apoyo).\n- Meta: tener un borrador de defensa y checklist de entrega.\n\n3) Vacaciones – Logística de viaje\n- Acción específica: seleccionar fechas tentativas y buscar vuelos; reservar al menos un tramo clave en las próximas 24–48 horas.\n- Meta: tener vuelo reservado y calendario actualizado.\n\n4) Vacaciones – Hacer maletas\n- Acción específica: crear una lista de imprescindibles y asignar día límite para empacar.\n- Meta: lista completa en 2–3 días.\n\n5) Tesis – Red Acta Capítulo 5 y Capítulo 5 (versión adicional)\n- Acción específica: descomponer en 3–4 subtareas por capítulo; asignar 1 bloque de 60 minutos para avanzar en cada subtarea.\n- Meta: disminuir pendientes a 1–2 para cada ítem en 48–72 horas; iniciar versión adicional si corresponde.\n\n6) Tesis doctoral\n- Acción específica: revisar estado y reactivar el plan de trabajo (reunión corta con asesor/autoasignación de hitos semanales).\n- Meta: definir al menos 2 hitos semanales hasta fin de mes.\n\nSugerencias de priorización\n- Enfócate primero en la memoria del TFG y la defensa: son colas críticas que pueden desbloquear otros avances.\n- No ignores la logística de viaje y la tesis doctoral: un pequeño retraso en entradas logísticas o en reactivación de la tesis puede convertir un cuello de botella en un problema mayor.\n- Establece fechas intermedias: asigna deadlines claros para reservar vuelos y para cada bloque de redacción de capítulo.\n\nPróximos pasos para confirmar\n- ¿Quieres que te arme un plan detallado con bloques de tiempo (horas/slots) para hoy y los próximos 3 días?\n- ¿Prefieres priorizar primero la memoria del TFG o la defensa? Puedo ajustar las tareas y los deadlines en función de tu prioridad.\n\nSi me dices tus preferencias, te devuelvo un plan de acción con horarios concretos y una lista de verificación para cada tarea.\n\nFuentes\n- (No se proporcionaron fuentes externas en el mensaje original.)",
+      "error": null
+    },
+    {
+      "prompt_id": "p802",
+      "prompt": "termina eso",
+      "expected_intent": "unknown",
+      "expected_clarification": true,
+      "ambiguity": "high",
+      "actual_intent": "action",
+      "intent_match": false,
+      "asked_clarification": true,
+      "clarification_pertinent": true,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 14.063028665994352,
+      "final_reply": "No está claro a qué te refieres con 'termina eso'. ¿Quieres terminar/cerrar alguna tarea específica? Por favor indica: (a) el título del ítem o su id, (b) la acción deseada (completar, actualizar, eliminar, etc.), (c) el objetivo o proyecto relacionado y cualquier dato necesario para realizarla.",
+      "error": null
+    },
+    {
+      "prompt_id": "p803",
+      "prompt": "haz lo que te dije antes",
+      "expected_intent": "unknown",
+      "expected_clarification": true,
+      "ambiguity": "high",
+      "actual_intent": "action",
+      "intent_match": false,
+      "asked_clarification": true,
+      "clarification_pertinent": true,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 10.341733957997349,
+      "final_reply": "No tengo suficiente información para ejecutar acciones. ¿Qué acción(es) quieres realizar y con qué datos? Por ejemplo: crear_project (titulo, descripcion, estado, prioridad, fecha_inicio, fecha_fin), crear_goal (titulo, project_id o project_title, descripcion, prioridad, estado, fecha_inicio, fecha_fin, progreso), crear_task (contenido, goal_id o goal_title, descripcion, fecha_limite, estado, prioridad). Proporciona la acción y sus campos obligatorios.",
+      "error": null
+    },
+    {
+      "prompt_id": "p804",
+      "prompt": "ya sabes",
+      "expected_intent": "unknown",
+      "expected_clarification": true,
+      "ambiguity": "high",
+      "actual_intent": "progress",
+      "intent_match": false,
+      "asked_clarification": true,
+      "clarification_pertinent": true,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 84.88403287500114,
+      "final_reply": "Perfecto. Con el estado actual, te propongo un plan accionable para sacar adelante las tareas críticas y reducir el riesgo de retraso, especialmente con la tesis doctoral y la memoria del TFG.\n\n1) Priorización y foco inmediato\n- Prioridad 1: Tesis doctoral (fecha límite 30 de junio)\n  - Objetivo inmediato: reanudar y avanzar en el capítulo 5 (y preparar la defensa).\n  - Entregables próximos: outline de capítulo 5, borradores de secciones 5.1–5.3, y un borrador de conclusiones si corresponde.\n- Prioridad 2: Redactar memoria (TFG)\n  - Objetivo inmediato: avanzar en las secciones pendientes y cerrar la sección de conclusiones.\n  - Entregables próximos: avances en las conclusiones y revisión de bibliografía adicional relevante.\n- Bloqueos que deben atenderse para avanzar\n  - Preparar defensa (pendiente) y sus sub-tareas.\n  - Planificar vuelos y viajes (vinculado al plan de vacaciones) cuando sea necesario.\n  - Revisión bibliográfica adicional y cierre de tareas aisladas (p. ej., compras menores) pueden posponerse temporalmente.\n\n2) Plan de acción inmediato (próximas 72 horas)\n- Día 0–1: Activar el forzado de avance en tesis\n  - Crear/actualizar el outline de capítulo 5: 5.1, 5.2, 5.3 con objetivos y subsecciones.\n  - Compilar y revisar bibliografía relevante para cap. 5.\n  - Escribir un borrador inicial de la sección 5.1 (aprox. 500–800 palabras) y dejar marcado el contenido pendiente.\n- Día 2–3: Progreso en capítulo 5 y avances en memoria\n  - Completar 5.1 y empezar 5.2 (borrador de 500–800 palabras).\n  - Paralelamente, avanzar en las conclusiones de la memoria del TFG: redactar un borrador de conclusiones y un esquema de cierre.\n  - Revisión rápida de cualquier dependencia (figuras, tablas, resultados) para que el texto tenga coherencia.\n- Día 3–4: Preparar defensa (bloque pendiente)\n  - Definir requisitos de defensa (formatos, fechas, plazos administrativos).\n  - Elaborar un cronograma tentativo de defensa y listar las tareas necesarias para abrir las siguientes sub-tareas.\n\n3) Plan de sprint de 2 semanas (opcional, si quieres un marco más estructurado)\n- Objetivo principal (semana 1): cap. 5 completo en borrador y marco de defensa.\n  - Día 1–2: Outline 5.1–5.3 + revisión bibliográfica para cap. 5.\n  - Día 3–4: Redacción intensiva de 5.1 y 5.2.\n  - Día 5–6: Redacción de 5.3 y consolidación de referencias.\n  - Día 7: Revisión interna y ajustes.\n- Objetivo secundario (semana 2): Redactar conclusiones TFG y avanzar redacción de memoria.\n  - Día 8–9: Conclusiones TFG (estructura y primer borrador).\n  - Día 10–11: Revisar memoria (resumen, resultados y discusión).\n  - Día 12–14: Revisión final, bibliografía y preparación para entrega o defensa preliminar.\n- Seguimiento: asigna bloques de 90 minutos con descansos, y revisiones diarias de progreso.\n\n4) Recomendaciones prácticas de gestión del tiempo\n- Bloques de trabajo: 90 minutos de concentración, 10–15 minutos de descanso. Evita multitarea.\n- Ritmo diario: intenta 2–3 bloques dedicados de escritura/lectura por día durante la semana.\n- Gestión de bloqueos: si alguna tarea clave (p. ej., cap. 5) parece estancada, dedicar un bloque específico al desbloqueo (p. ej., revisión de bibliografía o reescritura de una sección).\n- Revisión y ajuste: al finalizar cada bloque, actualiza el progreso en el plan y ajusta las próximas prioridades.\n\n5) Preguntas rápidas para adaptar el plan a tu realidad\n- ¿Prefieres un plan de 14 días (candente) o de 21 días (más cómodo)?\n- ¿Cuántas horas semanales puedes dedicar a estas tareas en las próximas dos semanas?\n- ¿Deseas que te entregue un calendario detallado con fechas y bloques horaria, o prefieres un resumen semanal de avances?\n\n6) ¿Quieres que te entregue ahora un plan detallado de 14 días con bloques de tiempo y objetivos diarios, listo para seguir? Puedo adaptar el plan exactamente a tu disponibilidad y priorizar las subtareas críticas de la tesis y la memoria.\n\nFuera de este plan, si quieres, puedo generar también un tablero rápido (Por hacer / En progreso / Hecho) para que puedas ir moviendo las tareas según avance.\n\n¿Te gustaría que te prepare el plan detallado de 14 días con bloques de tiempo y fechas específicas?",
+      "error": null
+    },
+    {
+      "prompt_id": "p805",
+      "prompt": "el otro",
+      "expected_intent": "unknown",
+      "expected_clarification": true,
+      "ambiguity": "high",
+      "actual_intent": "research",
+      "intent_match": false,
+      "asked_clarification": false,
+      "clarification_pertinent": false,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 24.10769650000293,
+      "final_reply": "No tengo suficiente contexto para saber a qué proyecto te refieres con “el otro”. ¿Cómo quieres proceder?\n\nOpciones para identificar el proyecto:\n- Dame un código de proyecto (por ejemplo, PRJ5). Buscaré el proyecto cuyo código coincida.\n- Dame un título completo o parcial del proyecto. Haré la mejor coincidencia.\n- Pídeme que te liste todos los proyectos disponibles con sus IDs para elegir.\n\nQué te devolveré una vez identifiquemos el proyecto:\n- Proyecto: [Título del proyecto] (_id: [ObjectId])\n  - Objetivos:\n    - [Título del objetivo 1] — Estado: [abierto/cerrado/en progreso]\n    - [Título del objetivo 2] — Estado: …\n  - (Opcional) Tareas por objetivo: si quieres que también las vea\n\nEjemplo de formato de respuesta cuando tenga el proyecto:\n- Proyecto: [Título del proyecto] (_id: [ObjectId])\n  - Objetivos:\n    - [Título del objetivo 1] — Estado: [abierto/cerrado/en progreso]\n    - [Título del objetivo 2] — Estado: …\n  - (Opcional) Tareas por objetivo:\n    - Objetivo 1:\n      - [Tarea 1] — Estado: …\n      - [Tarea 2] — Estado: …\n\nDime cuál opción prefieres o proporciona la referencia exacta para que pueda buscar el proyecto correcto.",
+      "error": null
+    },
+    {
+      "prompt_id": "p806",
+      "prompt": "vale",
+      "expected_intent": "unknown",
+      "expected_clarification": true,
+      "ambiguity": "high",
+      "actual_intent": "progress",
+      "intent_match": false,
+      "asked_clarification": false,
+      "clarification_pertinent": false,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 91.57315916600055,
+      "final_reply": "Perfecto. Con el estado actual, here’s un plan accionable y concreto para avanzar, priorizando la tesis y desatorcando los bloqueos clave.\n\nPlan de acción inmediato (próximas 4 semanas)\n\n1) Priorización y consolidación de objetivos\n- Fusionar y limpiar objetivos de tesis:\n  - Capítulo 5 de la tesis (un solo objetivo, con tareas claras).\n  - Preparar defensa (como parte del objetivo de tesis).\n  - Redactar memoria (progreso alto, pendientes concretos).\n- Planificación de vacaciones: mantener como objetivo secundario, pero con fechas y decisiones rápidas para no bloquear otros avances.\n\n2) Acciones de corto plazo (esta semana)\n- Contactar y acordar fecha con el tutor para reactivar la tesis (reunión breve de 15–20 minutos).\n- Definir un borrador de calendario para la tesis con hitos semanales hasta el 30 de junio.\n\n3) Plan de 4 semanas (con fechas)\n\nSemana 1 (del 25 al 31 de mayo)\n- Capítulo 5 (tesis): avanzar en el esqueleto y completar al menos 1 de las 3 secciones pendientes.\n- Redactar memoria: terminar las 2 pendientes y avanzar la tarea en progreso (si es posible, cerrar esas 3 tareas).\n- Preparar defensa: crear el esquema inicial de diapositivas y bullets para cada tema.\n- Tesis doctoral: agendar reunión con tu tutor para confirmar plan y entrega.\n\nSemana 2 (del 1 al 7 de junio)\n- Capítulo 5: completar las 2 secciones pendientes restantes y empezar la integración de resultados y bibliografía.\n- Defensa: definir y completar el borrador de las diapositivas de presentación.\n- Memoria: revisión rápida de coherencia y formato; dejar lista una versión para revisión.\n\nSemana 3 (del 8 al 14 de junio)\n- Capítulo 5: revisión de texto, coherencia y citas; preparar versión para revisión del tutor.\n- Defensa: ensayo de presentación (práctica de 5–7 minutos) y ajustes.\n- Planificación de vacaciones: fijar fechas finales y reservar vuelos si ya se decidió un rango.\n\nSemana 4 (del 15 al 21 de junio)\n- Capítulo 5 y defensa: aprobación final del borrador de Capítulo 5 y diapo de defensa; preparar respuestas a posibles preguntas.\n- Memoria: cerrar pendientes y pasar a revisión final.\n- Tesis doctoral: confirmar entrega y próximos pasos post-defensa.\n\nObjetivos y bloques actuales (estado resumido)\n- Tesis doctoral (pausado): reactivar con tutor; fecha límite 30 de junio de 2026. Riesgo alto si no se reactiva.\n- Capítulo 5 (tesis): 30% de progreso (según tareas). 3 pendientes.\n- Redactar capítulo 5 (duplicado): 0% progreso; 3 pendientes.\n- Preparar defensa (tesis): 10% progreso; 2 pendientes.\n- Redactar memoria (tesis): 80% progreso; 2 pendientes, 1 en progreso, 2 pendientes.\n- Planificación de vacaciones de verano: 0% progreso en los objetivos; 1 tarea pendiente (reservar vuelos).\n\nGestión de bloqueos y riesgos\n- Bloqueo crítico: Tesis doctoral y Capítulo 5 (segundo objetivo) mantienen el avance estancado. Solución: dedicar bloques claros de tiempo diarios/semanales a Capítulo 5 y a la reactivación de la tesis, con una revisión con el tutor.\n- Planificación de vacaciones: reactivarla como segundo bloque para evitar que siga sin progreso; decidir fechas y avanzar en reservas.\n\nFormato sugerido para seguimiento (opcional)\n- Crear un único objetivo consolidado: Capítulo 5 de la tesis (incluye Capítulo 5, Defensa y Redactar memoria como subtareas).\n- Asignar fechas límite semanales y responsables (si trabajas solo, responsable eres tú).\n- Seguimiento diario de 15–30 minutos para:\n  - Qué se hizo ayer.\n  - Qué bloquea hoy.\n  - Qué es el siguiente paso.\n\nQué necesito de ti para afinarlo\n- ¿Quieres que te entregue este plan en formato de lista de tareas con fechas concretas (para pegar en tu gestor de tareas o calendario)?\n- ¿Prefieres que consolidemos todas las tareas de la tesis bajo un único objetivo “Capítulo 5 de la tesis” y eliminemos duplicados para evitar confusión?\n- ¿Confirmas las fechas objetivo para las vacaciones (rango deseado) para fijar un plan específico de reservas?\n\nSi te parece, te pongo a continuación una versión lista para copiar en tu gestor de tareas (con las tareas ya agrupadas). Dime si quieres que lo adapte a un formato concreto (Notion, Todoist, Google Tasks, etc.). Fuentes: no se proporcionaron fuentes externas; estas recomendaciones se basan en el estado actual de tus objetivos.",
+      "error": null
+    },
+    {
+      "prompt_id": "p807",
+      "prompt": "gracias",
+      "expected_intent": "unknown",
+      "expected_clarification": true,
+      "ambiguity": "high",
+      "actual_intent": "research",
+      "intent_match": false,
+      "asked_clarification": true,
+      "clarification_pertinent": true,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 12.706425292002677,
+      "final_reply": "¡Con gusto! ¿Qué te gustaría hacer a continuación? Puedo ayudarte con cualquiera de estas opciones:\n\n- Listar proyectos (por título o código)\n- Identificar un proyecto concreto y ver sus objetivos (con su estado)\n- Ver las tareas asociadas a un objetivo\n- Buscar cualquier dato dentro del sistema (por palabras clave)\n\nPara empezar, dime una referencia (código como PRJ5, título, o una parte del nombre) o indica la acción que quieres realizar. Ejemplos:\n\n- \"Listar proyectos\"\n- \"PRJ7\" (para ver ese proyecto)\n- \"PRJ7 objetivos\"\n- \"Tareas de objetivo O12 de PRJ7\"\n- \"buscar 'optimización de rendimiento'\"\n\n¿Qué te gustaría hacer primero?",
+      "error": null
+    },
+    {
+      "prompt_id": "p901",
+      "prompt": "borre el tprolyecto TFG",
+      "expected_intent": "action",
+      "expected_clarification": false,
+      "ambiguity": "medium",
+      "actual_intent": "action",
+      "intent_match": true,
+      "asked_clarification": true,
+      "clarification_pertinent": true,
+      "expected_actions": [
+        {
+          "op": "delete",
+          "entity": "project",
+          "ref": "TFG"
+        }
+      ],
+      "actual_actions": [
+        {
+          "action_name": "delete_project",
+          "action_parameters": {
+            "project_id": "660000000000000000000001"
+          },
+          "ref_id": null
+        }
+      ],
+      "actions_match": false,
+      "duration_seconds": 7.5681330830047955,
+      "final_reply": "Voy a ejecutar las siguientes acciones: delete_project. Alguna de ellas es destructiva. ¿Confirmas? Responde 'confirmo' o 'cancela'.",
+      "error": null
+    },
+    {
+      "prompt_id": "p902",
+      "prompt": "create task for mañna comprar pan",
+      "expected_intent": "action",
+      "expected_clarification": false,
+      "ambiguity": "medium",
+      "actual_intent": "action",
+      "intent_match": true,
+      "asked_clarification": true,
+      "clarification_pertinent": true,
+      "expected_actions": [
+        {
+          "op": "create",
+          "entity": "task",
+          "ref": "comprar pan"
+        }
+      ],
+      "actual_actions": null,
+      "actions_match": false,
+      "duration_seconds": 8.18909149999672,
+      "final_reply": "¿A qué objetivo pertenece la tarea 'mañana comprar pan'?",
+      "error": null
+    },
+    {
+      "prompt_id": "p903",
+      "prompt": "marka completada la tarea redactar",
+      "expected_intent": "action",
+      "expected_clarification": false,
+      "ambiguity": "medium",
+      "actual_intent": "action",
+      "intent_match": true,
+      "asked_clarification": true,
+      "clarification_pertinent": true,
+      "expected_actions": [
+        {
+          "op": "mark_complete",
+          "entity": "task",
+          "ref": "redactar"
+        }
+      ],
+      "actual_actions": null,
+      "actions_match": false,
+      "duration_seconds": 7.67848616700212,
+      "final_reply": "¿A qué tarea te refieres exactamente para marcarla como completada? Por favor indica el id o el título exacto (p. ej. 'redactar introduccion' con id 662000000000000000000001).",
+      "error": null
+    },
+    {
+      "prompt_id": "p904",
+      "prompt": "kreame un objetibo de redactar la memoria",
+      "expected_intent": "action",
+      "expected_clarification": false,
+      "ambiguity": "medium",
+      "actual_intent": "action",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": false,
+      "expected_actions": [
+        {
+          "op": "create",
+          "entity": "goal",
+          "ref": "redactar la memoria"
+        }
+      ],
+      "actual_actions": [
+        {
+          "action_name": "create_goal",
+          "action_parameters": {
+            "titulo": "redactar memoria",
+            "project_id": "660000000000000000000001",
+            "descripcion": "Redactar la memoria de la TFG",
+            "prioridad": "Media",
+            "estado": "Pendiente",
+            "fecha_inicio": null,
+            "fecha_fin": null,
+            "progreso": 0
+          },
+          "ref_id": null
+        }
+      ],
+      "actions_match": true,
+      "duration_seconds": 17.54965733300196,
+      "final_reply": "Objetivo creado: redactar memoria.",
+      "error": null
+    },
+    {
+      "prompt_id": "p905",
+      "prompt": "summarize my week por favor",
+      "expected_intent": "weekly_summary",
+      "expected_clarification": false,
+      "ambiguity": "medium",
+      "actual_intent": "weekly_summary",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": false,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 31.179038124995714,
+      "final_reply": "Resumen de la semana (aprox. 25–31 mayo 2026)\n\n1) Avances clave\n- Completados: redactar introducción y redactar metodología (ambas de alta prioridad).\n- Progreso en memoria y capítulos:\n  - Redactar memoria: 80% (en progreso).\n  - Redactar capítulo 5: 30% (en progreso).\n- Nuevas subtareas para capitulo 5 añadidas y pendientes:\n  - Introducción, Desarrollo y Conclusión del capítulo 5 (tareas pendientes).\n- Otros avances: trabajo en la experimentación continúa en progreso.\n\n2) Pendientes importantes con fecha límite cercana\n- Defensa del TFG: 26 de mayo de 2026, de 10:00 a 11:30 (académico).\n- Pendientes críticos para la defensa:\n  - Ensayar defensa (alta) pendiente.\n  - Preparar slides (pendiente).\n  - Revisar bibliografía (alta) pendiente.\n- Otras tareas en curso sin fecha límite inmediata (para seguimiento): buscar vuelos baratos, reservar vuelos, hacer maletas, y la revisión de otros apartados del cap. 5 según prioridad.\n\n3) Riesgos o bloqueos\n- Riesgo de cuello de botella próximo si no se completa la preparación de la defensa (slides y ensayo) antes del 26 de mayo.\n- Riesgo de retraso en la finalización de conclusiones y revisión bibliográfica, lo que podría afectar la calidad de la memoria y la defensa.\n- Algunas tareas de capítulo 5 y metas relacionadas aún están en progreso o pendientes; conviene priorizarlas para evitar impactos en la memoria y en la defensa.\n\nRecomendaciones rápidas\n- Priorización inmediata: terminar ensayar defensa y preparar slides; completar revisión bibliográfica.\n- Mantener ritmo en experimento y en las tres sub-tareas de capítulo 5 (introducción, desarrollo, conclusión).\n- Verificar logística de defensa (horario, lugar, y cualquier requisito) y confirmar vuelos si aplica.",
+      "error": null
+    },
+    {
+      "prompt_id": "p906",
+      "prompt": "research about productivity en internet",
+      "expected_intent": "deep_research",
+      "expected_clarification": false,
+      "ambiguity": "medium",
+      "actual_intent": "deep_research",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": false,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 6.321147000002384,
+      "final_reply": "",
+      "error": "InvalidUpdateError: Expected node deep_research to update at least one of ['messages', 'context_json', 'user_id', 'deep_search_mode', 'deep_search_requested', 'deep_search_error', 'deep_search_results', 'deep_research_notes', 'deep_research_sources', 'deep_research_plan', 'deep_research_iterations', 'deep_research_warnings', 'route', 'use_critic', 'fallback_route', 'query_type', 'research_notes', 'progress_analysis', 'weekly_plan', 'draft_response', 'final_response', 'action_name', 'action_confidence', 'action_parameters', 'action_needs_confirmation', 'action_clarification_question', 'pending_action_intent', 'action_confirmed', 'action_queue', 'action_results', 'action_ref_map', 'current_action_ref_id', 'action_result_id', 'action_result_message', 'session_mutations_json', 'doc_op', 'doc_read_mode', 'doc_target_id', 'doc_target_ids', 'doc_target_name', 'doc_target_project_id', 'doc_target_goal_id', 'doc_content_text', 'doc_analyze_points', 'doc_write_filename', 'doc_error', 'doc_notes_data'], got {}"
+    },
+    {
+      "prompt_id": "p907",
+      "prompt": "delete el evento de mañana",
+      "expected_intent": "action",
+      "expected_clarification": false,
+      "ambiguity": "medium",
+      "actual_intent": "action",
+      "intent_match": true,
+      "asked_clarification": true,
+      "clarification_pertinent": true,
+      "expected_actions": [
+        {
+          "op": "delete",
+          "entity": "event",
+          "ref": "mañana"
+        }
+      ],
+      "actual_actions": [
+        {
+          "action_name": "delete_event",
+          "action_parameters": {
+            "event_id": "6a146e0015279a588bd1b1f0"
+          },
+          "ref_id": null
+        }
+      ],
+      "actions_match": false,
+      "duration_seconds": 8.713334500003839,
+      "final_reply": "Voy a ejecutar las siguientes acciones: delete_event. Alguna de ellas es destructiva. ¿Confirmas? Responde 'confirmo' o 'cancela'.",
+      "error": null
+    },
+    {
+      "prompt_id": "p908",
+      "prompt": "qq tareas tengo",
+      "expected_intent": "research",
+      "expected_clarification": false,
+      "ambiguity": "medium",
+      "actual_intent": "research",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": false,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 43.11413291699864,
+      "final_reply": "Resumen rápido:\n- Tareas totales: 12\n- Proyectos: TFG, vacaciones, tesis\n- Tarea sin objetivo asignado: comprar pan (pendiente, prioridad baja)\n\nDetalle por proyecto\n\n1) Proyecto: TFG (ID: 660000000000000000000001)\n- Objetivo 1: redactar memoria (ID: 661000000000000000000001)\n  - Progreso: 80% | Estado: En progreso\n  - Tareas:\n    - redactar introduccion (ID: 662000000000000000000001) | Completada | Prioridad: alta\n    - redactar metodologia (ID: 662000000000000000000002) | Completada | Prioridad: alta\n    - redactar experimentacion (ID: 662000000000000000000003) | En progreso | Prioridad: alta\n    - redactar conclusiones (ID: 662000000000000000000004) | Pendiente | Prioridad: media\n    - revisar bibliografia (ID: 662000000000000000000008) | Pendiente | Prioridad: alta\n- Objetivo 2: preparar defensa (ID: 661000000000000000000002)\n  - Progreso: 10% | Estado: Pendiente\n  - Tareas:\n    - ensayar defensa (ID: 662000000000000000000005) | Pendiente | Prioridad: alta\n    - preparar slides (ID: 662000000000000000000006) | Pendiente | Prioridad: media\n\n2) Proyecto: vacaciones (ID: 660000000000000000000002)\n- Objetivo: reservar vuelos (ID: 661000000000000000000003)\n  - Progreso: 0% | Estado: Pendiente\n  - Tareas:\n    - buscar vuelos baratos (ID: 662000000000000000000007) | Pendiente | Prioridad: media\n\n3) Proyecto: tesis (ID: 660000000000000000000003)\n- Objetivo: redactar capitulo 5 (ID: 661000000000000000000005)\n  - Progreso: 30% | Estado: En progreso\n  - Tareas:\n    - introducir (ID: 6a146e4615279a588bd1b1f2) | Pendiente | Prioridad: Media\n    - desarrollo (ID: 6a146e4615279a588bd1b1f3) | Pendiente | Prioridad: Media\n    - conclusión (ID: 6a146e4615279a588bd1b1f4) | Pendiente | Prioridad: Media\n\nTarea sin objetivo asociado\n- Descripción: comprar pan\n- ID: 662000000000000000000009\n- Estado: pendiente | Prioridad: baja\n\n¿Quieres que haga alguna de estas acciones?\n- Filtrar por un proyecto en particular.\n- Asociar la tarea sin objetivo a un proyecto/objetivo (¿cuál te gustaría?). \n- Priorizar o reprogramar ciertas tareas (por ejemplo, terminar “revisar bibliografia” y “ensayar defensa” antes de la defensa).\n- Mostrar solo las tareas en progreso o pendientes.",
+      "error": null
+    }
+  ],
+  "aggregates": {
+    "n_prompts": 80,
+    "n_errors": 7,
+    "intent_accuracy": 0.725,
+    "intent_accuracy_per_category": {
+      "action": 1.0,
+      "research": 0.45454545454545453,
+      "deep_research": 1.0,
+      "weekly_summary": 0.8571428571428571,
+      "weekly_plan": 1.0,
+      "recommendations": 1.0,
+      "progress": 1.0,
+      "document": 0.9,
+      "unknown": 0.0
+    },
+    "confusion_matrix": {
+      "action": {
+        "action": 20
+      },
+      "research": {
+        "research": 5,
+        "progress": 5,
+        "weekly_summary": 1
+      },
+      "deep_research": {
+        "deep_research": 7
+      },
+      "weekly_summary": {
+        "weekly_summary": 6,
+        "progress": 1
+      },
+      "weekly_plan": {
+        "weekly_plan": 6
+      },
+      "recommendations": {
+        "recommendations": 6
+      },
+      "progress": {
+        "progress": 6
+      },
+      "document": {
+        "document": 9,
+        "weekly_summary": 1
+      },
+      "unknown": {
+        "progress": 3,
+        "action": 2,
+        "research": 2
+      }
+    },
+    "action_match_rate": 0.25,
+    "n_action_prompts": 20,
+    "asked_clarifications": 27,
+    "pertinent_clarifications": 12,
+    "unnecessary_clarifications": 15,
+    "silent_on_ambiguous": 12,
+    "latency_p50": 22.933780374994967,
+    "latency_p95": 89.8112661250052,
+    "latency_p99": 93.44143287499901,
+    "latency_mean": 32.90775013390021
+  }
+}

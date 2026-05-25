@@ -20,7 +20,11 @@ def _last_user_message_text(messages) -> str:
 
 def deep_research_node(state: AppState, llm) -> AppState:
     if not state.get("deep_search_requested", False):
-        return {}
+        return {
+            "deep_search_error": "Modo de búsqueda profunda no activado.",
+            "deep_search_results": [],
+            "deep_research_sources": [],
+        }
 
     query = _last_user_message_text(state.get("messages", []))
     if not query:

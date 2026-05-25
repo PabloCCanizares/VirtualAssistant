@@ -151,14 +151,32 @@ def no_remote(monkeypatch):
 
 @pytest.fixture
 def patch_llm(monkeypatch):
-    """Inyecta una instancia de LLM en los dos puntos donde se invoca `build_llm`."""
+    """Inyecta una instancia de LLM en todos los puntos donde se invoca `build_llm`.
+
+    Cubre el modulo `ai.config`, el grafo (`ai.graph`) y, si ya esta cargado,
+    el servicio de resumen (`ai.services.doc_summarize_service`), que importa
+    `build_llm` en su propio namespace.
+    """
 
     def _patch(llm_instance):
+        import sys
+
         from ai import config as ai_config
         import ai.graph as graph_module
 
-        monkeypatch.setattr(ai_config, "build_llm", lambda model=None: llm_instance)
-        monkeypatch.setattr(graph_module, "build_llm", lambda model=None: llm_instance)
+        fake = lambda model=None: llm_instance  # noqa: E731
+
+        monkeypatch.setattr(ai_config, "build_llm", fake)
+        monkeypatch.setattr(graph_module, "build_llm", fake)
+        # `doc_summarize_service` y `chat_service` hacen `from ai.config import build_llm`,
+        # creando referencias locales. Si ya estan importados, parchear esa referencia.
+        for mod_name in (
+            "ai.services.doc_summarize_service",
+            "ai.services.chat_service",
+        ):
+            mod = sys.modules.get(mod_name)
+            if mod is not None and hasattr(mod, "build_llm"):
+                monkeypatch.setattr(mod, "build_llm", fake)
         return llm_instance
 
     return _patch
