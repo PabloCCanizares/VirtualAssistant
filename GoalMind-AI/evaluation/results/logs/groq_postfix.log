@@ -1,0 +1,2487 @@
+ERROR ai.agents.action_executor: action_executor_node: fallo al ejecutar accion 'create_goal'
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/agents/action_executor.py", line 249, in action_executor_node
+    GoalModel.insert_goal(data)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/model/goal_model.py", line 89, in insert_goal
+    goal_data["project_id"] = ObjectId(raw_pid)
+                              ~~~~~~~~^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/bson/objectid.py", line 105, in __init__
+    self.__validate(oid)
+    ~~~~~~~~~~~~~~~^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/bson/objectid.py", line 193, in __validate
+    _raise_invalid_id(oid)
+    ~~~~~~~~~~~~~~~~~^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/bson/objectid.py", line 38, in _raise_invalid_id
+    raise InvalidId(
+    ...<2 lines>...
+    )
+bson.errors.InvalidId: 't0' is not a valid ObjectId, it must be a 12-byte input or a 24-character hex string
+WARNING ai.graph: Deep search no disponible durante esta respuesta: Modo de búsqueda profunda no activado.
+WARNING ai.graph: Deep search no disponible durante esta respuesta: Modo de búsqueda profunda no activado.
+WARNING ai.services.llm_utils: LLM invocation failed (attempt 1/2): Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per minute (TPM): Limit 6000, Used 3122, Requested 3191. Please try again in 3.13s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+WARNING ai.services.llm_utils: LLM invocation failed (attempt 1/2): Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per minute (TPM): Limit 6000, Used 2900, Requested 3371. Please try again in 2.71s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+WARNING ai.services.llm_utils: LLM invocation failed (attempt 1/2): Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per minute (TPM): Limit 6000, Used 3541, Requested 2716. Please try again in 2.57s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+WARNING ai.services.llm_utils: LLM invocation failed (attempt 1/2): Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per minute (TPM): Limit 6000, Used 2851, Requested 3406. Please try again in 2.57s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+WARNING ai.services.llm_utils: LLM invocation failed (attempt 1/2): Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per minute (TPM): Limit 6000, Used 3053, Requested 3017. Please try again in 700ms. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+WARNING ai.services.llm_utils: LLM invocation failed (attempt 1/2): Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499005, Requested 2814. Please try again in 5m14.3232s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+ERROR ai.agents.progress_tracker: progress_tracker_node: error invocando LLM
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 55, in invoke_with_retry
+    response = llm.invoke(list(messages))
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 372, in invoke
+    self.generate_prompt(
+    ~~~~~~~~~~~~~~~~~~~~^
+        [self._convert_input(input)],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    ).generations[0][0],
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 957, in generate_prompt
+    return self.generate(prompt_messages, stop=stop, callbacks=callbacks, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 776, in generate
+    self._generate_with_cache(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        m,
+        ^^
+    ...<2 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 1022, in _generate_with_cache
+    result = self._generate(
+        messages, stop=stop, run_manager=run_manager, **kwargs
+    )
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_groq/chat_models.py", line 498, in _generate
+    response = self.client.create(messages=message_dicts, **params)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/resources/chat/completions.py", line 461, in create
+    return self._post(
+           ~~~~~~~~~~^
+        "/openai/v1/chat/completions",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<45 lines>...
+        stream_cls=Stream[ChatCompletionChunk],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1242, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1044, in request
+    raise self._make_status_error_from_response(err.response) from None
+groq.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499003, Requested 2814. Please try again in 5m13.9776s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/agents/progress_tracker.py", line 19, in progress_tracker_node
+    analysis = invoke_with_retry(llm, messages, retries=1)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 70, in invoke_with_retry
+    raise LLMInvokeError("No se pudo completar la invocación del modelo.") from last_exc
+ai.services.llm_utils.LLMInvokeError: No se pudo completar la invocación del modelo.
+WARNING ai.services.llm_utils: LLM invocation failed (attempt 1/2): Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499158, Requested 2818. Please try again in 5m41.452799999s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+ERROR ai.agents.supervisor: supervisor_node: error invocando LLM para clasificacion
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 55, in invoke_with_retry
+    response = llm.invoke(list(messages))
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 372, in invoke
+    self.generate_prompt(
+    ~~~~~~~~~~~~~~~~~~~~^
+        [self._convert_input(input)],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    ).generations[0][0],
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 957, in generate_prompt
+    return self.generate(prompt_messages, stop=stop, callbacks=callbacks, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 776, in generate
+    self._generate_with_cache(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        m,
+        ^^
+    ...<2 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 1022, in _generate_with_cache
+    result = self._generate(
+        messages, stop=stop, run_manager=run_manager, **kwargs
+    )
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_groq/chat_models.py", line 498, in _generate
+    response = self.client.create(messages=message_dicts, **params)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/resources/chat/completions.py", line 461, in create
+    return self._post(
+           ~~~~~~~~~~^
+        "/openai/v1/chat/completions",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<45 lines>...
+        stream_cls=Stream[ChatCompletionChunk],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1242, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1044, in request
+    raise self._make_status_error_from_response(err.response) from None
+groq.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499156, Requested 2632. Please try again in 5m8.9664s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/agents/supervisor.py", line 219, in supervisor_node
+    raw = invoke_with_retry(llm, llm_messages, retries=1)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 70, in invoke_with_retry
+    raise LLMInvokeError("No se pudo completar la invocación del modelo.") from last_exc
+ai.services.llm_utils.LLMInvokeError: No se pudo completar la invocación del modelo.
+WARNING ai.services.llm_utils: LLM invocation failed (attempt 1/2): Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499155, Requested 1277. Please try again in 1m14.6496s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+WARNING ai.services.llm_utils: LLM invocation failed (attempt 1/2): Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499157, Requested 2823. Please try again in 5m42.144s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+ERROR ai.agents.supervisor: supervisor_node: error invocando LLM para clasificacion
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 55, in invoke_with_retry
+    response = llm.invoke(list(messages))
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 372, in invoke
+    self.generate_prompt(
+    ~~~~~~~~~~~~~~~~~~~~^
+        [self._convert_input(input)],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    ).generations[0][0],
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 957, in generate_prompt
+    return self.generate(prompt_messages, stop=stop, callbacks=callbacks, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 776, in generate
+    self._generate_with_cache(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        m,
+        ^^
+    ...<2 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 1022, in _generate_with_cache
+    result = self._generate(
+        messages, stop=stop, run_manager=run_manager, **kwargs
+    )
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_groq/chat_models.py", line 498, in _generate
+    response = self.client.create(messages=message_dicts, **params)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/resources/chat/completions.py", line 461, in create
+    return self._post(
+           ~~~~~~~~~~^
+        "/openai/v1/chat/completions",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<45 lines>...
+        stream_cls=Stream[ChatCompletionChunk],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1242, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1044, in request
+    raise self._make_status_error_from_response(err.response) from None
+groq.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499155, Requested 2823. Please try again in 5m41.7984s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/agents/supervisor.py", line 219, in supervisor_node
+    raw = invoke_with_retry(llm, llm_messages, retries=1)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 70, in invoke_with_retry
+    raise LLMInvokeError("No se pudo completar la invocación del modelo.") from last_exc
+ai.services.llm_utils.LLMInvokeError: No se pudo completar la invocación del modelo.
+WARNING ai.services.llm_utils: LLM invocation failed (attempt 1/2): Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499154, Requested 1282. Please try again in 1m15.3408s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+WARNING ai.services.llm_utils: LLM invocation failed (attempt 1/2): Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499656, Requested 1539. Please try again in 3m26.496s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+ERROR ai.agents.writer: writer_node: error invocando LLM
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 55, in invoke_with_retry
+    response = llm.invoke(list(messages))
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 372, in invoke
+    self.generate_prompt(
+    ~~~~~~~~~~~~~~~~~~~~^
+        [self._convert_input(input)],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    ).generations[0][0],
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 957, in generate_prompt
+    return self.generate(prompt_messages, stop=stop, callbacks=callbacks, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 776, in generate
+    self._generate_with_cache(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        m,
+        ^^
+    ...<2 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 1022, in _generate_with_cache
+    result = self._generate(
+        messages, stop=stop, run_manager=run_manager, **kwargs
+    )
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_groq/chat_models.py", line 498, in _generate
+    response = self.client.create(messages=message_dicts, **params)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/resources/chat/completions.py", line 461, in create
+    return self._post(
+           ~~~~~~~~~~^
+        "/openai/v1/chat/completions",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<45 lines>...
+        stream_cls=Stream[ChatCompletionChunk],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1242, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1044, in request
+    raise self._make_status_error_from_response(err.response) from None
+groq.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499654, Requested 1387. Please try again in 2m59.8848s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/agents/writer.py", line 70, in writer_node
+    draft = invoke_with_retry(llm, messages, retries=1)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 70, in invoke_with_retry
+    raise LLMInvokeError("No se pudo completar la invocación del modelo.") from last_exc
+ai.services.llm_utils.LLMInvokeError: No se pudo completar la invocación del modelo.
+WARNING ai.services.llm_utils: LLM invocation failed (attempt 1/2): Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499653, Requested 2624. Please try again in 6m33.4656s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+ERROR ai.agents.supervisor: supervisor_node: error invocando LLM para clasificacion
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 55, in invoke_with_retry
+    response = llm.invoke(list(messages))
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 372, in invoke
+    self.generate_prompt(
+    ~~~~~~~~~~~~~~~~~~~~^
+        [self._convert_input(input)],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    ).generations[0][0],
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 957, in generate_prompt
+    return self.generate(prompt_messages, stop=stop, callbacks=callbacks, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 776, in generate
+    self._generate_with_cache(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        m,
+        ^^
+    ...<2 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 1022, in _generate_with_cache
+    result = self._generate(
+        messages, stop=stop, run_manager=run_manager, **kwargs
+    )
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_groq/chat_models.py", line 498, in _generate
+    response = self.client.create(messages=message_dicts, **params)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/resources/chat/completions.py", line 461, in create
+    return self._post(
+           ~~~~~~~~~~^
+        "/openai/v1/chat/completions",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<45 lines>...
+        stream_cls=Stream[ChatCompletionChunk],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1242, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1044, in request
+    raise self._make_status_error_from_response(err.response) from None
+groq.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499651, Requested 2666. Please try again in 6m40.3776s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/agents/supervisor.py", line 219, in supervisor_node
+    raw = invoke_with_retry(llm, llm_messages, retries=1)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 70, in invoke_with_retry
+    raise LLMInvokeError("No se pudo completar la invocación del modelo.") from last_exc
+ai.services.llm_utils.LLMInvokeError: No se pudo completar la invocación del modelo.
+WARNING ai.services.llm_utils: LLM invocation failed (attempt 1/2): Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499651, Requested 1083. Please try again in 2m6.835199999s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+ERROR ai.agents.research: research_node: error invocando LLM
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 55, in invoke_with_retry
+    response = llm.invoke(list(messages))
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 372, in invoke
+    self.generate_prompt(
+    ~~~~~~~~~~~~~~~~~~~~^
+        [self._convert_input(input)],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    ).generations[0][0],
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 957, in generate_prompt
+    return self.generate(prompt_messages, stop=stop, callbacks=callbacks, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 776, in generate
+    self._generate_with_cache(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        m,
+        ^^
+    ...<2 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 1022, in _generate_with_cache
+    result = self._generate(
+        messages, stop=stop, run_manager=run_manager, **kwargs
+    )
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_groq/chat_models.py", line 498, in _generate
+    response = self.client.create(messages=message_dicts, **params)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/resources/chat/completions.py", line 461, in create
+    return self._post(
+           ~~~~~~~~~~^
+        "/openai/v1/chat/completions",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<45 lines>...
+        stream_cls=Stream[ChatCompletionChunk],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1242, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1044, in request
+    raise self._make_status_error_from_response(err.response) from None
+groq.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499648, Requested 1083. Please try again in 2m6.3168s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/agents/research.py", line 48, in research_node
+    notes = invoke_with_retry(llm, messages, retries=1)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 70, in invoke_with_retry
+    raise LLMInvokeError("No se pudo completar la invocación del modelo.") from last_exc
+ai.services.llm_utils.LLMInvokeError: No se pudo completar la invocación del modelo.
+WARNING ai.services.llm_utils: LLM invocation failed (attempt 1/2): Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499648, Requested 1064. Please try again in 2m3.0336s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+ERROR ai.agents.writer: writer_node: error invocando LLM
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 55, in invoke_with_retry
+    response = llm.invoke(list(messages))
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 372, in invoke
+    self.generate_prompt(
+    ~~~~~~~~~~~~~~~~~~~~^
+        [self._convert_input(input)],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    ).generations[0][0],
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 957, in generate_prompt
+    return self.generate(prompt_messages, stop=stop, callbacks=callbacks, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 776, in generate
+    self._generate_with_cache(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        m,
+        ^^
+    ...<2 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 1022, in _generate_with_cache
+    result = self._generate(
+        messages, stop=stop, run_manager=run_manager, **kwargs
+    )
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_groq/chat_models.py", line 498, in _generate
+    response = self.client.create(messages=message_dicts, **params)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/resources/chat/completions.py", line 461, in create
+    return self._post(
+           ~~~~~~~~~~^
+        "/openai/v1/chat/completions",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<45 lines>...
+        stream_cls=Stream[ChatCompletionChunk],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1242, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1044, in request
+    raise self._make_status_error_from_response(err.response) from None
+groq.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499646, Requested 912. Please try again in 1m36.4224s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/agents/writer.py", line 70, in writer_node
+    draft = invoke_with_retry(llm, messages, retries=1)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 70, in invoke_with_retry
+    raise LLMInvokeError("No se pudo completar la invocación del modelo.") from last_exc
+ai.services.llm_utils.LLMInvokeError: No se pudo completar la invocación del modelo.
+WARNING ai.services.llm_utils: LLM invocation failed (attempt 1/2): Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499645, Requested 2665. Please try again in 6m39.168s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+ERROR ai.agents.supervisor: supervisor_node: error invocando LLM para clasificacion
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 55, in invoke_with_retry
+    response = llm.invoke(list(messages))
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 372, in invoke
+    self.generate_prompt(
+    ~~~~~~~~~~~~~~~~~~~~^
+        [self._convert_input(input)],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    ).generations[0][0],
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 957, in generate_prompt
+    return self.generate(prompt_messages, stop=stop, callbacks=callbacks, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 776, in generate
+    self._generate_with_cache(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        m,
+        ^^
+    ...<2 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 1022, in _generate_with_cache
+    result = self._generate(
+        messages, stop=stop, run_manager=run_manager, **kwargs
+    )
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_groq/chat_models.py", line 498, in _generate
+    response = self.client.create(messages=message_dicts, **params)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/resources/chat/completions.py", line 461, in create
+    return self._post(
+           ~~~~~~~~~~^
+        "/openai/v1/chat/completions",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<45 lines>...
+        stream_cls=Stream[ChatCompletionChunk],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1242, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1044, in request
+    raise self._make_status_error_from_response(err.response) from None
+groq.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499643, Requested 2817. Please try again in 7m5.087999999s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/agents/supervisor.py", line 219, in supervisor_node
+    raw = invoke_with_retry(llm, llm_messages, retries=1)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 70, in invoke_with_retry
+    raise LLMInvokeError("No se pudo completar la invocación del modelo.") from last_exc
+ai.services.llm_utils.LLMInvokeError: No se pudo completar la invocación del modelo.
+WARNING ai.services.llm_utils: LLM invocation failed (attempt 1/2): Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499643, Requested 1276. Please try again in 2m38.8032s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+ERROR ai.agents.research: research_node: error invocando LLM
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 55, in invoke_with_retry
+    response = llm.invoke(list(messages))
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 372, in invoke
+    self.generate_prompt(
+    ~~~~~~~~~~~~~~~~~~~~^
+        [self._convert_input(input)],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    ).generations[0][0],
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 957, in generate_prompt
+    return self.generate(prompt_messages, stop=stop, callbacks=callbacks, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 776, in generate
+    self._generate_with_cache(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        m,
+        ^^
+    ...<2 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 1022, in _generate_with_cache
+    result = self._generate(
+        messages, stop=stop, run_manager=run_manager, **kwargs
+    )
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_groq/chat_models.py", line 498, in _generate
+    response = self.client.create(messages=message_dicts, **params)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/resources/chat/completions.py", line 461, in create
+    return self._post(
+           ~~~~~~~~~~^
+        "/openai/v1/chat/completions",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<45 lines>...
+        stream_cls=Stream[ChatCompletionChunk],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1242, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1044, in request
+    raise self._make_status_error_from_response(err.response) from None
+groq.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499641, Requested 1082. Please try again in 2m4.9344s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/agents/research.py", line 48, in research_node
+    notes = invoke_with_retry(llm, messages, retries=1)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 70, in invoke_with_retry
+    raise LLMInvokeError("No se pudo completar la invocación del modelo.") from last_exc
+ai.services.llm_utils.LLMInvokeError: No se pudo completar la invocación del modelo.
+WARNING ai.services.llm_utils: LLM invocation failed (attempt 1/2): Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499640, Requested 1063. Please try again in 2m1.4784s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+ERROR ai.agents.writer: writer_node: error invocando LLM
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 55, in invoke_with_retry
+    response = llm.invoke(list(messages))
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 372, in invoke
+    self.generate_prompt(
+    ~~~~~~~~~~~~~~~~~~~~^
+        [self._convert_input(input)],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    ).generations[0][0],
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 957, in generate_prompt
+    return self.generate(prompt_messages, stop=stop, callbacks=callbacks, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 776, in generate
+    self._generate_with_cache(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        m,
+        ^^
+    ...<2 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 1022, in _generate_with_cache
+    result = self._generate(
+        messages, stop=stop, run_manager=run_manager, **kwargs
+    )
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_groq/chat_models.py", line 498, in _generate
+    response = self.client.create(messages=message_dicts, **params)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/resources/chat/completions.py", line 461, in create
+    return self._post(
+           ~~~~~~~~~~^
+        "/openai/v1/chat/completions",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<45 lines>...
+        stream_cls=Stream[ChatCompletionChunk],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1242, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1044, in request
+    raise self._make_status_error_from_response(err.response) from None
+groq.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499638, Requested 911. Please try again in 1m34.8672s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/agents/writer.py", line 70, in writer_node
+    draft = invoke_with_retry(llm, messages, retries=1)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 70, in invoke_with_retry
+    raise LLMInvokeError("No se pudo completar la invocación del modelo.") from last_exc
+ai.services.llm_utils.LLMInvokeError: No se pudo completar la invocación del modelo.
+WARNING ai.services.llm_utils: LLM invocation failed (attempt 1/2): Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499637, Requested 2664. Please try again in 6m37.6128s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+ERROR ai.agents.supervisor: supervisor_node: error invocando LLM para clasificacion
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 55, in invoke_with_retry
+    response = llm.invoke(list(messages))
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 372, in invoke
+    self.generate_prompt(
+    ~~~~~~~~~~~~~~~~~~~~^
+        [self._convert_input(input)],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    ).generations[0][0],
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 957, in generate_prompt
+    return self.generate(prompt_messages, stop=stop, callbacks=callbacks, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 776, in generate
+    self._generate_with_cache(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        m,
+        ^^
+    ...<2 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 1022, in _generate_with_cache
+    result = self._generate(
+        messages, stop=stop, run_manager=run_manager, **kwargs
+    )
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_groq/chat_models.py", line 498, in _generate
+    response = self.client.create(messages=message_dicts, **params)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/resources/chat/completions.py", line 461, in create
+    return self._post(
+           ~~~~~~~~~~^
+        "/openai/v1/chat/completions",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<45 lines>...
+        stream_cls=Stream[ChatCompletionChunk],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1242, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1044, in request
+    raise self._make_status_error_from_response(err.response) from None
+groq.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499635, Requested 2816. Please try again in 7m3.5328s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/agents/supervisor.py", line 219, in supervisor_node
+    raw = invoke_with_retry(llm, llm_messages, retries=1)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 70, in invoke_with_retry
+    raise LLMInvokeError("No se pudo completar la invocación del modelo.") from last_exc
+ai.services.llm_utils.LLMInvokeError: No se pudo completar la invocación del modelo.
+WARNING ai.services.llm_utils: LLM invocation failed (attempt 1/2): Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499635, Requested 1275. Please try again in 2m37.248s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+ERROR ai.agents.research: research_node: error invocando LLM
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 55, in invoke_with_retry
+    response = llm.invoke(list(messages))
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 372, in invoke
+    self.generate_prompt(
+    ~~~~~~~~~~~~~~~~~~~~^
+        [self._convert_input(input)],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    ).generations[0][0],
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 957, in generate_prompt
+    return self.generate(prompt_messages, stop=stop, callbacks=callbacks, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 776, in generate
+    self._generate_with_cache(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        m,
+        ^^
+    ...<2 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 1022, in _generate_with_cache
+    result = self._generate(
+        messages, stop=stop, run_manager=run_manager, **kwargs
+    )
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_groq/chat_models.py", line 498, in _generate
+    response = self.client.create(messages=message_dicts, **params)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/resources/chat/completions.py", line 461, in create
+    return self._post(
+           ~~~~~~~~~~^
+        "/openai/v1/chat/completions",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<45 lines>...
+        stream_cls=Stream[ChatCompletionChunk],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1242, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1044, in request
+    raise self._make_status_error_from_response(err.response) from None
+groq.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499633, Requested 1123. Please try again in 2m10.6368s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/agents/research.py", line 48, in research_node
+    notes = invoke_with_retry(llm, messages, retries=1)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 70, in invoke_with_retry
+    raise LLMInvokeError("No se pudo completar la invocación del modelo.") from last_exc
+ai.services.llm_utils.LLMInvokeError: No se pudo completar la invocación del modelo.
+WARNING ai.services.llm_utils: LLM invocation failed (attempt 1/2): Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499632, Requested 1062. Please try again in 1m59.9232s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+ERROR ai.agents.writer: writer_node: error invocando LLM
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 55, in invoke_with_retry
+    response = llm.invoke(list(messages))
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 372, in invoke
+    self.generate_prompt(
+    ~~~~~~~~~~~~~~~~~~~~^
+        [self._convert_input(input)],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    ).generations[0][0],
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 957, in generate_prompt
+    return self.generate(prompt_messages, stop=stop, callbacks=callbacks, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 776, in generate
+    self._generate_with_cache(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        m,
+        ^^
+    ...<2 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 1022, in _generate_with_cache
+    result = self._generate(
+        messages, stop=stop, run_manager=run_manager, **kwargs
+    )
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_groq/chat_models.py", line 498, in _generate
+    response = self.client.create(messages=message_dicts, **params)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/resources/chat/completions.py", line 461, in create
+    return self._post(
+           ~~~~~~~~~~^
+        "/openai/v1/chat/completions",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<45 lines>...
+        stream_cls=Stream[ChatCompletionChunk],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1242, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1044, in request
+    raise self._make_status_error_from_response(err.response) from None
+groq.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499630, Requested 910. Please try again in 1m33.312s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/agents/writer.py", line 70, in writer_node
+    draft = invoke_with_retry(llm, messages, retries=1)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 70, in invoke_with_retry
+    raise LLMInvokeError("No se pudo completar la invocación del modelo.") from last_exc
+ai.services.llm_utils.LLMInvokeError: No se pudo completar la invocación del modelo.
+WARNING ai.services.llm_utils: LLM invocation failed (attempt 1/2): Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499630, Requested 2665. Please try again in 6m36.576s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+ERROR ai.agents.supervisor: supervisor_node: error invocando LLM para clasificacion
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 55, in invoke_with_retry
+    response = llm.invoke(list(messages))
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 372, in invoke
+    self.generate_prompt(
+    ~~~~~~~~~~~~~~~~~~~~^
+        [self._convert_input(input)],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    ).generations[0][0],
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 957, in generate_prompt
+    return self.generate(prompt_messages, stop=stop, callbacks=callbacks, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 776, in generate
+    self._generate_with_cache(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        m,
+        ^^
+    ...<2 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 1022, in _generate_with_cache
+    result = self._generate(
+        messages, stop=stop, run_manager=run_manager, **kwargs
+    )
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_groq/chat_models.py", line 498, in _generate
+    response = self.client.create(messages=message_dicts, **params)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/resources/chat/completions.py", line 461, in create
+    return self._post(
+           ~~~~~~~~~~^
+        "/openai/v1/chat/completions",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<45 lines>...
+        stream_cls=Stream[ChatCompletionChunk],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1242, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1044, in request
+    raise self._make_status_error_from_response(err.response) from None
+groq.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499627, Requested 2817. Please try again in 7m2.3232s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/agents/supervisor.py", line 219, in supervisor_node
+    raw = invoke_with_retry(llm, llm_messages, retries=1)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 70, in invoke_with_retry
+    raise LLMInvokeError("No se pudo completar la invocación del modelo.") from last_exc
+ai.services.llm_utils.LLMInvokeError: No se pudo completar la invocación del modelo.
+WARNING ai.services.llm_utils: LLM invocation failed (attempt 1/2): Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499627, Requested 1124. Please try again in 2m9.7728s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+ERROR ai.agents.research: research_node: error invocando LLM
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 55, in invoke_with_retry
+    response = llm.invoke(list(messages))
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 372, in invoke
+    self.generate_prompt(
+    ~~~~~~~~~~~~~~~~~~~~^
+        [self._convert_input(input)],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    ).generations[0][0],
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 957, in generate_prompt
+    return self.generate(prompt_messages, stop=stop, callbacks=callbacks, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 776, in generate
+    self._generate_with_cache(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        m,
+        ^^
+    ...<2 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 1022, in _generate_with_cache
+    result = self._generate(
+        messages, stop=stop, run_manager=run_manager, **kwargs
+    )
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_groq/chat_models.py", line 498, in _generate
+    response = self.client.create(messages=message_dicts, **params)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/resources/chat/completions.py", line 461, in create
+    return self._post(
+           ~~~~~~~~~~^
+        "/openai/v1/chat/completions",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<45 lines>...
+        stream_cls=Stream[ChatCompletionChunk],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1242, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1044, in request
+    raise self._make_status_error_from_response(err.response) from None
+groq.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499625, Requested 1082. Please try again in 2m2.169599999s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/agents/research.py", line 48, in research_node
+    notes = invoke_with_retry(llm, messages, retries=1)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 70, in invoke_with_retry
+    raise LLMInvokeError("No se pudo completar la invocación del modelo.") from last_exc
+ai.services.llm_utils.LLMInvokeError: No se pudo completar la invocación del modelo.
+WARNING ai.services.llm_utils: LLM invocation failed (attempt 1/2): Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499625, Requested 911. Please try again in 1m32.6208s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+ERROR ai.agents.writer: writer_node: error invocando LLM
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 55, in invoke_with_retry
+    response = llm.invoke(list(messages))
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 372, in invoke
+    self.generate_prompt(
+    ~~~~~~~~~~~~~~~~~~~~^
+        [self._convert_input(input)],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    ).generations[0][0],
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 957, in generate_prompt
+    return self.generate(prompt_messages, stop=stop, callbacks=callbacks, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 776, in generate
+    self._generate_with_cache(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        m,
+        ^^
+    ...<2 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 1022, in _generate_with_cache
+    result = self._generate(
+        messages, stop=stop, run_manager=run_manager, **kwargs
+    )
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_groq/chat_models.py", line 498, in _generate
+    response = self.client.create(messages=message_dicts, **params)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/resources/chat/completions.py", line 461, in create
+    return self._post(
+           ~~~~~~~~~~^
+        "/openai/v1/chat/completions",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<45 lines>...
+        stream_cls=Stream[ChatCompletionChunk],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1242, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1044, in request
+    raise self._make_status_error_from_response(err.response) from None
+groq.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499623, Requested 911. Please try again in 1m32.2752s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/agents/writer.py", line 70, in writer_node
+    draft = invoke_with_retry(llm, messages, retries=1)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 70, in invoke_with_retry
+    raise LLMInvokeError("No se pudo completar la invocación del modelo.") from last_exc
+ai.services.llm_utils.LLMInvokeError: No se pudo completar la invocación del modelo.
+WARNING ai.services.llm_utils: LLM invocation failed (attempt 1/2): Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499622, Requested 2673. Please try again in 6m36.576s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+ERROR ai.agents.supervisor: supervisor_node: error invocando LLM para clasificacion
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 55, in invoke_with_retry
+    response = llm.invoke(list(messages))
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 372, in invoke
+    self.generate_prompt(
+    ~~~~~~~~~~~~~~~~~~~~^
+        [self._convert_input(input)],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    ).generations[0][0],
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 957, in generate_prompt
+    return self.generate(prompt_messages, stop=stop, callbacks=callbacks, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 776, in generate
+    self._generate_with_cache(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        m,
+        ^^
+    ...<2 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 1022, in _generate_with_cache
+    result = self._generate(
+        messages, stop=stop, run_manager=run_manager, **kwargs
+    )
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_groq/chat_models.py", line 498, in _generate
+    response = self.client.create(messages=message_dicts, **params)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/resources/chat/completions.py", line 461, in create
+    return self._post(
+           ~~~~~~~~~~^
+        "/openai/v1/chat/completions",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<45 lines>...
+        stream_cls=Stream[ChatCompletionChunk],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1242, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1044, in request
+    raise self._make_status_error_from_response(err.response) from None
+groq.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499620, Requested 2825. Please try again in 7m2.496s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/agents/supervisor.py", line 219, in supervisor_node
+    raw = invoke_with_retry(llm, llm_messages, retries=1)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 70, in invoke_with_retry
+    raise LLMInvokeError("No se pudo completar la invocación del modelo.") from last_exc
+ai.services.llm_utils.LLMInvokeError: No se pudo completar la invocación del modelo.
+WARNING ai.services.llm_utils: LLM invocation failed (attempt 1/2): Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499619, Requested 1284. Please try again in 2m36.0384s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+ERROR ai.agents.research: research_node: error invocando LLM
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 55, in invoke_with_retry
+    response = llm.invoke(list(messages))
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 372, in invoke
+    self.generate_prompt(
+    ~~~~~~~~~~~~~~~~~~~~^
+        [self._convert_input(input)],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    ).generations[0][0],
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 957, in generate_prompt
+    return self.generate(prompt_messages, stop=stop, callbacks=callbacks, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 776, in generate
+    self._generate_with_cache(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        m,
+        ^^
+    ...<2 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 1022, in _generate_with_cache
+    result = self._generate(
+        messages, stop=stop, run_manager=run_manager, **kwargs
+    )
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_groq/chat_models.py", line 498, in _generate
+    response = self.client.create(messages=message_dicts, **params)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/resources/chat/completions.py", line 461, in create
+    return self._post(
+           ~~~~~~~~~~^
+        "/openai/v1/chat/completions",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<45 lines>...
+        stream_cls=Stream[ChatCompletionChunk],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1242, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1044, in request
+    raise self._make_status_error_from_response(err.response) from None
+groq.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499617, Requested 1132. Please try again in 2m9.4272s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/agents/research.py", line 48, in research_node
+    notes = invoke_with_retry(llm, messages, retries=1)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 70, in invoke_with_retry
+    raise LLMInvokeError("No se pudo completar la invocación del modelo.") from last_exc
+ai.services.llm_utils.LLMInvokeError: No se pudo completar la invocación del modelo.
+WARNING ai.services.llm_utils: LLM invocation failed (attempt 1/2): Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499617, Requested 1071. Please try again in 1m58.8864s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+ERROR ai.agents.writer: writer_node: error invocando LLM
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 55, in invoke_with_retry
+    response = llm.invoke(list(messages))
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 372, in invoke
+    self.generate_prompt(
+    ~~~~~~~~~~~~~~~~~~~~^
+        [self._convert_input(input)],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    ).generations[0][0],
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 957, in generate_prompt
+    return self.generate(prompt_messages, stop=stop, callbacks=callbacks, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 776, in generate
+    self._generate_with_cache(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        m,
+        ^^
+    ...<2 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 1022, in _generate_with_cache
+    result = self._generate(
+        messages, stop=stop, run_manager=run_manager, **kwargs
+    )
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_groq/chat_models.py", line 498, in _generate
+    response = self.client.create(messages=message_dicts, **params)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/resources/chat/completions.py", line 461, in create
+    return self._post(
+           ~~~~~~~~~~^
+        "/openai/v1/chat/completions",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<45 lines>...
+        stream_cls=Stream[ChatCompletionChunk],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1242, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1044, in request
+    raise self._make_status_error_from_response(err.response) from None
+groq.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499615, Requested 1071. Please try again in 1m58.540799999s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/agents/writer.py", line 70, in writer_node
+    draft = invoke_with_retry(llm, messages, retries=1)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 70, in invoke_with_retry
+    raise LLMInvokeError("No se pudo completar la invocación del modelo.") from last_exc
+ai.services.llm_utils.LLMInvokeError: No se pudo completar la invocación del modelo.
+WARNING ai.services.llm_utils: LLM invocation failed (attempt 1/2): Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499614, Requested 2823. Please try again in 7m1.113599999s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+ERROR ai.agents.supervisor: supervisor_node: error invocando LLM para clasificacion
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 55, in invoke_with_retry
+    response = llm.invoke(list(messages))
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 372, in invoke
+    self.generate_prompt(
+    ~~~~~~~~~~~~~~~~~~~~^
+        [self._convert_input(input)],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    ).generations[0][0],
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 957, in generate_prompt
+    return self.generate(prompt_messages, stop=stop, callbacks=callbacks, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 776, in generate
+    self._generate_with_cache(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        m,
+        ^^
+    ...<2 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 1022, in _generate_with_cache
+    result = self._generate(
+        messages, stop=stop, run_manager=run_manager, **kwargs
+    )
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_groq/chat_models.py", line 498, in _generate
+    response = self.client.create(messages=message_dicts, **params)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/resources/chat/completions.py", line 461, in create
+    return self._post(
+           ~~~~~~~~~~^
+        "/openai/v1/chat/completions",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<45 lines>...
+        stream_cls=Stream[ChatCompletionChunk],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1242, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1044, in request
+    raise self._make_status_error_from_response(err.response) from None
+groq.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499612, Requested 2823. Please try again in 7m0.768s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/agents/supervisor.py", line 219, in supervisor_node
+    raw = invoke_with_retry(llm, llm_messages, retries=1)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 70, in invoke_with_retry
+    raise LLMInvokeError("No se pudo completar la invocación del modelo.") from last_exc
+ai.services.llm_utils.LLMInvokeError: No se pudo completar la invocación del modelo.
+WARNING ai.services.llm_utils: LLM invocation failed (attempt 1/2): Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499612, Requested 1130. Please try again in 2m8.2176s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+ERROR ai.agents.research: research_node: error invocando LLM
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 55, in invoke_with_retry
+    response = llm.invoke(list(messages))
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 372, in invoke
+    self.generate_prompt(
+    ~~~~~~~~~~~~~~~~~~~~^
+        [self._convert_input(input)],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    ).generations[0][0],
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 957, in generate_prompt
+    return self.generate(prompt_messages, stop=stop, callbacks=callbacks, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 776, in generate
+    self._generate_with_cache(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        m,
+        ^^
+    ...<2 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 1022, in _generate_with_cache
+    result = self._generate(
+        messages, stop=stop, run_manager=run_manager, **kwargs
+    )
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_groq/chat_models.py", line 498, in _generate
+    response = self.client.create(messages=message_dicts, **params)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/resources/chat/completions.py", line 461, in create
+    return self._post(
+           ~~~~~~~~~~^
+        "/openai/v1/chat/completions",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<45 lines>...
+        stream_cls=Stream[ChatCompletionChunk],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1242, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1044, in request
+    raise self._make_status_error_from_response(err.response) from None
+groq.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499610, Requested 1282. Please try again in 2m34.1376s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/agents/research.py", line 48, in research_node
+    notes = invoke_with_retry(llm, messages, retries=1)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 70, in invoke_with_retry
+    raise LLMInvokeError("No se pudo completar la invocación del modelo.") from last_exc
+ai.services.llm_utils.LLMInvokeError: No se pudo completar la invocación del modelo.
+WARNING ai.services.llm_utils: LLM invocation failed (attempt 1/2): Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499610, Requested 917. Please try again in 1m31.0656s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+ERROR ai.agents.writer: writer_node: error invocando LLM
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 55, in invoke_with_retry
+    response = llm.invoke(list(messages))
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 372, in invoke
+    self.generate_prompt(
+    ~~~~~~~~~~~~~~~~~~~~^
+        [self._convert_input(input)],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    ).generations[0][0],
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 957, in generate_prompt
+    return self.generate(prompt_messages, stop=stop, callbacks=callbacks, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 776, in generate
+    self._generate_with_cache(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        m,
+        ^^
+    ...<2 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 1022, in _generate_with_cache
+    result = self._generate(
+        messages, stop=stop, run_manager=run_manager, **kwargs
+    )
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_groq/chat_models.py", line 498, in _generate
+    response = self.client.create(messages=message_dicts, **params)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/resources/chat/completions.py", line 461, in create
+    return self._post(
+           ~~~~~~~~~~^
+        "/openai/v1/chat/completions",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<45 lines>...
+        stream_cls=Stream[ChatCompletionChunk],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1242, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1044, in request
+    raise self._make_status_error_from_response(err.response) from None
+groq.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499607, Requested 1069. Please try again in 1m56.8128s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/agents/writer.py", line 70, in writer_node
+    draft = invoke_with_retry(llm, messages, retries=1)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 70, in invoke_with_retry
+    raise LLMInvokeError("No se pudo completar la invocación del modelo.") from last_exc
+ai.services.llm_utils.LLMInvokeError: No se pudo completar la invocación del modelo.
+WARNING ai.services.llm_utils: LLM invocation failed (attempt 1/2): Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499607, Requested 2824. Please try again in 7m0.0768s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+ERROR ai.agents.supervisor: supervisor_node: error invocando LLM para clasificacion
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 55, in invoke_with_retry
+    response = llm.invoke(list(messages))
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 372, in invoke
+    self.generate_prompt(
+    ~~~~~~~~~~~~~~~~~~~~^
+        [self._convert_input(input)],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    ).generations[0][0],
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 957, in generate_prompt
+    return self.generate(prompt_messages, stop=stop, callbacks=callbacks, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 776, in generate
+    self._generate_with_cache(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        m,
+        ^^
+    ...<2 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 1022, in _generate_with_cache
+    result = self._generate(
+        messages, stop=stop, run_manager=run_manager, **kwargs
+    )
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_groq/chat_models.py", line 498, in _generate
+    response = self.client.create(messages=message_dicts, **params)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/resources/chat/completions.py", line 461, in create
+    return self._post(
+           ~~~~~~~~~~^
+        "/openai/v1/chat/completions",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<45 lines>...
+        stream_cls=Stream[ChatCompletionChunk],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1242, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1044, in request
+    raise self._make_status_error_from_response(err.response) from None
+groq.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499605, Requested 2824. Please try again in 6m59.7312s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/agents/supervisor.py", line 219, in supervisor_node
+    raw = invoke_with_retry(llm, llm_messages, retries=1)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 70, in invoke_with_retry
+    raise LLMInvokeError("No se pudo completar la invocación del modelo.") from last_exc
+ai.services.llm_utils.LLMInvokeError: No se pudo completar la invocación del modelo.
+WARNING ai.services.llm_utils: LLM invocation failed (attempt 1/2): Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499604, Requested 1131. Please try again in 2m7.008s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+ERROR ai.agents.research: research_node: error invocando LLM
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 55, in invoke_with_retry
+    response = llm.invoke(list(messages))
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 372, in invoke
+    self.generate_prompt(
+    ~~~~~~~~~~~~~~~~~~~~^
+        [self._convert_input(input)],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    ).generations[0][0],
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 957, in generate_prompt
+    return self.generate(prompt_messages, stop=stop, callbacks=callbacks, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 776, in generate
+    self._generate_with_cache(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        m,
+        ^^
+    ...<2 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 1022, in _generate_with_cache
+    result = self._generate(
+        messages, stop=stop, run_manager=run_manager, **kwargs
+    )
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_groq/chat_models.py", line 498, in _generate
+    response = self.client.create(messages=message_dicts, **params)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/resources/chat/completions.py", line 461, in create
+    return self._post(
+           ~~~~~~~~~~^
+        "/openai/v1/chat/completions",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<45 lines>...
+        stream_cls=Stream[ChatCompletionChunk],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1242, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1044, in request
+    raise self._make_status_error_from_response(err.response) from None
+groq.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499602, Requested 1283. Please try again in 2m32.928s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/agents/research.py", line 48, in research_node
+    notes = invoke_with_retry(llm, messages, retries=1)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 70, in invoke_with_retry
+    raise LLMInvokeError("No se pudo completar la invocación del modelo.") from last_exc
+ai.services.llm_utils.LLMInvokeError: No se pudo completar la invocación del modelo.
+WARNING ai.services.llm_utils: LLM invocation failed (attempt 1/2): Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499602, Requested 1070. Please try again in 1m56.121599999s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+ERROR ai.agents.writer: writer_node: error invocando LLM
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 55, in invoke_with_retry
+    response = llm.invoke(list(messages))
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 372, in invoke
+    self.generate_prompt(
+    ~~~~~~~~~~~~~~~~~~~~^
+        [self._convert_input(input)],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    ).generations[0][0],
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 957, in generate_prompt
+    return self.generate(prompt_messages, stop=stop, callbacks=callbacks, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 776, in generate
+    self._generate_with_cache(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        m,
+        ^^
+    ...<2 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 1022, in _generate_with_cache
+    result = self._generate(
+        messages, stop=stop, run_manager=run_manager, **kwargs
+    )
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_groq/chat_models.py", line 498, in _generate
+    response = self.client.create(messages=message_dicts, **params)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/resources/chat/completions.py", line 461, in create
+    return self._post(
+           ~~~~~~~~~~^
+        "/openai/v1/chat/completions",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<45 lines>...
+        stream_cls=Stream[ChatCompletionChunk],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1242, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1044, in request
+    raise self._make_status_error_from_response(err.response) from None
+groq.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499600, Requested 876. Please try again in 1m22.2528s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/agents/writer.py", line 70, in writer_node
+    draft = invoke_with_retry(llm, messages, retries=1)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 70, in invoke_with_retry
+    raise LLMInvokeError("No se pudo completar la invocación del modelo.") from last_exc
+ai.services.llm_utils.LLMInvokeError: No se pudo completar la invocación del modelo.
+WARNING ai.services.llm_utils: LLM invocation failed (attempt 1/2): Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499599, Requested 2826. Please try again in 6m59.04s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+ERROR ai.agents.supervisor: supervisor_node: error invocando LLM para clasificacion
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 55, in invoke_with_retry
+    response = llm.invoke(list(messages))
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 372, in invoke
+    self.generate_prompt(
+    ~~~~~~~~~~~~~~~~~~~~^
+        [self._convert_input(input)],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    ).generations[0][0],
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 957, in generate_prompt
+    return self.generate(prompt_messages, stop=stop, callbacks=callbacks, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 776, in generate
+    self._generate_with_cache(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        m,
+        ^^
+    ...<2 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 1022, in _generate_with_cache
+    result = self._generate(
+        messages, stop=stop, run_manager=run_manager, **kwargs
+    )
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_groq/chat_models.py", line 498, in _generate
+    response = self.client.create(messages=message_dicts, **params)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/resources/chat/completions.py", line 461, in create
+    return self._post(
+           ~~~~~~~~~~^
+        "/openai/v1/chat/completions",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<45 lines>...
+        stream_cls=Stream[ChatCompletionChunk],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1242, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1044, in request
+    raise self._make_status_error_from_response(err.response) from None
+groq.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499597, Requested 2674. Please try again in 6m32.4288s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/agents/supervisor.py", line 219, in supervisor_node
+    raw = invoke_with_retry(llm, llm_messages, retries=1)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 70, in invoke_with_retry
+    raise LLMInvokeError("No se pudo completar la invocación del modelo.") from last_exc
+ai.services.llm_utils.LLMInvokeError: No se pudo completar la invocación del modelo.
+WARNING ai.services.llm_utils: LLM invocation failed (attempt 1/2): Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499597, Requested 1133. Please try again in 2m6.143999999s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+ERROR ai.agents.research: research_node: error invocando LLM
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 55, in invoke_with_retry
+    response = llm.invoke(list(messages))
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 372, in invoke
+    self.generate_prompt(
+    ~~~~~~~~~~~~~~~~~~~~^
+        [self._convert_input(input)],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    ).generations[0][0],
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 957, in generate_prompt
+    return self.generate(prompt_messages, stop=stop, callbacks=callbacks, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 776, in generate
+    self._generate_with_cache(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        m,
+        ^^
+    ...<2 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 1022, in _generate_with_cache
+    result = self._generate(
+        messages, stop=stop, run_manager=run_manager, **kwargs
+    )
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_groq/chat_models.py", line 498, in _generate
+    response = self.client.create(messages=message_dicts, **params)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/resources/chat/completions.py", line 461, in create
+    return self._post(
+           ~~~~~~~~~~^
+        "/openai/v1/chat/completions",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<45 lines>...
+        stream_cls=Stream[ChatCompletionChunk],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1242, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1044, in request
+    raise self._make_status_error_from_response(err.response) from None
+groq.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499595, Requested 1285. Please try again in 2m32.064s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/agents/research.py", line 48, in research_node
+    notes = invoke_with_retry(llm, messages, retries=1)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 70, in invoke_with_retry
+    raise LLMInvokeError("No se pudo completar la invocación del modelo.") from last_exc
+ai.services.llm_utils.LLMInvokeError: No se pudo completar la invocación del modelo.
+WARNING ai.services.llm_utils: LLM invocation failed (attempt 1/2): Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499594, Requested 920. Please try again in 1m28.8192s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+ERROR ai.agents.writer: writer_node: error invocando LLM
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 55, in invoke_with_retry
+    response = llm.invoke(list(messages))
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 372, in invoke
+    self.generate_prompt(
+    ~~~~~~~~~~~~~~~~~~~~^
+        [self._convert_input(input)],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    ).generations[0][0],
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 957, in generate_prompt
+    return self.generate(prompt_messages, stop=stop, callbacks=callbacks, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 776, in generate
+    self._generate_with_cache(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        m,
+        ^^
+    ...<2 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 1022, in _generate_with_cache
+    result = self._generate(
+        messages, stop=stop, run_manager=run_manager, **kwargs
+    )
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_groq/chat_models.py", line 498, in _generate
+    response = self.client.create(messages=message_dicts, **params)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/resources/chat/completions.py", line 461, in create
+    return self._post(
+           ~~~~~~~~~~^
+        "/openai/v1/chat/completions",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<45 lines>...
+        stream_cls=Stream[ChatCompletionChunk],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1242, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1044, in request
+    raise self._make_status_error_from_response(err.response) from None
+groq.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499592, Requested 920. Please try again in 1m28.473599999s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/agents/writer.py", line 70, in writer_node
+    draft = invoke_with_retry(llm, messages, retries=1)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 70, in invoke_with_retry
+    raise LLMInvokeError("No se pudo completar la invocación del modelo.") from last_exc
+ai.services.llm_utils.LLMInvokeError: No se pudo completar la invocación del modelo.
+WARNING ai.services.llm_utils: LLM invocation failed (attempt 1/2): Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499592, Requested 2822. Please try again in 6m57.139199999s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+ERROR ai.agents.supervisor: supervisor_node: error invocando LLM para clasificacion
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 55, in invoke_with_retry
+    response = llm.invoke(list(messages))
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 372, in invoke
+    self.generate_prompt(
+    ~~~~~~~~~~~~~~~~~~~~^
+        [self._convert_input(input)],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    ).generations[0][0],
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 957, in generate_prompt
+    return self.generate(prompt_messages, stop=stop, callbacks=callbacks, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 776, in generate
+    self._generate_with_cache(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        m,
+        ^^
+    ...<2 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 1022, in _generate_with_cache
+    result = self._generate(
+        messages, stop=stop, run_manager=run_manager, **kwargs
+    )
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_groq/chat_models.py", line 498, in _generate
+    response = self.client.create(messages=message_dicts, **params)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/resources/chat/completions.py", line 461, in create
+    return self._post(
+           ~~~~~~~~~~^
+        "/openai/v1/chat/completions",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<45 lines>...
+        stream_cls=Stream[ChatCompletionChunk],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1242, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1044, in request
+    raise self._make_status_error_from_response(err.response) from None
+groq.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499590, Requested 2670. Please try again in 6m30.527999999s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/agents/supervisor.py", line 219, in supervisor_node
+    raw = invoke_with_retry(llm, llm_messages, retries=1)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 70, in invoke_with_retry
+    raise LLMInvokeError("No se pudo completar la invocación del modelo.") from last_exc
+ai.services.llm_utils.LLMInvokeError: No se pudo completar la invocación del modelo.
+WARNING ai.services.llm_utils: LLM invocation failed (attempt 1/2): Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499589, Requested 1281. Please try again in 2m30.336s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+ERROR ai.agents.research: research_node: error invocando LLM
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 55, in invoke_with_retry
+    response = llm.invoke(list(messages))
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 372, in invoke
+    self.generate_prompt(
+    ~~~~~~~~~~~~~~~~~~~~^
+        [self._convert_input(input)],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    ).generations[0][0],
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 957, in generate_prompt
+    return self.generate(prompt_messages, stop=stop, callbacks=callbacks, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 776, in generate
+    self._generate_with_cache(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        m,
+        ^^
+    ...<2 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 1022, in _generate_with_cache
+    result = self._generate(
+        messages, stop=stop, run_manager=run_manager, **kwargs
+    )
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_groq/chat_models.py", line 498, in _generate
+    response = self.client.create(messages=message_dicts, **params)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/resources/chat/completions.py", line 461, in create
+    return self._post(
+           ~~~~~~~~~~^
+        "/openai/v1/chat/completions",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<45 lines>...
+        stream_cls=Stream[ChatCompletionChunk],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1242, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1044, in request
+    raise self._make_status_error_from_response(err.response) from None
+groq.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499587, Requested 1281. Please try again in 2m29.9904s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/agents/research.py", line 48, in research_node
+    notes = invoke_with_retry(llm, messages, retries=1)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 70, in invoke_with_retry
+    raise LLMInvokeError("No se pudo completar la invocación del modelo.") from last_exc
+ai.services.llm_utils.LLMInvokeError: No se pudo completar la invocación del modelo.
+WARNING ai.services.llm_utils: LLM invocation failed (attempt 1/2): Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499587, Requested 916. Please try again in 1m26.918399999s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+ERROR ai.agents.writer: writer_node: error invocando LLM
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 55, in invoke_with_retry
+    response = llm.invoke(list(messages))
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 372, in invoke
+    self.generate_prompt(
+    ~~~~~~~~~~~~~~~~~~~~^
+        [self._convert_input(input)],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    ).generations[0][0],
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 957, in generate_prompt
+    return self.generate(prompt_messages, stop=stop, callbacks=callbacks, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 776, in generate
+    self._generate_with_cache(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        m,
+        ^^
+    ...<2 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 1022, in _generate_with_cache
+    result = self._generate(
+        messages, stop=stop, run_manager=run_manager, **kwargs
+    )
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_groq/chat_models.py", line 498, in _generate
+    response = self.client.create(messages=message_dicts, **params)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/resources/chat/completions.py", line 461, in create
+    return self._post(
+           ~~~~~~~~~~^
+        "/openai/v1/chat/completions",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<45 lines>...
+        stream_cls=Stream[ChatCompletionChunk],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1242, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1044, in request
+    raise self._make_status_error_from_response(err.response) from None
+groq.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499584, Requested 1068. Please try again in 1m52.6656s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/agents/writer.py", line 70, in writer_node
+    draft = invoke_with_retry(llm, messages, retries=1)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 70, in invoke_with_retry
+    raise LLMInvokeError("No se pudo completar la invocación del modelo.") from last_exc
+ai.services.llm_utils.LLMInvokeError: No se pudo completar la invocación del modelo.
+WARNING ai.services.llm_utils: LLM invocation failed (attempt 1/2): Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499584, Requested 2626. Please try again in 6m21.888s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+ERROR ai.agents.supervisor: supervisor_node: error invocando LLM para clasificacion
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 55, in invoke_with_retry
+    response = llm.invoke(list(messages))
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 372, in invoke
+    self.generate_prompt(
+    ~~~~~~~~~~~~~~~~~~~~^
+        [self._convert_input(input)],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    ).generations[0][0],
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 957, in generate_prompt
+    return self.generate(prompt_messages, stop=stop, callbacks=callbacks, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 776, in generate
+    self._generate_with_cache(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        m,
+        ^^
+    ...<2 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 1022, in _generate_with_cache
+    result = self._generate(
+        messages, stop=stop, run_manager=run_manager, **kwargs
+    )
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_groq/chat_models.py", line 498, in _generate
+    response = self.client.create(messages=message_dicts, **params)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/resources/chat/completions.py", line 461, in create
+    return self._post(
+           ~~~~~~~~~~^
+        "/openai/v1/chat/completions",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<45 lines>...
+        stream_cls=Stream[ChatCompletionChunk],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1242, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1044, in request
+    raise self._make_status_error_from_response(err.response) from None
+groq.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499582, Requested 2820. Please try again in 6m55.0656s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/agents/supervisor.py", line 219, in supervisor_node
+    raw = invoke_with_retry(llm, llm_messages, retries=1)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 70, in invoke_with_retry
+    raise LLMInvokeError("No se pudo completar la invocación del modelo.") from last_exc
+ai.services.llm_utils.LLMInvokeError: No se pudo completar la invocación del modelo.
+WARNING ai.services.llm_utils: LLM invocation failed (attempt 1/2): Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499582, Requested 1279. Please try again in 2m28.7808s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+ERROR ai.agents.research: research_node: error invocando LLM
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 55, in invoke_with_retry
+    response = llm.invoke(list(messages))
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 372, in invoke
+    self.generate_prompt(
+    ~~~~~~~~~~~~~~~~~~~~^
+        [self._convert_input(input)],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    ).generations[0][0],
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 957, in generate_prompt
+    return self.generate(prompt_messages, stop=stop, callbacks=callbacks, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 776, in generate
+    self._generate_with_cache(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        m,
+        ^^
+    ...<2 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 1022, in _generate_with_cache
+    result = self._generate(
+        messages, stop=stop, run_manager=run_manager, **kwargs
+    )
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_groq/chat_models.py", line 498, in _generate
+    response = self.client.create(messages=message_dicts, **params)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/resources/chat/completions.py", line 461, in create
+    return self._post(
+           ~~~~~~~~~~^
+        "/openai/v1/chat/completions",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<45 lines>...
+        stream_cls=Stream[ChatCompletionChunk],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1242, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1044, in request
+    raise self._make_status_error_from_response(err.response) from None
+groq.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499579, Requested 1127. Please try again in 2m1.9968s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/agents/research.py", line 48, in research_node
+    notes = invoke_with_retry(llm, messages, retries=1)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 70, in invoke_with_retry
+    raise LLMInvokeError("No se pudo completar la invocación del modelo.") from last_exc
+ai.services.llm_utils.LLMInvokeError: No se pudo completar la invocación del modelo.
+WARNING ai.services.llm_utils: LLM invocation failed (attempt 1/2): Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499579, Requested 1066. Please try again in 1m51.455999999s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+ERROR ai.agents.writer: writer_node: error invocando LLM
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 55, in invoke_with_retry
+    response = llm.invoke(list(messages))
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 372, in invoke
+    self.generate_prompt(
+    ~~~~~~~~~~~~~~~~~~~~^
+        [self._convert_input(input)],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    ).generations[0][0],
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 957, in generate_prompt
+    return self.generate(prompt_messages, stop=stop, callbacks=callbacks, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 776, in generate
+    self._generate_with_cache(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        m,
+        ^^
+    ...<2 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 1022, in _generate_with_cache
+    result = self._generate(
+        messages, stop=stop, run_manager=run_manager, **kwargs
+    )
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_groq/chat_models.py", line 498, in _generate
+    response = self.client.create(messages=message_dicts, **params)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/resources/chat/completions.py", line 461, in create
+    return self._post(
+           ~~~~~~~~~~^
+        "/openai/v1/chat/completions",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<45 lines>...
+        stream_cls=Stream[ChatCompletionChunk],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1242, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1044, in request
+    raise self._make_status_error_from_response(err.response) from None
+groq.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499577, Requested 914. Please try again in 1m24.8448s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/agents/writer.py", line 70, in writer_node
+    draft = invoke_with_retry(llm, messages, retries=1)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 70, in invoke_with_retry
+    raise LLMInvokeError("No se pudo completar la invocación del modelo.") from last_exc
+ai.services.llm_utils.LLMInvokeError: No se pudo completar la invocación del modelo.
+WARNING ai.services.llm_utils: LLM invocation failed (attempt 1/2): Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499577, Requested 2668. Please try again in 6m27.936s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+ERROR ai.agents.supervisor: supervisor_node: error invocando LLM para clasificacion
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 55, in invoke_with_retry
+    response = llm.invoke(list(messages))
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 372, in invoke
+    self.generate_prompt(
+    ~~~~~~~~~~~~~~~~~~~~^
+        [self._convert_input(input)],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    ).generations[0][0],
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 957, in generate_prompt
+    return self.generate(prompt_messages, stop=stop, callbacks=callbacks, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 776, in generate
+    self._generate_with_cache(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        m,
+        ^^
+    ...<2 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 1022, in _generate_with_cache
+    result = self._generate(
+        messages, stop=stop, run_manager=run_manager, **kwargs
+    )
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_groq/chat_models.py", line 498, in _generate
+    response = self.client.create(messages=message_dicts, **params)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/resources/chat/completions.py", line 461, in create
+    return self._post(
+           ~~~~~~~~~~^
+        "/openai/v1/chat/completions",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<45 lines>...
+        stream_cls=Stream[ChatCompletionChunk],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1242, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1044, in request
+    raise self._make_status_error_from_response(err.response) from None
+groq.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499575, Requested 2820. Please try again in 6m53.856s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/agents/supervisor.py", line 219, in supervisor_node
+    raw = invoke_with_retry(llm, llm_messages, retries=1)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 70, in invoke_with_retry
+    raise LLMInvokeError("No se pudo completar la invocación del modelo.") from last_exc
+ai.services.llm_utils.LLMInvokeError: No se pudo completar la invocación del modelo.
+WARNING ai.services.llm_utils: LLM invocation failed (attempt 1/2): Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499574, Requested 1085. Please try again in 1m53.8752s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+ERROR ai.agents.research: research_node: error invocando LLM
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 55, in invoke_with_retry
+    response = llm.invoke(list(messages))
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 372, in invoke
+    self.generate_prompt(
+    ~~~~~~~~~~~~~~~~~~~~^
+        [self._convert_input(input)],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    ).generations[0][0],
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 957, in generate_prompt
+    return self.generate(prompt_messages, stop=stop, callbacks=callbacks, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 776, in generate
+    self._generate_with_cache(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        m,
+        ^^
+    ...<2 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 1022, in _generate_with_cache
+    result = self._generate(
+        messages, stop=stop, run_manager=run_manager, **kwargs
+    )
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_groq/chat_models.py", line 498, in _generate
+    response = self.client.create(messages=message_dicts, **params)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/resources/chat/completions.py", line 461, in create
+    return self._post(
+           ~~~~~~~~~~^
+        "/openai/v1/chat/completions",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<45 lines>...
+        stream_cls=Stream[ChatCompletionChunk],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1242, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1044, in request
+    raise self._make_status_error_from_response(err.response) from None
+groq.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499572, Requested 1279. Please try again in 2m27.0528s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/agents/research.py", line 48, in research_node
+    notes = invoke_with_retry(llm, messages, retries=1)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 70, in invoke_with_retry
+    raise LLMInvokeError("No se pudo completar la invocación del modelo.") from last_exc
+ai.services.llm_utils.LLMInvokeError: No se pudo completar la invocación del modelo.
+WARNING ai.services.llm_utils: LLM invocation failed (attempt 1/2): Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499572, Requested 1066. Please try again in 1m50.2464s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+ERROR ai.agents.writer: writer_node: error invocando LLM
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 55, in invoke_with_retry
+    response = llm.invoke(list(messages))
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 372, in invoke
+    self.generate_prompt(
+    ~~~~~~~~~~~~~~~~~~~~^
+        [self._convert_input(input)],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    ).generations[0][0],
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 957, in generate_prompt
+    return self.generate(prompt_messages, stop=stop, callbacks=callbacks, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 776, in generate
+    self._generate_with_cache(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        m,
+        ^^
+    ...<2 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 1022, in _generate_with_cache
+    result = self._generate(
+        messages, stop=stop, run_manager=run_manager, **kwargs
+    )
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_groq/chat_models.py", line 498, in _generate
+    response = self.client.create(messages=message_dicts, **params)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/resources/chat/completions.py", line 461, in create
+    return self._post(
+           ~~~~~~~~~~^
+        "/openai/v1/chat/completions",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<45 lines>...
+        stream_cls=Stream[ChatCompletionChunk],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1242, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1044, in request
+    raise self._make_status_error_from_response(err.response) from None
+groq.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499569, Requested 914. Please try again in 1m23.4624s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/agents/writer.py", line 70, in writer_node
+    draft = invoke_with_retry(llm, messages, retries=1)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 70, in invoke_with_retry
+    raise LLMInvokeError("No se pudo completar la invocación del modelo.") from last_exc
+ai.services.llm_utils.LLMInvokeError: No se pudo completar la invocación del modelo.
+WARNING ai.services.llm_utils: LLM invocation failed (attempt 1/2): Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499569, Requested 2819. Please try again in 6m52.6464s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+ERROR ai.agents.supervisor: supervisor_node: error invocando LLM para clasificacion
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 55, in invoke_with_retry
+    response = llm.invoke(list(messages))
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 372, in invoke
+    self.generate_prompt(
+    ~~~~~~~~~~~~~~~~~~~~^
+        [self._convert_input(input)],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    ).generations[0][0],
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 957, in generate_prompt
+    return self.generate(prompt_messages, stop=stop, callbacks=callbacks, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 776, in generate
+    self._generate_with_cache(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        m,
+        ^^
+    ...<2 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 1022, in _generate_with_cache
+    result = self._generate(
+        messages, stop=stop, run_manager=run_manager, **kwargs
+    )
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_groq/chat_models.py", line 498, in _generate
+    response = self.client.create(messages=message_dicts, **params)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/resources/chat/completions.py", line 461, in create
+    return self._post(
+           ~~~~~~~~~~^
+        "/openai/v1/chat/completions",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<45 lines>...
+        stream_cls=Stream[ChatCompletionChunk],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1242, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1044, in request
+    raise self._make_status_error_from_response(err.response) from None
+groq.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499567, Requested 2819. Please try again in 6m52.3008s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/agents/supervisor.py", line 219, in supervisor_node
+    raw = invoke_with_retry(llm, llm_messages, retries=1)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 70, in invoke_with_retry
+    raise LLMInvokeError("No se pudo completar la invocación del modelo.") from last_exc
+ai.services.llm_utils.LLMInvokeError: No se pudo completar la invocación del modelo.
+WARNING ai.services.llm_utils: LLM invocation failed (attempt 1/2): Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499566, Requested 1126. Please try again in 1m59.5776s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+ERROR ai.agents.research: research_node: error invocando LLM
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 55, in invoke_with_retry
+    response = llm.invoke(list(messages))
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 372, in invoke
+    self.generate_prompt(
+    ~~~~~~~~~~~~~~~~~~~~^
+        [self._convert_input(input)],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    ).generations[0][0],
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 957, in generate_prompt
+    return self.generate(prompt_messages, stop=stop, callbacks=callbacks, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 776, in generate
+    self._generate_with_cache(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        m,
+        ^^
+    ...<2 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 1022, in _generate_with_cache
+    result = self._generate(
+        messages, stop=stop, run_manager=run_manager, **kwargs
+    )
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_groq/chat_models.py", line 498, in _generate
+    response = self.client.create(messages=message_dicts, **params)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/resources/chat/completions.py", line 461, in create
+    return self._post(
+           ~~~~~~~~~~^
+        "/openai/v1/chat/completions",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<45 lines>...
+        stream_cls=Stream[ChatCompletionChunk],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1242, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1044, in request
+    raise self._make_status_error_from_response(err.response) from None
+groq.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499564, Requested 1084. Please try again in 1m51.9744s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/agents/research.py", line 48, in research_node
+    notes = invoke_with_retry(llm, messages, retries=1)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 70, in invoke_with_retry
+    raise LLMInvokeError("No se pudo completar la invocación del modelo.") from last_exc
+ai.services.llm_utils.LLMInvokeError: No se pudo completar la invocación del modelo.
+WARNING ai.services.llm_utils: LLM invocation failed (attempt 1/2): Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499564, Requested 1065. Please try again in 1m48.6912s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+ERROR ai.agents.writer: writer_node: error invocando LLM
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 55, in invoke_with_retry
+    response = llm.invoke(list(messages))
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 372, in invoke
+    self.generate_prompt(
+    ~~~~~~~~~~~~~~~~~~~~^
+        [self._convert_input(input)],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    ).generations[0][0],
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 957, in generate_prompt
+    return self.generate(prompt_messages, stop=stop, callbacks=callbacks, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 776, in generate
+    self._generate_with_cache(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        m,
+        ^^
+    ...<2 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 1022, in _generate_with_cache
+    result = self._generate(
+        messages, stop=stop, run_manager=run_manager, **kwargs
+    )
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/langchain_groq/chat_models.py", line 498, in _generate
+    response = self.client.create(messages=message_dicts, **params)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/resources/chat/completions.py", line 461, in create
+    return self._post(
+           ~~~~~~~~~~^
+        "/openai/v1/chat/completions",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<45 lines>...
+        stream_cls=Stream[ChatCompletionChunk],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1242, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/.venv/lib/python3.13/site-packages/groq/_base_client.py", line 1044, in request
+    raise self._make_status_error_from_response(err.response) from None
+groq.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kjbe06cdetcbxtvsy5zv4df7` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499562, Requested 1065. Please try again in 1m48.345599999s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/agents/writer.py", line 70, in writer_node
+    draft = invoke_with_retry(llm, messages, retries=1)
+  File "/Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/ai/services/llm_utils.py", line 70, in invoke_with_retry
+    raise LLMInvokeError("No se pudo completar la invocación del modelo.") from last_exc
+ai.services.llm_utils.LLMInvokeError: No se pudo completar la invocación del modelo.
+Cargados 80 prompts.
+[  1/80] p001: crea una tarea para mañana llamada comprar pan
+[  2/80] p002: borra el proyecto TFG
+[  3/80] p003: marca como completada la tarea redactar la introducción
+[  4/80] p004: actualiza la fecha límite del proyecto tesis al 30 de junio
+[  5/80] p005: crea un objetivo nuevo bajo el proyecto tesis que se llame r
+[  6/80] p006: elimina la tarea revisar bibliografía
+[  7/80] p007: crea un evento mañana a las 10 para defender el TFG
+[  8/80] p008: borra el evento de la reunión del viernes
+[  9/80] p009: actualiza el progreso del objetivo redactar al 80%
+[ 10/80] p010: crea un proyecto llamado vacaciones con dos objetivos: reser
+Proyecto insertado localmente y sincronizado: 6a14884d7502870a21526b95
+[ 11/80] p011: añade tres tareas al objetivo redactar capítulo 5: introducc
+Tarea insertada localmente y sincronizada: 6a14887a7502870a21526b96
+Tarea insertada localmente y sincronizada: 6a14887a7502870a21526b97
+Tarea insertada localmente y sincronizada: 6a14887a7502870a21526b98
+[ 12/80] p012: cambia la prioridad de la tarea bibliografía a alta
+Tarea 662000000000000000000008 actualizada y sincronizada.
+[ 13/80] p013: termina la tarea de hoy
+[ 14/80] p014: borra todo lo del TFG
+Proyecto 660000000000000000000001 actualizado y sincronizado.
+[ 15/80] p015: marca como hecho
+[ 16/80] p101: qué objetivos tengo en el proyecto tesis
+[ 17/80] p102: muéstrame todas mis tareas pendientes
+[ 18/80] p103: qué tareas tiene el objetivo redactar
+[ 19/80] p104: lista los proyectos activos
+[ 20/80] p105: cuántas tareas tengo en total
+[ 21/80] p106: qué categorías uso más
+[ 22/80] p107: qué eventos tengo esta semana
+[ 23/80] p108: dime los detalles del proyecto vacaciones
+[ 24/80] p109: qué hay
+[ 25/80] p110: cuéntame
+[ 26/80] p201: investiga a fondo sobre tecnicas pomodoro y dame fuentes
+[ 27/80] p202: busca en internet información sobre la metodología GTD
+[ 28/80] p203: haz una investigación detallada sobre los mejores frameworks
+[ 29/80] p204: investiga con fuentes externas qué dice la literatura sobre 
+[ 30/80] p205: busca artículos académicos sobre planificación semanal
+[ 31/80] p206: investiga
+[ 32/80] p301: resume mi semana
+[ 33/80] p302: qué he hecho esta semana
+[ 34/80] p303: dame un balance de la semana
+[ 35/80] p304: cómo ha ido la semana en general
+[ 36/80] p305: resumen semanal por favor
+[ 37/80] p306: qué tareas completé esta semana
+[ 38/80] p401: planifica mi próxima semana
+[ 39/80] p402: diseña un plan para la semana que viene
+[ 40/80] p403: qué debería hacer cada día la próxima semana
+[ 41/80] p404: organiza mi agenda para los próximos siete días
+[ 42/80] p405: plan semanal con las tareas pendientes
+[ 43/80] p406: ayúdame a planificar la semana priorizando lo urgente
+[ 44/80] p501: dame recomendaciones sobre qué hacer ahora
+[ 45/80] p502: qué consejos me das para mis prioridades
+[ 46/80] p503: qué me sugieres priorizar hoy
+[ 47/80] p504: necesito ideas para avanzar en el TFG
+[ 48/80] p505: recomiéndame por dónde empezar mañana
+[ 49/80] p506: dame consejos para no procrastinar
+[ 50/80] p601: cómo va mi progreso
+[ 51/80] p602: qué porcentaje llevo del TFG
+[ 52/80] p603: estado de mis objetivos
+[ 53/80] p604: cuánto he avanzado en el proyecto vacaciones
+[ 54/80] p605: dame un análisis de mi avance
+[ 55/80] p606: qué tareas están bloqueadas
+[ 56/80] p701: resume el documento plan_de_trabajo.pdf
+[ 57/80] p702: léeme el documento de la memoria
+[ 58/80] p703: analiza el documento riesgos.docx centrándote en los riesgos
+[ 59/80] p704: crea un documento con el plan de trabajo del TFG
+Documento insertado y sincronizado: 6a1490587502870a21526b9b
+[ 60/80] p705: muestra las notas del proyecto TFG
+[ 61/80] p706: añade una nota al proyecto TFG: revisar bibliografía adicion
+Proyecto 660000000000000000000001 actualizado y sincronizado.
+[ 62/80] p707: genera un informe del proyecto vacaciones
+Documento insertado y sincronizado: 6a1490af7502870a21526b9e
+[ 63/80] p708: abre el archivo de la introducción
+[ 64/80] p709: resume
+[ 65/80] p710: lee el archivo
+[ 66/80] p801: lo de ayer
+[ 67/80] p802: termina eso
+[ 68/80] p803: haz lo que te dije antes
+[ 69/80] p804: ya sabes
+[ 70/80] p805: el otro
+[ 71/80] p806: vale
+[ 72/80] p807: gracias
+[ 73/80] p901: borre el tprolyecto TFG
+[ 74/80] p902: create task for mañna comprar pan
+[ 75/80] p903: marka completada la tarea redactar
+[ 76/80] p904: kreame un objetibo de redactar la memoria
+[ 77/80] p905: summarize my week por favor
+[ 78/80] p906: research about productivity en internet
+[ 79/80] p907: delete el evento de mañana
+[ 80/80] p908: qq tareas tengo
+
+Resultados: /Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/evaluation/results/run_20260525T181549Z.json
+Informe:    /Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/evaluation/results/run_20260525T181549Z.md
+
+=== Resumen ===
+Precision intent: 65.00%
+Tasa CRUD:        40.00%
+Aclaraciones:     5 (pertinentes=1, friccion=4)
+Latencia:         p50=35.44s, p95=60.82s, p99=67.70s

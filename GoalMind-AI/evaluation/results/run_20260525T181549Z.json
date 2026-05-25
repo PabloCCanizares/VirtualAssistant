@@ -1,0 +1,1752 @@
+{
+  "timestamp": "20260525T181549Z",
+  "n_prompts": 80,
+  "results": [
+    {
+      "prompt_id": "p001",
+      "prompt": "crea una tarea para mañana llamada comprar pan",
+      "expected_intent": "action",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "action",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": [
+        {
+          "op": "create",
+          "entity": "task",
+          "ref": "comprar pan"
+        }
+      ],
+      "actual_actions": [
+        {
+          "action_name": "create_task",
+          "action_parameters": {
+            "contenido": "comprar pan",
+            "fecha_limite": "2026-05-26T00:00:00Z",
+            "estado": "pendiente"
+          },
+          "ref_id": null
+        }
+      ],
+      "actions_match": true,
+      "duration_seconds": 0.7011708329955582,
+      "final_reply": "¿Que objetivo quieres usar? Indica el nombre.",
+      "error": null
+    },
+    {
+      "prompt_id": "p002",
+      "prompt": "borra el proyecto TFG",
+      "expected_intent": "action",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "action",
+      "intent_match": true,
+      "asked_clarification": true,
+      "clarification_pertinent": false,
+      "expected_actions": [
+        {
+          "op": "delete",
+          "entity": "project",
+          "ref": "TFG"
+        }
+      ],
+      "actual_actions": [
+        {
+          "action_name": "delete_project",
+          "action_parameters": {
+            "project_title": "TFG"
+          },
+          "ref_id": null
+        }
+      ],
+      "actions_match": true,
+      "duration_seconds": 0.7222507080005016,
+      "final_reply": "Voy a ejecutar las siguientes acciones: delete_project. Alguna de ellas es destructiva. ¿Confirmas? Responde 'confirmo' o 'cancela'.",
+      "error": null
+    },
+    {
+      "prompt_id": "p003",
+      "prompt": "marca como completada la tarea redactar la introducción",
+      "expected_intent": "action",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "action",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": [
+        {
+          "op": "mark_complete",
+          "entity": "task",
+          "ref": "redactar la introducción"
+        }
+      ],
+      "actual_actions": [
+        {
+          "action_name": "mark_task_complete",
+          "action_parameters": {
+            "task_title": "redactar introduccion"
+          },
+          "ref_id": null
+        }
+      ],
+      "actions_match": false,
+      "duration_seconds": 33.73382670900901,
+      "final_reply": "¿Que tarea quieres usar? Indica el texto exacto.",
+      "error": null
+    },
+    {
+      "prompt_id": "p004",
+      "prompt": "actualiza la fecha límite del proyecto tesis al 30 de junio",
+      "expected_intent": "action",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "action",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": [
+        {
+          "op": "update",
+          "entity": "project",
+          "ref": "tesis"
+        }
+      ],
+      "actual_actions": [
+        {
+          "action_name": "update_project",
+          "action_parameters": {
+            "project_title": "tesis",
+            "fecha_limite": "30/06"
+          },
+          "ref_id": null
+        }
+      ],
+      "actions_match": true,
+      "duration_seconds": 37.36171254199871,
+      "final_reply": "¿Que proyecto quieres usar? Indica el nombre.",
+      "error": null
+    },
+    {
+      "prompt_id": "p005",
+      "prompt": "crea un objetivo nuevo bajo el proyecto tesis que se llame redactar capítulo 5",
+      "expected_intent": "action",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "action",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": [
+        {
+          "op": "create",
+          "entity": "goal",
+          "ref": "redactar capítulo 5"
+        }
+      ],
+      "actual_actions": [
+        {
+          "action_name": "create_goal",
+          "action_parameters": {
+            "titulo": "redactar capítulo 5",
+            "project_id": "$ref:t0"
+          },
+          "ref_id": "g0"
+        }
+      ],
+      "actions_match": true,
+      "duration_seconds": 34.04108629199618,
+      "final_reply": "No pude ejecutar la accion: 't0' is not a valid ObjectId, it must be a 12-byte input or a 24-character hex string",
+      "error": null
+    },
+    {
+      "prompt_id": "p006",
+      "prompt": "elimina la tarea revisar bibliografía",
+      "expected_intent": "action",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "action",
+      "intent_match": true,
+      "asked_clarification": true,
+      "clarification_pertinent": false,
+      "expected_actions": [
+        {
+          "op": "delete",
+          "entity": "task",
+          "ref": "revisar bibliografía"
+        }
+      ],
+      "actual_actions": [
+        {
+          "action_name": "delete_task",
+          "action_parameters": {
+            "task_title": "Revisar bibliografía"
+          },
+          "ref_id": null
+        }
+      ],
+      "actions_match": true,
+      "duration_seconds": 27.706897333002416,
+      "final_reply": "Voy a ejecutar las siguientes acciones: delete_task. Alguna de ellas es destructiva. ¿Confirmas? Responde 'confirmo' o 'cancela'.",
+      "error": null
+    },
+    {
+      "prompt_id": "p007",
+      "prompt": "crea un evento mañana a las 10 para defender el TFG",
+      "expected_intent": "action",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "action",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": [
+        {
+          "op": "create",
+          "entity": "event",
+          "ref": "defender el TFG"
+        }
+      ],
+      "actual_actions": [
+        {
+          "action_name": "create_event",
+          "action_parameters": {
+            "titulo": "defensa TFG",
+            "fecha_inicio": "2026-05-26T10:00:00Z",
+            "fecha_fin": "2026-05-26T11:00:00Z",
+            "tipo_evento": "academico",
+            "descripcion": "Defensa del Trabajo de Fin de Grado"
+          },
+          "ref_id": null
+        }
+      ],
+      "actions_match": false,
+      "duration_seconds": 31.97735516600369,
+      "final_reply": "Evento creado: defensa TFG.",
+      "error": null
+    },
+    {
+      "prompt_id": "p008",
+      "prompt": "borra el evento de la reunión del viernes",
+      "expected_intent": "action",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "action",
+      "intent_match": true,
+      "asked_clarification": true,
+      "clarification_pertinent": false,
+      "expected_actions": [
+        {
+          "op": "delete",
+          "entity": "event",
+          "ref": "reunión del viernes"
+        }
+      ],
+      "actual_actions": [
+        {
+          "action_name": "delete_event",
+          "action_parameters": {
+            "event_title": "reunion de seguimiento"
+          },
+          "ref_id": null
+        }
+      ],
+      "actions_match": false,
+      "duration_seconds": 31.654459375000442,
+      "final_reply": "Voy a ejecutar las siguientes acciones: delete_event. Alguna de ellas es destructiva. ¿Confirmas? Responde 'confirmo' o 'cancela'.",
+      "error": null
+    },
+    {
+      "prompt_id": "p009",
+      "prompt": "actualiza el progreso del objetivo redactar al 80%",
+      "expected_intent": "action",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "action",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": [
+        {
+          "op": "update",
+          "entity": "goal",
+          "ref": "redactar"
+        }
+      ],
+      "actual_actions": [
+        {
+          "action_name": "update_goal",
+          "action_parameters": {
+            "goal_title": "redactar memoria",
+            "progreso": 80
+          },
+          "ref_id": null
+        }
+      ],
+      "actions_match": true,
+      "duration_seconds": 34.19075416700798,
+      "final_reply": "¿Que objetivo quieres usar? Indica el nombre.",
+      "error": null
+    },
+    {
+      "prompt_id": "p010",
+      "prompt": "crea un proyecto llamado vacaciones con dos objetivos: reservar vuelos y hacer maletas",
+      "expected_intent": "action",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "action",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": [
+        {
+          "op": "create",
+          "entity": "project",
+          "ref": "vacaciones"
+        },
+        {
+          "op": "create",
+          "entity": "goal",
+          "ref": "reservar vuelos"
+        },
+        {
+          "op": "create",
+          "entity": "goal",
+          "ref": "hacer maletas"
+        }
+      ],
+      "actual_actions": [
+        {
+          "action_name": "create_project",
+          "action_parameters": {
+            "titulo": "vacaciones",
+            "descripcion": "Planificacion de vacaciones de verano"
+          },
+          "ref_id": "p0"
+        },
+        {
+          "action_name": "create_goal",
+          "action_parameters": {
+            "titulo": "reservar vuelos",
+            "project_title": "$ref:p0",
+            "descripcion": "",
+            "prioridad": "Media",
+            "estado": "Activo",
+            "fecha_inicio": null,
+            "fecha_fin": null,
+            "progreso": 0
+          },
+          "ref_id": "g0"
+        },
+        {
+          "action_name": "create_goal",
+          "action_parameters": {
+            "titulo": "hacer maletas",
+            "project_title": "$ref:p0",
+            "descripcion": "",
+            "prioridad": "Baja",
+            "estado": "Activo",
+            "fecha_inicio": null,
+            "fecha_fin": null,
+            "progreso": 0
+          },
+          "ref_id": "g1"
+        }
+      ],
+      "actions_match": true,
+      "duration_seconds": 30.589424915990094,
+      "final_reply": "Acciones completadas:\n- Proyecto creado: vacaciones.\n- ¿Que proyecto quieres usar? Indica el nombre.\n- ¿Que proyecto quieres usar? Indica el nombre.",
+      "error": null
+    },
+    {
+      "prompt_id": "p011",
+      "prompt": "añade tres tareas al objetivo redactar capítulo 5: introducción, desarrollo y conclusión",
+      "expected_intent": "action",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "action",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": [
+        {
+          "op": "create",
+          "entity": "task",
+          "ref": "introducción"
+        },
+        {
+          "op": "create",
+          "entity": "task",
+          "ref": "desarrollo"
+        },
+        {
+          "op": "create",
+          "entity": "task",
+          "ref": "conclusión"
+        }
+      ],
+      "actual_actions": [
+        {
+          "action_name": "update_goal",
+          "action_parameters": {
+            "goal_id": "$ref:g0"
+          },
+          "ref_id": "g0"
+        },
+        {
+          "action_name": "create_task",
+          "action_parameters": {
+            "contenido": "redactar introduccion",
+            "goal_id": "$ref:g0",
+            "descripcion": null,
+            "fecha_limite": null,
+            "estado": null,
+            "prioridad": null
+          },
+          "ref_id": "t1"
+        },
+        {
+          "action_name": "create_task",
+          "action_parameters": {
+            "contenido": "desarrollar contenido del capitulo",
+            "goal_id": "$ref:g0",
+            "descripcion": null,
+            "fecha_limite": null,
+            "estado": null,
+            "prioridad": null
+          },
+          "ref_id": "t2"
+        },
+        {
+          "action_name": "create_task",
+          "action_parameters": {
+            "contenido": "redactar conclusion del capitulo",
+            "goal_id": "$ref:g0",
+            "descripcion": null,
+            "fecha_limite": null,
+            "estado": null,
+            "prioridad": null
+          },
+          "ref_id": "t3"
+        }
+      ],
+      "actions_match": false,
+      "duration_seconds": 45.29353012499632,
+      "final_reply": "Acciones completadas:\n- No se indicaron campos para actualizar en el objetivo.\n- Tarea creada: redactar introduccion.\n- Tarea creada: desarrollar contenido del capitulo.\n- Tarea creada: redactar conclusion del capitulo.",
+      "error": null
+    },
+    {
+      "prompt_id": "p012",
+      "prompt": "cambia la prioridad de la tarea bibliografía a alta",
+      "expected_intent": "action",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "action",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": [
+        {
+          "op": "update",
+          "entity": "task",
+          "ref": "bibliografía"
+        }
+      ],
+      "actual_actions": [
+        {
+          "action_name": "update_task",
+          "action_parameters": {
+            "task_id": "662000000000000000000008",
+            "prioridad": "alta"
+          },
+          "ref_id": null
+        }
+      ],
+      "actions_match": false,
+      "duration_seconds": 30.803246665993356,
+      "final_reply": "Tarea actualizada (prioridad).",
+      "error": null
+    },
+    {
+      "prompt_id": "p013",
+      "prompt": "termina la tarea de hoy",
+      "expected_intent": "action",
+      "expected_clarification": true,
+      "ambiguity": "high",
+      "actual_intent": "weekly_summary",
+      "intent_match": false,
+      "asked_clarification": false,
+      "clarification_pertinent": false,
+      "expected_actions": [
+        {
+          "op": "mark_complete",
+          "entity": "task",
+          "ref": null
+        }
+      ],
+      "actual_actions": null,
+      "actions_match": false,
+      "duration_seconds": 35.70004379199236,
+      "final_reply": "Basándome en el contexto proporcionado, no hay tareas pendientes para hoy. Sin embargo, se puede generar un resumen de las tareas pendientes con fecha límite cercana.\n\nTareas pendientes con fecha límite cercana:\n\n* Revisar bibliografía (objetivo_id: 661000000000000000000001) - Pendiente\n* Ensayar defensa (objetivo_id: 661000000000000000000002) - Pendiente\n* Preparar slides (objetivo_id: 661000000000000000000002) - Pendiente\n* Buscar vuelos baratos (objetivo_id: 661000000000000000000003) - Pendiente\n* Redactar conclusiones (objetivo_id: 661000000000000000000001) - Pendiente\n* Desarrollar contenido del capítulo (objetivo_id: $ref:g0) - Pendiente\n* Redactar conclusión del capítulo (objetivo_id: $ref:g0) - Pendiente\n\nEs importante destacar que no hay tareas específicas para hoy en el contexto proporcionado.",
+      "error": null
+    },
+    {
+      "prompt_id": "p014",
+      "prompt": "borra todo lo del TFG",
+      "expected_intent": "action",
+      "expected_clarification": true,
+      "ambiguity": "medium",
+      "actual_intent": "document",
+      "intent_match": false,
+      "asked_clarification": false,
+      "clarification_pertinent": false,
+      "expected_actions": [
+        {
+          "op": "delete",
+          "entity": "project",
+          "ref": "TFG"
+        }
+      ],
+      "actual_actions": null,
+      "actions_match": false,
+      "duration_seconds": 27.10438362498826,
+      "final_reply": "Anotación añadida al proyecto **TFG**:\n\n> No puedo cumplir con esa solicitud.",
+      "error": null
+    },
+    {
+      "prompt_id": "p015",
+      "prompt": "marca como hecho",
+      "expected_intent": "action",
+      "expected_clarification": true,
+      "ambiguity": "high",
+      "actual_intent": "action",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": false,
+      "expected_actions": [
+        {
+          "op": "mark_complete",
+          "entity": "task",
+          "ref": null
+        }
+      ],
+      "actual_actions": [
+        {
+          "action_name": "mark_task_complete",
+          "action_parameters": {
+            "task_title": "marcador de tarea"
+          },
+          "ref_id": null
+        }
+      ],
+      "actions_match": true,
+      "duration_seconds": 27.792607499999576,
+      "final_reply": "¿Que tarea quieres usar? Indica el texto exacto.",
+      "error": null
+    },
+    {
+      "prompt_id": "p101",
+      "prompt": "qué objetivos tengo en el proyecto tesis",
+      "expected_intent": "research",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "research",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 34.75254929099174,
+      "final_reply": "Basándome en la información proporcionada, el proyecto \"tesis\" tiene un objetivo asociado con el título \"redactar capítulo 5\" y el `_id` \"661000000000000000000005\". A continuación, te muestro la información detallada de este objetivo:\n\n**Objetivo del proyecto \"tesis\"**\n\n* _id: 661000000000000000000005\n* título: redactar capítulo 5\n* progreso: 30%\n* estado: En progreso\n\nEste es el único objetivo asociado al proyecto \"tesis\" en la información proporcionada. Si necesitas más detalles o información adicional, no dudes en preguntar.",
+      "error": null
+    },
+    {
+      "prompt_id": "p102",
+      "prompt": "muéstrame todas mis tareas pendientes",
+      "expected_intent": "research",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "weekly_plan",
+      "intent_match": false,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 40.49599283300631,
+      "final_reply": "Basado en el contexto que me proporcionaste, aquí te presento las tareas pendientes:\n\n1. **Redactar experimentación**: Esta tarea está pendiente y tiene prioridad alta. Es parte del objetivo \"redactar memoria\".\n2. **Esnayar defensa**: Esta tarea está pendiente y tiene prioridad alta. Es parte del objetivo \"preparar defensa\".\n3. **Preparar slides**: Esta tarea está pendiente y tiene prioridad media. Es parte del objetivo \"preparar defensa\".\n4. **Buscar vuelos baratos**: Esta tarea está pendiente y tiene prioridad media. Es parte del objetivo \"reservar vuelos\".\n5. **Revisar bibliografia**: Esta tarea está pendiente y tiene prioridad alta. Es parte del objetivo \"redactar memoria\".\n6. **Comprar pan**: Esta tarea está pendiente y tiene prioridad baja.\n7. **Redactar introduccion del capitulo**: Esta tarea está pendiente y tiene prioridad media.\n8. **Desarrollar contenido del capitulo**: Esta tarea está pendiente y tiene prioridad media.\n9. **Redactar conclusion del capitulo**: Esta tarea está pendiente y tiene prioridad media.\n\nEs importante destacar que estas tareas pueden estar relacionadas con otros objetivos y proyectos, pero aquí se presentan solo las tareas pendientes.",
+      "error": null
+    },
+    {
+      "prompt_id": "p103",
+      "prompt": "qué tareas tiene el objetivo redactar",
+      "expected_intent": "research",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "research",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 61.78735341600259,
+      "final_reply": "Basándome en la información proporcionada, el objetivo \"redactar memoria\" tiene las siguientes tareas:\n\n1. Redactar introducción (estado: completada)\n2. Redactar metodología (estado: completada)\n3. Redactar experimentación (estado: en progreso)\n4. Redactar conclusiones (estado: pendiente)\n5. Revisar bibliografía (estado: pendiente)\n\nEl objetivo \"redactar capítulo 5\" tiene una sola tarea:\n\n1. Redactar capítulo 5 (estado: pendiente)\n\nSi se refiere a otro objetivo llamado \"redactar\", no se puede determinar con certeza qué tareas tiene, ya que no hay información disponible sobre ese objetivo específico.",
+      "error": null
+    },
+    {
+      "prompt_id": "p104",
+      "prompt": "lista los proyectos activos",
+      "expected_intent": "research",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "research",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 29.65489804200479,
+      "final_reply": "A continuación, te presento la lista de proyectos activos para el usuario con ID `66ffbbbbbbbbbbbbbbbb0100`:\n\n1. **vacaciones**\n * ID: `6a14884d7502870a21526b95`\n * Descripción: Planificacion de vacaciones de verano\n * Estado: Activo\n * Prioridad: Media\n * Fecha de inicio: N/A\n * Fecha de finalización: N/A\n\n2. **TFG**\n * ID: `660000000000000000000001`\n * Descripción: Trabajo de fin de grado\n * Estado: Activo\n * Prioridad: Alta\n * Categorías: []\n * Notas:\n + ID: `ab9b054c78614778b422f0af533cc3d9`\n + Texto: No puedo cumplir con esa solicitud.\n + Fecha de creación: 2026-05-25T17:37:28.541000\n\n3. **vacaciones** (duplicado)\n * ID: `660000000000000000000002`\n * Descripción: Planificacion de vacaciones de verano\n * Estado: Activo\n * Prioridad: Media\n * Categorías: []\n\nEs importante tener en cuenta que la duplicación del proyecto \"vacaciones\" puede requerir una acción adicional para resolverla.",
+      "error": null
+    },
+    {
+      "prompt_id": "p105",
+      "prompt": "cuántas tareas tengo en total",
+      "expected_intent": "research",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "research",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 50.98267483300879,
+      "final_reply": "Según la información proporcionada, tienes 9 tareas en total.",
+      "error": null
+    },
+    {
+      "prompt_id": "p106",
+      "prompt": "qué categorías uso más",
+      "expected_intent": "research",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "research",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 26.991273124993313,
+      "final_reply": "Sin embargo, no tengo acceso a información específica sobre tus proyectos y objetivos. Pero puedo hacer una sugerencia.\n\nSi deseas saber qué categorías son más comunes en tu uso de GoalMind AI, te propongo algunas opciones:\n\n1. **Escribir artículos**: ¿Escribes artículos sobre temas específicos como tecnología, salud, finanzas, viajes, entre otros?\n2. **Crear contenido de marketing**: ¿Escribes contenido de marketing para tu empresa o para clientes?\n3. **Redactar informes**: ¿Escribes informes sobre estadísticas, resultados de proyectos o investigaciones?\n4. **Generar contenido educativo**: ¿Escribes contenido educativo para estudiantes, profesores o profesionales?\n5. **Crear contenido de entretenimiento**: ¿Escribes contenido de entretenimiento como historias, novelas o guiones?\n\nSi alguno de estos casos se ajusta a tus necesidades, puedo proporcionarte información sobre las categorías más comunes en cada uno de ellos.\n\n¿Podrías proporcionarme más información sobre tus objetivos y proyectos? De esta manera, puedo ofrecerte una respuesta más precisa y relevante.",
+      "error": null
+    },
+    {
+      "prompt_id": "p107",
+      "prompt": "qué eventos tengo esta semana",
+      "expected_intent": "research",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "weekly_summary",
+      "intent_match": false,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 22.02486508298898,
+      "final_reply": "Según el contexto del usuario que me proporcionaste, esta semana (del 24 de mayo al 30 de mayo de 2026) solo hay un evento programado:\n\n- Reunión de seguimiento: el 20 de mayo, no es esta semana por lo que no la tiene esta semana.",
+      "error": null
+    },
+    {
+      "prompt_id": "p108",
+      "prompt": "dime los detalles del proyecto vacaciones",
+      "expected_intent": "research",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "research",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 34.178069166999194,
+      "final_reply": "Basándome en la información proporcionada, hay dos proyectos con el título \"vacaciones\" y la misma descripción \"Planificacion de vacaciones de verano\". A continuación, te presento los detalles de ambos proyectos:\n\n**Proyecto 1:**\n```json\n{\n  \"_id\": \"660000000000000000000002\",\n  \"titulo\": \"vacaciones\",\n  \"descripcion\": \"Planificacion de vacaciones de verano\",\n  \"estado\": \"Activo\",\n  \"prioridad\": \"Media\",\n  \"categorias\": [],\n  \"usuario_id\": \"66ffbbbbbbbbbbbbbbbb0100\"\n}\n```\n\n**Proyecto 2:**\n```json\n{\n  \"_id\": \"6a14884d7502870a21526b95\",\n  \"titulo\": \"vacaciones\",\n  \"descripcion\": \"Planificacion de vacaciones de verano\",\n  \"estado\": \"Activo\",\n  \"prioridad\": \"Media\",\n  \"fecha_inicio\": null,\n  \"fecha_fin\": null,\n  \"usuario_id\": \"66ffbbbbbbbbbbbbbbbb0100\",\n  \"created_at\": \"2026-05-25T17:35:09.614000\"\n}\n```\n\nPara obtener más información sobre estos proyectos, como los objetivos o tareas asociados, necesitaría saber cuál de los dos proyectos te interesa específicamente. Si deseas obtener los objetivos o tareas de uno de estos proyectos, necesitarás especificar el ID del proyecto que te interesa.\n\nPor ejemplo, si deseas obtener los objetivos del Proyecto 1, podrías hacerlo de la siguiente manera:\n\n```json\n{\n  \"goals\": [\n    {\n      \"_id\": \"661000000000000000000003\",\n      \"titulo\": \"reservar vuelos\",\n      \"project_id\": \"660000000000000000000002\",\n      \"progreso\": 0,\n      \"estado\": \"Pendiente\",\n      \"usuario_id\": \"66ffbbbbbbbbbbbbbbbb0100\"\n    },\n    {\n      \"_id\": \"661000000000000000000004\",\n      \"titulo\": \"hacer maletas\",\n      \"project_id\": \"660000000000000000000002\",\n      \"progreso\": 0,\n      \"estado\": \"Pendiente\",\n      \"usuario_id\": \"66ffbbbbbbbbbbbbbbbb0100\"\n    }\n  ]\n}\n```\n\nDe manera similar, si deseas obtener las tareas asociadas a uno de estos objetivos, necesitarías especificar el ID del objetivo que te interesa.",
+      "error": null
+    },
+    {
+      "prompt_id": "p109",
+      "prompt": "qué hay",
+      "expected_intent": "research",
+      "expected_clarification": true,
+      "ambiguity": "high",
+      "actual_intent": "research",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": false,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 45.464242832997115,
+      "final_reply": "Disculpa, pero parece que no hay una consulta específica del usuario en el contexto proporcionado. ¿Podrías proporcionar más información sobre lo que necesitas saber o preguntar? ¿Tienes alguna duda sobre un tema en particular o quieres información general sobre algún tema?\n\nSi estás buscando información sobre GoalMind AI, puedo proporcionarte información general sobre este tema. GoalMind AI es un proyecto de inteligencia artificial desarrollado por una empresa que busca crear herramientas para mejorar la productividad y el bienestar de las personas.\n\nSi tienes alguna pregunta o tema en particular, no dudes en preguntar y haré mi mejor esfuerzo para ayudarte.",
+      "error": null
+    },
+    {
+      "prompt_id": "p110",
+      "prompt": "cuéntame",
+      "expected_intent": "research",
+      "expected_clarification": true,
+      "ambiguity": "high",
+      "actual_intent": "research",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": false,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 30.912473874996067,
+      "final_reply": "Me alegra que hayas decidido compartir más información sobre tu consulta. Sin embargo, no parece que hayas proporcionado detalles específicos sobre el proyecto en el que estás interesado. Si estás interesado en obtener información sobre alguno de los proyectos que te mencioné anteriormente, te sugiero que me proporciones más detalles sobre lo que deseas saber.\n\nPor ejemplo, si estás interesado en el proyecto \"vacaciones\", podrías decirme:\n\n* ¿Quieres saber sobre el objetivo principal del proyecto?\n* ¿Te gustaría obtener una lista de tareas pendientes para el proyecto?\n* ¿Quieres saber sobre el estado actual del proyecto (Activo, Pausado, etc.)?\n\nSi tienes alguna pregunta o petición específica, no dudes en compartirla conmigo. Estoy aquí para ayudarte.\n\n**Proyectos disponibles:**\n\n1. **vacaciones** (Activo, Media)\n * Descripción: Planificacion de vacaciones de verano\n * _id: 6a14884d7502870a21526b95\n2. **TFG** (Activo, Alta)\n * Descripción: Trabajo de fin de grado\n * _id: 660000000000000000000001\n3. **vacaciones** (Activo, Media)\n * Descripción: Planificacion de vacaciones de verano\n * _id: 660000000000000000000002\n4. **tesis** (Pausado, Alta)\n * Descripción: Tesis doctoral\n * _id: 660000000000000000000003\n\nPor favor, proporciona más detalles sobre la consulta que deseas realizar. Estoy aquí para ayudarte.",
+      "error": null
+    },
+    {
+      "prompt_id": "p201",
+      "prompt": "investiga a fondo sobre tecnicas pomodoro y dame fuentes",
+      "expected_intent": "deep_research",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "deep_research",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 48.72993404199951,
+      "final_reply": "La técnica Pomodoro es un método de gestión del tiempo y la concentración que se basa en trabajar en intervalos de 25 minutos (llamados \"ciclos\" o \"sessiones\") separados por descansos cortos. A continuación, te presento una investigación a fondo sobre esta técnica, incluyendo sus beneficios, formas de implementarla, estrategias para superar obstáculos y fuentes de información confiables.\n\n**Beneficios de la técnica Pomodoro:**\n\n1. **Mejora la productividad:** La técnica Pomodoro ayuda a mantener la concentración y a evitar la procrastinación, lo que lleva a una mayor productividad en el trabajo o en la vida diaria (Cirillo, 2006).\n2. **Reducen la fatiga mental:** Los intervalos de descanso cortos ayudan a reducir la fatiga mental y a mantener la energía durante períodos prolongados (Katz, 2013).\n3. **Mejora la calidad del trabajo:** La técnica Pomodoro permite enfocarse en tareas específicas sin interrupciones, lo que lleva a una mayor calidad en el trabajo realizado (Forbes, 2019).\n4. **Aumenta la motivación:** La sensación de logro y la percepción de control sobre el tiempo pueden aumentar la motivación y la confianza en uno mismo (Amabile, 1993).\n\n**Formas de implementar la técnica Pomodoro:**\n\n1. **Usa un timer:** Un timer es un elemento clave en la técnica Pomodoro. Puedes utilizar un reloj de cocina, una aplicación móvil o un software de gestión del tiempo para marcar los intervalos (Cirillo, 2006).\n2. **Establece objetivos claros:** Antes de comenzar a trabajar, establece objetivos claros y específicos para cada sesión (Katz, 2013).\n3. **Elimina distracciones:** Identifica y elimina cualquier distracción potencial durante las sesiones, como el teléfono, la televisión o las redes sociales (Forbes, 2019).\n4. **Toma descansos:** Los descansos cortos después de cada sesión son fundamentales para mantener la energía y la concentración (Amabile, 1993).\n\n**Estrategias para superar obstáculos:**\n\n1. **Comienza con sesiones cortas:** Comienza con sesiones de 5-10 minutos y aumenta gradualmente el tiempo a medida que te sientas más cómodo con la técnica (Cirillo, 2006).\n2. **Ajusta la técnica a tus necesidades:** La técnica Pomodoro es personalizable, así que ajusta los intervalos y los descansos a tus necesidades y estilos de trabajo (Katz, 2013).\n3. **Hazlo una rutina:** La técnica Pomodoro funciona mejor cuando se convierte en una rutina diaria, así que intégrala en tu horario de trabajo o estudio (Forbes, 2019).\n4. **Busca apoyo:** Comparte tus objetivos y estrategias con amigos o familiares para obtener apoyo y motivación (Amabile, 1993).\n\n**Fuentes de información confiables:**\n\n1. **Francisco Cirillo:** El creador de la técnica Pomodoro, Francisco Cirillo, ofrece recursos y consejos en su sitio web oficial: [www.pomodoro-technique.com](http://www.pomodoro-technique.com).\n2. **Guía de la técnica Pomodoro:** La guía de la técnica Pomodoro es un recurso gratuito que ofrece información detallada sobre cómo implementar la técnica: [www.pomodoro-technique.com/guide](http://www.pomodoro-technique.com/guide).\n3. **Artículos en Forbes:** Los artículos en Forbes sobre la técnica Pomodoro ofrecen consejos y estrategias para implementarla en el trabajo y en la vida diaria: [www.forbes.com/pomodoro](http://www.forbes.com/pomodoro).\n4. **Libros sobre productividad:** Los libros sobre productividad, como \"The Pomodoro Technique\" de Francesco Cirillo, ofrecen una visión más profunda sobre la técnica y sus beneficios: [www.amazon.com/Pomodoro-Technique-Francesco-Cirillo/dp/1897292869](http://www.amazon.com/Pomodoro-Technique-Francesco-Cirillo/dp/1897292869).\n\n**Referencias:**\n\nAmabile, T. M. (1993). Motivational synergy: Toward new conceptualizations of intrinsic and extrinsic motivation. Human Motivation and Social Change, 18(3), 164-184.\n\nCirillo, F. (2006). The Pomodoro Technique. Lulu.com.\n\nForbes. (2019). How to Use the Pomodoro Technique to Boost Your Productivity. [www.forbes.com](http://www.forbes.com).\n\nKatz, D. (2013). The Pomodoro Technique: A Time Management System for the Modern World. [www.psychologytoday.com](http://www.psychologytoday.com).\n\nEspero que esta investigación a fondo sobre la técnica Pomodoro te haya sido útil. Recuerda que la clave para implementar esta técnica es encontrar un equilibrio entre la productividad y la salud mental. ¡Buena suerte!",
+      "error": null
+    },
+    {
+      "prompt_id": "p202",
+      "prompt": "busca en internet información sobre la metodología GTD",
+      "expected_intent": "deep_research",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "research",
+      "intent_match": false,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 60.82396387499466,
+      "final_reply": "A continuación, te presento algunos resultados de mi búsqueda sobre la metodología GTD:\n\n**Artículos y recursos**\n\n1. **Sitio web oficial de David Allen**: El sitio web oficial de David Allen, el creador de la metodología GTD, ofrece una visión general de la metodología, incluyendo sus principios y beneficios. [www.davidco.com](http://www.davidco.com)\n2. **Artículo en Wikipedia**: La entrada de Wikipedia sobre la metodología GTD ofrece una visión general de la metodología, incluyendo sus componentes clave y beneficios. [en.wikipedia.org/wiki/Getting_Things_Done](http://en.wikipedia.org/wiki/Getting_Things_Done)\n3. **Artículo en Fast Company**: Un artículo en Fast Company destaca los beneficios de la metodología GTD para la productividad y la eficiencia. [www.fastcompany.com/3021441/how-to-get-stuff-done](http://www.fastcompany.com/3021441/how-to-get-stuff-done)\n4. **Ejemplo de implementación de GTD**: Un artículo en Lifehacker ofrece un ejemplo de cómo implementar la metodología GTD en la vida diaria. [www.lifehacker.com.au/2013/02/how-to-implement-getting-things-done-gtd-in-your-life](http://www.lifehacker.com.au/2013/02/how-to-implement-getting-things-done-gtd-in-your-life)\n\n**Recursos y herramientas**\n\n1. **Aplicación de GTD**: La aplicación de GTD, desarrollada por David Allen, ofrece una herramienta para implementar la metodología en la vida diaria. [www.davidco.com/apps](http://www.davidco.com/apps)\n2. **Tecnología de GTD**: Un artículo en TechCrunch destaca las herramientas y tecnologías que se pueden utilizar para implementar la metodología GTD. [www.techcrunch.com/2013/02/14/gtd-tools-and-technologies-to-help-you-get-more-done](http://www.techcrunch.com/2013/02/14/gtd-tools-and-technologies-to-help-you-get-more-done)\n3. **Curso de GTD**: Un curso en Coursera ofrece una introducción a la metodología GTD y cómo implementarla en la vida diaria. [www.coursera.org/specializations/productivity](http://www.coursera.org/specializations/productivity)\n\n**Críticas y controversias**\n\n1. **Crítica a la complejidad**: Un artículo en The Verge critica la complejidad de la metodología GTD y sugiere que puede ser demasiado compleja para algunos usuarios. [www.theverge.com/2013/2/14/3982344/gtd-is-too-complex](http://www.theverge.com/2013/2/14/3982344/gtd-is-too-complex)\n2. **Efectividad de la metodología**: Un artículo en Harvard Business Review critica la efectividad de la metodología GTD y sugiere que puede no ser adecuada para todos los tipos de proyectos y tareas. [hbr.org/2013/02/the-problems-with-getting-things-done](http://hbr.org/2013/02/the-problems-with-getting-things-done)\n\nEs importante tener en cuenta que la metodología GTD ha sido objeto de críticas y controversias en el pasado, pero sigue siendo una herramienta popular para la productividad y la eficiencia.",
+      "error": null
+    },
+    {
+      "prompt_id": "p203",
+      "prompt": "haz una investigación detallada sobre los mejores frameworks de productividad personal",
+      "expected_intent": "deep_research",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "research",
+      "intent_match": false,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 62.048670042000595,
+      "final_reply": "**Investigación detallada sobre los mejores frameworks de productividad personal**\n\n**Introducción**\n\nLa productividad personal es un tema crucial para alcanzar el éxito en la vida profesional y personal. Existen una variedad de frameworks y métodos para mejorar la productividad, cada uno con sus características y beneficios únicos. En esta investigación, exploraremos algunos de los mejores frameworks de productividad personal y analizaré sus características clave, ventajas y desventajas.\n\n**1. Pomodoro Technique**\n\n* **Descripción**: El Pomodoro Technique fue creado por Francesco Cirillo en 1987. Consiste en trabajar en intervalos de 25 minutos (llamados \"Pomodoros\") separados por descansos de 5 minutos.\n* **Ventajas**:\n + Mejora la concentración y la eficiencia\n + Reduce la fatiga mental y física\n + Ayuda a priorizar tareas y mantener la motivación\n* **Desventajas**:\n + Puede ser difícil adaptar a rutinas de trabajo largas\n + Requiere disciplina y self-control\n* **Evidencia científica**:\n + Un estudio publicado en la revista \"Journal of Applied Developmental Psychology\" encontró que el Pomodoro Technique puede mejorar la concentración y la eficiencia en la tarea (Kerns et al., 2015)\n + Otra investigación publicada en la revista \"Journal of Workplace Learning\" encontró que el Pomodoro Technique puede reducir la fatiga mental y física en el trabajo (Lee et al., 2018)\n\n**2. Getting Things Done (GTD)**\n\n* **Descripción**: GTD es un framework de productividad creado por David Allen en 2001. Busca organizar la información y las tareas en cinco áreas: inboxes, acciones, proyectos, contextos y listas de seguimiento.\n* **Ventajas**:\n + Ayuda a gestionar la información y las tareas de manera eficiente\n + Permite priorizar tareas y proyectos\n + Reduce la ansiedad y la sensación de estar \"atascado\"\n* **Desventajas**:\n + Puede ser complejo y requerir mucho tiempo para implementar\n + Requiere una buena organización y planificación\n* **Evidencia científica**:\n + Un estudio publicado en la revista \"Journal of Applied Psychology\" encontró que GTD puede mejorar la gestión de la información y las tareas en el trabajo (Amabile, 1993)\n + Otra investigación publicada en la revista \"Journal of Management\" encontró que GTD puede reducir la ansiedad y la sensación de estar \"atascado\" en el trabajo (Kerns et al., 2015)\n\n**3. Eisenhower Matrix**\n\n* **Descripción**: La Matriz de Eisenhower es un framework de productividad creado por Stephen Covey en 1989. Clasifica tareas en cuatro cuadrantes según su urgencia y importancia.\n* **Ventajas**:\n + Ayuda a priorizar tareas y proyectos de manera efectiva\n + Reduce la ansiedad y la sensación de estar \"atascado\"\n + Mejora la toma de decisiones\n* **Desventajas**:\n + Puede ser difícil clasificar tareas en los cuadrantes correctos\n + Requiere disciplina y self-control\n* **Evidencia científica**:\n + Un estudio publicado en la revista \"Journal of Business Ethics\" encontró que la Matriz de Eisenhower puede mejorar la toma de decisiones en el trabajo (Covey, 1989)\n + Otra investigación publicada en la revista \"Journal of Management\" encontró que la Matriz de Eisenhower puede reducir la ansiedad y la sensación de estar \"atascado\" en el trabajo (Kerns et al., 2015)\n\n**4. Todoist**\n\n* **Descripción**: Todoist es una aplicación de productividad en línea y móvil creada en 2007. Ofrece una variedad de herramientas para gestionar tareas y proyectos.\n* **Ventajas**:\n + Ayuda a gestionar la información y las tareas de manera eficiente\n + Permite priorizar tareas y proyectos\n + Ofrece una interfaz intuitiva y fácil de usar\n* **Desventajas**:\n + Puede ser costoso para usuarios individuales\n + Requiere una buena conexión a internet para funcionar\n* **Evidencia científica**:\n + Un estudio publicado en la revista \"Journal of Applied Psychology\" encontró que las aplicaciones de productividad como Todoist pueden mejorar la gestión de la información y las tareas en el trabajo (Amabile, 1993)\n + Otra investigación publicada en la revista \"Journal of Management\" encontró que las aplicaciones de productividad como Todoist pueden reducir la ansiedad y la sensación de estar \"atascado\" en el trabajo (Kerns et al., 2015)\n\n**5. Habitica**\n\n* **Descripción**: Habitica es una aplicación de productividad en línea y móvil creada en 2014. Combina la gestión de tareas con el concepto de \"recompensas\" para motivar a los usuarios.\n* **Ventajas**:\n + Ayuda a desarrollar hábitos saludables y productivos\n + Ofrece una interfaz divertida y atractiva\n + Permite personalizar la experiencia del usuario\n* **Desventajas**:\n + Puede ser difícil mantener la motivación a largo plazo\n + Requiere una buena conexión a internet para funcionar\n* **Evidencia científica**:\n + Un estudio publicado en la revista \"Journal of Applied Developmental Psychology\" encontró que las aplicaciones de productividad como Habitica pueden mejorar la formación de hábitos saludables (Kerns et al., 2015)\n + Otra investigación publicada en la revista \"Journal of Management\" encontró que las aplicaciones de productividad como Habitica pueden reducir la ansiedad y la sensación de estar \"atascado\" en el trabajo (Kerns et al., 2015)\n\n**Conclusión**\n\nCada uno de estos frameworks de productividad personal tiene sus ventajas y desventajas únicas. Al entender sus características clave, ventajas y desventajas, los usuarios pueden elegir el que mejor se adapte a sus necesidades y estilo de trabajo. Es importante recordar que la productividad personal es un proceso continuo y requiere disciplina, self-control y motivación.\n\n**Recomendaciones**\n\n* Para usuarios que buscan una solución simple y fácil de usar, el Pomodoro Technique o Habitica pueden ser buenas opciones.\n* Para usuarios que buscan una solución más compleja y personalizable, GTD o Todoist pueden ser mejores opciones.\n* Para usuarios que buscan una solución que combine la gestión de tareas con la motivación, Habitica puede ser una buena opción.\n\n**Referencias**\n\n* Amabile, T. M. (1993). Motivational synergy: Toward new conceptualizations of intrinsic and extrinsic motivation. Human Motivation and Social Change, 18(3), 164-184.\n* Cirillo, F. (1987). El Pomodoro Technique.\n* Covey, S. R. (1989). La 7ma enana.\n* Lee, J., Lee, Y., & Kim, J. (2018). The effects of the Pomodoro Technique on mental fatigue and productivity in office workers. Journal of Workplace Learning, 30(1), 45-56.\n* Kerns, E. J. N., Kwon, S. H., & Lee, E. (2015). The effects of the Pomodoro Technique on task performance and mental fatigue in college students. Journal of Applied Developmental Psychology, 43, 123-130.",
+      "error": null
+    },
+    {
+      "prompt_id": "p204",
+      "prompt": "investiga con fuentes externas qué dice la literatura sobre procrastinación",
+      "expected_intent": "deep_research",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "deep_research",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 67.69728491701244,
+      "final_reply": "La procrastinación es un tema ampliamente estudiado en la literatura psicológica y de comportamiento. A continuación, se presentan algunos hallazgos relevantes sobre la procrastinación según la literatura existente:\n\n**Definición y características**\n\nLa procrastinación se define como la tendencia a postergar tareas o decisiones importantes, a menudo con consecuencias negativas para el individuo y su entorno (Solomon & Rothblum, 1986). Según la teoría de la procrastinación de Solomon Asch (1978), la procrastinación es un mecanismo de defensa que se emplea para evitar la ansiedad y el estrés asociados con la realización de tareas difíciles o incómodas.\n\n**Causas y factores de riesgo**\n\nLa procrastinación se asocia con una variedad de factores de riesgo, incluyendo:\n\n* **Ansiedad y estrés**: la procrastinación puede ser un mecanismo para evitar la ansiedad y el estrés asociados con la realización de tareas difíciles o incómodas (Asch, 1978).\n* **Deseo de evasión**: la procrastinación puede ser un medio para evitar la sensación de responsabilidad y la presión para realizar una tarea (Klingsberg, 1993).\n* **Dificultad para establecer metas y objetivos claros**: la procrastinación puede ser un problema cuando las metas y objetivos son vagos o ambiguos (Tice & Baumeister, 1997).\n* **Dificultad para manejar la emoción del fracaso**: la procrastinación puede ser un mecanismo para evitar la emoción negativa del fracaso (Elliot & Covington, 2001).\n* **Personalidad**: la procrastinación se ha relacionado con ciertas características de personalidad, como la impulsividad y la falta de regulación emocional (Ferrari, 1997).\n* **Trastornos del estado de ánimo**: la procrastinación puede estar relacionada con trastornos del estado de ánimo, como la depresión y el trastorno bipolar (Solomon & Rothblum, 1986).\n\n**Consecuencias**\n\nLa procrastinación puede tener consecuencias negativas en various áreas de la vida, incluyendo:\n\n* **Rendimiento académico y profesional**: la procrastinación puede afectar negativamente el rendimiento académico y profesional (Klingsberg, 1993).\n* **Salud mental y física**: la procrastinación puede estar relacionada con problemas de salud mental y física, como la depresión, el estrés crónico y la ansiedad (Tice & Baumeister, 1997).\n* **Relaciones interpersonales**: la procrastinación puede afectar negativamente las relaciones interpersonales, ya que puede generar resentimiento y frustración en los demás (Elliot & Covington, 2001).\n\n**Intervenciones y estrategias**\n\nExisten varias intervenciones y estrategias que pueden ayudar a reducir la procrastinación, incluyendo:\n\n* **Establecer metas y objetivos claros**: establecer metas y objetivos claros y alcanzables puede ayudar a reducir la procrastinación (Tice & Baumeister, 1997).\n* **Descomponer tareas en pasos más pequeños**: descomponer tareas en pasos más pequeños y manejables puede ayudar a reducir la sensación de abrumamiento y la procrastinación (Klingsberg, 1993).\n* **Establecer un horario y un plan de acción**: establecer un horario y un plan de acción puede ayudar a reducir la procrastinación y aumentar la productividad (Elliot & Covington, 2001).\n* **Estrategias de auto-eficacia**: la práctica de estrategias de auto-eficacia, como la auto-refuerzo y la auto-regulación, puede ayudar a reducir la procrastinación (Bandura, 1997).\n\nEn resumen, la procrastinación es un tema complejo que involucra factores de riesgo, consecuencias y estrategias de intervención. Es importante reconocer que la procrastinación es un problema común que puede afectar a cualquier persona, y que existen intervenciones y estrategias efectivas para reducirla.\n\nReferencias:\n\nAsch, S. E. (1978). Social psychology. Englewood Cliffs, NJ: Prentice-Hall.\n\nBandura, A. (1997). Self-efficacy: The exercise of control. New York: Freeman.\n\nElliot, A. J., & Covington, M. V. (2001). Approach and avoidance motivation. Journal of Personality and Social Psychology, 80(6), 804-817.\n\nFerrari, J. R. (1997). Procrastination as a self-regulation failure. International Journal of Psychology, 32(5), 433-444.\n\nKlingsberg, T. (1993). The procrastination syndrome. Journal of Clinical Psychology, 49(5), 535-542.\n\nSolomon, L. J., & Rothblum, E. D. (1986). Procrastination: A review of the research. Psychological Bulletin, 99(1), 46-64.\n\nTice, D. M., & Baumeister, R. F. (1997). Longitudinal study of procrastination, stress, weight loss, and healthy behaviors. Journal of Personality and Social Psychology, 73(2), 354-364.",
+      "error": null
+    },
+    {
+      "prompt_id": "p205",
+      "prompt": "busca artículos académicos sobre planificación semanal",
+      "expected_intent": "deep_research",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "research",
+      "intent_match": false,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 51.587956875009695,
+      "final_reply": "**Resultados de búsqueda de artículos académicos sobre planificación semanal**\n\nA continuación, te presento algunos artículos académicos relacionados con la planificación semanal:\n\n1. **\"La planificación semanal como estrategia para mejorar la productividad y reducir el estrés en el lugar de trabajo\"** (Journal of Applied Psychology, 2020)\n * Este estudio investiga la relación entre la planificación semanal y la productividad en el lugar de trabajo. Los resultados sugieren que la planificación semanal puede mejorar la productividad y reducir el estrés en el lugar de trabajo.\n * Fuente: [https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7301161/](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7301161/)\n2. **\"Estrategias de planificación para la semana: un estudio sobre la efectividad en estudiantes universitarios\"** (Journal of Educational Psychology, 2019)\n * Este artículo investiga la efectividad de diferentes estrategias de planificación para la semana en estudiantes universitarios. Los resultados sugieren que la planificación semanal puede ayudar a mejorar la organización y la priorización de tareas en estudiantes universitarios.\n * Fuente: [https://psycnet.apa.org/record/2019-23592-001](https://psycnet.apa.org/record/2019-23592-001)\n3. **\"La planificación semanal como herramienta para la gestión del tiempo: un estudio de caso\"** (Time and Society, 2018)\n * Este estudio investiga la efectividad de la planificación semanal como herramienta para la gestión del tiempo en un contexto laboral. Los resultados sugieren que la planificación semanal puede ayudar a reducir el tiempo perdido en tareas no esenciales y mejorar la eficiencia en la gestión del tiempo.\n * Fuente: [https://www.tandfonline.com/doi/abs/10.1177/0961463X17749634](https://www.tandfonline.com/doi/abs/10.1177/0961463X17749634)\n4. **\"La relación entre la planificación semanal y la satisfacción laboral\"** (Journal of Management, 2017)\n * Este estudio investiga la relación entre la planificación semanal y la satisfacción laboral en un contexto laboral. Los resultados sugieren que la planificación semanal puede estar relacionada con una mayor satisfacción laboral.\n * Fuente: [https://www.jstor.org/stable/26543347](https://www.jstor.org/stable/26543347)\n5. **\"La planificación semanal como herramienta para la resolución de problemas\"** (Journal of Problem Solving, 2016)\n * Este artículo investiga la efectividad de la planificación semanal como herramienta para la resolución de problemas en un contexto laboral. Los resultados sugieren que la planificación semanal puede ayudar a mejorar la resolución de problemas.\n * Fuente: [https://www.tandfonline.com/doi/abs/10.1080/19322968.2016.1146440](https://www.tandfonline.com/doi/abs/10.1080/19322968.2016.1146440)\n\nEs importante tener en cuenta que estos artículos pueden tener diferentes resultados y conclusiones, y que la planificación semanal puede variar en su efectividad dependiendo del contexto y la población estudiada.\n\n**Fuentes**\n\n* \"La planificación semanal como estrategia para mejorar la productividad y reducir el estrés en el lugar de trabajo\" (Journal of Applied Psychology, 2020) - [https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7301161/](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7301161/)\n* \"Estrategias de planificación para la semana: un estudio sobre la efectividad en estudiantes universitarios\" (Journal of Educational Psychology, 2019) - [https://psycnet.apa.org/record/2019-23592-001](https://psycnet.apa.org/record/2019-23592-001)\n* \"La planificación semanal como herramienta para la gestión del tiempo: un estudio de caso\" (Time and Society, 2018) - [https://www.tandfonline.com/doi/abs/10.1177/0961463X17749634](https://www.tandfonline.com/doi/abs/10.1177/0961463X17749634)\n* \"La relación entre la planificación semanal y la satisfacción laboral\" (Journal of Management, 2017) - [https://www.jstor.org/stable/26543347](https://www.jstor.org/stable/26543347)\n* \"La planificación semanal como herramienta para la resolución de problemas\" (Journal of Problem Solving, 2016) - [https://www.tandfonline.com/doi/abs/10.1080/19322968.2016.1146440](https://www.tandfonline.com/doi/abs/10.1080/19322968.2016.1146440)",
+      "error": null
+    },
+    {
+      "prompt_id": "p206",
+      "prompt": "investiga",
+      "expected_intent": "deep_research",
+      "expected_clarification": true,
+      "ambiguity": "high",
+      "actual_intent": "research",
+      "intent_match": false,
+      "asked_clarification": false,
+      "clarification_pertinent": false,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 41.981084665996605,
+      "final_reply": "**Investigación**\n\nEn esta sección, exploraré diferentes temas relacionados con la investigación y proporcionaré información general sobre cada tema.\n\n**Tipos de Investigación**\n\n* **Investigación Cualitativa**: Se enfoca en comprender los patrones y características de un fenómeno o situación a través de métodos como la observación, la entrevista y la análisis de datos cualitativos.\n + Ejemplo: Investigación sobre la experiencia de los pacientes con enfermedades crónicas.\n* **Investigación Cuantitativa**: Se enfoca en medir y analizar datos numéricos para identificar tendencias y relaciones entre variables.\n + Ejemplo: Investigación sobre la efectividad de un nuevo tratamiento médico.\n* **Investigación Mixta**: Combina elementos de la investigación cualitativa y cuantitativa para obtener una visión más completa de un tema.\n + Ejemplo: Investigación sobre la satisfacción de los pacientes con un nuevo servicio de atención médica.\n\n**Métodos de Investigación**\n\n* **Observación**: Se utiliza para recopilar datos sobre un fenómeno o situación en su contexto natural.\n + Ejemplo: Investigación sobre el comportamiento de los animales en su hábitat natural.\n* **Entrevista**: Se utiliza para recopilar datos a través de la conversación con individuos o grupos.\n + Ejemplo: Investigación sobre la opinión de la población sobre un tema político.\n* **Análisis de Datos**: Se utiliza para analizar y interpretar los datos recopilados en una investigación.\n + Ejemplo: Investigación sobre la relación entre la educación y el ingreso.\n\n**Técnicas de Investigación**\n\n* **Sondeo**: Se utiliza para recopilar datos de una pequeña muestra de la población.\n + Ejemplo: Investigación sobre la opinión de los estudiantes sobre un nuevo programa de estudio.\n* **Encuesta**: Se utiliza para recopilar datos de una muestra aleatoria de la población.\n + Ejemplo: Investigación sobre la satisfacción de los clientes con un servicio de atención al cliente.\n* **Experimento**: Se utiliza para investigar la relación entre variables a través de la manipulación de una variable independiente.\n + Ejemplo: Investigación sobre la efectividad de un nuevo tratamiento médico.\n\n**Importancia de la Investigación**\n\n* **Mejora de la toma de decisiones**: La investigación proporciona información precisa y objetiva para apoyar la toma de decisiones en diferentes campos.\n + Ejemplo: Investigación sobre la efectividad de un nuevo tratamiento médico para informar la toma de decisiones de los médicos.\n* **Desarrollo de nuevas tecnologías**: La investigación puede llevar al desarrollo de nuevas tecnologías y soluciones innovadoras.\n + Ejemplo: Investigación sobre la creación de un nuevo material para aplicaciones en la industria manufacturera.\n* **Mejora de la comprensión del mundo**: La investigación puede llevar a una mayor comprensión del mundo y a la resolución de problemas complejos.\n + Ejemplo: Investigación sobre la causa de un fenómeno natural como la erosión de los acantilados.\n\n**Fuentes**\n\n* [1] Organización Mundial de la Salud (OMS). (2022). Guía para la investigación en salud. Disponible en: <https://www.who.int/es/evidence/information-systems/guides/en/>\n* [2] Asociación Estadounidense de Psicología (APA). (2022). Guía para la investigación en psicología. Disponible en: <https://www.apa.org/science/about/psa/2012/12/research-guide>\n* [3] Consejo Nacional de Investigación (CNI). (2022). Guía para la investigación en ciencias sociales. Disponible en: <https://www.conacyt.gob.mx/es/Investigacion/guia-investigacion-ciencias-sociales>",
+      "error": null
+    },
+    {
+      "prompt_id": "p301",
+      "prompt": "resume mi semana",
+      "expected_intent": "weekly_summary",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "weekly_summary",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 43.91712495799584,
+      "final_reply": "Basado en el contexto del usuario, te proporciono un resumen de la semana:\n\n**Avances clave:**\n\n* Se han completado las tareas \"redactar introducción\" y \"redactar metodología\" con alta prioridad.\n* Se está trabajando en la tareas \"redactar experimentación\" con alta prioridad, aunque aún no está completada.\n\n**Pendientes importantes con fecha límite cercana:**\n\n* \"Redactar conclusiones\" con prioridad media, pendiente de completar.\n* \"Ensayar defensa\" con prioridad alta, pendiente de completar.\n* \"Preparar slides\" con prioridad media, pendiente de completar.\n* \"Buscar vuelos baratos\" con prioridad media, pendiente de completar.\n* \"Revisar bibliografía\" con prioridad alta, pendiente de completar.\n* \"Comprar pan\" con prioridad baja, pendiente de completar.\n\n**Riesgos o bloqueos:**\n\n* La tarea \"redactar experimentación\" tiene alta prioridad y aún no está completada, lo que podría retrasar el avance del proyecto.\n* La tarea \"revisar bibliografía\" tiene alta prioridad y aún no está completada, lo que podría afectar la calidad del trabajo.\n* La tarea \"ensayar defensa\" tiene alta prioridad y aún no está completada, lo que podría retrasar la defensa del TFG.\n\nRecuerda que este resumen es solo una interpretación basada en el contexto proporcionado y puede variar dependiendo de la situación real.",
+      "error": null
+    },
+    {
+      "prompt_id": "p302",
+      "prompt": "qué he hecho esta semana",
+      "expected_intent": "weekly_summary",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "progress",
+      "intent_match": false,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 55.494746333002695,
+      "final_reply": "Basándome en la información proporcionada, parece que no hay una actualización específica sobre lo que has hecho durante la última semana. Sin embargo, puedo inferir algunos datos a partir de la información que se proporciona.\n\n**Progreso por proyecto**\n\n* En el proyecto \"Redacción de memoria\", completaste 1 objetivo adicional (ahora tienes 3/3 completados) y terminaste 1 tarea (ahora tienes 4/8 completadas). También tienes 5 tareas pendientes.\n* En el proyecto \"Preparación de defensa\", no hay cambios en la información proporcionada, por lo que asumiré que no has avanzado en este proyecto durante la semana.\n* En el proyecto \"Reservación de vuelos\", no hay cambios en la información proporcionada, por lo que asumiré que no has avanzado en este proyecto durante la semana.\n\n**Progreso por objetivo**\n\n* En el objetivo \"Redactar memoria\", completaste 1 tarea adicional (ahora tienes 4/8 completadas) y tienes 4 tareas pendientes.\n* En el objetivo \"Preparar defensa\", no hay cambios en la información proporcionada, por lo que asumiré que no has avanzado en este objetivo durante la semana.\n* En el objetivo \"Reservar vuelos\", no hay cambios en la información proporcionada, por lo que asumiré que no has avanzado en este objetivo durante la semana.\n* En el objetivo \"Hacer maletas\", no hay cambios en la información proporcionada, por lo que asumiré que no has avanzado en este objetivo durante la semana.\n* En el objetivo \"Redactar capítulo 5\", completaste 1 tarea adicional (ahora tienes 3/3 completadas) y tienes 2 tareas pendientes.\n* En el objetivo \"Redactar introducción\", no hay cambios en la información proporcionada, por lo que asumiré que no has avanzado en este objetivo durante la semana.\n* En el objetivo \"Desarrollar contenido del capítulo\", no hay cambios en la información proporcionada, por lo que asumiré que no has avanzado en este objetivo durante la semana.\n* En el objetivo \"Redactar conclusiones del capítulo\", no hay cambios en la información proporcionada, por lo que asumiré que no has avanzado en este objetivo durante la semana.\n\n**Elementos bloqueados**\n\n* La tarea \"buscar vuelos baratos\" del proyecto \"reservación de vuelos\" sigue pendiente.\n* El objetivo \"hacer maletas\" del proyecto \"reservación de vuelos\" sigue sin tareas asociadas y no ha avanzado.\n* La tarea \"redactar conclusiones del capítulo\" del proyecto \"redacción de memoria\" sigue pendiente.\n\nEn resumen, parece que has avanzado en algunos objetivos y tareas, pero también hay algunos elementos que siguen bloqueados. Es importante revisar y ajustar tus objetivos y tareas para mantener el ritmo de progreso.\n\n**Tendencia**\n\n* La tendencia es similar a la anterior, con un aumento lento en el porcentaje de avance. Es importante revisar y ajustar los objetivos y tareas para mantener el ritmo de progreso.\n\n**Actualización**\n\n* El porcentaje general de avance es ahora del 42% (considerando todos los proyectos y objetivos).\n* Los proyectos activos siguen siendo 3.\n* Los objetivos pendientes siguen siendo 5.\n* Las tareas pendientes siguen siendo 8.\n\nEs importante revisar y ajustar tus objetivos y tareas para mantener el ritmo de progreso. También es importante identificar y resolver los elementos bloqueados para evitar que se conviertan en obstáculos en el futuro.",
+      "error": null
+    },
+    {
+      "prompt_id": "p303",
+      "prompt": "dame un balance de la semana",
+      "expected_intent": "weekly_summary",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "weekly_summary",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 44.02351325000927,
+      "final_reply": "Basándome en la información proporcionada, aquí te presento un balance de la semana:\n\n**Avances clave:**\n\n* Se han completado las tareas \"redactar introducción\" y \"redactar metodología\" con prioridad alta.\n* El objetivo \"redactar memoria\" tiene un progreso del 60% y se encuentra en estado \"En progreso\".\n* El objetivo \"redactar capítulo 5\" tiene un progreso del 30% y se encuentra en estado \"En progreso\".\n\n**Pendientes importantes con fecha limite cercana:**\n\n* La tarea \"redactar conclusiones\" con prioridad media se encuentra pendiente.\n* La tarea \"ensayar defensa\" con prioridad alta se encuentra pendiente.\n* La tarea \"preparar slides\" con prioridad media se encuentra pendiente.\n* La tarea \"buscar vuelos baratos\" con prioridad media se encuentra pendiente.\n* La tarea \"revisar bibliografía\" con prioridad alta se encuentra pendiente.\n* La tarea \"comprar pan\" con prioridad baja se encuentra pendiente.\n* La tarea \"redactar introducción del capítulo\" se encuentra pendiente.\n* La tarea \"desarrollar contenido del capítulo\" se encuentra pendiente.\n* La tarea \"redactar conclusion del capítulo\" se encuentra pendiente.\n\n**Riesgos o bloqueos:**\n\n* El objetivo \"preparar defensa\" tiene un progreso del 10% y se encuentra en estado \"Pendiente\".\n* El objetivo \"reservar vuelos\" y \"hacer maletas\" se encuentran en estado \"Pendiente\" y no tienen progreso alguno.\n* La fecha de defensa del TFG es el 26 de mayo, lo que significa que hay un plazo limitado para completar las tareas pendientes.\n\nEn resumen, la semana ha sido productiva en términos de avances en los objetivos, pero hay varias tareas pendientes que deben ser completadas a tiempo para evitar retrasos en el proyecto.",
+      "error": null
+    },
+    {
+      "prompt_id": "p304",
+      "prompt": "cómo ha ido la semana en general",
+      "expected_intent": "weekly_summary",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "weekly_summary",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 36.73223925000639,
+      "final_reply": "Basado en la información proporcionada, aquí te presento un resumen de la semana:\n\n**Avances clave:**\n\n* Se han completado tareas importantes como \"redactar introducción\", \"redactar metodología\" y \"redactar experimentación\".\n* El objetivo \"redactar memoria\" tiene un progreso de 60%, lo que indica que se está avanzando en la tarea de redactar la memoria.\n* Se ha planeado y programado la defensa del TFG para el 26 de mayo.\n\n**Pendientes importantes con fecha límite cercana:**\n\n* Enviar la memoria (fecha límite no indicada)\n* Preparar la defensa del TFG (fecha límite: 26 de mayo)\n* Redactar conclusiones (fecha límite no indicada)\n* Preparar slides (fecha límite no indicada)\n* Buscar vuelos baratos (fecha límite no indicada)\n* Revisar bibliografía (fecha límite no indicada)\n\n**Riesgos o bloqueos:**\n\n* La tarea \"revisar bibliografía\" tiene prioridad alta pero está pendiente.\n* La tarea \"buscar vuelos baratos\" tiene prioridad media pero está pendiente.\n* La tarea \"redactar conclusiones\" tiene prioridad media pero está pendiente.\n* La tarea \"preparar slides\" tiene prioridad media pero está pendiente.\n* La fecha límite de la defensa del TFG es cercana, lo que puede generar estrés y presión para completar las tareas pendientes a tiempo.",
+      "error": null
+    },
+    {
+      "prompt_id": "p305",
+      "prompt": "resumen semanal por favor",
+      "expected_intent": "weekly_summary",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "weekly_summary",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 42.515676667011576,
+      "final_reply": "**Resumen Semanal**\n\n**Avances Clave**\n\n* Se han completado las tareas \"redactar introducción\" y \"redactar metodología\" con prioridad alta.\n* Se ha avanzado en la tarea \"redactar experimentación\" con prioridad alta, aunque aún no está completa.\n* Se ha completado una reunión de seguimiento el 20 de mayo.\n\n**Pendientes Importantes con Fecha Límite Cercana**\n\n* Tarea \"redactar conclusiones\" con prioridad media y sin fecha límite.\n* Tarea \"ensayar defensa\" con prioridad alta y sin fecha límite.\n* Tarea \"preparar slides\" con prioridad media y sin fecha límite.\n* Evento \"defensa TFG\" el 26 de mayo a las 10:00 horas.\n* Tarea \"buscar vuelos baratos\" con prioridad media y sin fecha límite.\n\n**Riesgos o Bloqueos**\n\n* La tarea \"revisar bibliografía\" con prioridad alta está pendiente y puede generar retrasos en la entrega de la memoria.\n* La falta de avances en la tarea \"redactar experimentación\" con prioridad alta puede generar retrasos en la entrega de la memoria.\n* El evento \"defensa TFG\" el 26 de mayo puede generar estrés y retrasos en la entrega de la memoria.\n\n**Objetivos**\n\n* El objetivo \"redactar memoria\" está en progreso con un 60% de completado.\n* El objetivo \"preparar defensa\" está pendiente con un 10% de completado.\n* El objetivo \"reservar vuelos\" está pendiente con un 0% de completado.\n* El objetivo \"hacer maletas\" está pendiente con un 0% de completado.\n* El objetivo \"redactar capítulo 5\" está en progreso con un 30% de completado.",
+      "error": null
+    },
+    {
+      "prompt_id": "p306",
+      "prompt": "qué tareas completé esta semana",
+      "expected_intent": "weekly_summary",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "progress",
+      "intent_match": false,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 35.01356016700447,
+      "final_reply": "Aquí te presento las tareas que mencionaste que completaste esta semana:\n\n1. **Redactar introducción (tarea n.° 662000000000000000000001)**: Esta tarea consistió en escribir una introducción clara y concisa que presentara el tema principal de la investigación o proyecto en el que estabas trabajando.\n\n2. **Redactar metodología (tarea n.° 662000000000000000000002)**: En esta tarea, debiste describir detalleadamente la estructura y los pasos que se seguirían para llevar a cabo la investigación o proyecto. Esto incluyó la descripción de la población objetivo, el diseño del estudio, los métodos de recopilación de datos y cualquier otro aspecto relevante.\n\n3. **Redactar experimentación (tarea n.° 662000000000000000000003)**: En esta tarea, debiste describir los métodos y técnicas utilizados para recopilar y analizar los datos en el estudio o proyecto. Esto incluyó la descripción de los instrumentos de medición, los procedimientos de recolección de datos y cualquier otro aspecto relevante.\n\nSi necesitas ayuda con alguna de estas tareas o con cualquier otra, no dudes en preguntar.",
+      "error": null
+    },
+    {
+      "prompt_id": "p401",
+      "prompt": "planifica mi próxima semana",
+      "expected_intent": "weekly_plan",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "weekly_plan",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 45.09720479098905,
+      "final_reply": "**Prioridades de la semana**\n\n1. **Redactar capítulo 5 de la tesis**: Este objetivo es prioritario debido a su alta prioridad y el hecho de que se encuentra en un estado de \"en progreso\".\n2. **Preparar defensa del TFG**: Este objetivo es prioritario debido a su alta prioridad y el hecho de que se encuentra en un estado de \"pendiente\".\n3. **Reservar vuelos para las vacaciones**: Este objetivo es prioritario debido a su media prioridad y el hecho de que se encuentra en un estado de \"pendiente\".\n\n**Distribución diaria sugerida**\n\n**Lunes**\n\n* 9:00-10:00 AM: Revisar bibliografía para el capítulo 5 de la tesis (prioridad: alta)\n* 10:00-11:00 AM: Redactar conclusiones del capítulo 5 de la tesis (prioridad: media)\n\n**Martes**\n\n* 9:00-10:00 AM: Preparar defensa del TFG (prioridad: alta)\n* 10:00-11:00 AM: Ensayar defensa del TFG (prioridad: alta)\n\n**Miércoles**\n\n* 9:00-10:00 AM: Redactar capítulo 5 de la tesis (prioridad: alta)\n* 10:00-11:00 AM: Desarrollar contenido del capítulo 5 de la tesis (prioridad: media)\n\n**Jueves**\n\n* 9:00-10:00 AM: Reservar vuelos para las vacaciones (prioridad: media)\n* 10:00-11:00 AM: Revisar vuelos reservados (prioridad: media)\n\n**Viernes**\n\n* 9:00-10:00 AM: Revisar bibliografía para el capítulo 5 de la tesis (prioridad: alta)\n* 10:00-11:00 AM: Redactar introducción del capítulo 5 de la tesis (prioridad: media)\n\n**Sábado**\n\n* 10:00-11:00 AM: Redactar metodología del capítulo 5 de la tesis (prioridad: media)\n* 11:00-12:00 PM: Revisar capítulo 5 de la tesis (prioridad: alta)\n\n**Domingo**\n\n* 10:00-11:00 AM: Redactar experimentación del capítulo 5 de la tesis (prioridad: alta)\n* 11:00-12:00 PM: Revisar capítulo 5 de la tesis (prioridad: alta)\n\n**Tareas críticas**\n\n* Redactar capítulo 5 de la tesis\n* Preparar defensa del TFG\n* Reservar vuelos para las vacaciones\n\n**Estimación de tiempo**\n\n* Redactar capítulo 5 de la tesis: 2-3 horas al día\n* Preparar defensa del TFG: 2-3 horas al día\n* Reservar vuelos para las vacaciones: 1-2 horas al día\n\n**Recomendaciones**\n\n* Es importante priorizar las tareas críticas y asegurarse de que se cumplan las fechas límite.\n* Es recomendable revisar la bibliografía y el capítulo 5 de la tesis regularmente para asegurarse de que se está avanzando de acuerdo con el plan.\n* Es importante asegurarse de que se tiene suficiente tiempo para preparar la defensa del TFG y reservar vuelos para las vacaciones.\n* Es recomendable tomar descansos regulares para evitar la sobrecarga y mantener la concentración.",
+      "error": null
+    },
+    {
+      "prompt_id": "p402",
+      "prompt": "diseña un plan para la semana que viene",
+      "expected_intent": "weekly_plan",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "weekly_plan",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 49.91512049999437,
+      "final_reply": "**Prioridades de la semana:**\n\n1. **Redactar capítulo 5**: Es un objetivo crítico para el proyecto de tesis, ya que tiene un 30% de progreso y es fundamental para la defensa.\n2. **Revisar bibliografía**: Es un objetivo crítico para el proyecto de TFG, ya que tiene un alto nivel de prioridad y es necesario para la redacción de la memoria.\n3. **Preparar defensa**: Es un objetivo crítico para el proyecto de TFG, ya que tiene un alto nivel de prioridad y es necesario para la defensa.\n\n**Distribución diaria sugerida:**\n\n* **Lunes**: Revisar bibliografía (bloque de 2 horas)\n + 10:00-12:00: Revisar artículos y libros relacionados con el tema\n + 14:00-16:00: Organizar notas y crear un archivo de bibliografía\n* **Martes**: Redactar capítulo 5 (bloque de 3 horas)\n + 10:00-13:00: Redactar el capítulo 5\n + 14:00-16:00: Revisar y editar el capítulo 5\n* **Miércoles**: Preparar defensa (bloque de 2 horas)\n + 10:00-12:00: Revisar y organizar materiales para la defensa\n + 14:00-16:00: Preparar respuestas a posibles preguntas\n* **Jueves**: Redactar conclusiones (bloque de 2 horas)\n + 10:00-12:00: Redactar las conclusiones del capítulo 5\n + 14:00-16:00: Revisar y editar las conclusiones\n* **Viernes**: Revisar y editar memoria (bloque de 3 horas)\n + 10:00-13:00: Revisar y editar la memoria\n + 14:00-16:00: Corregir errores y mejorar la redacción\n\n**Tareas críticas:**\n\n* Revisar bibliografía (antes del lunes)\n* Redactar capítulo 5 (antes del martes)\n* Preparar defensa (antes del miércoles)\n\n**Estimación de tiempo:**\n\n* Revisar bibliografía: 2 horas\n* Redactar capítulo 5: 3 horas\n* Preparar defensa: 2 horas\n* Redactar conclusiones: 2 horas\n* Revisar y editar memoria: 3 horas\n\n**Recomendaciones:**\n\n* Asegurarse de tener suficiente tiempo para cada tarea y no sobrecargar el tiempo de trabajo.\n* Tomar descansos y pausas para evitar el agotamiento y mantener la productividad.\n* Revisar y ajustar el plan según sea necesario para asegurarse de que se cumplan las tareas críticas.",
+      "error": null
+    },
+    {
+      "prompt_id": "p403",
+      "prompt": "qué debería hacer cada día la próxima semana",
+      "expected_intent": "weekly_plan",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "weekly_plan",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 42.79907700000331,
+      "final_reply": "Basado en el contexto proporcionado, te presento un plan de acción para la próxima semana:\n\n**Prioridades de la semana:**\n\n1. **Redactar capítulo 5 de la tesis** (proyecto \"tesis\" con objetivo \"redactar capitulo 5\")\n2. **Preparar defensa de la tesis** (proyecto \"TFG\" con objetivo \"preparar defensa\")\n3. **Reservar vuelos para las vacaciones** (proyecto \"vacaciones\" con objetivo \"reservar vuelos\")\n\n**Distribución diaria sugerida:**\n\n**Lunes 29 de mayo:**\n\n* Mañana: 9:00-12:00: Redactar capítulo 5 de la tesis (tarea \"redactar capitulo 5\")\n* Tarde: 14:00-17:00: Preparar defensa de la tesis (tarea \"preparar defensa\")\n* Noche: 19:00-21:00: Revisar bibliografía para la tesis (tarea \"revisar bibliografia\")\n\n**Martes 30 de mayo:**\n\n* Mañana: 9:00-12:00: Buscar vuelos baratos para las vacaciones (tarea \"buscar vuelos baratos\")\n* Tarde: 14:00-17:00: Desarrollar contenido del capítulo 5 de la tesis (tarea \"desarrollar contenido del capitulo\")\n* Noche: 19:00-21:00: Leer artículos relacionados con la tesis (tarea \"leer articulos relacionados\")\n\n**Miércoles 31 de mayo:**\n\n* Mañana: 9:00-12:00: Redactar conclusiones del capítulo 5 de la tesis (tarea \"redactar conclusiones del capitulo\")\n* Tarde: 14:00-17:00: Preparar slides para la defensa (tarea \"preparar slides\")\n* Noche: 19:00-21:00: Revisar y corregir errores en el capítulo 5 de la tesis (tarea \"revisar y corregir errores\")\n\n**Jueves 1 de junio:**\n\n* Mañana: 9:00-12:00: Ensayar defensa de la tesis (tarea \"ensayar defensa\")\n* Tarde: 14:00-17:00: Revisar y corregir errores en la defensa (tarea \"revisar y corregir errores de la defensa\")\n* Noche: 19:00-21:00: Preparar respuesta a preguntas frecuentes para la defensa (tarea \"preparar respuesta a preguntas frecuentes\")\n\n**Viernes 2 de junio:**\n\n* Mañana: 9:00-12:00: Redactar introducción del capítulo 5 de la tesis (tarea \"redactar introduccion del capitulo\")\n* Tarde: 14:00-17:00: Preparar materiales para la defensa (tarea \"preparar materiales para la defensa\")\n* Noche: 19:00-21:00: Revisar y corregir errores en la introducción del capítulo 5 de la tesis (tarea \"revisar y corregir errores de la introduccion\")\n\n**Sábado 3 de junio:**\n\n* Mañana: 9:00-12:00: Revisar y corregir errores en el capítulo 5 de la tesis (tarea \"revisar y corregir errores del capitulo\")\n* Tarde: 14:00-17:00: Preparar presentación para la defensa (tarea \"preparar presentación para la defensa\")\n* Noche: 19:00-21:00: Revisar y corregir errores en la presentación para la defensa (tarea \"revisar y corregir errores de la presentacion\")\n\n**Domingo 4 de junio:**\n\n* Mañana: 9:00-12:00: Revisar y corregir errores en la defensa (tarea \"revisar y corregir errores de la defensa\")\n* Tarde: 14:00-17:00: Preparar respuesta a preguntas frecuentes para la defensa (tarea \"preparar respuesta a preguntas frecuentes\")\n* Noche: 19:00-21:00: Revisar y corregir errores en la respuesta a preguntas frecuentes (tarea \"revisar y corregir errores de la respuesta\")\n\n**Tareas críticas:**\n\n* Redactar capítulo 5 de la tesis\n* Preparar defensa de la tesis\n* Reservar vuelos para las vacaciones\n\n**Estimación de tiempo:**\n\n* Redactar capítulo 5 de la tesis: 6 horas\n* Preparar defensa de la tesis: 8 horas\n* Reservar vuelos para las vacaciones: 2 horas\n\n**Recomendaciones:**\n\n* Asegúrate de tener suficiente tiempo para cada tarea y no te sientas abrumado.\n* Toma descansos regulares para evitar el agotamiento.\n* Considera delegar tareas a otros si es necesario.\n* Asegúrate de cumplir con los plazos establecidos para cada tarea.",
+      "error": null
+    },
+    {
+      "prompt_id": "p404",
+      "prompt": "organiza mi agenda para los próximos siete días",
+      "expected_intent": "weekly_plan",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "weekly_plan",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 35.53640041699691,
+      "final_reply": "**Prioridades de la semana**\n\n1. **Defensa TFG**: Es el objetivo principal de la semana, con fecha límite para el 26 de mayo.\n2. **Preparación de la reunión de seguimiento**: Es importante prepararse para la reunión de seguimiento programada para el 20 de mayo.\n3. **Avance en el proyecto**: Es crucial avanzar en el proyecto actual para cumplir con la fecha límite.\n\n**Distribución diaria sugerida**\n\n* **Lunes (20 de mayo)**:\n + 9:00-10:00: Preparación de la reunión de seguimiento (1 hora)\n + 10:00-12:00: Avance en el proyecto (2 horas)\n* **Martes (21 de mayo)**:\n + 9:00-10:00: Avance en el proyecto (1 hora)\n + 10:00-12:00: Revisión y ajuste del plan de trabajo (2 horas)\n* **Miércoles (22 de mayo)**:\n + 9:00-10:00: Avance en el proyecto (1 hora)\n + 10:00-12:00: Investigación y recopilación de información (2 horas)\n* **Jueves (23 de mayo)**:\n + 9:00-10:00: Avance en el proyecto (1 hora)\n + 10:00-12:00: Redacción y revisión de documentación (2 horas)\n* **Viernes (24 de mayo)**:\n + 9:00-10:00: Avance en el proyecto (1 hora)\n + 10:00-12:00: Revisión y ajuste del plan de trabajo (2 horas)\n* **Sábado (25 de mayo)**:\n + 10:00-12:00: Avance en el proyecto (2 horas)\n* **Domingo (26 de mayo)**:\n + 9:00-11:00: Defensa TFG (2 horas)\n\n**Tareas críticas**\n\n* **Defensa TFG**: Fecha límite para el 26 de mayo\n* **Avance en el proyecto**: Es crucial avanzar en el proyecto para cumplir con la fecha límite\n\n**Estimación de tiempo**\n\n* Preparación de la reunión de seguimiento: 1 hora\n* Avance en el proyecto: 2-3 horas por día\n* Revisión y ajuste del plan de trabajo: 2 horas\n* Investigación y recopilación de información: 2 horas\n* Redacción y revisión de documentación: 2 horas\n\n**Recomendaciones**\n\n* Es importante gestionar el tiempo de manera efectiva para poder cumplir con las tareas críticas y prioridades de la semana.\n* Es recomendable ajustar el plan de trabajo según sea necesario para asegurarse de que se cumplan las tareas críticas y prioridades de la semana.\n* Es importante descansar y no sobrecargar el trabajo para evitar el agotamiento.",
+      "error": null
+    },
+    {
+      "prompt_id": "p405",
+      "prompt": "plan semanal con las tareas pendientes",
+      "expected_intent": "weekly_plan",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "weekly_plan",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 46.68438570901344,
+      "final_reply": "**Plan Semanal**\n\n**Prioridades de la Semana**\n\n1. **Redactar capítulo 5** (Tesis Doctoral): Es importante avanzar en este objetivo, ya que está relacionado con el proyecto de tesis.\n2. **Preparar defensa** (TFG): La defensa está próximo y es fundamental tener todo listo y preparado para garantizar un buen resultado.\n3. **Reservar vuelos** (Vacaciones de Verano): Es importante reservar los vuelos con anticipación para asegurar la disponibilidad y evitar problemas.\n\n**Distribución Diaria Sugerida**\n\n**Lunes**\n\n* **8:00-10:00**: Revisar bibliografía para el capítulo 5 (Tesis Doctoral)\n* **10:00-12:00**: Redactar introducción para el capítulo 5 (Tesis Doctoral)\n* **14:00-16:00**: Preparar slides para la defensa (TFG)\n\n**Martes**\n\n* **8:00-10:00**: Desarrollar contenido del capítulo 5 (Tesis Doctoral)\n* **10:00-12:00**: Ensayar defensa (TFG)\n* **14:00-16:00**: Revisar y corregir la introducción del capítulo 5 (Tesis Doctoral)\n\n**Miércoles**\n\n* **8:00-10:00**: Redactar conclusiones del capítulo 5 (Tesis Doctoral)\n* **10:00-12:00**: Preparar conclusiones para la defensa (TFG)\n* **14:00-16:00**: Revisar y corregir la introducción del capítulo 5 (Tesis Doctoral)\n\n**Jueves**\n\n* **8:00-10:00**: Buscar vuelos baratos (Vacaciones de Verano)\n* **10:00-12:00**: Redactar conclusion del capítulo 5 (Tesis Doctoral)\n* **14:00-16:00**: Preparar conclusiones para la defensa (TFG)\n\n**Viernes**\n\n* **8:00-10:00**: Revisar y corregir la introducción del capítulo 5 (Tesis Doctoral)\n* **10:00-12:00**: Ensayar defensa (TFG)\n* **14:00-16:00**: Preparar conclusiones para la defensa (TFG)\n\n**Sábado**\n\n* **10:00-12:00**: Redactar conclusiones del capítulo 5 (Tesis Doctoral)\n* **14:00-16:00**: Revisar y corregir la introducción del capítulo 5 (Tesis Doctoral)\n\n**Domingo**\n\n* **No hay tareas programadas**\n\n**Tareas Críticas**\n\n* Redactar capítulo 5 (Tesis Doctoral)\n* Preparar defensa (TFG)\n* Reservar vuelos (Vacaciones de Verano)\n\n**Estimación de Tiempo**\n\n* Redactar capítulo 5: 4-6 horas\n* Preparar defensa: 4-6 horas\n* Reservar vuelos: 2 horas\n\n**Recomendaciones**\n\n* Es importante ser flexible y adaptarse a cualquier cambio o imprevisto que pueda surgir durante la semana.\n* Es recomendable tomar descansos y pausas para evitar el agotamiento y mantener la productividad.\n* Si se siente sobrecargado, es posible pedir ayuda a un amigo o familiar para compartir la carga de trabajo.",
+      "error": null
+    },
+    {
+      "prompt_id": "p406",
+      "prompt": "ayúdame a planificar la semana priorizando lo urgente",
+      "expected_intent": "weekly_plan",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "weekly_plan",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 42.08213187500951,
+      "final_reply": "Basado en el contexto proporcionado, te presento el plan de acción para la próxima semana:\n\n**Prioridades de la semana:**\n\n1. **Redactar conclusiones** (Objetivo: Redactar memoria)\n * Estimación de tiempo: 2-3 horas\n * Justificación: Es una tarea pendiente de alta prioridad y es esencial para avanzar en el proyecto \"Redactar memoria\".\n2. **Revisar bibliografía** (Objetivo: Redactar memoria)\n * Estimación de tiempo: 2-3 horas\n * Justificación: Es una tarea pendiente de alta prioridad y es esencial para asegurar la calidad y credibilidad de la memoria.\n3. **Ensayar defensa** (Objetivo: Preparar defensa)\n * Estimación de tiempo: 2-3 horas\n * Justificación: Es una tarea pendiente de alta prioridad y es esencial para prepararse para la defensa del Trabajo de Fin de Grado.\n\n**Distribución diaria sugerida:**\n\n* **Lunes**:\n + Mañana: Revisar bibliografía (2 horas)\n + Tarde: Redactar conclusiones (2 horas)\n* **Martes**:\n + Mañana: Ensayar defensa (2 horas)\n + Tarde: Revisar y corregir las conclusiones (1 hora)\n* **Miércoles**:\n + Mañana: Revisar y corregir la bibliografía (2 horas)\n + Tarde: Ajustar el plan de acción según sea necesario\n* **Jueves**:\n + Mañana: Redactar la introducción y el cuerpo de la memoria (2 horas)\n + Tarde: Ajustar el plan de acción según sea necesario\n* **Viernes**:\n + Mañana: Revisar y corregir la memoria (2 horas)\n + Tarde: Finalizar cualquier tarea pendiente\n* **Sábado** (opcional): Revisar y ajustar el plan de acción según sea necesario\n* **Domingo** (opcional): Descanso y recargar energías\n\n**Tareas críticas:**\n\n* Redactar conclusiones\n* Revisar bibliografía\n* Ensayar defensa\n\n**Recomendaciones:**\n\n* Asegúrate de tener tiempo para revisar y corregir tus trabajos.\n* Ajusta el plan de acción según sea necesario para asegurarte de que estás avanzando en tus objetivos.\n* No olvides descansar y recargar energías durante la semana.\n\nEspero que este plan de acción te ayude a priorizar lo urgente y a avanzar en tus objetivos. ¡Buena suerte!",
+      "error": null
+    },
+    {
+      "prompt_id": "p501",
+      "prompt": "dame recomendaciones sobre qué hacer ahora",
+      "expected_intent": "recommendations",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "recommendations",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 46.14975091700035,
+      "final_reply": "Basándome en el contexto proporcionado, te presento tres secciones con recomendaciones:\n\n**1. Top prioridades inmediatas**\n\n* Tarea \"Redactar conclusiones\" (prioridad: Media) para el objetivo \"Redactar memoria\" del proyecto \"TFG\". Esta tarea es pendiente y tiene una prioridad media, lo que significa que es importante pero no urgente.\n* Tarea \"Ensayar defensa\" (prioridad: Alta) para el objetivo \"Preparar defensa\" del proyecto \"TFG\". Esta tarea es pendiente y tiene una prioridad alta, lo que significa que es muy importante y urgente.\n* Tarea \"Buscar vuelos baratos\" (prioridad: Media) para el objetivo \"Reservar vuelos\" del proyecto \"Vacaciones\". Esta tarea es pendiente y tiene una prioridad media, lo que significa que es importante pero no urgente.\n\n**2. Riesgos por fechas cercanas**\n\n* No hay tareas con fechas límites cercanas en el contexto proporcionado.\n\n**3. 2 a 4 ideas nuevas realistas que el usuario puede hacer esta semana**\n\n* Redactar un borrador de la introducción del capítulo 5 de la tesis doctoral.\n* Revisar la bibliografía relacionada con el TFG y tomar notas para mejorar la calidad del trabajo.\n* Comprar ingredientes para una cena saludable y planificar la semana de comida.\n* Programar una llamada con un colaborador para discutir el progreso del TFG y planificar la próxima reunión.\n\nRecuerda que estas recomendaciones están basadas en el contexto proporcionado y pueden variar dependiendo de las necesidades y objetivos específicos del usuario.",
+      "error": null
+    },
+    {
+      "prompt_id": "p502",
+      "prompt": "qué consejos me das para mis prioridades",
+      "expected_intent": "recommendations",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "recommendations",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 40.878646666998975,
+      "final_reply": "Basándome en el contexto que me proporcionaste, te recomiendo las siguientes prioridades:\n\n**Top prioridades inmediatas (tareas, proyectos u objetivos)**\n\n1. **TFG:** \"Redactar capitulo 5\" (objetivo del proyecto TFG) - La prioridad de este objetivo es alta y está en progreso, lo que significa que es importante completarlo lo antes posible.\n2. **Tesis doctoral:** \"Redactar capitulo 5\" (objetivo del proyecto tesis doctoral) - Aunque el proyecto está pausado, este objetivo es importante para avanzar en la tesis doctoral.\n3. **Vacaciones:** \"Reservar vuelos\" (tarea del proyecto vacaciones) - La fecha de inicio de las vacaciones no está establecida, pero es importante reservar los vuelos lo antes posible para asegurarse de que haya disponibilidad.\n\n**Riesgos por fechas cercanas**\n\n* El proyecto TFG tiene un objetivo pendiente con fecha límite no establecida, lo que puede generar un riesgo detraso si no se completa a tiempo.\n* El proyecto vacaciones tiene varias tareas pendientes con fecha límite no establecida, lo que puede generar un riesgo de no estar listo para las vacaciones.\n\n**2 a 4 ideas nuevas realistas que puedes hacer esta semana**\n\n1. **Revisar bibliografia para el TFG:** Puedes dedicar un día a revisar la bibliografia relacionada con el TFG y tomar notas importantes.\n2. **Planificar la defensa del TFG:** Puedes dedicar un día a planificar la defensa del TFG, incluyendo la creación de un cronograma y la selección de materiales para la presentación.\n3. **Buscar vuelos baratos para las vacaciones:** Puedes dedicar un día a buscar vuelos baratos para las vacaciones y comparar precios para asegurarte de obtener el mejor trato.\n4. **Crear un cronograma para completar el capitulo 5:** Puedes dedicar un día a crear un cronograma para completar el capitulo 5 del TFG y asegurarte de que tengas suficiente tiempo para completarlo.",
+      "error": null
+    },
+    {
+      "prompt_id": "p503",
+      "prompt": "qué me sugieres priorizar hoy",
+      "expected_intent": "recommendations",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "recommendations",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 42.54062091599917,
+      "final_reply": "Después de analizar el contexto del usuario, te sugiero las siguientes prioridades para hoy:\n\n**Top prioridades inmediatas:**\n\n1. **\"Redactar conclusiones\"** (Tarea pendiente con prioridad media): Debes concluir el contenido de tu memoria.\n2. **\"Preparar slides\"** (Tarea pendiente con prioridad media): Necesitas preparar tus presentaciones para la defensa.\n3. **\"Buscar vuelos baratos\"** (Tarea pendiente con prioridad media): Debes encontrar vuelos económicos para tu viaje.\n\n**Riesgos por fechas cercanas:**\n\n* No hay tareas con fechas límite específicas, pero es importante que te enfoques en completar las tareas pendientes para evitar retrasos en tus proyectos.\n\n**Ideas nuevas realistas para hoy:**\n\n1. **Revisar bibliografía**: Aunque no es una tarea pendiente, es importante que revises la bibliografía relacionada con tu memoria para asegurarte de que estás utilizando la información más reciente y relevante.\n2. **Comprar pan**: Aunque no es una tarea importante, es algo que puedes hacer hoy para evitar olvidarte de comprarlo mañana.\n3. **Desarrollar contenido del capítulo**: Aunque no es una tarea pendiente, puedes dedicar un poco de tiempo a desarrollar el contenido del capítulo para avanzar en tu memoria.\n\nRecuerda que estas son solo sugerencias y que puedes priorizar tus tareas según tus necesidades y objetivos personales.",
+      "error": null
+    },
+    {
+      "prompt_id": "p504",
+      "prompt": "necesito ideas para avanzar en el TFG",
+      "expected_intent": "recommendations",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "research",
+      "intent_match": false,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 37.72372991699376,
+      "final_reply": "Aquí te presento algunas ideas para avanzar en tu TFG:\n\n**Ideas de investigación**\n\n1. **Análisis de casos**: Elige un caso de estudio relevante para tu tema y analiza los resultados, identificando patrones y tendencias.\n2. **Comparativa de métodos**: Compara diferentes métodos o enfoques para resolver un problema o alcanzar un objetivo relacionado con tu tema.\n3. **Investigación de campo**: Realiza una investigación de campo para recopilar datos y observaciones en un entorno real.\n4. **Análisis de datos**: Analiza datos existentes o recopilados para identificar patrones, tendencias y relaciones.\n5. **Desarrollo de modelos**: Crea modelos matemáticos, lógicos o conceptuales para simular o predecir resultados relacionados con tu tema.\n\n**Ideas de aplicaciones prácticas**\n\n1. **Diseño de soluciones**: Diseña soluciones prácticas para problemas o desafíos relacionados con tu tema.\n2. **Desarrollo de herramientas**: Crea herramientas o software para ayudar a resolver problemas o mejorar procesos relacionados con tu tema.\n3. **Creación de contenido**: Crea contenido de aprendizaje, como tutoriales, videos o artículos, para enseñar conceptos o habilidades relacionadas con tu tema.\n4. **Análisis de políticas**: Analiza políticas o regulaciones relacionadas con tu tema y ofrece recomendaciones para mejorarlas.\n5. **Creación de prototipos**: Crea prototipos de productos, servicios o procesos para probar y evaluar su viabilidad.\n\n**Ideas de colaboración**\n\n1. **Colaboración con expertos**: Trabaja con expertos en el campo para obtener consejos, retroalimentación y apoyo.\n2. **Participación en comunidades**: Participa en comunidades en línea o en persona para conectarte con otros investigadores y aprender de sus experiencias.\n3. **Colaboración en proyectos**: Colabora con otros estudiantes o investigadores en proyectos relacionados con tu tema.\n4. **Organización de eventos**: Organiza eventos, como talleres o conferencias, para compartir conocimientos y experiencias relacionadas con tu tema.\n5. **Creación de redes**: Crea redes de contactos y colaboradores para mantenerse informado sobre avances y oportunidades en el campo.\n\nRecuerda que estas ideas son solo un comienzo y que puedes adaptarlas o combinarlas para adecuarlas a tus necesidades y objetivos. ¡Buena suerte con tu TFG!",
+      "error": null
+    },
+    {
+      "prompt_id": "p505",
+      "prompt": "recomiéndame por dónde empezar mañana",
+      "expected_intent": "recommendations",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "recommendations",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 48.53251316600654,
+      "final_reply": "Después de analizar el contexto del usuario, te presento las siguientes recomendaciones para empezar mañana.\n\n**Top Prioridades Inmediatas**\n\n1. **Redactar conclusiones**: Esta tarea tiene prioridad media y está pendiente de completar. Es importante concluir el objetivo de redactar la introducción del TFG.\n2. **Preparar defensa**: Esta tarea tiene prioridad alta y está pendiente de completar. Es importante prepararse para la defensa del TFG.\n3. **Revisar bibliografía**: Esta tarea tiene prioridad alta y está pendiente de completar. Es importante revisar la bibliografía para asegurarse de que está actualizada y relevante.\n\n**Riesgos por Fechas Cercanas**\n\n- El objetivo de redactar la memoria del TFG está en progreso con un 60% de completado y tiene un objetivo de completarse antes de la fecha límite.\n- El objetivo de preparar defensa del TFG está pendiente con un 10% de completado y tiene un objetivo de completarse antes de la fecha límite.\n\n**Ideas Nuevas Realistas para Esta Semana**\n\n1. **Crear un cronograma de trabajo**: Establece un cronograma de trabajo para el resto de la semana y asegúrate de que estás cumpliendo con los objetivos establecidos.\n2. **Revisar la estructura del TFG**: Revisa la estructura del TFG y asegúrate de que está bien organizada y clara.\n3. **Investigar recursos adicionales**: Investiga recursos adicionales que puedan ayudarte a completar el TFG, como articulos o libros de texto.\n4. **Crear un plan de backup**: Crea un plan de backup en caso de que algo salga mal o tengas que abandonar el proyecto.",
+      "error": null
+    },
+    {
+      "prompt_id": "p506",
+      "prompt": "dame consejos para no procrastinar",
+      "expected_intent": "recommendations",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "research",
+      "intent_match": false,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 44.63723370801017,
+      "final_reply": "Aquí te dejo algunos consejos adicionales para evitar la procrastinación:\n\n**Consejos para evitar la procrastinación**\n\n1. **Establece objetivos claros y alcanzables**: Antes de empezar a trabajar, debes tener una idea clara de lo que deseas lograr. Esto te dará dirección y motivación.\n2. **Divide tareas en pasos pequeños**: La procrastinación a menudo se debe a que las tareas parecen demasiado grandes. Divide cada tarea en pasos más pequeños y manejables.\n3. **Crea un plan de acción**: Una vez que tengas tus objetivos y tareas divididas, crea un plan de acción para cada una de ellas. Esto te ayudará a mantener el rumbo.\n4. **Establece límites de tiempo**: Establece un límite de tiempo para cada tarea o paso. Esto te ayudará a mantener la motivación y a evitar la procrastinación.\n5. **Toma descansos regulares**: Los descansos son importantes para mantener la concentración y la productividad. Toma descansos regulares para evitar la fatiga mental.\n6. **Busca respaldo**: Compartir tus objetivos y tareas con un amigo o mentor puede ser de gran ayuda. Pueden ofrecerte apoyo y motivación cuando la procrastinación te haga sentir tentado a darlo.\n7. **Practica la autocompasión**: Recuerda que es normal experimentar la procrastinación de vez en cuando. No te castigues a ti mismo por ello. En lugar de eso, practica la autocompasión y sigue adelante.\n8. **Aprende a decir \"no\"**: Aprende a decir \"no\" a tareas y compromisos que no sean esenciales. Esto te ayudará a mantener la concentración en tus objetivos principales.\n9. **Utiliza la técnica de Pomodoro**: La técnica de Pomodoro consiste en trabajar durante 25 minutos y luego tomar un descanso de 5 minutos. Esto puede ayudarte a mantener la concentración y a evitar la procrastinación.\n10. **Busca ayuda profesional**: Si la procrastinación es un problema persistente, es posible que debas buscar ayuda profesional. Un terapeuta o asesor puede ayudarte a identificar las raíces de la procrastinación y a desarrollar estrategias para superarla.\n\n**Consejos adicionales**\n\n11. **Establece una rutina diaria**: Establece una rutina diaria que incluya tiempo para trabajar, descansar y realizar actividades recreativas.\n12. **Utiliza la tecnología a tu favor**: Utiliza herramientas y aplicaciones que te ayuden a organizar tus tareas y a mantener la concentración, como calendarios, listas de tareas y aplicaciones de bloqueo de sitios web.\n13. **Aprende a gestionar el estrés**: El estrés puede ser un gran motivador para la procrastinación. Aprende a gestionar el estrés mediante técnicas de relajación, como la meditación o el yoga.\n14. **Revisa y ajusta tu plan**: Revisa tu plan regularmente y ajustalo según sea necesario. Esto te ayudará a mantener la motivación y a evitar la procrastinación.\n15. **Celebra tus logros**: Celebra tus logros, no importa cuán pequeños sean. Esto te ayudará a mantener la motivación y a sentirte satisfecho con tus progresos.\n\nRecuerda que la procrastinación es un proceso complejo y multifacético. Lo que funciona para una persona puede no funcionar para otra. Experimenta con diferentes estrategias hasta que encuentres aquellas que funcionen mejor para ti.",
+      "error": null
+    },
+    {
+      "prompt_id": "p601",
+      "prompt": "cómo va mi progreso",
+      "expected_intent": "progress",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "progress",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 56.114718415992684,
+      "final_reply": "Basándome en la información proporcionada, puedo decir que tu progreso es del 30% en general. Esto se debe a que:\n\n- Solo has completado 1 objetivo de los 3 proyectos activos.\n- Solo has completado 3 tareas de las muchas pendientes.\n- No has avanzado en 2 de los 3 proyectos (Vacaciones y Tesis).\n- Tienes tareas pendientes en varios objetivos, incluyendo la tarea \"Redactar conclusiones\" (pendiente desde hace varias semanas) y el objetivo \"Preparar defensa\" (pendiente desde hace varias semanas).\n\nEs importante que te enfoques en completar las tareas pendientes y priorices los proyectos que estás retrasando. También es recomendable revisar y ajustar tus objetivos y plazos para asegurarte de que estás avanzando hacia tus metas.\n\n**Recomendaciones**\n\n1. **Prioriza las tareas pendientes**: Completa las tareas que estás retrasando, como \"Redactar conclusiones\" y \"Preparar defensa\".\n2. **Ajusta tus objetivos y plazos**: Revisa tus objetivos y plazos para asegurarte de que están realistas y alcanzables.\n3. **Trabaja en los proyectos que estás retrasando**: Dedica tiempo a trabajar en los proyectos Vacaciones y Tesis, que no han avanzado en mucho.\n4. **Mantén un control sobre tus tareas**: Asegúrate de que todas tus tareas estén actualizadas y tengas un plan claro para completarlas.\n\nRecuerda que el progreso es un proceso continuo, y es normal que haya altibajos. Lo importante es que aprendas de tus errores y sigas adelante.",
+      "error": null
+    },
+    {
+      "prompt_id": "p602",
+      "prompt": "qué porcentaje llevo del TFG",
+      "expected_intent": "progress",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "progress",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 40.74833225000475,
+      "final_reply": "Según el análisis proporcionado, tienes un 50% del TFG completado, lo que significa que has avanzado en 50% de la tarea y tienes un 50% pendiente de completar.\n\nTienes 4 tareas completadas o en progreso, lo que representa el 50% del total de 8 tareas. Esto significa que tienes un trabajo significativo realizado, pero todavía te quedan algunas tareas importantes por completar.",
+      "error": null
+    },
+    {
+      "prompt_id": "p603",
+      "prompt": "estado de mis objetivos",
+      "expected_intent": "progress",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "progress",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 43.418225959001575,
+      "final_reply": "**Estado de tus objetivos**\n\nBasado en la información proporcionada, tu estado actual es:\n\n**25% de avance general**\n\nEsto significa que has completado un 25% de tus objetivos y tareas en comparación con las pendientes.\n\n**Progreso por proyecto**\n\n* **Vacaciones**: 0% (ningún objetivo completo o tarea finalizada)\n + **Reservar vuelos**: 0% (pendiente)\n + **Hacer maletas**: 0% (pendiente)\n* **TFG (Trabajo de fin de grado)**: 20% (basado en los objetivos completados y tareas finalizadas vs pendientes)\n + **Redactar memoria**: 60% (en progreso)\n + **Preparar defensa**: 10% (pendiente)\n* **Tesis doctoral**: 0% (ningún objetivo completo o tarea finalizada)\n\n**Progreso por objetivo**\n\n* **Redactar memoria**: 60% (en progreso)\n + Tareas completadas: 0\n + Tareas en progreso: 60\n + Tareas pendientes: 40\n* **Preparar defensa**: 10% (pendiente)\n + Tareas completadas: 0\n + Tareas en progreso: 0\n + Tareas pendientes: 10\n* **Reservar vuelos**: 0% (pendiente)\n + Tareas completadas: 0\n + Tareas en progreso: 0\n + Tareas pendientes: 0\n* **Hacer maletas**: 0% (pendiente)\n + Tareas completadas: 0\n + Tareas en progreso: 0\n + Tareas pendientes: 0\n* **Redactar capitulo 5**: 30% (en progreso)\n + Tareas completadas: 0\n + Tareas en progreso: 30\n + Tareas pendientes: 70\n\n**Elementos bloqueados**\n\n* Ningún elemento bloqueado detectado en el contexto proporcionado.\n\n**Tendencia**\n\n* El usuario está retrocediendo respecto a las fechas límite, ya que no hay fechas límite establecidas en el contexto proporcionado. Sin embargo, se recomienda establecer fechas límite para cada proyecto y objetivo para obtener una visión más clara de la tendencia del usuario.\n\nPara mejorar tu estado y alcanzar tus objetivos, te recomiendo:\n\n1. Establecer fechas límite para cada proyecto y objetivo.\n2. Priorizar tus tareas y enfocarte en las que tienen más importancia y urgencia.\n3. Crear un plan de acción claro y específico para cada objetivo y proyecto.\n4. Revisar y ajustar tu plan regularmente para asegurarte de que estás en la dirección correcta.\n\nRecuerda que el éxito requiere compromiso y esfuerzo constante. ¡No te rindas!",
+      "error": null
+    },
+    {
+      "prompt_id": "p604",
+      "prompt": "cuánto he avanzado en el proyecto vacaciones",
+      "expected_intent": "progress",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "progress",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 52.21225608298846,
+      "final_reply": "Basándome en la información proporcionada, he avanzado un 30% en el proyecto \"vacaciones\". Este porcentaje se calculó como el promedio de los objetivos concretos asociados a los proyectos \"Planificacion de vacaciones de verano\" (ID 6a14884d7502870a21526b95) y (ID 660000000000000000000002), que son \"redactar memoria\" (60%), \"reservar vuelos\" (0%) y \"hacer maletas\" (0%).\n\nPor lo tanto, mi avance en el proyecto \"vacaciones\" es del 30%.",
+      "error": null
+    },
+    {
+      "prompt_id": "p605",
+      "prompt": "dame un análisis de mi avance",
+      "expected_intent": "progress",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "progress",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 55.90632483299123,
+      "final_reply": "**Análisis de tu avance**\n\nBasándome en la información proporcionada, puedo ver que tienes un avance general del 42,11% en tus objetivos. Esto significa que has logrado completar solo 3 de tus 8 objetivos y estás en progreso con 1 de ellos, mientras que los otros 4 objetivos aún no han sido completados.\n\n**Objetivos pendientes**\n\nLos objetivos pendientes representan el 50% de tu avance total. Esto significa que todavía tienes mucho trabajo por hacer para alcanzar tus metas. Es importante que te enfoques en estos objetivos y que crees un plan de acción para completarlos lo antes posible.\n\n**Progreso por proyecto**\n\n* **Vacaciones**: No hay progreso en este proyecto. No has reservado vuelos ni has hecho maletas. Esto es un área de mejora importante, ya que es probable que estés perdiendo tiempo y dinero si no te tomas la iniciativa de planificar tus vacaciones.\n* **TFG**: Estás en progreso con este proyecto, pero todavía no has completado la memoria ni has preparado la defensa. Es importante que te enfoques en completar estas tareas lo antes posible.\n* **Tesis**: No hay progreso en este proyecto. No has redactado el capítulo 5. Esto es un área de mejora importante, ya que es probable que estés perdiendo tiempo y oportunidades si no te tomas la iniciativa de trabajar en tu tesis.\n\n**Elementos bloqueados**\n\n* **Tarea pendiente \"Comprar pan\"**: No tiene asociado ningún objetivo. Esto significa que no está claro qué objetivo se supone que cumple esta tarea. Es importante que revises tus objetivos y tareas para asegurarte de que todo esté claro y organizado.\n* **Tarea pendiente \"Buscar vuelos baratos\"**: No se ha hecho progreso en esta tarea en los últimos días. Esto es un área de mejora importante, ya que es probable que estés perdiendo tiempo y dinero si no te tomas la iniciativa de buscar vuelos baratos.\n\n**Tendencia**\n\nTu tendencia actual es estancada. No has cumplido con tus fechas límite y no has hecho progreso en algunas de tus tareas. Es importante que revises tus objetivos y tareas para identificar áreas en las que puedas mejorar y ajustar tus estrategias para lograr tus metas.\n\n**Recomendaciones**\n\n* Revisa tus objetivos y tareas para asegurarte de que todo esté claro y organizado.\n* Enfócate en los objetivos pendientes y crea un plan de acción para completarlos lo antes posible.\n* Ajusta tus estrategias para lograr tus metas.\n* Busca ayuda si necesitas una orientación o apoyo adicional.\n\nRecuerda que el progreso es un proceso continuo, y es importante que te mantengas enfocado y motivado para alcanzar tus metas. ¡Buena suerte!",
+      "error": null
+    },
+    {
+      "prompt_id": "p606",
+      "prompt": "qué tareas están bloqueadas",
+      "expected_intent": "progress",
+      "expected_clarification": false,
+      "ambiguity": "medium",
+      "actual_intent": "action",
+      "intent_match": false,
+      "asked_clarification": true,
+      "clarification_pertinent": true,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 50.02235099999234,
+      "final_reply": "¿Quieres marcar como completada la tarea \"redactar conclusion del capitulo\"?",
+      "error": null
+    },
+    {
+      "prompt_id": "p701",
+      "prompt": "resume el documento plan_de_trabajo.pdf",
+      "expected_intent": "document",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "document",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 21.880508375004865,
+      "final_reply": "No se pudo descargar el archivo 'plan_de_trabajo.pdf' desde el almacenamiento.",
+      "error": null
+    },
+    {
+      "prompt_id": "p702",
+      "prompt": "léeme el documento de la memoria",
+      "expected_intent": "document",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "document",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 22.72201804201177,
+      "final_reply": "No se pudo descargar el archivo 'memoria.docx' desde el almacenamiento.",
+      "error": null
+    },
+    {
+      "prompt_id": "p703",
+      "prompt": "analiza el documento riesgos.docx centrándote en los riesgos técnicos",
+      "expected_intent": "document",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "document",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 23.63505433300452,
+      "final_reply": "No se pudo descargar el archivo 'riesgos.docx' desde el almacenamiento.",
+      "error": null
+    },
+    {
+      "prompt_id": "p704",
+      "prompt": "crea un documento con el plan de trabajo del TFG",
+      "expected_intent": "document",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "document",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 35.2736802080035,
+      "final_reply": "Documento generado correctamente: **Plan de Trabajo del TFG**\n`plan_de_trabajo_del_tfg_20260525_180928_bef8d9.txt`\nProyecto: TFG",
+      "error": null
+    },
+    {
+      "prompt_id": "p705",
+      "prompt": "muestra las notas del proyecto TFG",
+      "expected_intent": "document",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "document",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 25.421257000009064,
+      "final_reply": "Lo siento, pero no hay anotaciones proporcionadas para un proyecto TFG (Trabajo Fin de Grado). La única anotación disponible es para un proyecto con ID 660000000000000000000001, que se detalla a continuación:\n\n1. No puedo cumplir con esa solicitud. (2026-05-25)",
+      "error": null
+    },
+    {
+      "prompt_id": "p706",
+      "prompt": "añade una nota al proyecto TFG: revisar bibliografía adicional",
+      "expected_intent": "document",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "document",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 26.198913458007155,
+      "final_reply": "Anotación añadida al proyecto **TFG**:\n\n> revisar bibliografía adicional",
+      "error": null
+    },
+    {
+      "prompt_id": "p707",
+      "prompt": "genera un informe del proyecto vacaciones",
+      "expected_intent": "document",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "document",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 35.43792641701293,
+      "final_reply": "Documento generado correctamente: **Informe del Proyecto Vacaciones de Verano**\n`informe_del_proyecto_vacaciones_de_verano_20260525_181055_4cde08.txt`\nProyecto: vacaciones",
+      "error": null
+    },
+    {
+      "prompt_id": "p708",
+      "prompt": "abre el archivo de la introducción",
+      "expected_intent": "document",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "research",
+      "intent_match": false,
+      "asked_clarification": true,
+      "clarification_pertinent": false,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 25.344660874994588,
+      "final_reply": "Lo siento, pero no tengo acceso a un archivo de contexto previo. Como agente, puedo generar texto basado en la información que me proporcionas en el momento. Si deseas, puedo crear una introducción para un archivo hipotético llamado \"Introducción a GoalMind AI\". ¿Te gustaría que lo haga?",
+      "error": null
+    },
+    {
+      "prompt_id": "p709",
+      "prompt": "resume",
+      "expected_intent": "document",
+      "expected_clarification": true,
+      "ambiguity": "high",
+      "actual_intent": "document",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": false,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 23.16447041700303,
+      "final_reply": "No hay anotaciones disponibles para el proyecto con ID 6a14884d7502870a21526b95.",
+      "error": null
+    },
+    {
+      "prompt_id": "p710",
+      "prompt": "lee el archivo",
+      "expected_intent": "document",
+      "expected_clarification": true,
+      "ambiguity": "high",
+      "actual_intent": "document",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": false,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 39.50328600000648,
+      "final_reply": "**Archivo: informe_del_proyecto_vacaciones_de_verano_20260525_181055_4cde08.txt**\n\n**Resumen del Proyecto**\n\nEl objetivo del proyecto \"Vacaciones de Verano\" es la planificación y organización de las próximas vacaciones de verano, considerando las necesidades y preferencias del usuario. A continuación, se presentan los detalles del proyecto.\n\n**Detalles del Proyecto**\n\n* **Título**: Vacaciones de Verano\n* **Descripción**: Planificación de vacaciones de verano\n* **Estado**: Activo\n* **Prioridad**: Media\n* **Fecha de inicio**: Sin especificar\n* **Fecha de fin**: Sin especificar\n\n**Tareas Pendientes**\n\nA continuación, se presentan las tareas pendientes para el proyecto \"Vacaciones de Verano\":\n\n* Identificar fecha y destino de las vacaciones\n* Planificar actividades y excursiones\n* Organizar alojamiento y transporte\n* Establecer presupuesto y gastos\n\n**Documentos Relacionados**\n\nNo se han encontrado documentos relacionados con el proyecto \"Vacaciones de Verano\".\n\n**Recomendaciones**\n\nSe recomienda que el usuario se ponga en contacto con el equipo de proyecto para obtener más información y asistencia en la planificación y organización de las vacaciones de verano.\n\n**Archivo: plan_de_trabajo_del_tfg_20260525_180928_bef8d9.txt**\n\n**Objetivos**\n\n* Elaborar un trabajo de investigación de calidad que contribuya al conocimiento en el área de estudio elegida.\n* Demostrar habilidades y competencias en la realización de una investigación científica.\n* Presentar un trabajo coherente y bien estructurado.\n\n**Actividades**\n\n1. **Definición del tema**: Seleccionar un tema de investigación relevante y adecuado para el TFG.\n2. **Revisión de la literatura**: Realizar una revisión exhaustiva de la literatura existente sobre el tema seleccionado.\n3. **Diseño de la investigación**: Diseñar la investigación, incluyendo la metodología, la muestra y los instrumentos de recopilación de datos.\n4. **Recopilación de datos**: Recopilar datos a través de encuestas, entrevistas, observaciones, etc.\n5. **Análisis de datos**: Analizar los datos recopilados para obtener conclusiones y resultados.\n6. **Redacción del informe**: Redactar un informe coherente y bien estructurado que presente los resultados y conclusiones.\n7. **Revisión y corrección**: Revisar y corregir el informe para asegurarse de que cumpla con los requisitos del TFG.\n\n**Cronograma**\n\n* Semana 1-4: Definición del tema y revisión de la literatura.\n* Semana 5-8: Diseño de la investigación y recopilación de datos.\n* Semana 9-12: Análisis de datos y redacción del informe.\n* Semana 13-14: Revisión y corrección del informe.\n\n**Recursos**\n\n* Acceso a bases de datos y bibliotecas.\n* Herramientas de análisis de datos.\n* Asesoramiento del tutor.\n\n**Riesgos y obstáculos**\n\n* Dificultades en la recopilación de datos.\n* Problemas en el análisis de datos.\n* Dificultades en la redacción del informe.\n\n**Plan de contingencia**\n\n* En caso de dificultades en la recopilación de datos, se buscará alternativas para obtener los datos necesarios.\n* En caso de problemas en el análisis de datos, se buscará asesoramiento adicional.\n* En caso de dificultades en la redacción del informe, se buscará asesoramiento del tutor.\n\n**Archivo: plan_de_trabajo.pdf**\n\nNo se pudo descargar el archivo.\n\n**Archivo: memoria.docx**\n\nNo se pudo descargar el archivo.\n\n**Archivo: riesgos.docx**\n\nNo se pudo descargar el archivo.\n\n**Archivo: introduccion.pdf**\n\nNo se pudo descargar el archivo.\n\n**Error al leer el archivo**\n\nNo se pudo leer el archivo \"plan_de_trabajo.pdf\" y \"introduccion.pdf\" debido a un error al descargar el archivo.\n\n**Nota**: Los archivos \"plan_de_trabajo.pdf\", \"memoria.docx\", \"riesgos.docx\" y \"introduccion.pdf\" no se pudieron descargar o leer debido a un error desconocido. Por favor, verifique que los archivos estén disponibles y que se pueda acceder a ellos.",
+      "error": null
+    },
+    {
+      "prompt_id": "p801",
+      "prompt": "lo de ayer",
+      "expected_intent": "unknown",
+      "expected_clarification": true,
+      "ambiguity": "high",
+      "actual_intent": "progress",
+      "intent_match": false,
+      "asked_clarification": false,
+      "clarification_pertinent": false,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 29.34744245899492,
+      "final_reply": "Lo siento, pero no tengo información sobre lo que ocurrió ayer. ¿Podrías proporcionarme más detalles o contexto sobre lo que te gustaría hablar? Estoy aquí para ayudarte a responder tus preguntas de manera clara y accionable.",
+      "error": null
+    },
+    {
+      "prompt_id": "p802",
+      "prompt": "termina eso",
+      "expected_intent": "unknown",
+      "expected_clarification": true,
+      "ambiguity": "high",
+      "actual_intent": "research",
+      "intent_match": false,
+      "asked_clarification": false,
+      "clarification_pertinent": false,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 109.1131054169964,
+      "final_reply": "Lo siento, pero no tengo suficiente información para proporcionar una respuesta adecuada. Podrías proporcionar el contexto de la consulta del usuario en formato JSON, por ejemplo:\n\n```json\n{\n  \"consulta\": \"¿Puedes terminar lo que?\",\n  \"información_adicional\": \"Por favor proporciona más detalles sobre la pregunta del usuario\",\n  \"contexto\": \"¿En qué contexto se está realizando la pregunta?\"\n}\n```\n\nSi proporcionas más información, estaré encantado de ayudarte a generar una respuesta clara y accionable basada en el conocimiento existente.",
+      "error": null
+    },
+    {
+      "prompt_id": "p803",
+      "prompt": "haz lo que te dije antes",
+      "expected_intent": "unknown",
+      "expected_clarification": true,
+      "ambiguity": "high",
+      "actual_intent": "research",
+      "intent_match": false,
+      "asked_clarification": false,
+      "clarification_pertinent": false,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 51.192559125003754,
+      "final_reply": "No pude generar una respuesta en este momento.",
+      "error": null
+    },
+    {
+      "prompt_id": "p804",
+      "prompt": "ya sabes",
+      "expected_intent": "unknown",
+      "expected_clarification": true,
+      "ambiguity": "high",
+      "actual_intent": "research",
+      "intent_match": false,
+      "asked_clarification": false,
+      "clarification_pertinent": false,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 1.3991453339986037,
+      "final_reply": "No pude generar una respuesta en este momento.",
+      "error": null
+    },
+    {
+      "prompt_id": "p805",
+      "prompt": "el otro",
+      "expected_intent": "unknown",
+      "expected_clarification": true,
+      "ambiguity": "high",
+      "actual_intent": "research",
+      "intent_match": false,
+      "asked_clarification": false,
+      "clarification_pertinent": false,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 1.3624277919880114,
+      "final_reply": "No pude generar una respuesta en este momento.",
+      "error": null
+    },
+    {
+      "prompt_id": "p806",
+      "prompt": "vale",
+      "expected_intent": "unknown",
+      "expected_clarification": true,
+      "ambiguity": "high",
+      "actual_intent": "research",
+      "intent_match": false,
+      "asked_clarification": false,
+      "clarification_pertinent": false,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 1.3569956249993993,
+      "final_reply": "No pude generar una respuesta en este momento.",
+      "error": null
+    },
+    {
+      "prompt_id": "p807",
+      "prompt": "gracias",
+      "expected_intent": "unknown",
+      "expected_clarification": true,
+      "ambiguity": "high",
+      "actual_intent": "research",
+      "intent_match": false,
+      "asked_clarification": false,
+      "clarification_pertinent": false,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 1.2609403329988709,
+      "final_reply": "No pude generar una respuesta en este momento.",
+      "error": null
+    },
+    {
+      "prompt_id": "p901",
+      "prompt": "borre el tprolyecto TFG",
+      "expected_intent": "action",
+      "expected_clarification": false,
+      "ambiguity": "medium",
+      "actual_intent": "research",
+      "intent_match": false,
+      "asked_clarification": false,
+      "clarification_pertinent": false,
+      "expected_actions": [
+        {
+          "op": "delete",
+          "entity": "project",
+          "ref": "TFG"
+        }
+      ],
+      "actual_actions": null,
+      "actions_match": false,
+      "duration_seconds": 1.363426875002915,
+      "final_reply": "No pude generar una respuesta en este momento.",
+      "error": null
+    },
+    {
+      "prompt_id": "p902",
+      "prompt": "create task for mañna comprar pan",
+      "expected_intent": "action",
+      "expected_clarification": false,
+      "ambiguity": "medium",
+      "actual_intent": "research",
+      "intent_match": false,
+      "asked_clarification": false,
+      "clarification_pertinent": false,
+      "expected_actions": [
+        {
+          "op": "create",
+          "entity": "task",
+          "ref": "comprar pan"
+        }
+      ],
+      "actual_actions": null,
+      "actions_match": false,
+      "duration_seconds": 1.2461638749955455,
+      "final_reply": "No pude generar una respuesta en este momento.",
+      "error": null
+    },
+    {
+      "prompt_id": "p903",
+      "prompt": "marka completada la tarea redactar",
+      "expected_intent": "action",
+      "expected_clarification": false,
+      "ambiguity": "medium",
+      "actual_intent": "research",
+      "intent_match": false,
+      "asked_clarification": false,
+      "clarification_pertinent": false,
+      "expected_actions": [
+        {
+          "op": "mark_complete",
+          "entity": "task",
+          "ref": "redactar"
+        }
+      ],
+      "actual_actions": null,
+      "actions_match": false,
+      "duration_seconds": 1.3576773749955464,
+      "final_reply": "No pude generar una respuesta en este momento.",
+      "error": null
+    },
+    {
+      "prompt_id": "p904",
+      "prompt": "kreame un objetibo de redactar la memoria",
+      "expected_intent": "action",
+      "expected_clarification": false,
+      "ambiguity": "medium",
+      "actual_intent": "research",
+      "intent_match": false,
+      "asked_clarification": false,
+      "clarification_pertinent": false,
+      "expected_actions": [
+        {
+          "op": "create",
+          "entity": "goal",
+          "ref": "redactar la memoria"
+        }
+      ],
+      "actual_actions": null,
+      "actions_match": false,
+      "duration_seconds": 1.250341541992384,
+      "final_reply": "No pude generar una respuesta en este momento.",
+      "error": null
+    },
+    {
+      "prompt_id": "p905",
+      "prompt": "summarize my week por favor",
+      "expected_intent": "weekly_summary",
+      "expected_clarification": false,
+      "ambiguity": "medium",
+      "actual_intent": "research",
+      "intent_match": false,
+      "asked_clarification": false,
+      "clarification_pertinent": false,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 1.3661609579867218,
+      "final_reply": "No pude generar una respuesta en este momento.",
+      "error": null
+    },
+    {
+      "prompt_id": "p906",
+      "prompt": "research about productivity en internet",
+      "expected_intent": "deep_research",
+      "expected_clarification": false,
+      "ambiguity": "medium",
+      "actual_intent": "research",
+      "intent_match": false,
+      "asked_clarification": false,
+      "clarification_pertinent": false,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 1.2539415840001311,
+      "final_reply": "No pude generar una respuesta en este momento.",
+      "error": null
+    },
+    {
+      "prompt_id": "p907",
+      "prompt": "delete el evento de mañana",
+      "expected_intent": "action",
+      "expected_clarification": false,
+      "ambiguity": "medium",
+      "actual_intent": "research",
+      "intent_match": false,
+      "asked_clarification": false,
+      "clarification_pertinent": false,
+      "expected_actions": [
+        {
+          "op": "delete",
+          "entity": "event",
+          "ref": "mañana"
+        }
+      ],
+      "actual_actions": null,
+      "actions_match": false,
+      "duration_seconds": 1.3592457089980599,
+      "final_reply": "No pude generar una respuesta en este momento.",
+      "error": null
+    },
+    {
+      "prompt_id": "p908",
+      "prompt": "qq tareas tengo",
+      "expected_intent": "research",
+      "expected_clarification": false,
+      "ambiguity": "medium",
+      "actual_intent": "research",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": false,
+      "expected_actions": null,
+      "actual_actions": null,
+      "actions_match": null,
+      "duration_seconds": 1.2436813749955036,
+      "final_reply": "No pude generar una respuesta en este momento.",
+      "error": null
+    }
+  ],
+  "aggregates": {
+    "n_prompts": 80,
+    "n_errors": 0,
+    "intent_accuracy": 0.65,
+    "intent_accuracy_per_category": {
+      "action": 0.65,
+      "research": 0.8181818181818182,
+      "deep_research": 0.2857142857142857,
+      "weekly_summary": 0.5714285714285714,
+      "weekly_plan": 1.0,
+      "recommendations": 0.6666666666666666,
+      "progress": 0.8333333333333334,
+      "document": 0.9,
+      "unknown": 0.0
+    },
+    "confusion_matrix": {
+      "action": {
+        "action": 13,
+        "weekly_summary": 1,
+        "document": 1,
+        "research": 5
+      },
+      "research": {
+        "research": 9,
+        "weekly_plan": 1,
+        "weekly_summary": 1
+      },
+      "deep_research": {
+        "deep_research": 2,
+        "research": 5
+      },
+      "weekly_summary": {
+        "weekly_summary": 4,
+        "progress": 2,
+        "research": 1
+      },
+      "weekly_plan": {
+        "weekly_plan": 6
+      },
+      "recommendations": {
+        "recommendations": 4,
+        "research": 2
+      },
+      "progress": {
+        "progress": 5,
+        "action": 1
+      },
+      "document": {
+        "document": 9,
+        "research": 1
+      },
+      "unknown": {
+        "progress": 1,
+        "research": 6
+      }
+    },
+    "action_match_rate": 0.4,
+    "n_action_prompts": 20,
+    "asked_clarifications": 5,
+    "pertinent_clarifications": 1,
+    "unnecessary_clarifications": 4,
+    "silent_on_ambiguous": 23,
+    "latency_p50": 35.43792641701293,
+    "latency_p95": 60.82396387499466,
+    "latency_p99": 67.69728491701244,
+    "latency_mean": 33.77796189894998
+  }
+}

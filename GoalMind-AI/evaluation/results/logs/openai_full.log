@@ -1,0 +1,103 @@
+Cargados 80 prompts.
+[  1/80] p001: crea una tarea para mañana llamada comprar pan
+[  2/80] p002: borra el proyecto TFG
+[  3/80] p003: marca como completada la tarea redactar la introducción
+Tarea 662000000000000000000001 actualizada y sincronizada.
+Progreso del objetivo 661000000000000000000001 recalculado: 40.0%
+[  4/80] p004: actualiza la fecha límite del proyecto tesis al 30 de junio
+Proyecto 660000000000000000000003 actualizado y sincronizado.
+[  5/80] p005: crea un objetivo nuevo bajo el proyecto tesis que se llame r
+ Objetivo insertado localmente y sincronizado: 6a146de115279a588bd1b1ef
+[  6/80] p006: elimina la tarea revisar bibliografía
+[  7/80] p007: crea un evento mañana a las 10 para defender el TFG
+[  8/80] p008: borra el evento de la reunión del viernes
+[  9/80] p009: actualiza el progreso del objetivo redactar al 80%
+Objetivo 661000000000000000000001 actualizado y sincronizado.
+[ 10/80] p010: crea un proyecto llamado vacaciones con dos objetivos: reser
+Proyecto insertado localmente y sincronizado: 6a146e2b15279a588bd1b1f1
+[ 11/80] p011: añade tres tareas al objetivo redactar capítulo 5: introducc
+Tarea insertada localmente y sincronizada: 6a146e4615279a588bd1b1f2
+Tarea insertada localmente y sincronizada: 6a146e4615279a588bd1b1f3
+Tarea insertada localmente y sincronizada: 6a146e4615279a588bd1b1f4
+[ 12/80] p012: cambia la prioridad de la tarea bibliografía a alta
+Tarea 662000000000000000000008 actualizada y sincronizada.
+[ 13/80] p013: termina la tarea de hoy
+[ 14/80] p014: borra todo lo del TFG
+[ 15/80] p015: marca como hecho
+[ 16/80] p101: qué objetivos tengo en el proyecto tesis
+[ 17/80] p102: muéstrame todas mis tareas pendientes
+[ 18/80] p103: qué tareas tiene el objetivo redactar
+[ 19/80] p104: lista los proyectos activos
+[ 20/80] p105: cuántas tareas tengo en total
+[ 21/80] p106: qué categorías uso más
+[ 22/80] p107: qué eventos tengo esta semana
+[ 23/80] p108: dime los detalles del proyecto vacaciones
+[ 24/80] p109: qué hay
+[ 25/80] p110: cuéntame
+[ 26/80] p201: investiga a fondo sobre tecnicas pomodoro y dame fuentes
+[ 27/80] p202: busca en internet información sobre la metodología GTD
+[ 28/80] p203: haz una investigación detallada sobre los mejores frameworks
+[ 29/80] p204: investiga con fuentes externas qué dice la literatura sobre 
+[ 30/80] p205: busca artículos académicos sobre planificación semanal
+[ 31/80] p206: investiga
+[ 32/80] p301: resume mi semana
+[ 33/80] p302: qué he hecho esta semana
+[ 34/80] p303: dame un balance de la semana
+[ 35/80] p304: cómo ha ido la semana en general
+[ 36/80] p305: resumen semanal por favor
+[ 37/80] p306: qué tareas completé esta semana
+[ 38/80] p401: planifica mi próxima semana
+[ 39/80] p402: diseña un plan para la semana que viene
+[ 40/80] p403: qué debería hacer cada día la próxima semana
+[ 41/80] p404: organiza mi agenda para los próximos siete días
+[ 42/80] p405: plan semanal con las tareas pendientes
+[ 43/80] p406: ayúdame a planificar la semana priorizando lo urgente
+[ 44/80] p501: dame recomendaciones sobre qué hacer ahora
+[ 45/80] p502: qué consejos me das para mis prioridades
+[ 46/80] p503: qué me sugieres priorizar hoy
+[ 47/80] p504: necesito ideas para avanzar en el TFG
+[ 48/80] p505: recomiéndame por dónde empezar mañana
+[ 49/80] p506: dame consejos para no procrastinar
+[ 50/80] p601: cómo va mi progreso
+[ 51/80] p602: qué porcentaje llevo del TFG
+[ 52/80] p603: estado de mis objetivos
+[ 53/80] p604: cuánto he avanzado en el proyecto vacaciones
+[ 54/80] p605: dame un análisis de mi avance
+[ 55/80] p606: qué tareas están bloqueadas
+[ 56/80] p701: resume el documento plan_de_trabajo.pdf
+[ 57/80] p702: léeme el documento de la memoria
+[ 58/80] p703: analiza el documento riesgos.docx centrándote en los riesgos
+[ 59/80] p704: crea un documento con el plan de trabajo del TFG
+Documento insertado y sincronizado: 6a1475c215279a588bd1b1f7
+[ 60/80] p705: muestra las notas del proyecto TFG
+[ 61/80] p706: añade una nota al proyecto TFG: revisar bibliografía adicion
+Proyecto 660000000000000000000001 actualizado y sincronizado.
+[ 62/80] p707: genera un informe del proyecto vacaciones
+[ 63/80] p708: abre el archivo de la introducción
+[ 64/80] p709: resume
+[ 65/80] p710: lee el archivo
+[ 66/80] p801: lo de ayer
+[ 67/80] p802: termina eso
+[ 68/80] p803: haz lo que te dije antes
+[ 69/80] p804: ya sabes
+[ 70/80] p805: el otro
+[ 71/80] p806: vale
+[ 72/80] p807: gracias
+[ 73/80] p901: borre el tprolyecto TFG
+[ 74/80] p902: create task for mañna comprar pan
+[ 75/80] p903: marka completada la tarea redactar
+[ 76/80] p904: kreame un objetibo de redactar la memoria
+ Objetivo insertado localmente y sincronizado: 6a14778915279a588bd1b1f8
+[ 77/80] p905: summarize my week por favor
+[ 78/80] p906: research about productivity en internet
+[ 79/80] p907: delete el evento de mañana
+[ 80/80] p908: qq tareas tengo
+
+Resultados: /Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/evaluation/results/run_20260525T162506Z.json
+Informe:    /Users/apple/Desktop/Universidad/TFG_Informatica/GitHub/VirtualAssistant/GoalMind-AI/evaluation/results/run_20260525T162506Z.md
+
+=== Resumen ===
+Precision intent: 72.50%
+Tasa CRUD:        25.00%
+Aclaraciones:     27 (pertinentes=12, friccion=15)
+Latencia:         p50=22.93s, p95=89.81s, p99=93.44s

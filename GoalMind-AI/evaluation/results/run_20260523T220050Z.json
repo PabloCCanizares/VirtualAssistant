@@ -1,0 +1,195 @@
+{
+  "timestamp": "20260523T220050Z",
+  "n_prompts": 5,
+  "results": [
+    {
+      "prompt_id": "p001",
+      "prompt": "crea una tarea para mañana llamada comprar pan",
+      "expected_intent": "action",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "action",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": [
+        {
+          "op": "create",
+          "entity": "task",
+          "ref": "comprar pan"
+        }
+      ],
+      "actual_actions": [
+        {
+          "action_name": "create_task",
+          "action_parameters": {
+            "contenido": "comprar pan",
+            "fecha_limite": "mañana",
+            "prioridad": "baja"
+          },
+          "ref_id": null
+        }
+      ],
+      "actions_match": true,
+      "duration_seconds": 0.8568230000018957,
+      "final_reply": "¿Que objetivo quieres usar? Indica el nombre.",
+      "error": null
+    },
+    {
+      "prompt_id": "p002",
+      "prompt": "borra el proyecto TFG",
+      "expected_intent": "action",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "action",
+      "intent_match": true,
+      "asked_clarification": true,
+      "clarification_pertinent": false,
+      "expected_actions": [
+        {
+          "op": "delete",
+          "entity": "project",
+          "ref": "TFG"
+        }
+      ],
+      "actual_actions": [
+        {
+          "action_name": "delete_project",
+          "action_parameters": {
+            "project_title": "TFG"
+          },
+          "ref_id": null
+        }
+      ],
+      "actions_match": true,
+      "duration_seconds": 19.880504875000042,
+      "final_reply": "Voy a ejecutar las siguientes acciones: delete_project. Alguna de ellas es destructiva. ¿Confirmas? Responde 'confirmo' o 'cancela'.",
+      "error": null
+    },
+    {
+      "prompt_id": "p003",
+      "prompt": "marca como completada la tarea redactar la introducción",
+      "expected_intent": "action",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "action",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": [
+        {
+          "op": "mark_complete",
+          "entity": "task",
+          "ref": "redactar la introducción"
+        }
+      ],
+      "actual_actions": [
+        {
+          "action_name": "update_task",
+          "action_parameters": {
+            "task_title": "redactar introduccion",
+            "estado": "completada"
+          },
+          "ref_id": null
+        }
+      ],
+      "actions_match": false,
+      "duration_seconds": 35.61338920900016,
+      "final_reply": "¿Que tarea quieres usar? Indica el texto exacto.",
+      "error": null
+    },
+    {
+      "prompt_id": "p004",
+      "prompt": "actualiza la fecha límite del proyecto tesis al 30 de junio",
+      "expected_intent": "action",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "action",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": [
+        {
+          "op": "update",
+          "entity": "project",
+          "ref": "tesis"
+        }
+      ],
+      "actual_actions": [
+        {
+          "action_name": "update_project",
+          "action_parameters": {
+            "project_title": "tesis",
+            "fecha_fin": "2024-06-30"
+          },
+          "ref_id": null
+        }
+      ],
+      "actions_match": true,
+      "duration_seconds": 35.08833037500153,
+      "final_reply": "¿Que proyecto quieres usar? Indica el nombre.",
+      "error": null
+    },
+    {
+      "prompt_id": "p005",
+      "prompt": "crea un objetivo nuevo bajo el proyecto tesis que se llame redactar capítulo 5",
+      "expected_intent": "action",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "action",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": [
+        {
+          "op": "create",
+          "entity": "goal",
+          "ref": "redactar capítulo 5"
+        }
+      ],
+      "actual_actions": [
+        {
+          "action_name": "create_goal",
+          "action_parameters": {
+            "titulo": "redactar capítulo 5",
+            "project_id": "$ref:t3",
+            "descripcion": null,
+            "prioridad": null,
+            "estado": null,
+            "fecha_inicio": null,
+            "fecha_fin": null,
+            "progreso": null
+          },
+          "ref_id": "g5"
+        }
+      ],
+      "actions_match": true,
+      "duration_seconds": 34.05234387499513,
+      "final_reply": "No pude ejecutar la accion: 't3' is not a valid ObjectId, it must be a 12-byte input or a 24-character hex string",
+      "error": null
+    }
+  ],
+  "aggregates": {
+    "n_prompts": 5,
+    "n_errors": 0,
+    "intent_accuracy": 1.0,
+    "intent_accuracy_per_category": {
+      "action": 1.0
+    },
+    "confusion_matrix": {
+      "action": {
+        "action": 5
+      }
+    },
+    "action_match_rate": 0.8,
+    "n_action_prompts": 5,
+    "asked_clarifications": 1,
+    "pertinent_clarifications": 0,
+    "unnecessary_clarifications": 1,
+    "silent_on_ambiguous": 0,
+    "latency_p50": 34.05234387499513,
+    "latency_p95": 35.61338920900016,
+    "latency_p99": 35.61338920900016,
+    "latency_mean": 25.098278266799753
+  }
+}
