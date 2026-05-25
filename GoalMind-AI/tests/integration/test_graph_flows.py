@@ -223,6 +223,40 @@ class TestDeepResearchFallback:
         assert "Investigador" in names
         assert _final_reply(events) == "respuesta tras fallback"
 
+    def test_falls_back_when_supervisor_routes_but_not_requested(
+        self, patch_llm, scripted_llm
+    ):
+        """Si el supervisor clasifica ``deep_research`` pero el cliente no
+        activó el modo (``deep_search_requested`` queda en False), el nodo
+        debe entregar ``deep_search_error`` para que el router caiga a
+        ``research`` en lugar de romper el grafo con ``InvalidUpdateError``.
+
+        Sella el defecto detectado en la evaluación automatizada (sección
+        6.4): peticiones con verbos del tipo ``investiga a fondo`` en modo
+        ``auto`` clasifican como ``deep_research`` sin que el usuario haya
+        activado la búsqueda externa.
+        """
+        llm = scripted_llm({
+            "supervisor de GoalMind AI": supervisor_response("deep_research"),
+            "agente de research": "notas tras fallback automático",
+            "agente writer": "respuesta tras fallback automático",
+        })
+        patch_llm(llm)
+
+        # Sin deep_search_mode="on" → resolved_mode = "auto" → requested=False.
+        events = _consume_stream("investiga a fondo el tema X")
+        names = _node_keys_traversed(events)
+
+        # Se invoca el nodo de Investigación Profunda y a continuación cae al
+        # de Investigación interna por el router de fallback.
+        assert "Investigación Profunda" in names
+        assert "Investigador" in names
+        assert _final_reply(events) == "respuesta tras fallback automático"
+
+        # No se ha emitido ningún evento de error en el flujo.
+        types = [t for t, _ in events]
+        assert "error" not in types
+
 
 class TestDocumentalRead:
     """Flujo documental de lectura (summary) end-to-end."""

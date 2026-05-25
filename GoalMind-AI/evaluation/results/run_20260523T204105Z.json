@@ -1,0 +1,123 @@
+{
+  "timestamp": "20260523T204105Z",
+  "n_prompts": 3,
+  "results": [
+    {
+      "prompt_id": "p001",
+      "prompt": "crea una tarea para mañana llamada comprar pan",
+      "expected_intent": "action",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "action",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": [
+        {
+          "op": "create",
+          "entity": "task",
+          "ref": "comprar pan"
+        }
+      ],
+      "actual_actions": [
+        {
+          "action_name": "create_task",
+          "action_parameters": {
+            "contenido": "comprar pan",
+            "fecha_limite": "2026-05-24"
+          },
+          "ref_id": null
+        }
+      ],
+      "actions_match": true,
+      "duration_seconds": 17.663154208996275,
+      "final_reply": "¿Que objetivo quieres usar? Indica el nombre.",
+      "error": null
+    },
+    {
+      "prompt_id": "p002",
+      "prompt": "borra el proyecto TFG",
+      "expected_intent": "action",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "action",
+      "intent_match": true,
+      "asked_clarification": true,
+      "clarification_pertinent": false,
+      "expected_actions": [
+        {
+          "op": "delete",
+          "entity": "project",
+          "ref": "TFG"
+        }
+      ],
+      "actual_actions": [
+        {
+          "action_name": "delete_project",
+          "action_parameters": {
+            "project_title": "TFG"
+          },
+          "ref_id": null
+        }
+      ],
+      "actions_match": true,
+      "duration_seconds": 6.035932582999521,
+      "final_reply": "Voy a ejecutar las siguientes acciones: delete_project. Alguna de ellas es destructiva. ¿Confirmas? Responde 'confirmo' o 'cancela'.",
+      "error": null
+    },
+    {
+      "prompt_id": "p003",
+      "prompt": "marca como completada la tarea redactar la introducción",
+      "expected_intent": "action",
+      "expected_clarification": false,
+      "ambiguity": "low",
+      "actual_intent": "action",
+      "intent_match": true,
+      "asked_clarification": false,
+      "clarification_pertinent": null,
+      "expected_actions": [
+        {
+          "op": "mark_complete",
+          "entity": "task",
+          "ref": "redactar la introducción"
+        }
+      ],
+      "actual_actions": [
+        {
+          "action_name": "mark_task_complete",
+          "action_parameters": {
+            "task_id": "662000000000000000000001"
+          },
+          "ref_id": null
+        }
+      ],
+      "actions_match": false,
+      "duration_seconds": 9.10061866700562,
+      "final_reply": "Tarea marcada como completada.",
+      "error": null
+    }
+  ],
+  "aggregates": {
+    "n_prompts": 3,
+    "n_errors": 0,
+    "intent_accuracy": 1.0,
+    "intent_accuracy_per_category": {
+      "action": 1.0
+    },
+    "confusion_matrix": {
+      "action": {
+        "action": 3
+      }
+    },
+    "action_match_rate": 0.6666666666666666,
+    "n_action_prompts": 3,
+    "asked_clarifications": 1,
+    "pertinent_clarifications": 0,
+    "unnecessary_clarifications": 1,
+    "silent_on_ambiguous": 0,
+    "latency_p50": 9.10061866700562,
+    "latency_p95": 17.663154208996275,
+    "latency_p99": 17.663154208996275,
+    "latency_mean": 10.933235153000473
+  }
+}
