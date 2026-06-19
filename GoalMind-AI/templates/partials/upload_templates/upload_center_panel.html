@@ -1,0 +1,91 @@
+<section class="panel-section panel-hero">
+  <div class="panel-hero-content">
+    <h2 class="panel-hero-title">Mis documentos</h2>
+    <p class="panel-hero-desc">
+      Sube archivos y mantenlos disponibles para tus proyectos o consultas.
+    </p>
+  </div>
+  <div class="panel-kpis">
+    <div class="panel-kpi">
+      <div class="panel-kpi-label">Archivos</div>
+      <div class="panel-kpi-value">{{ documents|length }}</div>
+    </div>
+    <div class="panel-kpi">
+      <div class="panel-kpi-label">Espacio total</div>
+      <div class="panel-kpi-value">{{ total_size }}</div>
+    </div>
+  </div>
+</section>
+
+<section class="panel-section">
+  <div class="panel-header">
+    <div>
+      <h3 class="panel-title">
+        <span class="panel-title-icon">UP</span>
+        Subir documento
+      </h3>
+      <p class="panel-subtitle">Formatos comunes: PDF, DOCX, PNG, XLSX.</p>
+    </div>
+  </div>
+
+  <form class="panel-form" action="{{ url_for('upload_bp.upload_file') }}" method="post" enctype="multipart/form-data">
+    <div class="panel-form-group">
+      <label class="panel-form-label" for="upload-title">Titulo (opcional)</label>
+      <input class="panel-form-input" id="upload-title" name="title" placeholder="Ej: Plan de trabajo" />
+    </div>
+    <div class="panel-form-group">
+      <label class="panel-form-label" for="upload-file">Archivo</label>
+      <input class="panel-form-input" id="upload-file" type="file" name="document" required />
+    </div>
+    <button class="panel-form-submit" type="submit">Subir archivo</button>
+  </form>
+</section>
+
+<section class="panel-section">
+  <div class="panel-header">
+    <div>
+      <h3 class="panel-title">
+        <span class="panel-title-icon">DOC</span>
+        Biblioteca de documentos
+      </h3>
+      <p class="panel-subtitle">Accede, descarga o elimina tus archivos.</p>
+    </div>
+  </div>
+
+  {% if documents %}
+    <div class="item-list">
+      {% for doc in documents %}
+        <article class="item-card">
+          <div class="item-card-header">
+            <div class="item-content">
+              <h4 class="item-title">{{ doc.title or doc.original_name }}</h4>
+              <div class="item-meta">
+                <span class="item-meta-tag">Nombre: {{ doc.original_name }}</span>
+                <span class="item-meta-tag">Tipo: {{ doc.content_type }}</span>
+                <span class="item-meta-tag">Peso: {{ doc.size_label }}</span>
+                <span class="item-meta-tag">Subido: {{ doc.uploaded_at }}</span>
+              </div>
+              <div class="item-actions">
+                <a class="panel-action-btn" href="{{ url_for('upload_bp.view_upload', doc_id=doc._id) }}" target="_blank" rel="noopener">
+                  Ver
+                </a>
+                <a class="panel-action-btn" href="{{ url_for('upload_bp.download_upload', doc_id=doc._id) }}">
+                  Descargar
+                </a>
+                <form method="post" action="{{ url_for('upload_bp.delete_upload', doc_id=doc._id) }}">
+                  <button class="panel-action-btn danger" type="submit">Eliminar</button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <div class="empty-state-icon">DOC</div>
+      <h4 class="empty-state-title">Aun no hay documentos</h4>
+      <p class="empty-state-desc">Sube tu primer archivo para que aparezca aqui.</p>
+    </div>
+  {% endif %}
+</section>

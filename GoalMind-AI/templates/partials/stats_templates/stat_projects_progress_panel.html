@@ -1,0 +1,54 @@
+{# templates/partials/stats_templates/stat_projects_progress_panel.html #}
+<div class="panel stat-panel stat-goals-layout" role="region" aria-label="{{ title }}">
+  <h2 class="stat-goals-title">{{ title }}</h2>
+
+  <div class="stat-goals-chart">
+    <canvas id="chart-goals-{{ data.uid }}"></canvas>
+  </div>
+
+  <div class="stat-goals-table-wrapper">
+    <table class="stats-table">
+      <thead><tr><th>Proyecto</th><th>Progreso medio (%)</th><th>#Objetivos</th></tr></thead>
+      <tbody>
+      {% for p in data.projects %}
+        <tr>
+          <td>{{ p.titulo or p.project_id }}</td>
+          <td>{{ p.progreso_medio }}</td>
+          <td>{{ p.num_goals }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+(function(){
+  try {
+    const uid = "{{ data.uid }}";
+    const pal = {{ data.palette | tojson }};
+    const all = {{ data.projects | tojson }};
+    const top10 = all.slice(0, 10);
+    const labels = top10.map(p => p.titulo || p.project_id);
+    const values = top10.map(p => p.progreso_medio);
+    const ctx = document.getElementById("chart-goals-" + uid);
+    if (!ctx) return;
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{ label: 'Progreso medio (%)', data: values, borderWidth: 3, borderColor: pal.accent, backgroundColor: 'rgba(108,243,255,0.18)' }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          x: { min: 0, max: 100 }
+        },
+        plugins: { legend: { display: false }, tooltip: { enabled: true } }
+      }
+    });
+  } catch(e) { console.error(e); }
+})();
+</script>

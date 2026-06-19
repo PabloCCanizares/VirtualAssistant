@@ -1,0 +1,42 @@
+{
+  "_comment": "Fixture sintetico que poblar las colecciones mongomock antes de ejecutar el runner. Los _id se especifican como strings hex para luego convertirlos a ObjectId al insertar.",
+  "usuario_id": "66ffbbbbbbbbbbbbbbbb0100",
+  "Projects": [
+    {"_id": "660000000000000000000001", "titulo": "TFG", "descripcion": "Trabajo de fin de grado", "estado": "Activo", "prioridad": "Alta", "categorias": []},
+    {"_id": "660000000000000000000002", "titulo": "vacaciones", "descripcion": "Planificacion de vacaciones de verano", "estado": "Activo", "prioridad": "Media", "categorias": []},
+    {"_id": "660000000000000000000003", "titulo": "tesis", "descripcion": "Tesis doctoral", "estado": "Pausado", "prioridad": "Alta", "categorias": []}
+  ],
+  "Goals": [
+    {"_id": "661000000000000000000001", "titulo": "redactar memoria", "project_id": "660000000000000000000001", "progreso": 60, "estado": "En progreso"},
+    {"_id": "661000000000000000000002", "titulo": "preparar defensa", "project_id": "660000000000000000000001", "progreso": 10, "estado": "Pendiente"},
+    {"_id": "661000000000000000000003", "titulo": "reservar vuelos", "project_id": "660000000000000000000002", "progreso": 0, "estado": "Pendiente"},
+    {"_id": "661000000000000000000004", "titulo": "hacer maletas", "project_id": "660000000000000000000002", "progreso": 0, "estado": "Pendiente"},
+    {"_id": "661000000000000000000005", "titulo": "redactar capitulo 5", "project_id": "660000000000000000000003", "progreso": 30, "estado": "En progreso"}
+  ],
+  "Tasks": [
+    {"_id": "662000000000000000000001", "contenido": "redactar introduccion", "objetivo_id": "661000000000000000000001", "estado": "completada", "prioridad": "alta"},
+    {"_id": "662000000000000000000002", "contenido": "redactar metodologia", "objetivo_id": "661000000000000000000001", "estado": "completada", "prioridad": "alta"},
+    {"_id": "662000000000000000000003", "contenido": "redactar experimentacion", "objetivo_id": "661000000000000000000001", "estado": "en progreso", "prioridad": "alta"},
+    {"_id": "662000000000000000000004", "contenido": "redactar conclusiones", "objetivo_id": "661000000000000000000001", "estado": "pendiente", "prioridad": "media"},
+    {"_id": "662000000000000000000005", "contenido": "ensayar defensa", "objetivo_id": "661000000000000000000002", "estado": "pendiente", "prioridad": "alta"},
+    {"_id": "662000000000000000000006", "contenido": "preparar slides", "objetivo_id": "661000000000000000000002", "estado": "pendiente", "prioridad": "media"},
+    {"_id": "662000000000000000000007", "contenido": "buscar vuelos baratos", "objetivo_id": "661000000000000000000003", "estado": "pendiente", "prioridad": "media"},
+    {"_id": "662000000000000000000008", "contenido": "revisar bibliografia", "objetivo_id": "661000000000000000000001", "estado": "pendiente", "prioridad": "baja"},
+    {"_id": "662000000000000000000009", "contenido": "comprar pan", "objetivo_id": null, "estado": "pendiente", "prioridad": "baja"}
+  ],
+  "Events": [
+    {"_id": "663000000000000000000001", "titulo": "reunion de seguimiento", "fecha_inicio": "2026-05-20T10:00:00Z", "fecha_fin": "2026-05-20T11:00:00Z", "tipo_evento": "reunion"},
+    {"_id": "663000000000000000000002", "titulo": "defensa TFG", "fecha_inicio": "2026-06-15T09:00:00Z", "fecha_fin": "2026-06-15T10:30:00Z", "tipo_evento": "academico"}
+  ],
+  "ProjectDocuments": [
+    {"_id": "664000000000000000000001", "project_id": "660000000000000000000001", "original_name": "plan_de_trabajo.pdf", "content_type": "application/pdf", "size": 12345, "remote_sync_pending": false},
+    {"_id": "664000000000000000000002", "project_id": "660000000000000000000001", "original_name": "memoria.docx", "content_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "size": 98765, "remote_sync_pending": false},
+    {"_id": "664000000000000000000003", "project_id": "660000000000000000000001", "original_name": "riesgos.docx", "content_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "size": 5432, "remote_sync_pending": false},
+    {"_id": "664000000000000000000004", "project_id": "660000000000000000000003", "original_name": "introduccion.pdf", "content_type": "application/pdf", "size": 23456, "remote_sync_pending": false}
+  ],
+  "Categories": [
+    {"_id": "665000000000000000000001", "name": "academico"},
+    {"_id": "665000000000000000000002", "name": "personal"},
+    {"_id": "665000000000000000000003", "name": "viajes"}
+  ]
+}

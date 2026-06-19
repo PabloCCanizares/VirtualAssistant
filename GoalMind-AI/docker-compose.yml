@@ -1,0 +1,27 @@
+services:
+  app:
+    build: .
+    ports:
+      - "5000:5000"
+    env_file: .env
+    environment:
+      # Sobreescribe la URI local para apuntar al servicio MongoDB del compose
+      - MONGO_LOCAL_URI=mongodb://mongodb:27017
+    volumes:
+      - ./.env:/app/.env
+      - uploads:/app/uploads
+    depends_on:
+      - mongodb
+    restart: unless-stopped
+
+  mongodb:
+    image: mongo:7
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    restart: unless-stopped
+
+volumes:
+  mongo_data:
+  uploads:

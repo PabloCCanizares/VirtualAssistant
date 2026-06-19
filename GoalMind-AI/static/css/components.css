@@ -1,0 +1,123 @@
+/* ============================================================
+   COMPONENTS.CSS - Componentes visuales compartidos
+   Unifica el estilo de cards, forms e inputs en toda la app
+   ============================================================ */
+
+/* ===== ESTILO VISUAL UNIFICADO DE TARJETAS ===== */
+.dashboard-card,
+.side-panel-card,
+.panel-section,
+.grid-card,
+.item-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  box-shadow: var(--card-shadow);
+}
+
+/* ===== INPUTS, SELECTS Y TEXTAREAS COMPARTIDOS ===== */
+.dashboard-form-input,
+.dashboard-form-select,
+.dashboard-form-textarea,
+.panel-form-input,
+.panel-form-select,
+.panel-form-textarea {
+  width: 100%;
+  padding: 12px 14px;
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  border-radius: 10px;
+  color: var(--text);
+  font-size: 14px;
+  font-family: inherit;
+  transition: all 0.25s ease;
+}
+
+.dashboard-form-input:focus,
+.dashboard-form-select:focus,
+.dashboard-form-textarea:focus,
+.panel-form-input:focus,
+.panel-form-select:focus,
+.panel-form-textarea:focus {
+  outline: none;
+  border-color: var(--input-focus);
+  box-shadow: 0 0 0 3px rgba(108,243,255,.12);
+}
+
+.dashboard-form-input::placeholder,
+.dashboard-form-textarea::placeholder,
+.panel-form-input::placeholder,
+.panel-form-textarea::placeholder {
+  color: rgba(159,176,215,.45);
+}
+
+.dashboard-form-textarea,
+.panel-form-textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+/* ===== LABELS COMPARTIDOS ===== */
+.dashboard-form-label,
+.panel-form-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ===== FORM GROUPS ===== */
+.dashboard-form-group,
+.panel-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+/* ===== FORM ROWS COMPARTIDOS ===== */
+.dashboard-form-row,
+.panel-form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+@media (max-width: 480px) {
+  .dashboard-form-row,
+  .panel-form-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ===== BOTONES DE SUBMIT COMPARTIDOS ===== */
+.dashboard-form-submit,
+.panel-form-submit {
+  width: 100%;
+  margin-top: 8px;
+  padding: 13px 20px;
+  background: var(--btn-primary);
+  border: none;
+  border-radius: 12px;
+  color: #0a1628;
+  font-size: 14px;
+  font-weight: 800;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.dashboard-form-submit:hover,
+.panel-form-submit:hover {
+  filter: brightness(1.1);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(108,243,255,.25);
+}
+
+.dashboard-form-submit:active,
+.panel-form-submit:active {
+  transform: translateY(0);
+}
