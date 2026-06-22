@@ -9,13 +9,13 @@ import json
 import logging
 import unicodedata
 
+from ai.services.doc_parser import extract_text
+from ai.state import AppState
 from database.gridfs_storage import (
     download_file_from_local_storage,
     download_file_from_remote_storage,
 )
 from model.project_document_model import ProjectDocumentModel
-from ai.services.doc_parser import extract_text
-from ai.state import AppState
 
 logger = logging.getLogger(__name__)
 

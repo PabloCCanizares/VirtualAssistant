@@ -1,4 +1,4 @@
-﻿import logging
+import logging
 
 from langchain_core.messages import SystemMessage
 
@@ -16,10 +16,8 @@ def weekly_summary_node(state: AppState, llm) -> AppState:
     ]
     messages.extend(state.get("messages", []))
     try:
-        draft = invoke_with_retry(llm, messages)
+        draft = invoke_with_retry(llm, messages, retries=1)
     except LLMInvokeError:
         logger.exception("weekly_summary_node: error invocando LLM")
         draft = "No pude generar el resumen semanal en este momento."
     return {"draft_response": draft}
-
-

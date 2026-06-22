@@ -8,7 +8,6 @@ import pytest
 
 from ai.services import session_mutations_state as sms
 
-
 pytestmark = pytest.mark.usefixtures("reset_session_mutations")
 
 

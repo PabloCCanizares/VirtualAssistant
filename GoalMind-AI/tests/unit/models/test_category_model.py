@@ -80,7 +80,7 @@ class TestUpdate:
         assert out["name"] == "renombrada"
 
     def test_update_rejects_duplicate_name(self, mongo_mock):
-        c1 = _insert_category(mongo_mock, "a")
+        _insert_category(mongo_mock, "a")
         c2 = _insert_category(mongo_mock, "b")
         assert CategoryModel.update_category(c2["_id"], "a") is None
 

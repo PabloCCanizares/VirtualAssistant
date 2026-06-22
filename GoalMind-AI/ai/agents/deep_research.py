@@ -7,7 +7,6 @@ from ai.deep_research import run_deep_research
 from ai.services.deep_search_service import DeepSearchError, deep_search
 from ai.state import AppState
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -44,7 +43,7 @@ def deep_research_node(state: AppState, llm) -> AppState:
     except DeepSearchError as exc:
         logger.warning("deep_research_node: deep search no disponible: %s", exc)
         return {"deep_search_error": str(exc), "deep_search_results": [], "deep_research_sources": []}
-    except Exception as exc:
+    except Exception:
         logger.exception("deep_research_node: error inesperado en búsqueda profunda")
         return {
             "deep_search_error": "No se pudo completar la búsqueda profunda.",

@@ -2,41 +2,93 @@
 ### !!!!!!!!! Comprobar la lista de IP en MongoDB Atlas si hay problemas de conexión !!!!!!!!! ###
 
 # Utilidades para manejo de rutas y archivos
-from pathlib import Path
-
-# Permite la conexion a la base de datos MongoDB via Flask-PyMongo (Local y Remota).
-from flask_pymongo import PyMongo
-from pymongo import MongoClient
+import hashlib
 import logging
+
+# Módulo estándar de python para variables de entorno y hashing
+import os
 
 # Módulo estándar de python para comprobar conexion a internet
 import socket
-# Módulo estándar de python para manejo de JSON
-import json
-# Módulo estándar de python para variables de entorno y hashing
-import os
-import hashlib
+from datetime import datetime
+from pathlib import Path
+from urllib.parse import urlparse
+
 # Certificados raíz (para evitar problemas TLS/SSL con Atlas en macOS, etc.) [si da error ejecutar en comandos: pip install certifi]
 import certifi
-from datetime import datetime
 from bson import ObjectId
 
+# Permite la conexion a la base de datos MongoDB via Flask-PyMongo (Local y Remota).
+from flask import current_app
+from flask_pymongo import PyMongo
+from pymongo import MongoClient, ReplaceOne
+
+try:
+    from dotenv import set_key as _dotenv_set_key
+except ImportError:
+    _dotenv_set_key = None  # type: ignore[assignment]
+
 ############################### Configuracion de la base de datos MongoDB #############################
-# Ruta al archivo JSON que contiene las credenciales de la base de datos remota (fallback)
-CONFIG_PATH = Path(__file__).resolve().parent / "mongo_user.json"
+ENV_PATH = Path(__file__).resolve().parents[1] / ".env"
 
 # Objetos de conexión
 mongo_local = PyMongo()
 mongo_remote = None
 
-# Nombres dinámicos de las bases de datos (se configuran en init_app)
-_local_db_name = "VirtualAssistantDB"
-_remote_db_name = "VirtualAssistantDB"
+# Nombres dinámicos de las bases de datos (se configuran en init_app desde .env)
+_local_db_name = ""
+_remote_db_name = ""
 
 # Lista de colecciones para sincronización
 collections = ["Tasks", "Goals", "Projects", "ProjectDocuments", "Events"]
 _configured_remote_uri = ""
 logger = logging.getLogger(__name__)
+
+
+_SYNC_TIMESTAMP_FIELDS = (
+    "updated_at",
+    "uploaded_at",
+    "created_at",
+    "fecha_creacion",
+    "fecha_actualizacion",
+    "fecha_modificacion",
+    "fecha_inicio",
+)
+
+
+def extract_username_from_uri(uri: str) -> str:
+    """Extrae el username de una URI MongoDB (p.ej. 'dani' de 'mongodb+srv://dani:pass@host')."""
+    if not uri:
+        return ""
+    try:
+        return urlparse(uri).username or ""
+    except Exception:
+        return ""
+
+
+def _persist_user_nickname(uri: str) -> None:
+    """Deriva APP_USER_NICKNAME del username de la URI y lo persiste (best-effort)."""
+    username = extract_username_from_uri(uri)
+    if not username or os.getenv("APP_USER_NICKNAME") == username:
+        return
+    os.environ["APP_USER_NICKNAME"] = username
+    if _dotenv_set_key is not None:
+        try:
+            _dotenv_set_key(str(ENV_PATH), "APP_USER_NICKNAME", username, quote_mode="never")
+        except Exception:
+            pass
+
+
+def remote_uid_filter(usuario_id=None) -> dict:
+    """Filtro remoto por usuario_id aceptando string u ObjectId."""
+    uid = usuario_id or get_app_user_id()
+    conditions = [{"usuario_id": uid}]
+    try:
+        if ObjectId.is_valid(str(uid)):
+            conditions.append({"usuario_id": ObjectId(str(uid))})
+    except Exception:
+        pass
+    return {"$or": conditions} if len(conditions) > 1 else conditions[0]
 
 
 def generate_user_id_from_nickname(nickname: str) -> str:
@@ -48,9 +100,16 @@ def generate_user_id_from_nickname(nickname: str) -> str:
 def get_app_user_id() -> str:
     """Devuelve el user ID activo: generado desde nickname o DEFAULT_USER_ID."""
     nickname = (os.getenv("APP_USER_NICKNAME") or "").strip()
-    if nickname:
-        return generate_user_id_from_nickname(nickname)
-    return os.getenv("DEFAULT_USER_ID", "66ffbbbbbbbbbbbbbbbb0100")
+    if not nickname or nickname.lower() == "shared_user":
+        return "66ffbbbbbbbbbbbbbbbb0100"
+    return generate_user_id_from_nickname(nickname)
+
+
+def _create_mongo_client(uri: str) -> MongoClient:
+    """Crea y valida un cliente MongoClient con TLS y timeout."""
+    client = MongoClient(uri, tlsCAFile=certifi.where(), serverSelectionTimeoutMS=5000)
+    client.admin.command("ping")
+    return client
 
 
 def internet_available():
@@ -64,28 +123,15 @@ def internet_available():
 
 def init_app(app):
     """Inicializa las conexiones local y remota (Atlas)."""
-    global mongo_remote, _local_db_name, _remote_db_name, collections, _configured_remote_uri
+    global mongo_remote, _local_db_name, _remote_db_name, _configured_remote_uri
 
-    # ------------- LEER CONFIGURACIÓN (env vars > mongo_user.json > defaults) -------------
+    # ------------- LEER CONFIGURACIÓN -------------
     local_uri = os.getenv("MONGO_LOCAL_URI", "mongodb://127.0.0.1:27017")
     _local_db_name = os.getenv("MONGO_LOCAL_DB", "VirtualAssistantDB")
     remote_uri = (os.getenv("MONGO_REMOTE_URI") or "").strip()
     _remote_db_name = os.getenv("MONGO_REMOTE_DB", "VirtualAssistantDB")
-
-    # Fallback: si no hay MONGO_REMOTE_URI, intentar leer de mongo_user.json
-    if not remote_uri:
-        try:
-            with CONFIG_PATH.open("r", encoding="utf-8") as f:
-                file = json.load(f)
-            username = file["username"]
-            pswd = file["pswd"]
-            remote_uri = f"mongodb+srv://{username}:{pswd}@database.3vr51dn.mongodb.net"
-            # Actualizar colecciones desde el archivo si existen
-            if "collections" in file:
-                collections = file["collections"]
-        except Exception:
-            remote_uri = ""
     _configured_remote_uri = remote_uri
+    _persist_user_nickname(remote_uri)
 
     # ------------- CONEXIÓN LOCAL -------------
     app.config["MONGO_URI"] = f"{local_uri}/{_local_db_name}"
@@ -99,18 +145,10 @@ def init_app(app):
 
     # ------------- CONEXIÓN REMOTA (ATLAS) -------------
     if remote_uri and internet_available():
-        print("Internet disponible → probando conexión a MongoDB Atlas...")
+        print("Internet disponible - probando conexion a MongoDB Atlas...")
 
         try:
-            # Creamos el cliente con timeout y certificados de certifi
-            client = MongoClient(
-                remote_uri,
-                tlsCAFile=certifi.where(),
-                serverSelectionTimeoutMS=5000,
-            )
-            # Forzamos un ping para comprobar que la conexión es válida
-            client.admin.command("ping")
-
+            client = _create_mongo_client(remote_uri)
             mongo_remote = client
             app.mongo_remote = client
             print("Conectado a MongoDB Atlas")
@@ -147,20 +185,74 @@ def ensure_remote_connection(app=None):
         return False
 
     try:
-        client = MongoClient(
-            remote_uri,
-            tlsCAFile=certifi.where(),
-            serverSelectionTimeoutMS=5000,
-        )
-        client.admin.command("ping")
-        mongo_remote = client
+        mongo_remote = _create_mongo_client(remote_uri)
         if app is not None:
-            app.mongo_remote = client
+            app.mongo_remote = mongo_remote
         logger.info("Reconexión a MongoDB Atlas completada.")
         return True
     except Exception as exc:
         logger.warning("No se pudo reconectar a MongoDB Atlas: %s", exc)
         return False
+
+
+def reconnect_databases(app=None):
+    """Reinicializa conexiones MongoDB con los valores actuales de os.environ."""
+    global mongo_remote, _local_db_name, _remote_db_name, _configured_remote_uri
+
+    if app is None:
+        app = current_app
+
+    errors = []
+    local_ok = False
+    remote_ok = False
+
+    # --- Local ---
+    new_local_uri = os.getenv("MONGO_LOCAL_URI", "mongodb://127.0.0.1:27017")
+    new_local_db = os.getenv("MONGO_LOCAL_DB", "VirtualAssistantDB")
+    try:
+        old_client = mongo_local.cx
+        new_client = MongoClient(f"{new_local_uri}/{new_local_db}")
+        new_client.admin.command("ping")
+        old_client.close()
+        mongo_local.cx = new_client
+        _local_db_name = new_local_db
+        app.config["MONGO_URI"] = f"{new_local_uri}/{new_local_db}"
+        app.mongo_local = mongo_local
+        local_ok = True
+        logger.info("Reconexion local completada: %s/%s", new_local_uri, new_local_db)
+    except Exception as exc:
+        errors.append(f"MONGO_LOCAL_URI: {exc}")
+        logger.warning("Fallo reconexion local: %s", exc)
+
+    # --- Remoto ---
+    new_remote_uri = (os.getenv("MONGO_REMOTE_URI") or "").strip()
+    new_remote_db = os.getenv("MONGO_REMOTE_DB", "VirtualAssistantDB")
+    if new_remote_uri:
+        try:
+            if mongo_remote is not None:
+                mongo_remote.close()
+            client = _create_mongo_client(new_remote_uri)
+            mongo_remote = client
+            _remote_db_name = new_remote_db
+            _configured_remote_uri = new_remote_uri
+            app.mongo_remote = mongo_remote
+            remote_ok = True
+            logger.info("Reconexion remota completada: %s", new_remote_db)
+            _persist_user_nickname(new_remote_uri)
+        except Exception as exc:
+            mongo_remote = None
+            app.mongo_remote = None
+            errors.append(f"MONGO_REMOTE_URI: {exc}")
+            logger.warning("Fallo reconexion remota: %s", exc)
+    else:
+        if mongo_remote is not None:
+            mongo_remote.close()
+        mongo_remote = None
+        _configured_remote_uri = ""
+        app.mongo_remote = None
+        remote_ok = True
+
+    return {"local": local_ok, "remote": remote_ok, "errors": errors}
 
 
 def get_collection(name):
@@ -170,8 +262,20 @@ def get_collection(name):
     return db_local[name], (db_remote[name] if db_remote is not None else None)
 
 
+def get_local_database():
+    """Devuelve la base de datos local activa."""
+    return mongo_local.cx[_local_db_name]
+
+
+def get_remote_database(app=None):
+    """Devuelve la base de datos remota si está disponible."""
+    if not ensure_remote_connection(app):
+        return None
+    return mongo_remote[_remote_db_name] if mongo_remote else None
+
+
 # ------------------------------------------------------
-# 🧩 NUEVAS FUNCIONES DE SINCRONIZACIÓN UNITARIA
+# FUNCIONES DE SINCRONIZACIÓN UNITARIA
 # ------------------------------------------------------
 
 def sync_from_remote(collection_name, obj):
@@ -182,9 +286,10 @@ def sync_from_remote(collection_name, obj):
         return
 
     filtro = {"_id": obj["_id"]} if "_id" in obj else obj
+    remote_filtro = {"$and": [filtro, remote_uid_filter()]}
 
     if not local_col.find_one(filtro):
-        remoto = remote_col.find_one(filtro)
+        remoto = remote_col.find_one(remote_filtro)
         if remoto:
             local_col.insert_one(remoto)
 
@@ -206,6 +311,84 @@ def sync_to_remote(collection_name, obj):
     return True
 
 
+def _parse_datetime(value):
+    """Parsea un valor a datetime (si es posible)."""
+    if isinstance(value, datetime):
+        return value
+    if value is None:
+        return None
+    try:
+        return datetime.fromisoformat(str(value).replace("Z", "").strip())
+    except Exception:
+        return None
+
+
+def _doc_timestamp(doc):
+    """Obtiene la mejor marca temporal disponible para resolver conflictos."""
+    if not isinstance(doc, dict):
+        return None
+    for field in _SYNC_TIMESTAMP_FIELDS:
+        parsed = _parse_datetime(doc.get(field))
+        if parsed is not None:
+            return parsed
+    return None
+
+
+def _remote_should_replace_local(local_doc, remote_doc):
+    """
+    Regla de reconciliación:
+    - Si remoto es más nuevo por timestamp -> remoto gana.
+    - Si no hay timestamps pero el contenido difiere -> remoto gana
+      (garantiza que remoto -> local no se quede bloqueado).
+    """
+    if local_doc is None:
+        return True
+
+    local_ts = _doc_timestamp(local_doc)
+    remote_ts = _doc_timestamp(remote_doc)
+    if local_ts is not None and remote_ts is not None:
+        return remote_ts > local_ts
+    if remote_ts is not None and local_ts is None:
+        return True
+    if local_ts is not None and remote_ts is None:
+        return False
+    return local_doc != remote_doc
+
+
+def _id_variants(raw_id):
+    """Genera variantes compatibles de un _id (string/ObjectId) para búsquedas tolerantes."""
+    variants = []
+    seen = set()
+
+    def _push(candidate):
+        if candidate is None:
+            return
+        key = (type(candidate).__name__, str(candidate))
+        if key in seen:
+            return
+        seen.add(key)
+        variants.append(candidate)
+
+    _push(raw_id)
+    _push(str(raw_id) if raw_id is not None else None)
+    try:
+        if raw_id is not None and ObjectId.is_valid(str(raw_id)):
+            normalized = ObjectId(str(raw_id))
+            _push(normalized)
+            _push(str(normalized))
+    except Exception:
+        pass
+    return variants
+
+
+def _find_by_id_variants(collection, raw_id):
+    for candidate in _id_variants(raw_id):
+        found = collection.find_one({"_id": candidate})
+        if found:
+            return found
+    return None
+
+
 def sync_all_collections():
     """Sincroniza todas las colecciones desde la base remota hacia local."""
     from flask import current_app
@@ -217,35 +400,55 @@ def sync_all_collections():
     for col in collections:
         pending_ids = get_pending_deletions(col)
         local_col, remote_col = get_collection(col)
-        if remote_col is not None:
-            if pending_ids:
-                object_ids = []
-                string_ids = []
-                for pid in pending_ids:
-                    try:
-                        if ObjectId.is_valid(str(pid)):
-                            object_ids.append(ObjectId(str(pid)))
-                        else:
-                            string_ids.append(str(pid))
-                    except Exception:
+        if remote_col is None:
+            continue
+
+        if pending_ids:
+            object_ids = []
+            string_ids = []
+            for pid in pending_ids:
+                try:
+                    if ObjectId.is_valid(str(pid)):
+                        object_ids.append(ObjectId(str(pid)))
+                    else:
                         string_ids.append(str(pid))
+                except Exception:
+                    string_ids.append(str(pid))
 
-                delete_query = {"$or": []}
-                if object_ids:
-                    delete_query["$or"].append({"_id": {"$in": object_ids}})
-                if string_ids:
-                    delete_query["$or"].append({"_id": {"$in": string_ids}})
-                if delete_query["$or"]:
-                    local_col.delete_many(delete_query)
+            delete_query = {"$or": []}
+            if object_ids:
+                delete_query["$or"].append({"_id": {"$in": object_ids}})
+            if string_ids:
+                delete_query["$or"].append({"_id": {"$in": string_ids}})
+            if delete_query["$or"]:
+                local_col.delete_many(delete_query)
 
-            remote_docs = remote_col.find()
-            for doc in remote_docs:
-                if str(doc.get("_id")) in pending_ids:
-                    continue
-                # Descargar solo si no existe en local
-                if not local_col.find_one({"_id": doc["_id"]}):
-                    local_col.insert_one(doc)
-                    pulled_docs += 1
+        for remote_doc in remote_col.find(remote_uid_filter()):
+            remote_id = remote_doc.get("_id")
+            if remote_id is None:
+                continue
+            if str(remote_id) in pending_ids:
+                continue
+
+            local_doc = _find_by_id_variants(local_col, remote_id)
+            if local_doc is None:
+                local_col.insert_one(remote_doc)
+                pulled_docs += 1
+                continue
+
+            if _remote_should_replace_local(local_doc, remote_doc):
+                # Preservar local_upload_id de GridFS local (no existe en remoto).
+                if col == "ProjectDocuments" and local_doc.get("local_upload_id"):
+                    remote_doc["local_upload_id"] = local_doc["local_upload_id"]
+
+                local_id = local_doc.get("_id")
+                if local_id == remote_id:
+                    local_col.replace_one({"_id": remote_id}, remote_doc, upsert=True)
+                else:
+                    # Corrige inconsistencias históricas de tipos de _id (string/ObjectId).
+                    local_col.delete_one({"_id": local_id})
+                    local_col.insert_one(remote_doc)
+                pulled_docs += 1
     return pulled_docs
 
 
@@ -263,11 +466,37 @@ def sync_local_to_remote():
 
         if remote_col is None:
             continue
-        for local_doc in local_col.find():
-            if str(local_doc.get("_id")) in pending_ids:
+        remote_docs = {
+            str(doc.get("_id")): doc
+            for doc in remote_col.find(remote_uid_filter(), None)
+            if doc.get("_id") is not None
+        }
+        docs = []
+        for doc in local_col.find():
+            local_id = doc.get("_id")
+            local_id_key = str(local_id)
+            if local_id_key in pending_ids:
                 continue
-            if sync_to_remote(col, local_doc):
-                pushed_docs += 1
+            if col == "ProjectDocuments":
+                if doc.get("remote_sync_pending"):
+                    continue
+                doc = dict(doc)
+                doc.pop("local_upload_id", None)
+            remote_doc = remote_docs.get(local_id_key)
+            if remote_doc is not None and _remote_should_replace_local(doc, remote_doc):
+                # Evita sobrescribir en remoto documentos más recientes.
+                continue
+            if remote_doc is not None and doc.get("_id") != remote_doc.get("_id"):
+                doc = dict(doc)
+                doc["_id"] = remote_doc.get("_id")
+            docs.append(doc)
+        ops = [
+            ReplaceOne({"_id": doc["_id"]}, doc, upsert=True)
+            for doc in docs
+        ]
+        if ops:
+            remote_col.bulk_write(ops)
+            pushed_docs += len(ops)
     return pushed_docs
 
 
@@ -357,31 +586,21 @@ def flush_deletion_queue():
         seen = set()
         unique_candidates = []
         for cid in candidates:
-            key = str(cid)
+            key = (type(cid), str(cid))
             if key in seen:
                 continue
             seen.add(key)
             unique_candidates.append(cid)
 
         delete_query = {"$or": [{"_id": cid} for cid in unique_candidates]}
-        deleted = 0
-        delete_error = False
         try:
-            deleted = remote_col.delete_many(delete_query).deleted_count
+            remote_col.delete_many(delete_query)
         except Exception:
-            deleted = 0
-            delete_error = True
-
-        if deleted > 0:
-            local_col.delete_one({"_id": item["_id"]})
-            removed += 1
             continue
 
-        # Si hubo error o no se pudo confirmar el borrado, mantener en cola
-        if delete_error:
-            continue
-
-        # Si no se eliminó, mantener en cola para reintentar más tarde
-        continue
+        # Una operacion remota sin error confirma el estado deseado incluso
+        # cuando el documento ya no existia (deleted_count == 0).
+        local_col.delete_one({"_id": item["_id"]})
+        removed += 1
 
     return removed

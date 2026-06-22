@@ -14,7 +14,6 @@ from ai.deep_research.types import (
     ResearchIteration,
 )
 
-
 logger = logging.getLogger(__name__)
 
 

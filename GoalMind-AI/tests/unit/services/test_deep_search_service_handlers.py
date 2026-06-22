@@ -12,8 +12,6 @@ from ai.config import DeepSearchConfig
 from ai.services import deep_search_service
 from ai.services.deep_search_service import (
     DeepSearchError,
-    _http_get_json,
-    _http_post_json,
     _search_brave,
     _search_serper,
     _search_tavily,

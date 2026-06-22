@@ -6,7 +6,6 @@ import pytest
 
 from ai.services import action_state
 
-
 pytestmark = pytest.mark.usefixtures("reset_pending_actions")
 
 

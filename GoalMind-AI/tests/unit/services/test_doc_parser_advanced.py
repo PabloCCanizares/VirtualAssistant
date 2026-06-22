@@ -8,8 +8,6 @@ from __future__ import annotations
 
 from io import BytesIO
 
-import pytest
-
 from ai.services.doc_parser import extract_text
 
 

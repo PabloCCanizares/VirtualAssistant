@@ -1,18 +1,13 @@
-from database.mongo_conn import get_collection, sync_to_remote, get_app_user_id
-from bson import ObjectId
 from datetime import datetime
 
+from bson import ObjectId
 
-def _uid_filter(usuario_id):
-    """Construye filtro que matchea tanto string como ObjectId."""
-    uid = usuario_id or get_app_user_id()
-    conditions = [{"usuario_id": uid}]
-    try:
-        if ObjectId.is_valid(str(uid)):
-            conditions.append({"usuario_id": ObjectId(str(uid))})
-    except Exception:
-        pass
-    return {"$or": conditions} if len(conditions) > 1 else conditions[0]
+from database.mongo_conn import get_app_user_id, get_collection, remote_uid_filter, sync_to_remote
+
+
+def _uid_filter(_=None):
+    """Local: sin filtro por usuario (BD de un solo usuario)."""
+    return {}
 
 
 class GoalModel:
@@ -30,9 +25,6 @@ class GoalModel:
         return list(cursor)
     
 
-    # -------------------------------------------------------------
-    #  OBTENER TODAS
-    # -------------------------------------------------------------
     @staticmethod
     def get_all_goals(usuario_id=None):
         """
@@ -41,9 +33,7 @@ class GoalModel:
         local_col, _ = get_collection(GoalModel.COLLECTION)
         return list(local_col.find(_uid_filter(usuario_id)).sort("created_at", -1))
 
-    # -------------------------------------------------------------
-    #  OBTENER UNA POR ID
-    # -------------------------------------------------------------
+
     @staticmethod
     def get_goal_by_id(goal_id, usuario_id=None):
         """
@@ -95,7 +85,10 @@ class GoalModel:
             goal_data["event_ids"] = []
 
         if goal_data.get("project_id") and not isinstance(goal_data["project_id"], ObjectId):
-            goal_data["project_id"] = ObjectId(str(goal_data["project_id"]))
+            raw_pid = str(goal_data["project_id"])
+            if raw_pid.startswith("$ref:"):
+                raw_pid = raw_pid[len("$ref:"):]
+            goal_data["project_id"] = ObjectId(raw_pid)
 
         if goal_data.get("usuario_id") and not isinstance(goal_data["usuario_id"], ObjectId):
             try:
@@ -152,7 +145,7 @@ class GoalModel:
 
         if "progreso" in norm and norm["progreso"] is not None:
             try:
-                norm["progreso"] = int(norm["progreso"])
+                norm["progreso"] = float(norm["progreso"])
             except Exception:
                 pass
 
@@ -165,7 +158,7 @@ class GoalModel:
 
         sync_to_remote(GoalModel.COLLECTION, updated_goal)
 
-        print(f"♻️ Objetivo {_id} actualizado y sincronizado.")
+        print(f"Objetivo {_id} actualizado y sincronizado.")
         return updated_goal
     
 
@@ -173,13 +166,7 @@ class GoalModel:
     def find_by_category(category_id, usuario_id=None):
         """
         Devuelve todos los objetivos que contengan una categoría específica.
-        
-        Args:
-            category_id: ObjectId o string del ID de la categoría
-            usuario_id: ID del usuario para filtrar
-            
-        Returns:
-            list: Lista de objetivos que pertenecen a la categoría especificada
+
         """
         local_col, _ = get_collection(GoalModel.COLLECTION)
         _id = ObjectId(category_id) if not isinstance(category_id, ObjectId) else category_id
@@ -190,13 +177,7 @@ class GoalModel:
     def search_by_categories(category_ids: list, usuario_id=None):
         """
         Busca objetivos que contengan al menos una de las categorías especificadas.
-        
-        Args:
-            category_ids (list): Lista de IDs de categorías
-            usuario_id: ID del usuario para filtrar
-            
-        Returns:
-            list: Lista de objetivos que coinciden con los criterios
+
         """
         local_col, _ = get_collection(GoalModel.COLLECTION)
         
@@ -228,16 +209,13 @@ class GoalModel:
         local_col, _ = get_collection(GoalModel.COLLECTION)
         if not nombre or not nombre.strip():
             return []
-        
+
         import re
         regex = re.compile(re.escape(nombre.strip()), re.IGNORECASE)
         query = {"titulo": {"$regex": regex}, **_uid_filter(usuario_id)}
         cursor = local_col.find(query).sort("created_at", -1).limit(limit)
         return list(cursor)
 
-    # -------------------------------------------------------------
-    #  EVENT_IDS: Añadir / Eliminar evento asociado
-    # -------------------------------------------------------------
     @staticmethod
     def add_event_to_goal(goal_id, event_id, usuario_id=None):
         """
@@ -249,24 +227,25 @@ class GoalModel:
         _gid = ObjectId(goal_id) if not isinstance(goal_id, ObjectId) else goal_id
         _eid = ObjectId(event_id) if not isinstance(event_id, ObjectId) else event_id
 
-        query = {"_id": _gid, **_uid_filter(usuario_id)}
+        local_query = {"_id": _gid}
         local_col.update_one(
-            query,
+            local_query,
             {"$addToSet": {"event_ids": _eid}},
             upsert=False
         )
 
         if remote_col is not None:
+            remote_query = {"_id": _gid, **remote_uid_filter(usuario_id)}
             try:
                 remote_col.update_one(
-                    query,
+                    remote_query,
                     {"$addToSet": {"event_ids": _eid}},
                     upsert=False
                 )
             except Exception as e:
-                print(f"⚠️ Error al sincronizar add_event_to_goal en remoto: {e}")
+                print(f"Error al sincronizar add_event_to_goal en remoto: {e}")
 
-        print(f"📅 Evento {_eid} asociado a objetivo {_gid}.")
+        print(f"Evento {_eid} asociado a objetivo {_gid}.")
 
     @staticmethod
     def remove_event_from_goal(goal_id, event_id, usuario_id=None):
@@ -279,22 +258,23 @@ class GoalModel:
         _gid = ObjectId(goal_id) if not isinstance(goal_id, ObjectId) else goal_id
         _eid = ObjectId(event_id) if not isinstance(event_id, ObjectId) else event_id
 
-        query = {"_id": _gid, **_uid_filter(usuario_id)}
+        local_query = {"_id": _gid}
         local_col.update_one(
-            query,
+            local_query,
             {"$pull": {"event_ids": _eid}}
         )
 
         if remote_col is not None:
+            remote_query = {"_id": _gid, **remote_uid_filter(usuario_id)}
             try:
                 remote_col.update_one(
-                    query,
+                    remote_query,
                     {"$pull": {"event_ids": _eid}}
                 )
             except Exception as e:
-                print(f"⚠️ Error al sincronizar remove_event_from_goal en remoto: {e}")
+                print(f"Error al sincronizar remove_event_from_goal en remoto: {e}")
 
-        print(f"🗑️ Evento {_eid} desasociado de objetivo {_gid}.")
+        print(f"Evento {_eid} desasociado de objetivo {_gid}.")
 
     @staticmethod
     def delete_goal(goal_id, usuario_id=None):
@@ -319,25 +299,24 @@ class GoalModel:
         if not queries:
             return False
 
-        uid_filter = _uid_filter(usuario_id)
         deleted_local = 0
         for query in queries:
-            merged_query = {**query, **uid_filter}
-            res = local_col.delete_one(merged_query)
+            res = local_col.delete_one(query)
             deleted_local += res.deleted_count
 
         deleted_remote = 0
         if remote_col is not None:
+            remote_uid = remote_uid_filter(usuario_id)
             for query in queries:
                 try:
-                    merged_query = {**query, **uid_filter}
+                    merged_query = {**query, **remote_uid}
                     res = remote_col.delete_one(merged_query)
                     deleted_remote += res.deleted_count
                 except Exception:
                     pass
-            print("🗑️ Objetivo eliminado en local y remoto.")
+            print("Objetivo eliminado en local y remoto.")
         else:
-            print("⚠️ Objetivo eliminado solo localmente (sin conexión remota).")
+            print("Objetivo eliminado solo localmente (sin conexión remota).")
 
         return (deleted_local + deleted_remote) > 0
 
@@ -372,14 +351,12 @@ class GoalModel:
         if string_ids:
             query["$or"].append({"_id": {"$in": string_ids}})
 
-        uid_filter = _uid_filter(usuario_id)
-        merged_query = {**query, **uid_filter}
-
-        res = local_col.delete_many(merged_query)
+        res = local_col.delete_many(query)
 
         if remote_col is not None:
+            remote_query = {"$and": [query, remote_uid_filter(usuario_id)]}
             try:
-                remote_col.delete_many(merged_query)
+                remote_col.delete_many(remote_query)
             except Exception:
                 pass
 

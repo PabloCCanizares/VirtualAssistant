@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import pytest
 
-from ai.services import chat_service
 from ai.services.chat_service import _resolve_deep_search_mode, run_chat, stream_chat
 from tests._fakes import ScriptedLLM
 

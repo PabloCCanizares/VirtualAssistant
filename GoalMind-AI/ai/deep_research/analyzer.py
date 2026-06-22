@@ -4,8 +4,12 @@ import re
 from urllib.parse import urlparse
 
 from ai.deep_research.memory import DeepResearchMemory
-from ai.deep_research.types import AnalysisResult, DeepResearchRuntimeConfig, ResearchEvidence, ResearchTask
-
+from ai.deep_research.types import (
+    AnalysisResult,
+    DeepResearchRuntimeConfig,
+    ResearchEvidence,
+    ResearchTask,
+)
 
 _CREDIBLE_TLDS = {".gov", ".edu", ".org"}
 _AFFIRM_TERMS = {"eficaz", "recomendado", "beneficioso", "mejora", "aumenta", "sirve"}

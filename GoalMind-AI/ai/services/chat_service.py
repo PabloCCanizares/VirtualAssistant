@@ -1,16 +1,26 @@
 import logging
 
 from ai.config import get_settings, resolve_chat_model
-from database.mongo_conn import get_app_user_id
-from ai.graph import run_graph_chat
+from ai.graph import run_graph_chat, stream_graph_chat
 from ai.services.action_state import get_pending_action
 from ai.services.session_mutations_state import get_session_mutations_json
+from database.mongo_conn import get_app_user_id
 
 logger = logging.getLogger(__name__)
 DEFAULT_USER_ID = get_app_user_id()
+ALLOWED_DEEP_SEARCH_MODES = {"auto", "on", "off"}
 
 
-def run_chat(message, history, model_id=None):
+def _resolve_deep_search_mode(settings, requested_mode):
+    mode = (requested_mode or "").strip().lower()
+    if not mode:
+        mode = (settings.deep_search_mode_default or "auto").strip().lower()
+    if mode not in ALLOWED_DEEP_SEARCH_MODES:
+        mode = "auto"
+    return mode
+
+
+def run_chat(message, history, deep_search_mode=None, model_id=None):
     user_message = (message or "").strip()
     if not user_message:
         raise ValueError("Mensaje vacio")
@@ -19,6 +29,8 @@ def run_chat(message, history, model_id=None):
     selected_model = resolve_chat_model(settings, model_id)
 
     user_id = settings.default_user_id or DEFAULT_USER_ID
+    context_json = "{}"
+
     try:
         pending_action = get_pending_action(user_id)
     except Exception:
@@ -31,14 +43,71 @@ def run_chat(message, history, model_id=None):
         logger.exception("run_chat: error recuperando mutaciones de sesion")
         session_mutations_json = "[]"
 
+    resolved_deep_search_mode = _resolve_deep_search_mode(settings, deep_search_mode)
+    deep_search_requested = settings.deep_search_enabled and resolved_deep_search_mode == "on"
+    deep_search_error = (
+        "Deep search deshabilitado por configuración."
+        if resolved_deep_search_mode == "on" and not settings.deep_search_enabled
+        else ""
+    )
+
     return run_graph_chat(
         user_message=user_message,
         history=list(history or []),
+        context_json=context_json,
         model=selected_model.model,
         provider=selected_model.provider,
-        api_key=selected_model.api_key,
         user_id=user_id,
         pending_action_intent=pending_action,
         session_mutations_json=session_mutations_json,
-        timeout_seconds=settings.openai_timeout_seconds,
+        deep_search_mode=resolved_deep_search_mode,
+        deep_search_requested=deep_search_requested,
+        deep_search_error=deep_search_error,
+    )
+
+
+def stream_chat(message, history, deep_search_mode=None, model_id=None):
+    """Versión streaming de run_chat. Genera eventos (type, data) para SSE."""
+    user_message = (message or "").strip()
+    if not user_message:
+        raise ValueError("Mensaje vacio")
+
+    settings = get_settings()
+    selected_model = resolve_chat_model(settings, model_id)
+
+    user_id = settings.default_user_id or DEFAULT_USER_ID
+    context_json = "{}"
+
+    try:
+        pending_action = get_pending_action(user_id)
+    except Exception:
+        logger.exception("stream_chat: error recuperando accion pendiente")
+        pending_action = None
+
+    try:
+        session_mutations_json = get_session_mutations_json(user_id)
+    except Exception:
+        logger.exception("stream_chat: error recuperando mutaciones de sesion")
+        session_mutations_json = "[]"
+
+    resolved_deep_search_mode = _resolve_deep_search_mode(settings, deep_search_mode)
+    deep_search_requested = settings.deep_search_enabled and resolved_deep_search_mode == "on"
+    deep_search_error = (
+        "Deep search deshabilitado por configuración."
+        if resolved_deep_search_mode == "on" and not settings.deep_search_enabled
+        else ""
+    )
+
+    yield from stream_graph_chat(
+        user_message=user_message,
+        history=list(history or []),
+        context_json=context_json,
+        model=selected_model.model,
+        provider=selected_model.provider,
+        user_id=user_id,
+        pending_action_intent=pending_action,
+        session_mutations_json=session_mutations_json,
+        deep_search_mode=resolved_deep_search_mode,
+        deep_search_requested=deep_search_requested,
+        deep_search_error=deep_search_error,
     )

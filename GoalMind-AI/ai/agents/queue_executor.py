@@ -60,9 +60,10 @@ def queue_executor_node(state: AppState, _llm) -> AppState:
     }
 
     if not queue:
-        # Cola vacia: construir resumen final
-        base_updates["final_response"] = _build_summary(results)
+        summary = _build_summary(results)
+        base_updates["final_response"] = summary
         base_updates["action_queue"] = []
+        base_updates["action_name"] = None  # señal al router: no hay accion pendiente
         return base_updates
 
     # Sacar la siguiente accion
@@ -70,7 +71,6 @@ def queue_executor_node(state: AppState, _llm) -> AppState:
     resolved_params = _resolve_refs(current.get("action_parameters", {}), ref_map)
 
     base_updates.update({
-        "route": "action_executor",
         "action_name": current["action_name"],
         "action_parameters": resolved_params,
         "current_action_ref_id": current.get("ref_id"),

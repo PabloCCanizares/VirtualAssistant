@@ -1,18 +1,35 @@
 # controllers/project_controller.py
+import mimetypes
 from datetime import datetime
-from pathlib import Path
+from io import BytesIO
 from uuid import uuid4
 
-from flask import Blueprint, current_app, flash, make_response, redirect, render_template, request, send_file, url_for
-from werkzeug.utils import secure_filename
 from bson import ObjectId
+from flask import (
+    Blueprint,
+    current_app,
+    flash,
+    make_response,
+    redirect,
+    render_template,
+    request,
+    send_file,
+    url_for,
+)
+from werkzeug.utils import secure_filename
 
+from database.gridfs_storage import (
+    download_file_from_local_storage,
+    download_file_from_remote_storage,
+    promote_local_file_to_remote,
+    upload_stream_to_local_storage,
+)
+from database.mongo_conn import flush_deletion_queue, get_app_user_id, queue_deletion
+from model.category_model import CategoryModel
 from model.goal_model import GoalModel
 from model.project_document_model import ProjectDocumentModel
 from model.project_model import ProjectModel
 from model.task_model import TaskModel
-from model.category_model import CategoryModel
-from database.mongo_conn import queue_deletion, flush_deletion_queue, get_app_user_id
 
 project_bp = Blueprint("project_bp", __name__, url_prefix="/projects")
 DEFAULT_USER_ID = get_app_user_id()
@@ -63,9 +80,69 @@ def _serialize_document(doc):
         doc_view["project_id"] = _serialize_id(doc_view["project_id"])
     if doc_view.get("goal_id"):
         doc_view["goal_id"] = _serialize_id(doc_view["goal_id"])
-    if doc_view.get("upload_id"):
-        doc_view["upload_id"] = _serialize_id(doc_view["upload_id"])
     return doc_view
+
+
+def _format_size(size_bytes):
+    if size_bytes is None:
+        return "0 B"
+    size = float(size_bytes)
+    for unit in ["B", "KB", "MB", "GB", "TB"]:
+        if size < 1024.0:
+            return f"{size:.1f} {unit}" if unit != "B" else f"{int(size)} {unit}"
+        size /= 1024.0
+    return f"{size:.1f} PB"
+
+
+def _document_name(doc):
+    return doc.get("original_name") or doc.get("filename") or "documento"
+
+
+def _resolve_document_source(doc):
+    local_upload_id = doc.get("local_upload_id")
+    if local_upload_id:
+        local_bytes = download_file_from_local_storage(local_upload_id)
+        if local_bytes is not None:
+            return BytesIO(local_bytes), None
+
+    upload_id = doc.get("upload_id")
+    if upload_id:
+        remote_bytes = download_file_from_remote_storage(upload_id, current_app)
+        if remote_bytes is not None:
+            return BytesIO(remote_bytes), None
+
+    return None, "Archivo no encontrado ni en disco ni en remoto."
+
+
+def _stream_size(stream):
+    try:
+        current_pos = stream.tell()
+        stream.seek(0, 2)
+        size = stream.tell()
+        stream.seek(current_pos)
+        return size
+    except Exception:
+        return 0
+
+
+def _resolve_document_mimetype(doc):
+    content_type = (doc.get("content_type") or "").strip()
+    if content_type and content_type != "application/octet-stream":
+        return content_type
+
+    guessed_type, _ = mimetypes.guess_type(_document_name(doc))
+    return guessed_type or "application/octet-stream"
+
+
+def _detect_preview_mode(doc, mimetype):
+    filename = (doc.get("original_name") or doc.get("filename") or "").lower()
+    if mimetype == "application/pdf" or filename.endswith(".pdf"):
+        return "pdf"
+    if mimetype.startswith("image/"):
+        return "image"
+    if mimetype.startswith("text/") or filename.endswith((".txt", ".md", ".csv", ".json", ".log")):
+        return "text"
+    return "unsupported"
 
 
 def _parse_importance(value, default=None):
@@ -207,7 +284,6 @@ def add_project():
             "categorias": categorias,
             "estado": request.form.get("estado") or "Activo",
             "prioridad": request.form.get("prioridad") or "Media",
-            "importancia": _parse_importance(request.form.get("importancia"), default=5),
             "fecha_inicio": request.form.get("fecha_inicio"),
             "fecha_fin": request.form.get("fecha_fin"),
             "usuario_id": user_id,
@@ -362,10 +438,6 @@ def update_project(project_id):
             "fecha_inicio": request.form.get("fecha_inicio"),
             "fecha_fin": request.form.get("fecha_fin"),
         }
-        importance_value = _parse_importance(request.form.get("importancia"))
-        if importance_value is not None:
-            updates["importancia"] = importance_value
-        
         # Solo actualizar categorias si se enviaron
         if categorias_raw:
             updates["categorias"] = categorias
@@ -432,13 +504,6 @@ def delete_project(project_id):
 
     for doc in docs:
         try:
-            if not doc.get("upload_id"):
-                local_path = doc.get("local_path")
-                if local_path:
-                    try:
-                        Path(local_path).unlink(missing_ok=True)
-                    except Exception:
-                        pass
             ProjectDocumentModel.delete_document(doc["_id"], usuario_id=DEFAULT_USER_ID)
         except Exception as e:
             errors.append(f"borrado documento: {e}")
@@ -458,9 +523,9 @@ def delete_project(project_id):
         errors.append(f"sync remoto: {e}")
 
     if errors:
-        flash("🗑️ Proyecto eliminado con advertencias. Revisa logs para detalles.", "warning")
+        flash("Proyecto eliminado con advertencias. Revisa logs para detalles.", "warning")
     else:
-        flash("🗑️ Proyecto eliminado correctamente", "success")
+        flash("Proyecto eliminado correctamente", "success")
 
     return redirect(url_for("project_bp.list_projects"))
 
@@ -487,13 +552,23 @@ def upload_document(project_id):
         flash("Nombre de archivo no valido.", "warning")
         return redirect(url_for("project_bp.view_project", project_id=project_id))
 
-    upload_root = Path(current_app.config.get("UPLOAD_ROOT", "uploads"))
-    project_dir = upload_root / "projects" / str(project_id)
-    project_dir.mkdir(parents=True, exist_ok=True)
-
     unique_name = f"{datetime.utcnow().strftime('%Y%m%d%H%M%S')}_{uuid4().hex}_{safe_name}"
-    file_path = project_dir / unique_name
-    file.save(file_path)
+    file_size = _stream_size(file.stream)
+    storage_metadata = {
+        "project_id": str(project_id),
+        "goal_id": str(goal_id) if goal_id else None,
+        "usuario_id": DEFAULT_USER_ID,
+        "filename": unique_name,
+    }
+    local_upload_id = upload_stream_to_local_storage(
+        file.stream,
+        original_name=file.filename,
+        content_type=file.mimetype or "application/octet-stream",
+        metadata=storage_metadata,
+    )
+    if local_upload_id is None:
+        flash("No se pudo guardar el documento en GridFS local.", "danger")
+        return redirect(url_for("project_bp.view_project", project_id=project_id))
 
     doc_data = {
         "project_id": project_id,
@@ -501,14 +576,53 @@ def upload_document(project_id):
         "filename": unique_name,
         "original_name": file.filename,
         "content_type": file.mimetype or "application/octet-stream",
-        "size": file_path.stat().st_size,
-        "local_path": str(file_path),
+        "size": file_size,
+        "local_upload_id": local_upload_id,
+        "remote_sync_pending": True,
     }
 
+    remote_upload_id = promote_local_file_to_remote(
+        local_upload_id,
+        original_name=file.filename,
+        content_type=doc_data["content_type"],
+        metadata=storage_metadata,
+        app=current_app,
+    )
+    if remote_upload_id is not None:
+        doc_data["upload_id"] = remote_upload_id
+        doc_data["remote_sync_pending"] = False
+        ProjectDocumentModel.insert_document(doc_data, usuario_id=DEFAULT_USER_ID)
+        flash("Documento subido correctamente y sincronizado en remoto.", "success")
+        return redirect(url_for("project_bp.view_project", project_id=project_id))
+
     ProjectDocumentModel.insert_document(doc_data, usuario_id=DEFAULT_USER_ID)
-    flash("Documento subido correctamente", "success")
+    flash("Documento subido correctamente en local. Se sincronizara en remoto cuando haya conexion.", "success")
 
     return redirect(url_for("project_bp.view_project", project_id=project_id))
+
+
+# -------------------------------------------------------------
+# VER DOCUMENTO
+# -------------------------------------------------------------
+@project_bp.route("/documents/<doc_id>/view", methods=["GET"])
+def view_document(doc_id):
+    doc = ProjectDocumentModel.get_document_by_id(doc_id, usuario_id=DEFAULT_USER_ID)
+    if not doc:
+        flash("Documento no encontrado.", "warning")
+        return redirect(url_for("project_bp.list_projects"))
+
+    file_stream, error_message = _resolve_document_source(doc)
+    if error_message:
+        flash(error_message, "warning")
+        return redirect(url_for("project_bp.view_project", project_id=doc.get("project_id")))
+
+    mimetype = _resolve_document_mimetype(doc)
+    return send_file(
+        file_stream,
+        mimetype=mimetype,
+        as_attachment=_detect_preview_mode(doc, mimetype) == "unsupported",
+        download_name=_document_name(doc),
+    )
 
 
 # -------------------------------------------------------------
@@ -521,44 +635,16 @@ def download_document(doc_id):
         flash("Documento no encontrado.", "warning")
         return redirect(url_for("project_bp.list_projects"))
 
-    local_path = doc.get("local_path")
-    if not local_path:
-        flash("Documento sin ruta local.", "warning")
-        return redirect(url_for("project_bp.view_project", project_id=doc.get("project_id")))
-
-    file_path = Path(local_path)
-    if not file_path.exists():
-        flash("Archivo no encontrado en disco.", "warning")
-        return redirect(url_for("project_bp.view_project", project_id=doc.get("project_id")))
-
-    return send_file(file_path, as_attachment=True, download_name=doc.get("original_name") or file_path.name)
-
-
-# -------------------------------------------------------------
-# VER DOCUMENTO (INLINE)
-# -------------------------------------------------------------
-@project_bp.route("/documents/<doc_id>/view", methods=["GET"])
-def view_document(doc_id):
-    doc = ProjectDocumentModel.get_document_by_id(doc_id, usuario_id=DEFAULT_USER_ID)
-    if not doc:
-        flash("Documento no encontrado.", "warning")
-        return redirect(url_for("project_bp.list_projects"))
-
-    local_path = doc.get("local_path")
-    if not local_path:
-        flash("Documento sin ruta local.", "warning")
-        return redirect(url_for("project_bp.view_project", project_id=doc.get("project_id")))
-
-    file_path = Path(local_path)
-    if not file_path.exists():
-        flash("Archivo no encontrado en disco.", "warning")
+    file_stream, error_message = _resolve_document_source(doc)
+    if error_message:
+        flash(error_message, "warning")
         return redirect(url_for("project_bp.view_project", project_id=doc.get("project_id")))
 
     return send_file(
-        file_path,
-        as_attachment=False,
-        download_name=doc.get("original_name") or file_path.name,
-        mimetype=doc.get("content_type") or None,
+        file_stream,
+        mimetype=_resolve_document_mimetype(doc),
+        as_attachment=True,
+        download_name=_document_name(doc),
     )
 
 
@@ -572,15 +658,23 @@ def delete_document(doc_id):
         flash("Documento no encontrado.", "warning")
         return redirect(url_for("project_bp.list_projects"))
 
-    if not doc.get("upload_id"):
-        local_path = doc.get("local_path")
-        if local_path:
-            try:
-                Path(local_path).unlink(missing_ok=True)
-            except Exception:
-                pass
+    errors = []
 
-    ProjectDocumentModel.delete_document(doc_id, usuario_id=DEFAULT_USER_ID)
-    flash("Documento eliminado", "success")
+    try:
+        ProjectDocumentModel.delete_document(doc_id, usuario_id=DEFAULT_USER_ID)
+    except Exception as e:
+        errors.append(f"borrado local/remoto: {e}")
+
+    queue_deletion("ProjectDocuments", doc_id)
+
+    try:
+        flush_deletion_queue()
+    except Exception as e:
+        errors.append(f"sync remoto: {e}")
+
+    if errors:
+        flash(f"Documento eliminado localmente, con incidencias: {' | '.join(errors)}", "warning")
+    else:
+        flash("Documento eliminado", "success")
 
     return redirect(url_for("project_bp.view_project", project_id=doc.get("project_id")))

@@ -1,18 +1,13 @@
-from database.mongo_conn import get_collection, sync_to_remote, get_app_user_id
-from bson import ObjectId
 from datetime import datetime
 
+from bson import ObjectId
 
-def _uid_filter(usuario_id):
-    """Construye filtro que matchea tanto string como ObjectId."""
-    uid = usuario_id or get_app_user_id()
-    conditions = [{"usuario_id": uid}]
-    try:
-        if ObjectId.is_valid(str(uid)):
-            conditions.append({"usuario_id": ObjectId(str(uid))})
-    except Exception:
-        pass
-    return {"$or": conditions} if len(conditions) > 1 else conditions[0]
+from database.mongo_conn import get_app_user_id, get_collection, remote_uid_filter, sync_to_remote
+
+
+def _uid_filter(_=None):
+    """Local: sin filtro por usuario (BD de un solo usuario)."""
+    return {}
 
 
 class CategoryModel:
@@ -174,16 +169,17 @@ class CategoryModel:
             print(f"Error al convertir category_id a ObjectId: {e}")
             return False
 
-        query = {"_id": _id, **_uid_filter(usuario_id)}
-        result = local_col.delete_one(query)
+        local_query = {"_id": _id}
+        result = local_col.delete_one(local_query)
         deleted_locally = result.deleted_count > 0
 
         if deleted_locally:
             print(f"Categoria eliminada localmente: {_id}")
 
         if remote_col is not None:
+            remote_query = {"_id": _id, **remote_uid_filter(usuario_id)}
             try:
-                remote_col.delete_one(query)
+                remote_col.delete_one(remote_query)
                 print(f"Categoria eliminada en remoto: {_id}")
             except Exception as e:
                 print(f"Error al eliminar categoria de remoto (no crítico): {e}")

@@ -253,9 +253,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function drawNowLine(){
-    const [start] = currentRange();
     const isInRange = isSameDay(state.anchor, new Date()) || state.view==='week';
     const grid = document.getElementById('calGrid');
+    if(!grid) return;
     const old = grid.querySelector('.now-line');
     if(old) old.remove();
     if(!isInRange) return;

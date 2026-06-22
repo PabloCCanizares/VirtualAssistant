@@ -1,11 +1,9 @@
 <aside class="side-panel">
 
   <!-- Formulario de nuevo proyecto (colapsable) -->
-  <div class="side-panel-card collapsible">
+  <div class="side-panel-card">
     <div class="side-panel-header">
-      <span class="side-panel-icon">➕</span>
       <h3 class="side-panel-title">Nuevo proyecto</h3>
-      <span class="side-panel-toggle"></span>
     </div>
 
     <div class="side-panel-card-content">
@@ -66,11 +64,6 @@
           </select>
         </div>
 
-        <div class="panel-form-group">
-          <label class="panel-form-label" for="importancia">Importancia (0-10)</label>
-          <input type="number" name="importancia" id="importancia" class="panel-form-input" min="0" max="10" step="1" value="5">
-        </div>
-
         <div class="panel-form-group" style="max-width: 100%;">
           <label class="panel-form-label" for="estado">Estado</label>
           <select name="estado" id="estado" class="panel-form-select">
@@ -85,23 +78,6 @@
     </div>
   </div>
 
-  <!-- Consejos (no colapsable - sin form) -->
-  <div class="side-panel-card">
-    <div class="side-panel-header">
-      <span class="side-panel-icon">💡</span>
-      <h3 class="side-panel-title">Consejos</h3>
-    </div>
-    <div class="ai-suggestion-item">
-      <strong>Define alcance</strong>
-      <p>Un proyecto claro facilita priorizar objetivos y evitar tareas sueltas.</p>
-    </div>
-    <div class="ai-suggestion-item">
-      <strong>Adjunta contexto</strong>
-      <p>Sube documentos clave para centralizar la informacion.</p>
-    </div>
-  </div>
-
 </aside>
 
-<script src="{{ url_for('static', filename='js/side_panel_collapsible.js') }}"></script>
 <script src="{{ url_for('static', filename='js/category_selector.js') }}"></script>

@@ -15,7 +15,7 @@ import json
 
 import pytest
 
-from tests._fakes import ScriptedLLM, supervisor_response
+from tests._fakes import supervisor_response
 
 pytestmark = pytest.mark.integration
 
@@ -114,7 +114,6 @@ class TestErrorEvent:
     ):
         """Si el research falla con un error generico (no captura interna),
         el grafo aborta y se emite `error`."""
-        from ai.services.llm_utils import LLMInvokeError
 
         # El research_node captura LLMInvokeError pero no otros. Simulamos
         # un fallo no capturable lanzando KeyboardInterrupt (raros) o algo

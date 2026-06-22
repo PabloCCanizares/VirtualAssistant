@@ -2,9 +2,26 @@
 
 from __future__ import annotations
 
+from dataclasses import FrozenInstanceError
+from types import SimpleNamespace
+
 import pytest
 
 from ai import config as ai_config
+
+
+def _model_settings(**overrides):
+    values = {
+        "llm_provider": "openai",
+        "openai_api_key": "openai-key",
+        "openai_model": "gpt-test",
+        "gemini_api_key": None,
+        "gemini_model": "gemini-test",
+        "groq_api_key": None,
+        "groq_model": "groq-test",
+    }
+    values.update(overrides)
+    return SimpleNamespace(**values)
 
 
 class TestEnvBool:
@@ -139,5 +156,51 @@ class TestSettingsDataclass:
     def test_settings_is_frozen_dataclass(self, monkeypatch):
         monkeypatch.setattr(ai_config, "load_env", lambda *a, **kw: None)
         settings = ai_config.get_settings()
-        with pytest.raises(Exception):
+        with pytest.raises(FrozenInstanceError):
             settings.llm_provider = "other"  # type: ignore[misc]
+
+
+class TestChatModelCatalog:
+    def test_catalog_exposes_availability_and_configured_default(self):
+        catalog = ai_config.get_chat_model_catalog(
+            _model_settings(
+                llm_provider="gemini",
+                gemini_api_key="gemini-key",
+            )
+        )
+
+        assert catalog["default_model_id"] == "gemini"
+        assert [model["id"] for model in catalog["models"]] == [
+            "openai",
+            "gemini",
+            "groq",
+        ]
+        assert [model["available"] for model in catalog["models"]] == [
+            True,
+            True,
+            False,
+        ]
+
+    def test_catalog_falls_back_to_first_available_model(self):
+        catalog = ai_config.get_chat_model_catalog(
+            _model_settings(llm_provider="groq")
+        )
+
+        assert catalog["default_model_id"] == "openai"
+
+    def test_resolve_supports_explicit_non_default_provider(self):
+        option = ai_config.resolve_chat_model(
+            _model_settings(gemini_api_key="gemini-key"),
+            "gemini",
+        )
+
+        assert option.provider == "gemini"
+        assert option.model == "gemini-test"
+
+    def test_resolve_rejects_unknown_model(self):
+        with pytest.raises(ValueError, match="Modelo no soportado"):
+            ai_config.resolve_chat_model(_model_settings(), "unknown")
+
+    def test_resolve_names_missing_provider_key(self):
+        with pytest.raises(ValueError, match="GROQ_API_KEY"):
+            ai_config.resolve_chat_model(_model_settings(), "groq")

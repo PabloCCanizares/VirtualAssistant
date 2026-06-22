@@ -1,170 +1,109 @@
-<div class="dashboard-side" id="dashboardSide">
+<aside class="side-panel" id="dashboardSide">
 
-  <!-- Crear proyecto -->
-  <section class="dashboard-card" data-card="project-form">
-    <div class="dashboard-card-header">
-      <span class="dashboard-card-icon"></span>
-      <h2 class="dashboard-card-title">Crear proyecto</h2>
-      <span class="dashboard-card-toggle">▼</span>
+  <div class="side-panel-card">
+    <div class="side-panel-header">
+      <h3 class="side-panel-title">Nuevo proyecto</h3>
     </div>
-    <div class="dashboard-card-content">
-      <form id="quickProjectForm" class="dashboard-form">
-        <div class="dashboard-form-group">
-          <label class="dashboard-form-label" for="project_title">Proyecto</label>
-          <input id="project_title"
-                 name="title"
-                 class="dashboard-form-input"
-                 placeholder="Nombre del proyecto"
+
+    <div class="side-panel-card-content">
+      <form method="post"
+            action="{{ url_for('project_bp.add_project') }}"
+            class="panel-form">
+
+        <div class="panel-form-group">
+          <label class="panel-form-label" for="titulo">Titulo</label>
+          <input type="text"
+                 name="titulo"
+                 id="titulo"
+                 class="panel-form-input"
+                 placeholder="Investigacion IA aplicada"
                  required>
         </div>
 
-        <div class="dashboard-form-row">
-          <div class="dashboard-form-group">
-            <label class="dashboard-form-label" for="project_category">Categoria</label>
-            <input id="project_category"
-                   name="category"
-                   class="dashboard-form-input"
-                   placeholder="p. ej., Investigacion">
+        <div class="panel-form-group">
+          <label class="panel-form-label" for="descripcion">Descripcion</label>
+          <textarea name="descripcion"
+                    id="descripcion"
+                    class="panel-form-textarea"
+                    rows="3"
+                    placeholder="Resumen y alcance del proyecto"></textarea>
+        </div>
+
+        <div class="panel-form-row">
+          <div class="panel-form-group">
+            <label class="panel-form-label" for="fecha_inicio">Fecha inicio</label>
+            <input type="date"
+                   name="fecha_inicio"
+                   id="fecha_inicio"
+                   class="panel-form-input">
           </div>
-          <div class="dashboard-form-group">
-            <label class="dashboard-form-label" for="project_priority">Prioridad</label>
-            <select id="project_priority" name="priority" class="dashboard-form-select">
-              <option value="low">Baja</option>
-              <option value="medium" selected>Media</option>
-              <option value="high">Alta</option>
-            </select>
+          <div class="panel-form-group">
+            <label class="panel-form-label" for="fecha_fin">Fecha fin</label>
+            <input type="date"
+                   name="fecha_fin"
+                   id="fecha_fin"
+                   class="panel-form-input">
           </div>
         </div>
 
-        <div class="dashboard-form-row">
-          <div class="dashboard-form-group">
-            <label class="dashboard-form-label" for="project_status">Estado</label>
-            <select id="project_status" name="status" class="dashboard-form-select">
-              <option value="active" selected>Activo</option>
-              <option value="paused">En pausa</option>
-              <option value="done">Completado</option>
-            </select>
-          </div>
-          <div class="dashboard-form-group">
-            <label class="dashboard-form-label" for="project_deadline">Fecha limite</label>
-            <input id="project_deadline"
-                   name="deadline"
-                   type="date"
-                   class="dashboard-form-input">
-          </div>
+        <div class="panel-form-group">
+          <label class="panel-form-label">Categorias</label>
+          <div data-category-selector
+               data-name="categorias"
+               data-selected=""
+               data-allow-create="true"></div>
         </div>
 
-        <div class="dashboard-form-group">
-          <label class="dashboard-form-label" for="project_desc">Descripcion</label>
-          <textarea id="project_desc"
-                    name="description"
-                    class="dashboard-form-textarea"
-                    rows="2"
-                    placeholder="Resumen del proyecto..."></textarea>
+        <div class="panel-form-group">
+          <label class="panel-form-label" for="prioridad">Prioridad</label>
+          <select name="prioridad" id="prioridad" class="panel-form-select">
+            <option value="Baja">Baja</option>
+            <option value="Media" selected>Media</option>
+            <option value="Alta">Alta</option>
+          </select>
         </div>
 
-        <button type="submit" class="dashboard-form-submit">Guardar proyecto</button>
+        <div class="panel-form-group" style="max-width: 100%;">
+          <label class="panel-form-label" for="estado">Estado</label>
+          <select name="estado" id="estado" class="panel-form-select">
+            <option value="Activo" selected>Activo</option>
+            <option value="En pausa">En pausa</option>
+            <option value="Completado">Completado</option>
+          </select>
+        </div>
+
+        <button type="submit" class="panel-form-submit">Crear proyecto</button>
       </form>
-      <p id="projectMessage" class="muted" style="margin-top:8px;font-size:12px;"></p>
-      <ul id="projectList" class="muted" style="margin-top:10px;font-size:12px;"></ul>
     </div>
-  </section>
+  </div>
 
-  <!-- Crear tarea -->
-  <section class="dashboard-card" data-card="task-form">
-    <div class="dashboard-card-header">
-      <span class="dashboard-card-icon"></span>
-      <h2 class="dashboard-card-title">Crear tarea</h2>
-      <span class="dashboard-card-toggle">▼</span>
+  <div class="side-panel-card">
+    <div class="side-panel-header">
+      <h3 class="side-panel-title">Gestionar categorias</h3>
     </div>
-    <div class="dashboard-card-content">
-      <form id="quickTaskForm" class="dashboard-form">
-        <div class="dashboard-form-group">
-          <label class="dashboard-form-label" for="task_title">Titulo de la tarea</label>
-          <input id="task_title"
-                 name="title"
-                 class="dashboard-form-input"
-                 placeholder="p. ej., Revision bibliografica"
-                 required>
-        </div>
-
-        <div class="dashboard-form-row">
-          <div class="dashboard-form-group">
-            <label class="dashboard-form-label" for="task_goal">Objetivo asociado</label>
-            <input id="task_goal"
-                   name="goal"
-                   class="dashboard-form-input"
-                   placeholder="Objetivo del proyecto">
-          </div>
-          <div class="dashboard-form-group">
-            <label class="dashboard-form-label" for="task_project">Proyecto</label>
-            <input id="task_project"
-                   name="project"
-                   class="dashboard-form-input"
-                   placeholder="Proyecto relacionado">
-          </div>
-        </div>
-
-        <div class="dashboard-form-row">
-          <div class="dashboard-form-group">
-            <label class="dashboard-form-label" for="task_status">Estado</label>
-            <select id="task_status" name="status" class="dashboard-form-select">
-              <option value="pending">Pendiente</option>
-              <option value="in_progress">En curso</option>
-              <option value="done">Completada</option>
-            </select>
-          </div>
-          <div class="dashboard-form-group">
-            <label class="dashboard-form-label" for="task_due">Vencimiento</label>
-            <input id="task_due"
-                   name="due"
-                   type="datetime-local"
-                   class="dashboard-form-input">
-          </div>
-        </div>
-
-        <button type="submit" class="dashboard-form-submit">Guardar tarea</button>
-      </form>
-      <p id="taskMessage" class="muted" style="margin-top:8px;font-size:12px;"></p>
-      <ul id="taskList" class="muted" style="margin-top:10px;font-size:12px;"></ul>
-    </div>
-  </section>
-
-  <!-- Gestionar categorias -->
-  <section class="dashboard-card" data-card="category-form">
-    <div class="dashboard-card-header">
-      <span class="dashboard-card-icon"></span>
-      <h2 class="dashboard-card-title">Gestionar categorias</h2>
-      <span class="dashboard-card-toggle">▼</span>
-    </div>
-    <div class="dashboard-card-content">
-      <!-- Buscador de categorias -->
-      <div class="dashboard-form-group">
-        <label class="dashboard-form-label" for="category_search">Buscar categoria</label>
+    <div class="side-panel-card-content">
+      <div class="panel-form-group">
+        <label class="panel-form-label" for="category_search">Buscar categoria</label>
         <input id="category_search"
                type="text"
-               class="dashboard-form-input"
+               class="panel-form-input"
                placeholder="Escribe para buscar...">
       </div>
 
-      <!-- Lista de categorias -->
       <div class="category-list-container">
         <ul id="categoryList" class="category-list">
-          <!-- Las categorias se cargan dinamicamente via JS -->
           <li class="category-list-empty">Cargando categorias...</li>
         </ul>
       </div>
 
-      <!-- Input para nombre de categoria -->
-      <div class="dashboard-form-group">
-        <label class="dashboard-form-label" for="category_name">Nombre de categoria</label>
+      <div class="panel-form-group">
+        <label class="panel-form-label" for="category_name">Nombre de categoria</label>
         <input id="category_name"
                type="text"
-               class="dashboard-form-input"
+               class="panel-form-input"
                placeholder="Nueva categoria">
       </div>
 
-      <!-- Botones de accion -->
       <div class="category-actions">
         <button type="button" id="insertCategoryBtn" class="category-action-btn category-btn-insert">
           Insertar
@@ -179,9 +118,9 @@
 
       <p id="categoryMessage" class="category-message"></p>
     </div>
-  </section>
+  </div>
 
-</div>
+</aside>
 
 <!-- Modal de confirmación para eliminar categoría -->
 <div id="deleteCategoryModal" class="modal-overlay" style="display: none;">
@@ -208,5 +147,5 @@
   </div>
 </div>
 
-<script src="{{ url_for('static', filename='js/right_panel.js') }}"></script>
+<script src="{{ url_for('static', filename='js/category_selector.js') }}"></script>
 <script src="{{ url_for('static', filename='js/category_manager.js') }}"></script>

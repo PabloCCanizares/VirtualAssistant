@@ -9,7 +9,7 @@ import pytest
 from bson import ObjectId
 from langchain_core.messages import HumanMessage
 
-from ai.agents.doc_organizer import doc_organizer_node, _normalize, _find_document
+from ai.agents.doc_organizer import _find_document, _normalize, doc_organizer_node
 from ai.agents.doc_reader import doc_reader_node
 from ai.agents.doc_writer import (
     _generate_filename,

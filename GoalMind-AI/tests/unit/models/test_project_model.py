@@ -120,7 +120,6 @@ class TestCalculateProgress:
         assert ProjectModel.calculate_progress_from_goals(goals) == 50.0
 
     def test_calculate_progress_full_path(self, mongo_mock):
-        from model.goal_model import GoalModel
         p = _insert_project(mongo_mock)
         # 2 goals con progreso
         mongo_mock.local_db["Goals"].insert_many([

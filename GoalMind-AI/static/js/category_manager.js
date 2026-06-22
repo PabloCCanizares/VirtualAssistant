@@ -30,9 +30,34 @@
   };
 
   /**
+   * Carga y renderiza las categorias en el sidebar lateral
+   */
+  function loadSidebarCategories() {
+    const container = document.getElementById('sidebar-categories');
+    if (!container) return;
+    fetch('/categories/api/all')
+      .then(r => r.json())
+      .then(data => {
+        if (data.success && data.categories.length > 0) {
+          container.innerHTML = data.categories
+            .map(c => `<div class="sidebar-pill">${escapeHtml(c.name)}</div>`)
+            .join('');
+        } else {
+          container.innerHTML = '<div class="sidebar-pill">Sin categorias</div>';
+        }
+      })
+      .catch(() => {
+        container.innerHTML = '<div class="sidebar-pill">Sin categorias</div>';
+      });
+  }
+
+  /**
    * Inicializa el modulo cuando el DOM esta listo
    */
   function init() {
+    loadSidebarCategories();
+    document.addEventListener('categoriesUpdated', loadSidebarCategories);
+
     // Obtener referencias a elementos del DOM
     elements.searchInput = document.getElementById('category_search');
     elements.categoryList = document.getElementById('categoryList');

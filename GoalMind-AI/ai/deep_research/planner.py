@@ -11,7 +11,6 @@ from ai.deep_research.types import PlanningResult, ResearchTask
 from ai.prompts.deep_research_planner_prompt import DEEP_RESEARCH_PLANNER_PROMPT
 from ai.services.llm_utils import LLMInvokeError, invoke_with_retry
 
-
 logger = logging.getLogger(__name__)
 
 

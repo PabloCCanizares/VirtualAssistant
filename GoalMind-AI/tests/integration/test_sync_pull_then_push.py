@@ -40,11 +40,11 @@ class TestPullFromRemote:
     def test_pull_brings_remote_only_doc_to_local(
         self, mongo_mock, online, monkeypatch
     ):
-        from database.mongo_conn import sync_all_collections
         # `sync_all_collections` usa `from flask import current_app`. Para
         # evitar el `RuntimeError: Working outside of application context`
         # falsificamos `ensure_remote_connection`.
         import database.mongo_conn as mongo_conn
+        from database.mongo_conn import sync_all_collections
 
         monkeypatch.setattr(mongo_conn, "ensure_remote_connection", lambda app=None: True)
 

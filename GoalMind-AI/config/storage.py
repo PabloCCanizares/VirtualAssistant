@@ -2,7 +2,6 @@ import os
 
 from flask import Flask
 
-
 DEFAULT_UPLOAD_EXTENSIONS = {
     "pdf",
     "doc",

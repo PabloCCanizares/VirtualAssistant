@@ -1,11 +1,9 @@
 <aside class="side-panel">
 
-  <!-- Editar proyecto (colapsable) -->
-  <div class="side-panel-card collapsible">
+  <!-- Editar proyecto -->
+  <div class="side-panel-card">
     <div class="side-panel-header">
-    <span class="side-panel-icon">✏️</span>
       <h3 class="side-panel-title">Editar proyecto</h3>
-      <span class="side-panel-toggle"></span>
     </div>
 
     <div class="side-panel-card-content">
@@ -68,11 +66,6 @@
           </select>
         </div>
 
-        <div class="panel-form-group">
-          <label class="panel-form-label" for="importancia">Importancia (0-10)</label>
-          <input type="number" name="importancia" id="importancia" class="panel-form-input" min="0" max="10" step="1" value="{{ project.get('importancia', 5) }}">
-        </div>
-
         <div class="panel-form-group" style="max-width: 100%;">
           <label class="panel-form-label" for="estado">Estado</label>
           {% set st = project.get('estado','Activo') %}
@@ -88,12 +81,10 @@
     </div>
   </div>
 
-  <!-- Crear nuevo objetivo para este proyecto (colapsable) -->
-  <div class="side-panel-card collapsible">
+  <!-- Crear nuevo objetivo para este proyecto -->
+  <div class="side-panel-card">
     <div class="side-panel-header">
-     <span class="side-panel-icon">🎯</span>
       <h3 class="side-panel-title">Nuevo objetivo</h3>
-      <span class="side-panel-toggle"></span>
     </div>
 
     <div class="side-panel-card-content">
@@ -161,16 +152,13 @@
     </div>
   </div>
 
-  <!-- Asociar documento - Drag & Drop (colapsable) -->
-  <div class="side-panel-card collapsible" id="documentDropCard">
+  <!-- Asociar documento -->
+  <div class="side-panel-card" id="documentDropCard">
     <div class="side-panel-header">
-    <span class="side-panel-icon">📎</span>
       <h3 class="side-panel-title">Asociar documento</h3>
-      <span class="side-panel-toggle"></span>
     </div>
 
     <div class="side-panel-card-content">
-      <!-- Zona de drag & drop -->
       <div class="dropzone" id="documentDropzone">
         <div class="dropzone-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -178,27 +166,17 @@
             <path d="M15 4v5h5"/>
           </svg>
         </div>
-        <p class="dropzone-text">
-          <strong>Arrastra un documento aqui</strong>
-          o haz click para seleccionar
-        </p>
+        <p class="dropzone-text">Haz clic para seleccionar un documento</p>
         <p class="dropzone-hint">PDF, Word, Excel, imagenes...</p>
         <input type="file" id="dropzoneFileInput" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.md,.png,.jpg,.jpeg,.gif,.webp">
-      </div>
-
-      <div class="empty-state" style="padding: 16px 0;">
-     <div class="empty-state-icon" style="font-size: 32px;">📚</div>
-        <p class="empty-state-desc" style="font-size: 12px;">Arrastra un archivo arriba para subir uno nuevo.</p>
       </div>
     </div>
   </div>
 
-  <!-- Eliminar proyecto (colapsable) -->
-  <div class="side-panel-card collapsible">
+  <!-- Eliminar proyecto -->
+  <div class="side-panel-card">
     <div class="side-panel-header">
-      <span class="side-panel-icon">🗑️</span>
       <h3 class="side-panel-title">Eliminar proyecto</h3>
-      <span class="side-panel-toggle"></span>
     </div>
 
     <div class="side-panel-card-content">
@@ -227,7 +205,7 @@
   <div class="upload-modal" id="uploadModal">
     <div class="upload-modal-header">
       <h3 class="upload-modal-title">
-        <span>📤</span> Subir documento
+        Subir documento
       </h3>
       <button type="button" class="upload-modal-close">&times;</button>
     </div>
@@ -278,67 +256,39 @@
   </div>
 </div>
 
-<script src="{{ url_for('static', filename='js/side_panel_collapsible.js') }}"></script>
 <script src="{{ url_for('static', filename='js/category_selector.js') }}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   const dropzone = document.getElementById('documentDropzone');
-  const modalOverlay = document.getElementById('uploadModalOverlay');
   const modal = document.getElementById('uploadModal');
   const form = document.getElementById('uploadModalForm');
   const fileInput = document.getElementById('modalFileInput');
   const titleInput = document.getElementById('document_title');
-  
-  // Inicializar el modal
+  const dropzoneInput = document.getElementById('dropzoneFileInput');
+
   const uploadModal = new UploadModal(modal, {
-    onSubmit: function(formData, file) {
-      // El form se enviara normalmente con el archivo
-      form.submit();
-    },
+    onSubmit: function() { form.submit(); },
     onCancel: function() {
-      // Reset
       fileInput.value = '';
       titleInput.value = '';
     }
   });
 
-  // Inicializar dropzone
-  initDropzone(dropzone, {
-    onDrop: function(file) {
-      // Actualizar el input de archivo oculto
-      const dataTransfer = new DataTransfer();
-      dataTransfer.items.add(file);
-      fileInput.files = dataTransfer.files;
-      
-      // Sugerir nombre basado en el archivo (sin extension)
-      const suggestedName = file.name.replace(/\.[^/.]+$/, '');
-      titleInput.value = suggestedName;
-      
-      // Abrir modal
-      uploadModal.open(file);
-    }
-  });
+  if (dropzone) {
+    dropzone.addEventListener('click', function(e) {
+      if (e.target !== dropzoneInput) dropzoneInput.click();
+    });
+  }
 
-  // Tambien manejar click en el input file del dropzone
-  const dropzoneInput = document.getElementById('dropzoneFileInput');
   if (dropzoneInput) {
     dropzoneInput.addEventListener('change', function(e) {
       if (e.target.files.length > 0) {
         const file = e.target.files[0];
-        
-        // Actualizar el input de archivo del modal
         const dataTransfer = new DataTransfer();
         dataTransfer.items.add(file);
         fileInput.files = dataTransfer.files;
-        
-        // Sugerir nombre
-        const suggestedName = file.name.replace(/\.[^/.]+$/, '');
-        titleInput.value = suggestedName;
-        
-        // Abrir modal
+        titleInput.value = file.name.replace(/\.[^/.]+$/, '');
         uploadModal.open(file);
-        
-        // Reset el input del dropzone para permitir seleccionar el mismo archivo
         dropzoneInput.value = '';
       }
     });

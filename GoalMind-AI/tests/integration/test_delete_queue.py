@@ -55,18 +55,6 @@ class TestQueueDeletion:
 class TestFlushQueue:
     """`flush_deletion_queue` propaga al remoto y limpia los completados."""
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason=(
-            "Hallazgo: el dedup de `flush_deletion_queue` colapsa la variante "
-            "string y la variante ObjectId del target_id porque usa `str(cid)` "
-            "como clave (mongo_conn.py:603-609). Cuando `target_id` se guarda "
-            "como string (que es lo que hace `queue_deletion`), la variante "
-            "ObjectId se descarta y el `delete_many` no matchea el documento "
-            "remoto (cuyo `_id` es ObjectId). Resultado: los borrados offline "
-            "nunca se propagan a Atlas. Detectado por este test."
-        ),
-    )
     def test_propagates_deletion_to_remote_then_clears(self, mongo_mock, monkeypatch):
         from database import mongo_conn
 
@@ -83,6 +71,21 @@ class TestFlushQueue:
         assert removed == 1
         assert mongo_mock.remote_db["Tasks"].find_one({"_id": _id}) is None
         # Y el registro de la cola desaparece
+        assert mongo_mock.local_db["DeleteQueue"].count_documents({}) == 0
+
+    def test_already_absent_remote_document_clears_queue(self, mongo_mock, monkeypatch):
+        from database import mongo_conn
+
+        monkeypatch.setattr(mongo_conn, "ensure_remote_connection", lambda app=None: True)
+        target_id = ObjectId()
+        mongo_mock.local_db["DeleteQueue"].insert_one({
+            "_id": f"Tasks:{target_id}",
+            "collection": "Tasks",
+            "target_id": str(target_id),
+            "deleted_at": datetime.utcnow(),
+        })
+
+        assert mongo_conn.flush_deletion_queue() == 1
         assert mongo_mock.local_db["DeleteQueue"].count_documents({}) == 0
 
     def test_propagation_does_work_when_remote_id_is_string(self, mongo_mock, monkeypatch):

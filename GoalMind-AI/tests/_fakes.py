@@ -20,7 +20,6 @@ from typing import Any, Callable, Iterable, Mapping
 from bson import ObjectId
 from langchain_core.messages import BaseMessage, SystemMessage
 
-
 # ---------------------------------------------------------------------------
 # LLM guionizado por marcador en el system prompt
 # ---------------------------------------------------------------------------

@@ -1,11 +1,12 @@
 # controllers/goal_controller.py
-from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
-from database.mongo_conn import queue_deletion, flush_deletion_queue, get_app_user_id
+from bson import ObjectId
+from flask import Blueprint, flash, jsonify, redirect, render_template, request, url_for
+
+from database.mongo_conn import flush_deletion_queue, get_app_user_id, queue_deletion
+from model.category_model import CategoryModel
 from model.goal_model import GoalModel
 from model.project_model import ProjectModel
 from model.task_model import TaskModel
-from model.category_model import CategoryModel
-from bson import ObjectId
 
 goal_bp = Blueprint("goal_bp", __name__, url_prefix="/goals")
 DEFAULT_USER_ID = get_app_user_id()
@@ -56,78 +57,16 @@ def _load_projects():
     return projects_view, project_titles
 
 # -------------------------------------------------------------
-# 📋 LISTAR TODOS LOS OBJETIVOS
-# -------------------------------------------------------------
-@goal_bp.route("/", methods=["GET"])
-def list_goals():
-    """Muestra todos los objetivos."""
-    try:
-        goals = GoalModel.get_all_goals(usuario_id=DEFAULT_USER_ID)
-        goals_view = [_serialize_goal(g) for g in goals]
-        projects, project_titles = _load_projects()
-        categories = _load_categories()
-        category_names = _build_category_names(categories)
-
-    except Exception as e:
-        flash(f"No se pudieron cargar los objetivos: {e}", "danger")
-        goals_view = []
-        projects, project_titles = [], {}
-        categories = []
-        category_names = {}
-    return render_template(
-        "partials/goals_templates/goal_menu.html",
-        goals=goals_view,
-        projects=projects,
-        project_titles=project_titles,
-        categories=categories,
-        category_names=category_names,
-        selected_category=None,
-        page="objetivos",
-    )
-
-# -------------------------------------------------------------
-# 🔎 FILTRAR POR CATEGORÍA
-# -------------------------------------------------------------
-@goal_bp.route("/filter", methods=["GET"])
-def filter_by_category():
-    categoria_ids = request.args.getlist("categoria")
-    try:
-        if categoria_ids:
-            goals = GoalModel.search_by_categories(categoria_ids, usuario_id=DEFAULT_USER_ID)
-            flash("Filtro aplicado", "info")
-        else:
-            goals = GoalModel.get_all_goals(usuario_id=DEFAULT_USER_ID)
-        goals_view = [_serialize_goal(g) for g in goals]
-        projects, project_titles = _load_projects()
-        categories = _load_categories()
-        category_names = _build_category_names(categories)
-
-    except Exception as e:
-        flash(f"Error al filtrar: {e}", "danger")
-        return redirect(url_for("goal_bp.list_goals"))
-
-    return render_template(
-        "partials/goals_templates/goal_menu.html",
-        goals=goals_view,
-        projects=projects,
-        project_titles=project_titles,
-        categories=categories,
-        category_names=category_names,
-        selected_categories=categoria_ids,
-        page="objetivos",
-    )
-
-# -------------------------------------------------------------
-# ➕ CREAR OBJETIVO (estilo add_task)
+#  CREAR OBJETIVO (estilo add_task)
 # -------------------------------------------------------------
 @goal_bp.route("/add", methods=["POST"])
 def add_goal():
     """Inserta un nuevo objetivo en la base local (y sincroniza con la nube)."""
+    project_id = request.form.get("project_id")
     try:
-        project_id = request.form.get("project_id")
         if not project_id:
             flash("Debes seleccionar un proyecto antes de crear un objetivo.", "warning")
-            return redirect(url_for("goal_bp.list_goals"))
+            return redirect(url_for("project_bp.list_projects"))
 
         # Procesar categorias (pueden venir como lista o string separado por comas)
         categorias_raw = request.form.getlist("categorias")
@@ -135,7 +74,7 @@ def add_goal():
             cat_str = request.form.get("categorias", "")
             if cat_str:
                 categorias_raw = [c.strip() for c in cat_str.split(",") if c.strip()]
-        
+
         # Convertir a ObjectIds
         categorias = []
         for cat_id in categorias_raw:
@@ -169,7 +108,7 @@ def add_goal():
 
 
 # -------------------------------------------------------------
-# 🔎 VER DETALLE DE UN OBJETIVO
+#  VER DETALLE DE UN OBJETIVO
 # -------------------------------------------------------------
 @goal_bp.route("/<goal_id>", methods=["GET"])
 def view_goal(goal_id):
@@ -178,7 +117,7 @@ def view_goal(goal_id):
         goal = GoalModel.get_goal_by_id(goal_id, usuario_id=DEFAULT_USER_ID)
         if not goal:
             flash("Objetivo no encontrado.", "warning")
-            return redirect(url_for("goal_bp.list_goals"))
+            return redirect(url_for("project_bp.list_projects"))
 
         goal_view = _serialize_goal(goal)
         projects, project_titles = _load_projects()
@@ -210,11 +149,11 @@ def view_goal(goal_id):
         )
     except Exception as e:
         flash(f"Error al cargar el objetivo: {e}", "danger")
-        return redirect(url_for("goal_bp.list_goals"))
+        return redirect(url_for("project_bp.list_projects"))
 
 
 # -------------------------------------------------------------
-# ✏️ ACTUALIZAR OBJETIVO (edición inline)
+#  ACTUALIZAR OBJETIVO (edición inline)
 # -------------------------------------------------------------
 @goal_bp.route("/<goal_id>", methods=["POST"])
 def update_goal(goal_id):
@@ -225,7 +164,7 @@ def update_goal(goal_id):
             cat_str = request.form.get("categorias", "")
             if cat_str:
                 categorias_raw = [c.strip() for c in cat_str.split(",") if c.strip()]
-        
+
         categorias = []
         for cat_id in categorias_raw:
             try:
@@ -242,11 +181,11 @@ def update_goal(goal_id):
             "prioridad": request.form.get("prioridad"),
             "alarma_id": request.form.get("alarma_id"),
         }
-        
+
         # Solo actualizar categorias si se enviaron
         if categorias_raw:
             updates["categorias"] = categorias
-            
+
         if request.form.get("progreso") is not None:
             try:
                 updates["progreso"] = int(request.form.get("progreso") or 0)
@@ -264,13 +203,22 @@ def update_goal(goal_id):
     if redirect_to.startswith("/"):
         return redirect(redirect_to)
 
-    return redirect(url_for("goal_bp.list_goals"))
+    return redirect(url_for("goal_bp.view_goal", goal_id=goal_id))
 
 # -------------------------------------------------------------
-# 🗑️ ELIMINAR OBJETIVO (individual)
+#  ELIMINAR OBJETIVO (individual)
 # -------------------------------------------------------------
 @goal_bp.route("/delete/<goal_id>", methods=["POST"])
 def delete_goal(goal_id):
+    # Obtener project_id antes de borrar para el redirect
+    project_id = None
+    try:
+        goal = GoalModel.get_goal_by_id(goal_id, usuario_id=DEFAULT_USER_ID)
+        if goal:
+            project_id = str(goal.get("project_id", "")) if goal.get("project_id") else None
+    except Exception:
+        pass
+
     try:
         task_ids = []
         try:
@@ -295,54 +243,19 @@ def delete_goal(goal_id):
             except Exception:
                 pass
         if deleted:
-            flash("🗑️ Objetivo eliminado correctamente", "success")
+            flash(" Objetivo eliminado correctamente", "success")
         else:
-            flash("⚠️ No se encontró el objetivo a eliminar", "warning")
+            flash(" No se encontró el objetivo a eliminar", "warning")
     except Exception as e:
-        flash(f"❌ No se pudo eliminar el objetivo: {e}", "danger")
+        flash(f" No se pudo eliminar el objetivo: {e}", "danger")
+
     redirect_to = (request.form.get("redirect_to") or "").strip()
     if redirect_to.startswith("/"):
         return redirect(redirect_to)
-    return redirect(url_for("goal_bp.list_goals"))
 
-# -------------------------------------------------------------
-# 🗑️🗑️ ELIMINAR MÚLTIPLES OBJETIVOS
-# -------------------------------------------------------------
-@goal_bp.route("/bulk-delete", methods=["POST"])
-def bulk_delete_goals():
-    ids = request.form.getlist("selected_goals")
-    if not ids:
-        flash("No has seleccionado ningún objetivo.", "warning")
-        return redirect(url_for("goal_bp.list_goals"))
-
-    try:
-        task_ids = []
-        for gid in ids:
-            try:
-                tasks = TaskModel.get_tasks_by_goal(gid, usuario_id=DEFAULT_USER_ID)
-                task_ids.extend([t.get("_id") for t in tasks if t.get("_id")])
-            except Exception:
-                continue
-        if task_ids:
-            try:
-                TaskModel.delete_tasks_by_ids(task_ids, usuario_id=DEFAULT_USER_ID)
-            except Exception:
-                pass
-            for tid in task_ids:
-                queue_deletion("Tasks", tid)
-
-        deleted = GoalModel.delete_goals_by_ids(ids, usuario_id=DEFAULT_USER_ID)
-        for gid in ids:
-            queue_deletion("Goals", gid)
-        try:
-            flush_deletion_queue()
-        except Exception:
-            pass
-        flash(f"Se eliminaron {deleted} objetivo(s).", "success")
-    except Exception as e:
-        flash(f"❌ No se pudieron eliminar los objetivos seleccionados: {e}", "danger")
-
-    return redirect(url_for("goal_bp.list_goals"))
+    if project_id:
+        return redirect(url_for("project_bp.view_project", project_id=project_id))
+    return redirect(url_for("project_bp.list_projects"))
 
 # -------------------------------------------------------------
 # API: Actualizar objetivo via JSON (para modal)
@@ -350,7 +263,7 @@ def bulk_delete_goals():
 @goal_bp.route("/api/<goal_id>", methods=["PUT", "PATCH"])
 def api_update_goal(goal_id):
     """Actualiza un objetivo via JSON y devuelve el resultado."""
-    from bson import ObjectId
+
 
     try:
         payload = request.get_json(silent=True) or {}
@@ -405,36 +318,3 @@ def api_update_goal(goal_id):
         })
     except Exception as e:
         return jsonify({"success": False, "message": str(e)}), 500
-
-
-# -------------------------------------------------------------
-# GET /goals/user/<user_id>
-# Devuelve goals del usuario (HTML o JSON)
-# -------------------------------------------------------------
-@goal_bp.route("/user/<user_id>", methods=["GET"])
-def list_goals_by_user(user_id):
-    """Muestra todas las tareas creadas por un usuario especifico."""
-    try:
-        if user_id == "0":
-            user_id = DEFAULT_USER_ID
-        goals = GoalModel.get_by_user_id(user_id)
-        goals_view = [_serialize_goal(g) for g in goals]
-        projects, project_titles = _load_projects()
-        categories = _load_categories()
-        category_names = _build_category_names(categories)
-        if not goals:
-            flash("Este usuario aun no tiene objetivos.", "info")
-        return render_template(
-            "partials/goals_templates/goal_menu.html",
-            goals=goals_view,
-            projects=projects,
-            project_titles=project_titles,
-            categories=categories,
-            category_names=category_names,
-            page="objetivos",
-            user_id=user_id
-        )
-
-    except Exception as e:
-        flash(f"Error al obtener las tareas del usuario: {e}", "danger")
-        return redirect(url_for("goal_bp.list_goals"))

@@ -123,6 +123,7 @@ class TestRunChatValidation:
         assert out == "respuesta del grafo"
         assert captured["user_message"] == "Hola, asistente"
         assert captured["model"] == "gemini-x"
+        assert captured["provider"] == "gemini"
         assert captured["deep_search_mode"] == "on"
         assert captured["deep_search_requested"] is True
         assert captured["deep_search_error"] == ""
@@ -145,3 +146,30 @@ class TestRunChatValidation:
         assert captured["deep_search_mode"] == "on"
         assert captured["deep_search_requested"] is False
         assert "deshabilitado" in captured["deep_search_error"].lower()
+
+    def test_run_chat_honors_explicit_model_selection(
+        self,
+        monkeypatch,
+        reset_pending_actions,
+        reset_session_mutations,
+    ):
+        captured = {}
+        monkeypatch.setattr(
+            chat_service,
+            "get_settings",
+            lambda: _make_settings(
+                llm_provider="openai",
+                gemini_api_key="gemini-key",
+                gemini_model="gemini-selected",
+            ),
+        )
+        monkeypatch.setattr(
+            chat_service,
+            "run_graph_chat",
+            lambda **kwargs: captured.update(kwargs) or "ok",
+        )
+
+        chat_service.run_chat("hola", history=[], model_id="gemini")
+
+        assert captured["provider"] == "gemini"
+        assert captured["model"] == "gemini-selected"

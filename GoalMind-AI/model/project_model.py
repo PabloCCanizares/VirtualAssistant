@@ -2,19 +2,18 @@ from datetime import datetime
 
 from bson import ObjectId
 
-from database.mongo_conn import get_collection, sync_from_remote, sync_to_remote, get_app_user_id
+from database.mongo_conn import (
+    get_app_user_id,
+    get_collection,
+    remote_uid_filter,
+    sync_from_remote,
+    sync_to_remote,
+)
 
 
-def _uid_filter(usuario_id):
-    """Construye filtro que matchea tanto string como ObjectId."""
-    uid = usuario_id or get_app_user_id()
-    conditions = [{"usuario_id": uid}]
-    try:
-        if ObjectId.is_valid(str(uid)):
-            conditions.append({"usuario_id": ObjectId(str(uid))})
-    except Exception:
-        pass
-    return {"$or": conditions} if len(conditions) > 1 else conditions[0]
+def _uid_filter(_=None):
+    """Local: sin filtro por usuario (BD de un solo usuario)."""
+    return {}
 
 
 class ProjectModel:
@@ -64,7 +63,7 @@ class ProjectModel:
         project_data["_id"] = result.inserted_id
 
         sync_to_remote(ProjectModel.COLLECTION, project_data)
-        print(f"📁 Proyecto insertado localmente y sincronizado: {project_data['_id']}")
+        print(f"Proyecto insertado localmente y sincronizado: {project_data['_id']}")
         return project_data
 
     @staticmethod
@@ -102,7 +101,7 @@ class ProjectModel:
         updated_project = local_col.find_one({"_id": _id})
 
         sync_to_remote(ProjectModel.COLLECTION, updated_project)
-        print(f"♻️ Proyecto {_id} actualizado y sincronizado.")
+        print(f"Proyecto {_id} actualizado y sincronizado.")
         return updated_project
 
     @staticmethod
@@ -127,23 +126,52 @@ class ProjectModel:
         if not queries:
             return False
 
-        uid_filter = _uid_filter(usuario_id)
-        delete_queries = []
-        for q in queries:
-            merged = {**q, **uid_filter}
-            delete_queries.append(merged)
-
-        delete_query = {"$or": delete_queries}
-        deleted_local = local_col.delete_many(delete_query).deleted_count
+        local_delete_query = {"$or": queries}
+        deleted_local = local_col.delete_many(local_delete_query).deleted_count
 
         deleted_remote = 0
         if remote_col is not None:
+            remote_delete_query = {"$and": [local_delete_query, remote_uid_filter(usuario_id)]}
             try:
-                deleted_remote = remote_col.delete_many(delete_query).deleted_count
+                deleted_remote = remote_col.delete_many(remote_delete_query).deleted_count
             except Exception:
                 pass
 
         return (deleted_local + deleted_remote) > 0
+
+    @staticmethod
+    def calculate_progress_from_goals(goals: list) -> float:
+        """
+        Calcula el progreso medio de un proyecto a partir de una lista de
+        objetivos ya cargada, haciendo la media de su campo 'progreso'.
+
+        Returns:
+            float: Media de progreso (0.0–100.0), o 0.0 si la lista está vacía.
+        """
+        if not goals:
+            return 0.0
+        progresos = []
+        for g in goals:
+            raw = g.get("progreso")
+            try:
+                progresos.append(float(raw or 0.0))
+            except Exception:
+                progresos.append(0.0)
+        return round(sum(progresos) / len(progresos), 2)
+
+    @staticmethod
+    def calculate_progress(project_id, usuario_id=None) -> float:
+        """
+        Calcula el progreso medio de un proyecto como la media del campo
+        'progreso' de todos sus objetivos asociados.
+
+        Returns:
+            float: Media de progreso (0.0–100.0), o 0.0 si no hay objetivos.
+        """
+        from model.goal_model import GoalModel
+
+        goals = GoalModel.get_by_project(project_id, usuario_id=usuario_id)
+        return ProjectModel.calculate_progress_from_goals(goals)
 
     @staticmethod
     def find_by_category(category_id, usuario_id=None):

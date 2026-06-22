@@ -38,6 +38,57 @@ class TestNormalizeDeepSearchMode:
         assert ai_chat_controller._normalize_deep_search_mode("invalid") == "auto"
 
 
+class TestChatModels:
+    def test_returns_model_catalog(self, client, monkeypatch):
+        catalog = {
+            "default_model_id": "openai",
+            "models": [{"id": "openai", "available": True}],
+        }
+        monkeypatch.setattr(
+            ai_chat_controller,
+            "get_chat_model_catalog",
+            lambda: catalog,
+        )
+
+        response = client.get("/api/ai/models")
+
+        assert response.status_code == 200
+        assert response.get_json() == catalog
+
+    def test_chat_forwards_selected_model_to_stream(self, client, monkeypatch):
+        captured = {}
+
+        def fake_stream(message, history, deep_search_mode, model_id=None):
+            captured.update(
+                message=message,
+                history=history,
+                deep_search_mode=deep_search_mode,
+                model_id=model_id,
+            )
+            yield "final", {"message": "ok"}
+
+        monkeypatch.setattr(ai_chat_controller, "stream_chat", fake_stream)
+
+        response = client.post(
+            "/api/ai/chat",
+            json={
+                "message": "hola",
+                "history": [],
+                "deep_search_mode": "on",
+                "model_id": "gemini",
+            },
+        )
+
+        assert response.status_code == 200
+        assert b'"type": "final"' in response.data
+        assert captured == {
+            "message": "hola",
+            "history": [],
+            "deep_search_mode": "on",
+            "model_id": "gemini",
+        }
+
+
 class TestSummarizeDocument:
     def test_missing_doc_id_returns_400(self, client):
         resp = client.post(

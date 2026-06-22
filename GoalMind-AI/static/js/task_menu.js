@@ -625,3 +625,30 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
 });
+
+// ── Filtro de tareas por categoria ───────────────────────────────────────────
+(function () {
+  var form = document.getElementById('task-filter-form');
+  if (!form) return;
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var url = new URL(form.action);
+    url.searchParams.delete('nombre');
+    url.searchParams.delete('categoria');
+
+    var nombre = form.querySelector('[name="nombre"]');
+    if (nombre && nombre.value.trim()) {
+      url.searchParams.set('nombre', nombre.value.trim());
+    }
+
+    var catInput = form.querySelector('[name="categoria"]');
+    if (catInput && catInput.value) {
+      catInput.value.split(',').forEach(function (id) {
+        id = id.trim();
+        if (id) url.searchParams.append('categoria', id);
+      });
+    }
+
+    window.location.href = url.toString();
+  });
+})();

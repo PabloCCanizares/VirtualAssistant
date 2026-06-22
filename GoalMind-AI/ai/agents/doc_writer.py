@@ -12,16 +12,16 @@ from io import BytesIO
 
 from langchain_core.messages import SystemMessage
 
+from ai.prompts.doc_writer_prompt import DOC_WRITER_NOTE_PROMPT, DOC_WRITER_PROMPT
+from ai.services.llm_utils import LLMInvokeError, invoke_with_retry
+from ai.services.session_mutations_state import append_session_mutation
+from ai.state import AppState
 from database.gridfs_storage import (
     promote_local_file_to_remote,
     upload_stream_to_local_storage,
 )
 from model.project_document_model import ProjectDocumentModel
 from model.project_model import ProjectModel
-from ai.prompts.doc_writer_prompt import DOC_WRITER_NOTE_PROMPT, DOC_WRITER_PROMPT
-from ai.services.llm_utils import LLMInvokeError, invoke_with_retry
-from ai.services.session_mutations_state import append_session_mutation
-from ai.state import AppState
 
 logger = logging.getLogger(__name__)
 

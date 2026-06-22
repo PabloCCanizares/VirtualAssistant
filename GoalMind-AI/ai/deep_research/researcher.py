@@ -15,7 +15,6 @@ from ai.deep_research.types import DeepResearchRuntimeConfig, ResearchEvidence, 
 from ai.services.deep_search_service import DeepSearchError
 from ai.services.llm_utils import LLMInvokeError, invoke_with_retry
 
-
 logger = logging.getLogger(__name__)
 
 WebSearchTool = Callable[[str], list[dict]] | Callable[..., list[dict]]

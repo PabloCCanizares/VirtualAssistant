@@ -1,11 +1,11 @@
-import os
 import logging
-from pathlib import Path
+import os
 
-from flask import Blueprint, jsonify, request
-from dotenv import set_key
-from pymongo import MongoClient
 import certifi
+from dotenv import set_key
+from flask import Blueprint, jsonify, request
+from pymongo import MongoClient
+
 try:
     from openai import OpenAI
 except ModuleNotFoundError:
@@ -20,10 +20,10 @@ except ModuleNotFoundError:
     genai = None
 
 from database.mongo_conn import (
-    reconnect_databases,
     ENV_PATH,
     ensure_remote_connection,
     flush_deletion_queue,
+    reconnect_databases,
     sync_all_collections,
     sync_local_to_remote,
 )
@@ -303,6 +303,7 @@ def test_mongo_remote():
 def sync_now():
     """Ejecuta sincronización completa manual entre BD local y remota."""
     from flask import current_app
+
     from model.project_document_model import ProjectDocumentModel
 
     try:

@@ -1,33 +1,43 @@
-# === Variables de entorno y secretos ===
-.env
-**/.env
+# === Archivos sensibles o de configuración ===
+GoalMind-AI/.env
 GoalMind-AI/database/mongo_user.json
 
-# === Entornos virtuales ===
-.venv/
-venv/
-**/.venv/
-**/venv/
+# === Entorno virtual ===
+GoalMind-AI/venv/
+GoalMind-AI/.venv/
 
-# === Python cache/artefactos ===
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.pytest_cache/
+# === Cachés y archivos temporales de Python ===
+GoalMind-AI/**/__pycache__/
+GoalMind-AI/**/*.py[cod]
 
-# === Build/packaging ===
-*.egg-info/
-build/
-dist/
+# === Artefactos de tests / cobertura ===
+GoalMind-AI/.coverage
+GoalMind-AI/coverage.json
+GoalMind-AI/.pytest_cache/
+GoalMind-AI/htmlcov/
 
-# === IDE/editor ===
-.vscode/
-.idea/
 
-# === Sistema operativo ===
+
+# === Archivos del sistema ===
 .DS_Store
 Thumbs.db
 
-# === Datos locales de la app ===
-GoalMind-AI/.claude/
+# === Archivos de editores ===
+.vscode/
+.idea/
+/docs/
+*.md
+*.tex
+
+# === Archivos generados o personales ===
+documentation.pdf
+plantilla_tfg_word.docx
+experimentacion.txt
+mockup_inicial.html
+info.txt
+
+# === Archivos de construcción o instalación ===
+GoalMind-AI/*.egg-info/
+GoalMind-AI/build/
+GoalMind-AI/dist/
+GoalMind-AI/uploads/

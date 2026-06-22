@@ -2,11 +2,9 @@
 
   {% if goal %}
   <!-- Vista de detalle: Formulario de nueva tarea con objetivo_id hardcodeado -->
-  <div class="side-panel-card collapsible">
+  <div class="side-panel-card">
     <div class="side-panel-header">
-      <span class="side-panel-icon">➕</span>
       <h3 class="side-panel-title">Nueva tarea</h3>
-      <span class="side-panel-toggle"></span>
     </div>
 
     <div class="side-panel-card-content">
@@ -67,13 +65,32 @@
     </div>
   </div>
 
+  <!-- Asociar documento -->
+  <div class="side-panel-card" id="documentDropCard">
+    <div class="side-panel-header">
+      <h3 class="side-panel-title">Asociar documento</h3>
+    </div>
+
+    <div class="side-panel-card-content">
+      <div class="dropzone" id="documentDropzone">
+        <div class="dropzone-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 4h11l5 5v11a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/>
+            <path d="M15 4v5h5"/>
+          </svg>
+        </div>
+        <p class="dropzone-text">Haz clic para seleccionar un documento</p>
+        <p class="dropzone-hint">PDF, Word, Excel, imagenes...</p>
+        <input type="file" id="dropzoneFileInput" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.md,.png,.jpg,.jpeg,.gif,.webp">
+      </div>
+    </div>
+  </div>
+
   {% else %}
   <!-- Vista de lista: Formulario de nuevo objetivo (colapsable) -->
-  <div class="side-panel-card collapsible">
+  <div class="side-panel-card">
     <div class="side-panel-header">
-      <span class="side-panel-icon">➕</span>
       <h3 class="side-panel-title">Nuevo objetivo</h3>
-      <span class="side-panel-toggle"></span>
     </div>
 
     <div class="side-panel-card-content">
@@ -178,43 +195,96 @@
     </div>
   </div>
   {% endif %}
-
-  <!-- Estadisticas rapidas (no colapsable - sin form) -->
-  <div class="side-panel-card">
-    <div class="side-panel-header">
-      <span class="side-panel-icon">📊</span>
-      <h3 class="side-panel-title">Resumen rapido</h3>
-    </div>
-
-    <div class="panel-kpis" style="grid-template-columns: 1fr;">
-      <div class="panel-kpi">
-        <div class="panel-kpi-label">Objetivos activos</div>
-        <div class="panel-kpi-value">{{ goals|selectattr('estado', 'equalto', 'En progreso')|list|length if goals else 0 }}</div>
-      </div>
-      <div class="panel-kpi">
-        <div class="panel-kpi-label">Completados</div>
-        <div class="panel-kpi-value">{{ goals|selectattr('estado', 'equalto', 'Completado')|list|length if goals else 0 }}</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Consejos (no colapsable - sin form) -->
-  <div class="side-panel-card">
-    <div class="side-panel-header">
-      <span class="side-panel-icon">💡</span>
-      <h3 class="side-panel-title">Consejos</h3>
-    </div>
-    <div class="ai-suggestion-item">
-      <strong>Define metas SMART</strong>
-      <p>Tus objetivos deben ser especificos, medibles, alcanzables, relevantes y temporales.</p>
-    </div>
-    <div class="ai-suggestion-item">
-      <strong>Divide y venceras</strong>
-      <p>Divide objetivos grandes en tareas mas pequenas y manejables.</p>
-    </div>
-  </div>
-
 </aside>
 
-<script src="{{ url_for('static', filename='js/side_panel_collapsible.js') }}"></script>
+{% if goal %}
+<!-- Modal para subir documento con drag & drop -->
+<div class="upload-modal-overlay" id="uploadModalOverlay">
+  <div class="upload-modal" id="uploadModal">
+    <div class="upload-modal-header">
+      <h3 class="upload-modal-title">
+        Subir documento
+      </h3>
+      <button type="button" class="upload-modal-close">&times;</button>
+    </div>
+
+    <div class="upload-modal-file-preview">
+      <div class="upload-modal-file-info">
+        <div class="upload-modal-file-name">documento.pdf</div>
+        <div class="upload-modal-file-size">0 KB</div>
+      </div>
+    </div>
+
+    <form method="post"
+          action="{{ url_for('project_bp.upload_document', project_id=goal['project_id']) }}"
+          class="upload-modal-form"
+          enctype="multipart/form-data"
+          id="uploadModalForm">
+
+      <!-- goal_id pre-establecido -->
+      <input type="hidden" name="goal_id" value="{{ goal['_id'] }}">
+
+      <div class="panel-form-group">
+        <label class="panel-form-label" for="document_title">Nombre del documento</label>
+        <input type="text"
+               name="document_title"
+               id="document_title"
+               class="panel-form-input"
+               placeholder="Nombre con el que se guardara"
+               required>
+      </div>
+
+      <!-- Input oculto para el archivo -->
+      <input type="file" name="document" id="modalFileInput" style="display: none;" required>
+
+      <div class="upload-modal-actions">
+        <button type="button" class="panel-action-btn secondary" data-action="cancel">Cancelar</button>
+        <button type="submit" class="panel-action-btn primary">Subir documento</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+
 <script src="{{ url_for('static', filename='js/category_selector.js') }}"></script>
+{% if goal %}
+<script src="{{ url_for('static', filename='js/side_panel_collapsible.js') }}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const dropzone = document.getElementById('documentDropzone');
+  const modal = document.getElementById('uploadModal');
+  const form = document.getElementById('uploadModalForm');
+  const fileInput = document.getElementById('modalFileInput');
+  const titleInput = document.getElementById('document_title');
+  const dropzoneInput = document.getElementById('dropzoneFileInput');
+
+  const uploadModal = new UploadModal(modal, {
+    onSubmit: function() { form.submit(); },
+    onCancel: function() {
+      fileInput.value = '';
+      titleInput.value = '';
+    }
+  });
+
+  if (dropzone) {
+    dropzone.addEventListener('click', function(e) {
+      if (e.target !== dropzoneInput) dropzoneInput.click();
+    });
+  }
+
+  if (dropzoneInput) {
+    dropzoneInput.addEventListener('change', function(e) {
+      if (e.target.files.length > 0) {
+        const file = e.target.files[0];
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(file);
+        fileInput.files = dataTransfer.files;
+        titleInput.value = file.name.replace(/\.[^/.]+$/, '');
+        uploadModal.open(file);
+        dropzoneInput.value = '';
+      }
+    });
+  }
+});
+</script>
+{% endif %}

@@ -4,25 +4,22 @@ from __future__ import annotations
 
 import json
 
-import pytest
 from langchain_core.messages import HumanMessage
 
+from ai.agents.critic import critic_node
+from ai.agents.deep_research import _last_user_message_text, deep_research_node
+from ai.agents.progress_tracker import progress_tracker_node
+from ai.agents.recommendations import recommendations_node
+from ai.agents.research import _register_document_listings, research_node
+from ai.agents.weekly_planner import weekly_planner_node
+from ai.agents.weekly_summary import weekly_summary_node
 from ai.agents.writer import (
     _append_missing_sources,
     _build_sources_block,
     _normalize_sources,
     writer_node,
 )
-from ai.agents.critic import critic_node
-from ai.agents.research import research_node, _register_document_listings
-from ai.agents.deep_research import deep_research_node, _last_user_message_text
-from ai.agents.recommendations import recommendations_node
-from ai.agents.weekly_summary import weekly_summary_node
-from ai.agents.weekly_planner import weekly_planner_node
-from ai.agents.progress_tracker import progress_tracker_node
-
 from tests._fakes import ScriptedLLM
-
 
 # ---------------------------------------------------------------------------
 # Helpers de writer
@@ -206,8 +203,8 @@ class TestDeepResearchNode:
         assert _last_user_message_text([]) == ""
 
     def test_runs_with_error_from_provider(self, monkeypatch):
-        from ai.services.deep_search_service import DeepSearchError
         import ai.agents.deep_research as deep_research_mod
+        from ai.services.deep_search_service import DeepSearchError
 
         def _boom(*a, **k):
             raise DeepSearchError("test")

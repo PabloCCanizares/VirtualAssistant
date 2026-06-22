@@ -34,18 +34,12 @@
       <span class="sidebar-nav-icon"></span>
       Tareas
     </a>
-    <a href="{{ url_for('dashboard_bp.estadisticas') }}"
-       class="sidebar-nav-item"
-       {% if page == 'estadisticas' %}aria-current="page"{% endif %}>
-      <span class="sidebar-nav-icon"></span>
-      Estadisticas
-    </a>
 
     <a href="{{ url_for('dashboard_bp.config') }}"
        class="sidebar-nav-item"
        {% if page == 'config' %}aria-current="page"{% endif %}>
       <span class="sidebar-nav-icon"></span>
-      Configuracion
+      Configuración
     </a>
 
   </nav>
@@ -60,12 +54,6 @@
   <!-- Categorias -->
   <div class="sidebar-section">
     <div class="sidebar-section-title">Categorias</div>
-    {% if sidebar_categories and sidebar_categories|length > 0 %}
-      {% for category in sidebar_categories %}
-        <div class="sidebar-pill">🏷️ {{ category.get("name", "") }}</div>
-      {% endfor %}
-    {% else %}
-      <div class="sidebar-pill">🏷️ Sin categorias</div>
-    {% endif %}
+    <div id="sidebar-categories"></div>
   </div>
 </aside>

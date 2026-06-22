@@ -12,7 +12,6 @@ from __future__ import annotations
 
 from datetime import datetime
 
-import pytest
 from bson import ObjectId
 
 from database import mongo_conn

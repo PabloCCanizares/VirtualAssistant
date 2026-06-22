@@ -6,8 +6,6 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/goal_detail.css') }}">
 
 <section class="mission-shell">
-  {% include "partials/goals_templates/goal_header.html" %}
-
   <div class="mission-grid">
     <section class="mission-main">
       <section class="panel-container">
@@ -181,7 +179,7 @@
                   <div class="item-meta">
                     {% if task['fecha_limite'] %}
                     <span class="item-meta-tag deadline">
-                      📅 {{ task['fecha_limite'] }}
+                      {{ task['fecha_limite'] }}
                     </span>
                     {% endif %}
                     {% set estado = task.get('estado', 'pendiente')|lower %}
@@ -294,7 +292,7 @@
           </ul>
           {% else %}
           <div class="empty-state">
-            <div class="empty-state-icon">📝</div>
+            <div class="empty-state-icon"></div>
             <h4 class="empty-state-title">No hay tareas asociadas</h4>
             <p class="empty-state-desc">Este objetivo aun no tiene tareas. Puedes asignar tareas desde la seccion de Tareas.</p>
           </div>
@@ -339,7 +337,7 @@
     <div class="panel-section panel-accent">
       <div class="panel-header">
         <h3 class="panel-title">
-          <span class="panel-title-icon">✏️</span>
+          <span class="panel-title-icon"></span>
           Editar objetivo
         </h3>
       </div>

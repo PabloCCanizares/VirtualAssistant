@@ -16,6 +16,27 @@
   --shadow: 0 16px 48px rgba(0,0,0,.45);
   --glow: 0 0 32px rgba(108,243,255,.35);
   --radius: 16px;
+
+  /* Movido desde panels.css */
+  --panel-bg: linear-gradient(135deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+  --panel-border: rgba(255,255,255,.08);
+  --panel-radius: 16px;
+  --panel-shadow: 0 8px 32px rgba(0,0,0,.35);
+  --panel-glow: 0 0 24px rgba(108,243,255,.2);
+  --input-bg: #0c1324;
+  --input-border: rgba(255,255,255,.10);
+  --input-focus: rgba(108,243,255,.4);
+  --btn-gradient: linear-gradient(180deg, rgba(108,243,255,.15), rgba(139,123,255,.12));
+  --btn-gradient-hover: linear-gradient(180deg, rgba(108,243,255,.25), rgba(139,123,255,.20));
+  --btn-primary: linear-gradient(90deg, var(--accent), var(--accent-2));
+  --btn-danger: linear-gradient(180deg, rgba(255,107,136,.20), rgba(255,107,136,.12));
+  --btn-danger-hover: linear-gradient(180deg, rgba(255,107,136,.35), rgba(255,107,136,.25));
+  --btn-success: linear-gradient(90deg, var(--good), #2fd19e);
+
+  /* Estilo unificado de tarjeta */
+  --card-bg: linear-gradient(135deg, rgba(16,24,43,.95), rgba(11,15,26,.9));
+  --card-border: rgba(108,243,255,.25);
+  --card-shadow: 0 16px 48px rgba(0,0,0,.4), 0 0 32px rgba(108,243,255,.15);
 }
 *{box-sizing:border-box}
 html,body{height:100%}
@@ -146,6 +167,8 @@ main{
 .mission-side-panel{
   position: sticky;
   top: 24px;
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
   padding:0;
   background:transparent;
   border:none;
@@ -443,7 +466,7 @@ main{
   transition: all 0.25s ease;
 }
 
-/* 🟦 Cuando pasas el ratón encima */
+/* Cuando pasas el ratón encima */
 .form .submit:hover {
   background: linear-gradient(180deg, rgba(108, 243, 255, .35), rgba(139, 123, 255, .30));
   border-color: rgba(108, 243, 255, .6);
@@ -453,7 +476,7 @@ main{
   box-shadow: 0 6px 14px rgba(108, 243, 255, .25);
 }
 
-/* 🟩 Cuando haces clic */
+/* Cuando haces clic */
 .form .submit:active {
   transform: translateY(0);
   box-shadow: 0 3px 8px rgba(108, 243, 255, .2);
@@ -659,14 +682,21 @@ main{
 }
 
 /* ====== Scrollbar personalizado (dark) ====== */
-.calendar-container *::-webkit-scrollbar{ width:8px; height:8px; }
-.calendar-container *::-webkit-scrollbar-thumb{
+.calendar-container *::-webkit-scrollbar,
+.mission-side-panel::-webkit-scrollbar{ width:8px; height:8px; }
+.calendar-container *::-webkit-scrollbar-thumb,
+.mission-side-panel::-webkit-scrollbar-thumb{
   background: linear-gradient(180deg, var(--accent), var(--accent-2));
   border-radius:8px;
 }
-.calendar-container *::-webkit-scrollbar-track{
+.calendar-container *::-webkit-scrollbar-track,
+.mission-side-panel::-webkit-scrollbar-track{
   background: rgba(255,255,255,0.06);
   border-radius:8px;
+}
+.mission-side-panel{
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent) rgba(255,255,255,0.06);
 }
 
 /* Helpers */

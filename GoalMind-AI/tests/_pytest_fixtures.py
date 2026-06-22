@@ -161,10 +161,10 @@ def patch_llm(monkeypatch):
     def _patch(llm_instance):
         import sys
 
-        from ai import config as ai_config
         import ai.graph as graph_module
+        from ai import config as ai_config
 
-        fake = lambda model=None: llm_instance  # noqa: E731
+        fake = lambda model=None, provider=None: llm_instance  # noqa: E731
 
         monkeypatch.setattr(ai_config, "build_llm", fake)
         monkeypatch.setattr(graph_module, "build_llm", fake)

@@ -17,6 +17,9 @@ class ConfirmModal {
   init() {
     // Obtener referencias a los elementos
     this.modal = document.getElementById('confirmModal');
+    if (!this.modal) {
+      return;
+    }
     this.overlay = this.modal.querySelector('.confirm-modal-overlay');
     this.title = this.modal.querySelector('#confirmModalTitle');
     this.body = this.modal.querySelector('#confirmModalBody');
@@ -59,6 +62,10 @@ class ConfirmModal {
       callback = null
     } = options;
 
+    if (!this.modal) {
+      return false;
+    }
+
     this.title.textContent = title;
     this.body.textContent = message;
     this.pendingForm = form;
@@ -66,6 +73,7 @@ class ConfirmModal {
 
     this.modal.classList.add('active');
     this.modal.setAttribute('aria-hidden', 'false');
+    return true;
   }
 
   confirm() {
@@ -106,11 +114,14 @@ document.addEventListener('DOMContentLoaded', () => {
       e.preventDefault();
 
       // Mostrar el modal
-      confirmModal.show({
+      const shown = confirmModal.show({
         title: '¿Confirmar?',
         message: confirmMessage,
         form: form
       });
+      if (!shown && window.confirm(confirmMessage)) {
+        form.submit();
+      }
     }
   }, true); // Usar captura para interceptar antes que otros handlers
 });

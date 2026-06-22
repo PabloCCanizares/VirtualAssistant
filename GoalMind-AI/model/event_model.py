@@ -1,17 +1,11 @@
 from bson import ObjectId
-from database.mongo_conn import get_collection, get_app_user_id
+
+from database.mongo_conn import get_app_user_id, get_collection, remote_uid_filter
 
 
-def _uid_filter(usuario_id):
-    """Construye filtro que matchea tanto string como ObjectId."""
-    uid = usuario_id or get_app_user_id()
-    conditions = [{"usuario_id": uid}]
-    try:
-        if ObjectId.is_valid(str(uid)):
-            conditions.append({"usuario_id": ObjectId(str(uid))})
-    except Exception:
-        pass
-    return {"$or": conditions} if len(conditions) > 1 else conditions[0]
+def _uid_filter(_=None):
+    """Local: sin filtro por usuario (BD de un solo usuario)."""
+    return {}
 
 
 class eventModel:
@@ -84,11 +78,12 @@ class eventModel:
     def update_event(event_id: str, updates: dict, usuario_id=None):
         local_col, cloud_col = get_collection(eventModel.COLLECTION)
         oid = ObjectId(event_id) if not isinstance(event_id, ObjectId) else event_id
-        query = {"_id": oid, **_uid_filter(usuario_id)}
-        local_col.update_one(query, {"$set": updates})
+        local_query = {"_id": oid}
+        local_col.update_one(local_query, {"$set": updates})
         if cloud_col is not None:
+            remote_query = {"_id": oid, **remote_uid_filter(usuario_id)}
             try:
-                cloud_col.update_one(query, {"$set": updates})
+                cloud_col.update_one(remote_query, {"$set": updates})
             except Exception:
                 pass
 
@@ -96,11 +91,12 @@ class eventModel:
     def delete_event(event_id: str, usuario_id=None):
         local_col, cloud_col = get_collection(eventModel.COLLECTION)
         oid = ObjectId(event_id) if not isinstance(event_id, ObjectId) else event_id
-        query = {"_id": oid, **_uid_filter(usuario_id)}
-        local_col.delete_one(query)
+        local_query = {"_id": oid}
+        local_col.delete_one(local_query)
         if cloud_col is not None:
+            remote_query = {"_id": oid, **remote_uid_filter(usuario_id)}
             try:
-                cloud_col.delete_one(query)
+                cloud_col.delete_one(remote_query)
             except Exception:
                 pass
 
@@ -115,11 +111,12 @@ class eventModel:
                 continue
         if not oids:
             return 0
-        query = {"_id": {"$in": oids}, **_uid_filter(usuario_id)}
-        res = local_col.delete_many(query)
+        local_query = {"_id": {"$in": oids}}
+        res = local_col.delete_many(local_query)
         if cloud_col is not None:
+            remote_query = {"_id": {"$in": oids}, **remote_uid_filter(usuario_id)}
             try:
-                cloud_col.delete_many(query)
+                cloud_col.delete_many(remote_query)
             except Exception:
                 pass
         return res.deleted_count

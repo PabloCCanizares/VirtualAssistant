@@ -40,7 +40,6 @@ from collections import defaultdict
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
 
 logging.basicConfig(level=logging.WARNING, format="%(levelname)s %(name)s: %(message)s")
 logger = logging.getLogger("eval")
@@ -121,10 +120,10 @@ def setup_mongo(fixture: dict):
     import mongomock
     from bson import ObjectId
 
-    from database import gridfs_storage, mongo_conn
-
     # Workaround pymongo 4.15+ vs mongomock 4.3 (kwarg `sort` en bulk_write).
     from mongomock.collection import BulkOperationBuilder
+
+    from database import gridfs_storage, mongo_conn
 
     for method in ("add_replace", "add_update_one", "add_update_many"):
         if hasattr(BulkOperationBuilder, method):
@@ -158,8 +157,9 @@ def setup_mongo(fixture: dict):
             return fid
 
         def open_download_stream(self, fid):
-            from gridfs.errors import NoFile
             from io import BytesIO
+
+            from gridfs.errors import NoFile
             fid = ObjectId(str(fid))
             if fid not in self.files:
                 raise NoFile(str(fid))
@@ -217,8 +217,8 @@ class GraphProbe:
         self.draft_response_seen: str = ""
 
     def install(self):
-        from ai.agents import supervisor as supervisor_mod
         from ai.agents import action_planner as planner_mod
+        from ai.agents import supervisor as supervisor_mod
 
         original_supervisor = supervisor_mod.supervisor_node
         original_planner = planner_mod.action_planner_node

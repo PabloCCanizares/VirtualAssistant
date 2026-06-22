@@ -2,11 +2,9 @@
 
   {% if selected_task %}
   <!-- Modo edicion de tarea existente (colapsable) -->
-  <div class="side-panel-card collapsible">
+  <div class="side-panel-card">
     <div class="side-panel-header">
-      <span class="side-panel-icon">✏️</span>
       <h3 class="side-panel-title">Editar tarea</h3>
-      <span class="side-panel-toggle"></span>
     </div>
 
     <div class="side-panel-card-content">
@@ -84,11 +82,9 @@
 
   {% else %}
   <!-- Modo creacion de nueva tarea (colapsable) -->
-  <div class="side-panel-card collapsible">
+  <div class="side-panel-card">
     <div class="side-panel-header">
-      <span class="side-panel-icon">➕</span>
       <h3 class="side-panel-title">Nueva tarea</h3>
-      <span class="side-panel-toggle"></span>
     </div>
 
     <div class="side-panel-card-content">
@@ -173,24 +169,6 @@
     </div>
   </div>
   {% endif %}
-
-  <!-- Seccion de ayuda rapida (no colapsable - sin form) -->
-  <div class="side-panel-card">
-    <div class="side-panel-header">
-      <span class="side-panel-icon">💡</span>
-      <h3 class="side-panel-title">Consejos</h3>
-    </div>
-    <div class="ai-suggestion-item">
-      <strong>Organiza tus tareas</strong>
-      <p>Asocia cada tarea a un objetivo para mejor seguimiento de tu progreso.</p>
-    </div>
-    <div class="ai-suggestion-item">
-      <strong>Prioriza</strong>
-      <p>Usa las prioridades para enfocarte en lo mas importante primero.</p>
-    </div>
-  </div>
-
 </aside>
 
-<script src="{{ url_for('static', filename='js/side_panel_collapsible.js') }}"></script>
 <script src="{{ url_for('static', filename='js/category_selector.js') }}"></script>

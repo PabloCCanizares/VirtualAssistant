@@ -8,6 +8,9 @@
   <!-- Estilo general de la app -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 
+  <!-- Componentes visuales compartidos -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
+
   <!-- Dashboard CSS -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
 
@@ -25,6 +28,21 @@
 
   <!-- AI Chat Overlay -->
   {% include "partials/magicbox_templates/ai_chat.html" %}
+
+  <div id="confirmModal" class="confirm-modal" aria-hidden="true">
+    <div class="confirm-modal-overlay" data-action="cancel"></div>
+    <div class="confirm-modal-content" role="dialog" aria-modal="true" aria-labelledby="confirmModalTitle">
+      <div class="confirm-modal-header">
+        <h2 id="confirmModalTitle" class="confirm-modal-title">¿Confirmar?</h2>
+        <button type="button" class="confirm-modal-close" data-action="cancel" aria-label="Cerrar">×</button>
+      </div>
+      <p id="confirmModalBody" class="confirm-modal-body"></p>
+      <div class="confirm-modal-actions">
+        <button type="button" class="panel-action-btn secondary" data-action="cancel">Cancelar</button>
+        <button type="button" class="panel-action-btn danger" data-action="confirm">Confirmar</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Chart.js OFFLINE -->
   <script src="{{ url_for('static', filename='js/chart.umd.js') }}"></script>

@@ -1,7 +1,6 @@
 import threading
 from typing import Any, Dict, Optional
 
-
 _pending_actions: Dict[str, Dict[str, Any]] = {}
 _lock = threading.Lock()
 

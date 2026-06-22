@@ -12,7 +12,6 @@ import json
 import pytest
 from bson import ObjectId
 
-from ai.agents import action_executor
 from ai.agents.action_executor import (
     _build_update_fields,
     _delete_goal_cascade,

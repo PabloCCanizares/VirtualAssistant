@@ -1,6 +1,7 @@
-from flask import Blueprint, request, jsonify
-from model.category_model import CategoryModel
+from flask import Blueprint, jsonify, request
+
 from database.mongo_conn import get_app_user_id
+from model.category_model import CategoryModel
 
 category_bp = Blueprint("category_bp", __name__, url_prefix="/categories")
 DEFAULT_USER_ID = get_app_user_id()

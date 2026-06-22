@@ -1,4 +1,4 @@
-﻿import json
+import json
 import logging
 from typing import Any, Dict, List
 
@@ -78,7 +78,7 @@ def action_planner_node(state: AppState, llm) -> AppState:
     messages.extend(state.get("messages", []))
 
     try:
-        raw = invoke_with_retry(llm, messages)
+        raw = invoke_with_retry(llm, messages, retries=1)
     except LLMInvokeError:
         logger.exception("action_planner_node: error invocando LLM")
         return {"final_response": "No pude planificar las acciones en este momento."}
@@ -127,5 +127,3 @@ def action_planner_node(state: AppState, llm) -> AppState:
         "action_result_id": None,
         "action_result_message": None,
     }
-
-

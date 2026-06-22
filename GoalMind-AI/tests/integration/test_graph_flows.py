@@ -22,7 +22,6 @@ import pytest
 from bson import ObjectId
 
 from tests._fakes import (
-    ScriptedLLM,
     action_planner_response,
     supervisor_response,
 )
@@ -200,8 +199,8 @@ class TestDeepResearchFallback:
         monkeypatch.setenv("DEEP_SEARCH_PROVIDER", "tavily")
         monkeypatch.setenv("DEEP_SEARCH_API_KEY", "fake-key")
 
-        from ai.services.deep_search_service import DeepSearchError
         import ai.agents.deep_research as deep_research_agent
+        from ai.services.deep_search_service import DeepSearchError
 
         def _broken_run(*_args, **_kwargs):
             raise DeepSearchError("proveedor no disponible (test)")
@@ -330,7 +329,7 @@ class TestDocumentalWriteNote:
         })
         patch_llm(llm)
 
-        events = _consume_stream("añade una nota al proyecto TFG: esta es mi anotacion")
+        _consume_stream("añade una nota al proyecto TFG: esta es mi anotacion")
         # El proyecto ahora tiene una nota con el texto extraido por el LLM.
         project = mongo_mock.local_db["Projects"].find_one({"_id": project_id})
         assert project is not None

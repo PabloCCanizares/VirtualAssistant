@@ -9,7 +9,7 @@
   // Mapeo de data-stat a endpoint
   const STAT_ENDPOINTS = {
     'tasks_completed_month': '/stats/tasks_completed_month',
-    'goals_progress': '/stats/goals_progress',
+    'projects_progress': '/stats/projects_progress',
     'tasks_relevance': '/stats/tasks_relevance',
     'events_by_type': '/stats/events_by_type'
   };
@@ -56,7 +56,7 @@
       cell.classList.remove('loading');
       cell.innerHTML = `
         <div class="panel-placeholder error">
-          <span class="panel-placeholder-icon">⚠️</span>
+          <span class="panel-placeholder-icon">!</span>
           <span>Error al cargar</span>
           <button class="stat-retry-btn" data-stat="${statName}">Reintentar</button>
         </div>

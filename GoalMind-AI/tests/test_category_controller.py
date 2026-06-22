@@ -6,8 +6,8 @@ Se utiliza el test client de Flask y se monkeypatchean los metodos estaticos de
 
 from __future__ import annotations
 
-from bson import ObjectId
 import pytest
+from bson import ObjectId
 from flask import Flask
 
 from controllers import category_controller

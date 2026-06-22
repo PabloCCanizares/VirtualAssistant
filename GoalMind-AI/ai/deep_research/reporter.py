@@ -10,7 +10,6 @@ from ai.deep_research.types import DeepResearchRuntimeConfig
 from ai.prompts.deep_research_report_prompt import DEEP_RESEARCH_REPORT_PROMPT
 from ai.services.llm_utils import LLMInvokeError, invoke_with_retry
 
-
 logger = logging.getLogger(__name__)
 
 

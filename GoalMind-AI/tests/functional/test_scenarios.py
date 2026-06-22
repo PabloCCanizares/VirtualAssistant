@@ -825,7 +825,6 @@ class TestEscenario09InvestigacionProfunda:
     def test_deep_research_returns_report_with_cited_sources(
         self, flask_client, patch_llm, monkeypatch
     ):
-        from langchain_core.messages import HumanMessage
 
         # Activar el modo deep search a nivel de configuración.
         monkeypatch.setenv("DEEP_SEARCH_ENABLED", "1")

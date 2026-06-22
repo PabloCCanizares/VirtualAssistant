@@ -7,7 +7,6 @@ from urllib.request import Request, urlopen
 
 from ai.config import DeepSearchConfig, get_deep_search_config
 
-
 logger = logging.getLogger(__name__)
 
 

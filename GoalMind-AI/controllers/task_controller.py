@@ -1,12 +1,13 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
-from model.task_model import TaskModel
-from bson import ObjectId
 from datetime import datetime
 
+from bson import ObjectId
+from flask import Blueprint, flash, jsonify, redirect, render_template, request, url_for
+
+from database.mongo_conn import get_app_user_id
+from model.category_model import CategoryModel
 from model.goal_model import GoalModel
 from model.project_model import ProjectModel
-from model.category_model import CategoryModel
-from database.mongo_conn import get_app_user_id
+from model.task_model import TaskModel
 
 task_bp = Blueprint("task_bp", __name__, url_prefix="/tasks")
 DEFAULT_USER_ID = get_app_user_id()
@@ -103,7 +104,7 @@ def _load_goal_context():
 
 
 # -------------------------------------------------------------
-# 📋 LISTAR TODAS LAS TAREAS
+# LISTAR TODAS LAS TAREAS
 # -------------------------------------------------------------
 @task_bp.route("/", methods=["GET"])
 def list_tasks():
@@ -122,12 +123,13 @@ def list_tasks():
         projects_with_goals=projects_with_goals,
         categories=categories,
         category_names=category_names,
-        selected_category=None,
+        selected_categories=[],
+        selected_nombre="",
         page="list"
     )
 
 # -------------------------------------------------------------
-# 🔍 OBTENER UNA TAREA POR ID
+# OBTENER UNA TAREA POR ID
 # -------------------------------------------------------------
 @task_bp.route("/<task_id>", methods=["GET"])
 def view_task(task_id):
@@ -157,7 +159,7 @@ def view_task(task_id):
         return redirect(url_for("task_bp.list_tasks"))
     
 # -------------------------------------------------------------
-# 🔍 OBTENER UNA TAREA POR USUARIO
+# OBTENER UNA TAREA POR USUARIO
 # -------------------------------------------------------------
 @task_bp.route("/user", methods=["GET"])
 @task_bp.route("/user/<user_id>", methods=["GET"])
@@ -190,7 +192,7 @@ def list_tasks_by_user(user_id=None):
         flash(f"Error al obtener las tareas del usuario: {e}", "danger")
         return redirect(url_for("task_bp.list_tasks"))
 # -------------------------------------------------------------
-# ➕ CREAR UNA NUEVA TAREA
+# CREAR UNA NUEVA TAREA
 # -------------------------------------------------------------
 @task_bp.route("/add", methods=["POST"])
 def add_task():
@@ -201,14 +203,15 @@ def add_task():
             flash("Debes seleccionar un objetivo para crear una tarea.", "warning")
             return redirect(url_for("task_bp.list_tasks"))
 
-        # Procesar categorias (pueden venir como lista o string separado por comas)
-        categorias_raw = request.form.getlist("categorias")
-        if not categorias_raw:
-            # Intentar como string separado por comas
-            cat_str = request.form.get("categorias", "")
-            if cat_str:
-                categorias_raw = [c.strip() for c in cat_str.split(",") if c.strip()]
-        
+        # Procesar categorias: el selector envia un hidden input con IDs
+        # separados por comas, por lo que hay que aplanar cada entrada.
+        categorias_raw = []
+        for item in request.form.getlist("categorias"):
+            for part in str(item).split(","):
+                part = part.strip()
+                if part:
+                    categorias_raw.append(part)
+
         # Convertir a ObjectIds
         categorias = []
         for cat_id in categorias_raw:
@@ -238,19 +241,24 @@ def add_task():
 
 
 # -------------------------------------------------------------
-# ✏️ ACTUALIZAR UNA TAREA EXISTENTE
+# ACTUALIZAR UNA TAREA EXISTENTE
 # -------------------------------------------------------------
 @task_bp.route("/update/<task_id>", methods=["POST"])
 def update_task(task_id):
     """Actualiza una tarea existente y la sincroniza."""
     try:
-        # Procesar categorias
-        categorias_raw = request.form.getlist("categorias")
-        if not categorias_raw:
-            cat_str = request.form.get("categorias", "")
-            if cat_str:
-                categorias_raw = [c.strip() for c in cat_str.split(",") if c.strip()]
-        
+        # DEBUG: ver que manda realmente el form
+        print(f"[update_task] form = {dict(request.form.lists())}")
+
+        # Procesar categorias: aplanar CSV del hidden input del selector.
+        categorias_raw = []
+        for item in request.form.getlist("categorias"):
+            for part in str(item).split(","):
+                part = part.strip()
+                if part:
+                    categorias_raw.append(part)
+        print(f"[update_task] categorias_raw = {categorias_raw}")
+
         categorias = []
         for cat_id in categorias_raw:
             try:
@@ -285,16 +293,16 @@ def update_task(task_id):
 
 
 # -------------------------------------------------------------
-# 🗑️ ELIMINAR UNA TAREA
+#  ELIMINAR UNA TAREA
 # -------------------------------------------------------------
 @task_bp.route("/delete/<task_id>", methods=["POST"])
 def delete_task(task_id):
     """Elimina una tarea local y remota."""
     try:
         TaskModel.delete_task(task_id, usuario_id=DEFAULT_USER_ID)
-        flash("🗑️ Tarea eliminada correctamente", "success")
+        flash(" Tarea eliminada correctamente", "success")
     except Exception as e:
-        flash(f"❌ Error al eliminar la tarea: {e}", "danger")
+        flash(f" Error al eliminar la tarea: {e}", "danger")
 
     return redirect(url_for("task_bp.list_tasks"))
 
@@ -309,9 +317,15 @@ def filter_by_category():
     Busca en todas las tareas sin importar el usuario dueno.
     """
     nombre = request.args.get("nombre", "").strip()
-    categoria_ids = request.args.getlist("categoria")
-    
-    # Usar el nuevo metodo de busqueda combinada
+    # Acepta tanto ?categoria=id1&categoria=id2 como ?categoria=id1,id2,id3
+    raw_cats = request.args.getlist("categoria")
+    categoria_ids = []
+    for item in raw_cats:
+        for part in item.split(","):
+            part = part.strip()
+            if part:
+                categoria_ids.append(part)
+
     tasks = TaskModel.search_tasks(nombre=nombre, category_ids=categoria_ids if categoria_ids else None, usuario_id=DEFAULT_USER_ID)
     tasks_view = [_serialize_task(t) for t in tasks]
     goals_view, goal_titles, goal_project_titles, projects_with_goals = _load_goal_context()
@@ -330,11 +344,11 @@ def filter_by_category():
         selected_task=None,
         page="filter",
         selected_categories=categoria_ids,
-        selected_nombre=nombre
+        selected_nombre=nombre,
     )
 
 # -------------------------------------------------------------
-# 🔎 BUSCAR POR ID 07-11-2025
+#  BUSCAR POR ID 07-11-2025
 # -------------------------------------------------------------
 @task_bp.route("/search", methods=["GET"])
 def search_by_id():
@@ -368,7 +382,7 @@ def search_by_id():
 
 
 # -------------------------------------------------------------
-# 🗑️🗑️ ELIMINACIÓN MASIVA (POST)
+#  ELIMINACIÓN MASIVA (POST)
 # -------------------------------------------------------------
 @task_bp.route("/bulk-delete", methods=["POST"])
 def bulk_delete_tasks():
@@ -441,7 +455,7 @@ def bulk_assign_goal():
 
 
 # -------------------------------------------------------------
-# 📅 API: TAREAS POR RANGO DE FECHAS (para mini calendario)
+# API: TAREAS POR RANGO DE FECHAS (para mini calendario)
 # -------------------------------------------------------------
 @task_bp.route("/api/by-date-range", methods=["GET"])
 def get_tasks_by_date_range():

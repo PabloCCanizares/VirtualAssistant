@@ -13,11 +13,11 @@
       <strong>% relevancia:</strong> {{ data.percentage_of_relevance }}%
     </div>
     <table class="stats-table">
-      <thead><tr><th>Tarea</th><th>Prioridad</th><th>Puntos</th><th>Estado</th></tr></thead>
+      <thead><tr><th>Tarea</th><th>Prioridad</th><th>Estado</th></tr></thead>
       <tbody>
         {% for t in data.month_tasks %}
         <tr>
-          <td>{{ t.contenido }}</td><td>{{ t.prioridad }}</td><td>{{ t.points }}</td><td>{{ t.estado }}</td>
+          <td>{{ t.contenido }}</td><td>{{ t.prioridad }}</td><td>{{ t.estado }}</td>
         </tr>
         {% endfor %}
       </tbody>
@@ -34,10 +34,10 @@
     const byPrio = { 'Alta':0, 'Media':0, 'Baja':0, 'Otra':0 };
     rows.forEach(r => {
       const p = (r.prioridad || '').toLowerCase();
-      if (p === 'alta') byPrio.Alta += r.points;
-      else if (p === 'media') byPrio.Media += r.points;
-      else if (p === 'baja') byPrio.Baja += r.points;
-      else byPrio.Otra += r.points;
+      if (p === 'alta') byPrio.Alta += 1;
+      else if (p === 'media') byPrio.Media += 1;
+      else if (p === 'baja') byPrio.Baja += 1;
+      else byPrio.Otra += 1;
     });
     const labels = Object.keys(byPrio);
     const values = Object.values(byPrio);

@@ -46,7 +46,6 @@
         {% if goals and goals|length > 0 %}
           {% for goal in goals %}
             <div class="tree-item folder tree-item-goal" data-goal-id="{{ goal['_id'] }}">
-              <span class="tree-item-toggle">▶</span>
               <span class="tree-item-icon"></span>
               <span class="tree-item-text">{{ goal.get('titulo') }}</span>
               <span class="tree-item-badge">{{ (goal_tasks.get(goal['_id'], [])|length) if goal_tasks else 0 }} tareas</span>
@@ -56,10 +55,10 @@
                     class="tree-item-action"
                     style="display: inline;">
                 <input type="hidden" name="redirect_to" value="{{ url_for('project_bp.view_project', project_id=project['_id']) }}">
-                <button type="submit" class="panel-action-btn panel-action-btn-small danger tree-item-delete" title="Eliminar objetivo">🗑️</button>
+                <button type="submit" class="panel-action-btn panel-action-btn-small danger tree-item-delete" title="Eliminar objetivo">Eliminar</button>
               </form>
             </div>
-            <div class="tree-children tree-tasks-container" data-goal-id="{{ goal['_id'] }}" style="display: none;">
+            <div class="tree-children tree-tasks-container" data-goal-id="{{ goal['_id'] }}" style="display: block;">
               {% set tasks = goal_tasks.get(goal['_id'], []) if goal_tasks else [] %}
               {% if tasks|length > 0 %}
                 {% for task in tasks %}
@@ -79,7 +78,7 @@
           {% endfor %}
         {% else %}
           <div class="empty-state" style="padding: 24px;">
-            <div class="empty-state-icon">🌱</div>
+            <div class="empty-state-icon"></div>
             <p class="empty-state-desc">Agrega objetivos a este proyecto para verlos aqui.</p>
           </div>
         {% endif %}
@@ -90,7 +89,6 @@
     <div class="panel-section panel-accent project-docs-section">
       <div class="panel-header">
         <h3 class="panel-title">
-          <span class="panel-title-icon">📎</span>
           Documentos del proyecto
         </h3>
         <span class="panel-badge">{{ documents|length if documents else 0 }} archivos</span>
@@ -99,7 +97,7 @@
         {% if documents and documents|length > 0 %}
         <ul class="item-list" style="max-height: 480px;">
           {% for doc in documents %}
-          <li class="item-card item-card-compact">
+          <li class="item-card item-card-compact project-document-card">
             <div class="item-card-header">
               <div class="item-content">
                 <h4 class="item-title item-title-small">{{ doc.get('original_name', doc.get('filename')) }}</h4>
@@ -111,7 +109,16 @@
                 </div>
               </div>
               <div class="panel-actions panel-actions-compact">
-                <a class="panel-action-btn panel-action-btn-small" href="{{ url_for('project_bp.view_document', doc_id=doc['_id']) }}" target="_blank" rel="noopener" title="Ver">
+                <button class="panel-action-btn panel-action-btn-small success js-summarize-doc"
+                        data-doc-id="{{ doc['_id'] }}"
+                        data-project-id="{{ project['_id'] }}"
+                        title="Resumir y guardar como nota">Resumir</button>
+                <a class="panel-action-btn panel-action-btn-small js-view-document"
+                   href="{{ url_for('project_bp.view_document', doc_id=doc['_id']) }}"
+                   data-view-url="{{ url_for('project_bp.view_document', doc_id=doc['_id']) }}"
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   title="Ver documento">
                   Ver
                 </a>
                 <a class="panel-action-btn panel-action-btn-small" href="{{ url_for('project_bp.download_document', doc_id=doc['_id']) }}" title="Descargar">
@@ -130,7 +137,7 @@
         </ul>
         {% else %}
         <div class="empty-state" style="padding: 24px;">
-          <div class="empty-state-icon">📎</div>
+          <div class="empty-state-icon"></div>
           <p class="empty-state-desc">Sube archivos desde el panel derecho.</p>
         </div>
         {% endif %}
@@ -143,7 +150,6 @@
   <div class="panel-section panel-accent project-notes-section">
     <div class="panel-header">
       <h3 class="panel-title">
-        <span class="panel-title-icon">📝</span>
         Anotaciones del proyecto
       </h3>
       <span class="panel-badge">{{ (project.get('notas', [])|length) if project else 0 }} notas</span>
@@ -369,30 +375,9 @@
     </div>
   </div>
 
-</section>
+  <div id="docActionSnackbar" class="snackbar" style="display:none;"></div>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  // Toggle para expandir/colapsar tareas de cada objetivo en el arbol
-  document.querySelectorAll('.tree-item-goal').forEach(item => {
-    item.addEventListener('click', function(e) {
-      if (e && e.target && e.target.closest('form, button')) {
-        return;
-      }
-      const goalId = this.dataset.goalId;
-      const tasksContainer = document.querySelector(`.tree-tasks-container[data-goal-id="${goalId}"]`);
-      const toggle = this.querySelector('.tree-item-toggle');
-      
-      if (tasksContainer) {
-        const isVisible = tasksContainer.style.display !== 'none';
-        tasksContainer.style.display = isVisible ? 'none' : 'block';
-        toggle.textContent = isVisible ? '▶' : '▼';
-        this.classList.toggle('expanded', !isVisible);
-      }
-    });
-  });
-});
-</script>
+</section>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -460,6 +445,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.js-view-document').forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const viewUrl = link.dataset.viewUrl || link.href;
+      window.open(viewUrl, '_blank', 'noopener');
+    });
+  });
+
   const modal = document.getElementById('projectNoteModal');
   const modalBody = document.getElementById('projectNoteModalBody');
   const modalDate = document.getElementById('projectNoteModalDate');

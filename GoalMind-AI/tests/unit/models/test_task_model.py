@@ -150,10 +150,9 @@ class TestUpdateTask:
 
     def test_update_estado_recalculates_goal_progress(self, mongo_mock):
         # Seed: un goal y dos tasks
-        from model.goal_model import GoalModel
         goal_id = ObjectId()
         mongo_mock.local_db["Goals"].insert_one({"_id": goal_id, "titulo": "G", "usuario_id": USER_ID})
-        t1 = _insert_task(mongo_mock, "t1", objetivo_id=goal_id, estado="completada")
+        _insert_task(mongo_mock, "t1", objetivo_id=goal_id, estado="completada")
         t2 = _insert_task(mongo_mock, "t2", objetivo_id=goal_id, estado="pendiente")
 
         TaskModel.update_task(t2["_id"], {"estado": "completada"})
