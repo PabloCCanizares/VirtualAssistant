@@ -35,6 +35,17 @@ class TestQueries:
         assert ProjectModel.get_project_by_id(p["_id"]) is not None
         assert ProjectModel.get_project_by_id(str(p["_id"])) is not None
 
+    def test_legacy_nombre_is_exposed_as_titulo(self, mongo_mock):
+        p = {"_id": ObjectId(), "nombre": "Proyecto heredado", "usuario_id": USER_ID}
+        mongo_mock.local_db["Projects"].insert_one(p)
+
+        listed = ProjectModel.get_all_projects()
+        found = ProjectModel.get_project_by_id(p["_id"])
+
+        assert listed[0]["titulo"] == "Proyecto heredado"
+        assert found["titulo"] == "Proyecto heredado"
+        assert found["nombre"] == "Proyecto heredado"
+
     def test_find_by_category(self, mongo_mock):
         cat = ObjectId()
         _insert_project(mongo_mock, categorias=[cat])

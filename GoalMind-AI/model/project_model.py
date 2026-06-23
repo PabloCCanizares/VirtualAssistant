@@ -15,6 +15,27 @@ def _uid_filter(_=None):
     return {}
 
 
+def _normalize_project_title(project):
+    if not project:
+        return project
+
+    normalized = dict(project)
+    if normalized.get("titulo"):
+        return normalized
+
+    for legacy_field in ("nombre", "name", "title"):
+        legacy_title = normalized.get(legacy_field)
+        if legacy_title:
+            normalized["titulo"] = legacy_title
+            break
+
+    return normalized
+
+
+def _normalize_project_titles(projects):
+    return [_normalize_project_title(project) for project in projects]
+
+
 class ProjectModel:
     """Gestión de la colección 'Projects'."""
 
@@ -23,12 +44,14 @@ class ProjectModel:
     @staticmethod
     def get_all_projects(usuario_id=None):
         local_col, _ = get_collection(ProjectModel.COLLECTION)
-        return list(local_col.find(_uid_filter(usuario_id)).sort("created_at", -1))
+        projects = list(local_col.find(_uid_filter(usuario_id)).sort("created_at", -1))
+        return _normalize_project_titles(projects)
 
     @staticmethod
     def get_by_user_id(user_id):
         local_col, _ = get_collection(ProjectModel.COLLECTION)
-        return list(local_col.find(_uid_filter(user_id)).sort("created_at", -1))
+        projects = list(local_col.find(_uid_filter(user_id)).sort("created_at", -1))
+        return _normalize_project_titles(projects)
 
     @staticmethod
     def get_project_by_id(project_id, usuario_id=None):
@@ -40,11 +63,14 @@ class ProjectModel:
         if not project:
             sync_from_remote(ProjectModel.COLLECTION, {"_id": _id})
             project = local_col.find_one(query)
-        return project
+        return _normalize_project_title(project)
 
     @staticmethod
     def insert_project(project_data, usuario_id=None):
         local_col, _ = get_collection(ProjectModel.COLLECTION)
+
+        if not project_data.get("titulo") and project_data.get("nombre"):
+            project_data["titulo"] = project_data["nombre"]
 
         uid = usuario_id or get_app_user_id()
         project_data["usuario_id"] = project_data.get("usuario_id") or uid
@@ -101,7 +127,7 @@ class ProjectModel:
 
         sync_to_remote(ProjectModel.COLLECTION, updated_project)
         print(f"Proyecto {_id} actualizado y sincronizado.")
-        return updated_project
+        return _normalize_project_title(updated_project)
 
     @staticmethod
     def delete_project(project_id, usuario_id=None):
@@ -187,7 +213,8 @@ class ProjectModel:
         local_col, _ = get_collection(ProjectModel.COLLECTION)
         _id = ObjectId(category_id) if not isinstance(category_id, ObjectId) else category_id
         query = {"categorias": _id, **_uid_filter(usuario_id)}
-        return list(local_col.find(query).sort("created_at", -1))
+        projects = list(local_col.find(query).sort("created_at", -1))
+        return _normalize_project_titles(projects)
     
     @staticmethod
     def search_by_categories(category_ids: list, usuario_id=None):
@@ -204,7 +231,8 @@ class ProjectModel:
         local_col, _ = get_collection(ProjectModel.COLLECTION)
         
         if not category_ids:
-            return list(local_col.find(_uid_filter(usuario_id)).sort("created_at", -1))
+            projects = list(local_col.find(_uid_filter(usuario_id)).sort("created_at", -1))
+            return _normalize_project_titles(projects)
         
         cat_oids = []
         for cid in category_ids:
@@ -217,7 +245,9 @@ class ProjectModel:
                 continue
         
         if not cat_oids:
-            return list(local_col.find(_uid_filter(usuario_id)).sort("created_at", -1))
+            projects = list(local_col.find(_uid_filter(usuario_id)).sort("created_at", -1))
+            return _normalize_project_titles(projects)
         
         query = {"categorias": {"$in": cat_oids}, **_uid_filter(usuario_id)}
-        return list(local_col.find(query).sort("created_at", -1))
+        projects = list(local_col.find(query).sort("created_at", -1))
+        return _normalize_project_titles(projects)
