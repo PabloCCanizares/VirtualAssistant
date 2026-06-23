@@ -10,9 +10,15 @@ from ai.state import AppState
 from database.mongo_conn import flush_deletion_queue, get_app_user_id, queue_deletion
 from model.event_model import eventModel
 from model.goal_model import GoalModel
-from model.project_document_model import ProjectDocumentModel
 from model.project_model import ProjectModel
 from model.task_model import TaskModel
+from services.event_service import normalize_reference
+from services.project_service import (
+    delete_goal_cascade as service_delete_goal_cascade,
+)
+from services.project_service import (
+    delete_project_cascade as service_delete_project_cascade,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -115,47 +121,23 @@ def _ensure_user_id(state: AppState) -> str:
 
 
 def _delete_project_cascade(project_id: str, user_id: str) -> None:
-    goals = GoalModel.get_by_project(project_id, usuario_id=user_id)
-    goal_ids = [g.get("_id") for g in goals if g.get("_id")]
-
-    task_ids = []
-    for gid in goal_ids:
-        tasks = TaskModel.get_tasks_by_goal(gid, usuario_id=user_id)
-        task_ids.extend([t.get("_id") for t in tasks if t.get("_id")])
-
-    if task_ids:
-        TaskModel.delete_tasks_by_ids(task_ids)
-        for tid in task_ids:
-            queue_deletion("Tasks", tid)
-
-    if goal_ids:
-        GoalModel.delete_goals_by_ids(goal_ids)
-        for gid in goal_ids:
-            queue_deletion("Goals", gid)
-
-    docs = ProjectDocumentModel.get_by_project(project_id, usuario_id=user_id)
-    for doc in docs:
-        try:
-            ProjectDocumentModel.delete_document(doc.get("_id"), usuario_id=user_id)
-        except Exception:
-            pass
-        if doc.get("_id"):
-            queue_deletion("ProjectDocuments", doc.get("_id"))
-
-    ProjectModel.delete_project(project_id)
-    queue_deletion("Projects", project_id)
+    result = service_delete_project_cascade(
+        project_id,
+        usuario_id=user_id,
+        queue_delete=queue_deletion,
+    )
+    if result.errors:
+        logger.warning("delete_project_cascade completed with warnings: %s", result.errors)
 
 
 def _delete_goal_cascade(goal_id: str, user_id: str) -> None:
-    tasks = TaskModel.get_tasks_by_goal(goal_id, usuario_id=user_id)
-    task_ids = [t.get("_id") for t in tasks if t.get("_id")]
-    if task_ids:
-        TaskModel.delete_tasks_by_ids(task_ids)
-        for tid in task_ids:
-            queue_deletion("Tasks", tid)
-
-    GoalModel.delete_goal(goal_id)
-    queue_deletion("Goals", goal_id)
+    result = service_delete_goal_cascade(
+        goal_id,
+        usuario_id=user_id,
+        queue_delete=queue_deletion,
+    )
+    if result.errors:
+        logger.warning("delete_goal_cascade completed with warnings: %s", result.errors)
 
 
 def _safe_int(value: Any, default: int = 0) -> int:
@@ -291,12 +273,15 @@ def action_executor_node(state: AppState, _llm) -> AppState:
                 "tipo_evento": parameters.get("tipo_evento"),
                 "usuario_id": user_id,
             }
-            id_tarea = parameters.get("id_tarea")
-            if id_tarea:
-                data["id_tarea"] = _parse_object_id(str(id_tarea)) or id_tarea
-            id_objetivo = parameters.get("id_objetivo")
-            if id_objetivo:
-                data["id_objetivo"] = _parse_object_id(str(id_objetivo)) or id_objetivo
+            ref_id, ref_tipo = normalize_reference(
+                parameters.get("referencia_id"),
+                parameters.get("referencia_tipo"),
+                id_tarea=parameters.get("id_tarea"),
+                id_objetivo=parameters.get("id_objetivo"),
+            )
+            if ref_id and ref_tipo:
+                data["referencia_id"] = ref_id
+                data["referencia_tipo"] = ref_tipo
             new_id = str(eventModel.insert_event(data, usuario_id=user_id) or "")
             clear_pending_action(user_id)
             append_session_mutation(user_id, {"action": "created", "type": "event", "id": new_id, "name": titulo})

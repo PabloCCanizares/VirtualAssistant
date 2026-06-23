@@ -1,6 +1,13 @@
 from bson import ObjectId
 
 from database.mongo_conn import get_app_user_id, get_collection, remote_uid_filter
+from services.event_service import (
+    normalize_event_payload,
+    normalize_reference,
+    reference_from_event,
+    reference_query,
+    sync_event_association,
+)
 
 
 def _uid_filter(_=None):
@@ -20,22 +27,24 @@ class eventModel:
     def get_events_by_task(task_id, usuario_id=None):
         """Obtiene todos los eventos asociados a una tarea específica."""
         local_col, _ = get_collection(eventModel.COLLECTION)
-        try:
-            oid = ObjectId(task_id) if not isinstance(task_id, ObjectId) else task_id
-        except Exception:
+        oid, _ = normalize_reference(task_id, "tarea")
+        if oid is None:
             return []
-        query = {"id_tarea": oid, **_uid_filter(usuario_id)}
+        uid_filter = _uid_filter(usuario_id)
+        base_query = reference_query("tarea", oid)
+        query = {"$and": [base_query, uid_filter]} if uid_filter else base_query
         return list(local_col.find(query).sort("fecha_inicio", 1))
 
     @staticmethod
     def get_events_by_goal(goal_id, usuario_id=None):
         """Obtiene todos los eventos asociados a un objetivo específico."""
         local_col, _ = get_collection(eventModel.COLLECTION)
-        try:
-            oid = ObjectId(goal_id) if not isinstance(goal_id, ObjectId) else goal_id
-        except Exception:
+        oid, _ = normalize_reference(goal_id, "objetivo")
+        if oid is None:
             return []
-        query = {"id_objetivo": oid, **_uid_filter(usuario_id)}
+        uid_filter = _uid_filter(usuario_id)
+        base_query = reference_query("objetivo", oid)
+        query = {"$and": [base_query, uid_filter]} if uid_filter else base_query
         return list(local_col.find(query).sort("fecha_inicio", 1))
 
     @staticmethod
@@ -64,34 +73,77 @@ class eventModel:
         local_col, cloud_col = get_collection(eventModel.COLLECTION)
         
         uid = usuario_id or get_app_user_id()
-        data["usuario_id"] = data.get("usuario_id") or uid
+        data = normalize_event_payload(data, usuario_id=uid)
         
         res = local_col.insert_one(data)
+        event_id = res.inserted_id
         if cloud_col is not None:
             try:
-                cloud_col.insert_one({**data, "_id": res.inserted_id})
+                cloud_col.insert_one({**data, "_id": event_id})
             except Exception:
                 pass
-        return res.inserted_id
+
+        ref_id, ref_tipo = reference_from_event(data)
+        if ref_id and ref_tipo:
+            sync_event_association(
+                event_id,
+                None,
+                None,
+                ref_id,
+                ref_tipo,
+                usuario_id=uid,
+            )
+        return event_id
 
     @staticmethod
     def update_event(event_id: str, updates: dict, usuario_id=None):
         local_col, cloud_col = get_collection(eventModel.COLLECTION)
         oid = ObjectId(event_id) if not isinstance(event_id, ObjectId) else event_id
         local_query = {"_id": oid}
-        local_col.update_one(local_query, {"$set": updates})
+        existing = local_col.find_one(local_query)
+        old_ref_id, old_ref_tipo = reference_from_event(existing)
+
+        norm_updates = dict(updates or {})
+        ref_changed = any(
+            key in norm_updates
+            for key in ("referencia_id", "referencia_tipo", "id_tarea", "id_objetivo")
+        )
+        if ref_changed:
+            new_ref_id, new_ref_tipo = normalize_reference(
+                norm_updates.get("referencia_id"),
+                norm_updates.get("referencia_tipo"),
+                id_tarea=norm_updates.get("id_tarea"),
+                id_objetivo=norm_updates.get("id_objetivo"),
+            )
+            norm_updates.pop("id_tarea", None)
+            norm_updates.pop("id_objetivo", None)
+            norm_updates["referencia_id"] = new_ref_id
+            norm_updates["referencia_tipo"] = new_ref_tipo
+
+        local_col.update_one(local_query, {"$set": norm_updates})
         if cloud_col is not None:
             remote_query = {"_id": oid, **remote_uid_filter(usuario_id)}
             try:
-                cloud_col.update_one(remote_query, {"$set": updates})
+                cloud_col.update_one(remote_query, {"$set": norm_updates})
             except Exception:
                 pass
+        if ref_changed:
+            sync_event_association(
+                oid,
+                old_ref_id,
+                old_ref_tipo,
+                norm_updates.get("referencia_id"),
+                norm_updates.get("referencia_tipo"),
+                usuario_id=usuario_id,
+            )
 
     @staticmethod
     def delete_event(event_id: str, usuario_id=None):
         local_col, cloud_col = get_collection(eventModel.COLLECTION)
         oid = ObjectId(event_id) if not isinstance(event_id, ObjectId) else event_id
         local_query = {"_id": oid}
+        existing = local_col.find_one(local_query)
+        old_ref_id, old_ref_tipo = reference_from_event(existing)
         local_col.delete_one(local_query)
         if cloud_col is not None:
             remote_query = {"_id": oid, **remote_uid_filter(usuario_id)}
@@ -99,6 +151,15 @@ class eventModel:
                 cloud_col.delete_one(remote_query)
             except Exception:
                 pass
+        if old_ref_id and old_ref_tipo:
+            sync_event_association(
+                oid,
+                old_ref_id,
+                old_ref_tipo,
+                None,
+                None,
+                usuario_id=usuario_id,
+            )
 
     @staticmethod
     def delete_events_by_ids(ids: list[str], usuario_id=None):

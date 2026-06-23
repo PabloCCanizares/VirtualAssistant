@@ -8,6 +8,11 @@ from flask import Blueprint, jsonify, render_template, request
 from database.mongo_conn import get_app_user_id, get_collection
 from model.goal_model import GoalModel
 from model.task_model import TaskModel
+from services.event_service import (
+    normalize_reference,
+    reference_from_event,
+    sync_event_association,
+)
 
 calendar_bp = Blueprint("calendar_bp", __name__)
 DEFAULT_USER_ID = get_app_user_id()
@@ -61,27 +66,16 @@ def _sync_event_association(event_id, old_ref_id, old_ref_tipo, new_ref_id, new_
     - Elimina event_id del array event_ids del item anterior (si lo había).
     - Añade event_id al array event_ids del nuevo item (si lo hay).
     """
-    eid = str(event_id)
-
-    # Desasociar del item anterior
-    if old_ref_id and old_ref_tipo:
-        try:
-            if old_ref_tipo == "tarea":
-                TaskModel.remove_event_from_task(str(old_ref_id), eid, usuario_id=DEFAULT_USER_ID)
-            elif old_ref_tipo == "objetivo":
-                GoalModel.remove_event_from_goal(str(old_ref_id), eid, usuario_id=DEFAULT_USER_ID)
-        except Exception as e:
-            print(f"Error al desasociar evento {eid} del {old_ref_tipo} {old_ref_id}: {e}")
-
-    # Asociar al nuevo item
-    if new_ref_id and new_ref_tipo:
-        try:
-            if new_ref_tipo == "tarea":
-                TaskModel.add_event_to_task(str(new_ref_id), eid, usuario_id=DEFAULT_USER_ID)
-            elif new_ref_tipo == "objetivo":
-                GoalModel.add_event_to_goal(str(new_ref_id), eid, usuario_id=DEFAULT_USER_ID)
-        except Exception as e:
-            print(f"Error al asociar evento {eid} al {new_ref_tipo} {new_ref_id}: {e}")
+    sync_event_association(
+        event_id,
+        old_ref_id,
+        old_ref_tipo,
+        new_ref_id,
+        new_ref_tipo,
+        usuario_id=DEFAULT_USER_ID,
+        task_model=TaskModel,
+        goal_model=GoalModel,
+    )
 
 
 @calendar_bp.route("/api/events", methods=["GET"])
@@ -166,13 +160,7 @@ def api_create_event():
     # Referencia unificada (reemplaza id_tarea / id_objetivo)
     ref_id_raw = payload.get("referencia_id")
     ref_tipo = (payload.get("referencia_tipo") or "").strip() or None
-    ref_id = None
-    if ref_id_raw and ref_tipo in ("tarea", "objetivo"):
-        try:
-            ref_id = ObjectId(ref_id_raw)
-        except Exception:
-            ref_id = None
-            ref_tipo = None
+    ref_id, ref_tipo = normalize_reference(ref_id_raw, ref_tipo)
 
     doc: Dict[str, Any] = {
         "titulo": (payload.get("titulo") or "").strip(),
@@ -260,15 +248,7 @@ def api_update_event(event_id: str):
         ref_changed = True
         ref_id_raw = payload.get("referencia_id")
         new_ref_tipo = (payload.get("referencia_tipo") or "").strip() or None
-        if ref_id_raw and new_ref_tipo in ("tarea", "objetivo"):
-            try:
-                new_ref_id = ObjectId(ref_id_raw)
-            except Exception:
-                new_ref_id = None
-                new_ref_tipo = None
-        else:
-            new_ref_id = None
-            new_ref_tipo = None
+        new_ref_id, new_ref_tipo = normalize_reference(ref_id_raw, new_ref_tipo)
 
         updates["referencia_id"] = new_ref_id
         updates["referencia_tipo"] = new_ref_tipo
@@ -282,16 +262,7 @@ def api_update_event(event_id: str):
 
     # Sincronización bidireccional si cambió la referencia
     if ref_changed:
-        old_ref_id = existing.get("referencia_id")
-        old_ref_tipo = existing.get("referencia_tipo")
-        # Compatibilidad: si el evento antiguo usaba id_tarea/id_objetivo
-        if not old_ref_id and not old_ref_tipo:
-            if existing.get("id_tarea"):
-                old_ref_id = existing.get("id_tarea")
-                old_ref_tipo = "tarea"
-            elif existing.get("id_objetivo"):
-                old_ref_id = existing.get("id_objetivo")
-                old_ref_tipo = "objetivo"
+        old_ref_id, old_ref_tipo = reference_from_event(existing)
 
         # Solo sincronizar si realmente cambió
         old_str = str(old_ref_id) if old_ref_id else None
@@ -336,16 +307,7 @@ def api_delete_event(event_id: str):
         return jsonify({"error": "Evento no encontrado."}), 404
 
     # Desasociar del item vinculado
-    old_ref_id = existing.get("referencia_id")
-    old_ref_tipo = existing.get("referencia_tipo")
-    # Compatibilidad: si el evento usaba id_tarea/id_objetivo
-    if not old_ref_id and not old_ref_tipo:
-        if existing.get("id_tarea"):
-            old_ref_id = existing.get("id_tarea")
-            old_ref_tipo = "tarea"
-        elif existing.get("id_objetivo"):
-            old_ref_id = existing.get("id_objetivo")
-            old_ref_tipo = "objetivo"
+    old_ref_id, old_ref_tipo = reference_from_event(existing)
 
     if old_ref_id and old_ref_tipo:
         _sync_event_association(oid, old_ref_id, old_ref_tipo, None, None)

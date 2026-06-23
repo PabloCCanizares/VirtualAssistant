@@ -458,7 +458,7 @@ class TestEscenario05ConsultarProgreso:
 
 class TestEscenario06CrearEventoAsociado:
 
-    def test_event_creation_via_chat_persists_id_tarea(
+    def test_event_creation_via_chat_uses_reference_schema(
         self, flask_client, patch_llm, mongo_mock
     ):
         # Seed: una tarea referenciable.
@@ -491,23 +491,17 @@ class TestEscenario06CrearEventoAsociado:
         status, events = _post_chat(flask_client, prompt)
         assert status == 200
 
-        # El evento existe con id_tarea apuntando a la tarea.
+        # El evento existe con el schema canonico usado por el calendario.
         event = mongo_mock.local_db["Events"].find_one({"titulo": "ensayo TFG"})
         assert event is not None
-        assert str(event.get("id_tarea")) == str(task_id)
+        assert "id_tarea" not in event
+        assert event.get("referencia_tipo") == "tarea"
+        assert str(event.get("referencia_id")) == str(task_id)
 
-        # ── Hallazgo ─────────────────────────────────────────────────
-        # Via /api/ai/chat (agente), el evento se persiste con campo `id_tarea`
-        # y la tarea NO recibe el event_id en su `event_ids[]`. La ruta HTTP
-        # `POST /api/events` (calendar_controller) hace lo contrario: usa
-        # `referencia_tipo`/`referencia_id` y ACTUALIZA `event_ids` via
-        # `_sync_event_association`. Es una inconsistencia de schema entre las
-        # dos rutas; aqui se documenta tal y como ocurre.
+        # Via /api/ai/chat (agente), el evento debe quedar alineado con
+        # POST /api/events: referencia_tipo/referencia_id y event_ids[].
         task = mongo_mock.local_db["Tasks"].find_one({"_id": task_id})
-        assert task["event_ids"] == [], (
-            "Via agente, event_ids no se actualiza (la sincronizacion solo se hace "
-            "en el calendar_controller)."
-        )
+        assert str(event["_id"]) in [str(eid) for eid in task["event_ids"]]
 
         write_scenario_log(
             slug="06_crear_evento_asociado",
@@ -518,23 +512,19 @@ class TestEscenario06CrearEventoAsociado:
                 "Events": [{
                     "titulo": event["titulo"],
                     "fecha_inicio": str(event.get("fecha_inicio")),
-                    "id_tarea": str(event.get("id_tarea")),
                     "referencia_tipo": event.get("referencia_tipo"),
-                    "referencia_id": event.get("referencia_id"),
+                    "referencia_id": str(event.get("referencia_id")),
                 }],
                 "Tasks (event_ids)": {
-                    "presentar TFG": task.get("event_ids"),
+                    "presentar TFG": [str(eid) for eid in task.get("event_ids", [])],
                 },
             },
             notas=(
-                "**HALLAZGO**: hay dos schemas para los eventos. Por la via HTTP "
-                "(`POST /api/events`, `calendar_controller`), un evento usa `referencia_tipo` "
-                "('tarea'|'objetivo') + `referencia_id` (ObjectId) y la tarea/objetivo "
-                "asociado recibe el `event_id` en su `event_ids[]` via `_sync_event_association`. "
-                "Por la via *chat* (`action_executor.create_event`), el evento usa los "
-                "campos legacy `id_tarea`/`id_objetivo` y no actualiza `event_ids` en la "
-                "tarea. Las dos rutas producen documentos con esquemas distintos, lo que "
-                "rompera consultas que asuman uno u otro modelo."
+                "**CONTRATO**: calendario y chat escriben el mismo esquema de eventos: "
+                "`referencia_tipo` ('tarea'|'objetivo') + `referencia_id` (ObjectId), y "
+                "la tarea/objetivo asociado recibe el `event_id` en su `event_ids[]`. "
+                "Los campos legacy `id_tarea`/`id_objetivo` quedan solo para lectura de "
+                "datos antiguos."
             ),
         )
 

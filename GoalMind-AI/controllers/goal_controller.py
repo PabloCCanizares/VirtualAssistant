@@ -7,6 +7,7 @@ from model.category_model import CategoryModel
 from model.goal_model import GoalModel
 from model.project_model import ProjectModel
 from model.task_model import TaskModel
+from services.project_service import delete_goal_cascade as service_delete_goal_cascade
 
 goal_bp = Blueprint("goal_bp", __name__, url_prefix="/goals")
 DEFAULT_USER_ID = get_app_user_id()
@@ -220,29 +221,19 @@ def delete_goal(goal_id):
         pass
 
     try:
-        task_ids = []
-        try:
-            tasks = TaskModel.get_tasks_by_goal(goal_id, usuario_id=DEFAULT_USER_ID)
-            task_ids = [t.get("_id") for t in tasks if t.get("_id")]
-        except Exception:
-            task_ids = []
-
-        if task_ids:
-            try:
-                TaskModel.delete_tasks_by_ids(task_ids, usuario_id=DEFAULT_USER_ID)
-            except Exception:
-                pass
-            for tid in task_ids:
-                queue_deletion("Tasks", tid)
-
-        deleted = GoalModel.delete_goal(goal_id, usuario_id=DEFAULT_USER_ID)
-        if deleted:
-            queue_deletion("Goals", goal_id)
+        result = service_delete_goal_cascade(
+            goal_id,
+            usuario_id=DEFAULT_USER_ID,
+            goal_model=GoalModel,
+            task_model=TaskModel,
+            queue_delete=queue_deletion,
+        )
+        if result.deleted:
             try:
                 flush_deletion_queue()
             except Exception:
                 pass
-        if deleted:
+        if result.deleted:
             flash(" Objetivo eliminado correctamente", "success")
         else:
             flash(" No se encontró el objetivo a eliminar", "warning")

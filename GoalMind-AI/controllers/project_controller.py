@@ -30,6 +30,7 @@ from model.goal_model import GoalModel
 from model.project_document_model import ProjectDocumentModel
 from model.project_model import ProjectModel
 from model.task_model import TaskModel
+from services.project_service import delete_project_cascade as service_delete_project_cascade
 
 project_bp = Blueprint("project_bp", __name__, url_prefix="/projects")
 DEFAULT_USER_ID = get_app_user_id()
@@ -459,62 +460,16 @@ def update_project(project_id):
 def delete_project(project_id):
     errors = []
 
-    # 1) Recolectar objetivos y tareas
-    goals = []
-    goal_ids = []
-    task_ids = []
-    try:
-        goals = GoalModel.get_by_project(project_id, usuario_id=DEFAULT_USER_ID)
-        goal_ids = [g.get("_id") for g in goals if g.get("_id")]
-    except Exception as e:
-        errors.append(f"objetivos: {e}")
-
-    if goal_ids:
-        for gid in goal_ids:
-            try:
-                tasks = TaskModel.get_tasks_by_goal(gid, usuario_id=DEFAULT_USER_ID)
-                task_ids.extend([t.get("_id") for t in tasks if t.get("_id")])
-            except Exception as e:
-                errors.append(f"tareas: {e}")
-
-    # 2) Eliminar tareas vinculadas
-    if task_ids:
-        try:
-            TaskModel.delete_tasks_by_ids(task_ids, usuario_id=DEFAULT_USER_ID)
-        except Exception as e:
-            errors.append(f"borrado tareas: {e}")
-        for tid in task_ids:
-            queue_deletion("Tasks", tid)
-
-    # 3) Eliminar objetivos
-    if goal_ids:
-        try:
-            GoalModel.delete_goals_by_ids(goal_ids, usuario_id=DEFAULT_USER_ID)
-        except Exception as e:
-            errors.append(f"borrado objetivos: {e}")
-        for gid in goal_ids:
-            queue_deletion("Goals", gid)
-
-    # 4) Eliminar documentos del proyecto
-    try:
-        docs = ProjectDocumentModel.get_by_project(project_id, usuario_id=DEFAULT_USER_ID)
-    except Exception as e:
-        docs = []
-        errors.append(f"documentos: {e}")
-
-    for doc in docs:
-        try:
-            ProjectDocumentModel.delete_document(doc["_id"], usuario_id=DEFAULT_USER_ID)
-        except Exception as e:
-            errors.append(f"borrado documento: {e}")
-        queue_deletion("ProjectDocuments", doc.get("_id"))
-
-    # 5) Eliminar el proyecto en sí
-    try:
-        ProjectModel.delete_project(project_id, usuario_id=DEFAULT_USER_ID)
-    except Exception as e:
-        errors.append(f"borrado proyecto: {e}")
-    queue_deletion("Projects", project_id)
+    result = service_delete_project_cascade(
+        project_id,
+        usuario_id=DEFAULT_USER_ID,
+        goal_model=GoalModel,
+        project_document_model=ProjectDocumentModel,
+        project_model=ProjectModel,
+        task_model=TaskModel,
+        queue_delete=queue_deletion,
+    )
+    errors.extend(result.errors)
 
     # Intentar borrar en remoto inmediatamente si hay conexión
     try:

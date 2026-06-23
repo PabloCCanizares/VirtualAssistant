@@ -27,6 +27,7 @@ from database.mongo_conn import (
     sync_all_collections,
     sync_local_to_remote,
 )
+from services.sync_service import run_full_sync
 
 logger = logging.getLogger(__name__)
 
@@ -307,13 +308,23 @@ def sync_now():
     from model.project_document_model import ProjectDocumentModel
 
     try:
-        if not ensure_remote_connection(current_app):
-            return jsonify({"success": False, "error": "No hay conexión con la base de datos remota"}), 503
-        flush_deletion_queue()
-        ProjectDocumentModel.promote_pending_remote_uploads(app=current_app)
-        sync_all_collections()
-        sync_local_to_remote()
-        return jsonify({"success": True})
+        result = run_full_sync(
+            current_app,
+            ensure_remote_connection_fn=ensure_remote_connection,
+            flush_deletion_queue_fn=flush_deletion_queue,
+            promote_pending_remote_uploads_fn=ProjectDocumentModel.promote_pending_remote_uploads,
+            sync_all_collections_fn=sync_all_collections,
+            sync_local_to_remote_fn=sync_local_to_remote,
+        )
+        if not result.success:
+            return jsonify({"success": False, "error": result.error}), 503
+        return jsonify({
+            "success": True,
+            "flushed_deletions": result.flushed_deletions,
+            "promoted_uploads": result.promoted_uploads,
+            "pulled_docs": result.pulled_docs,
+            "pushed_docs": result.pushed_docs,
+        })
     except Exception as exc:
         logger.error("[Config] Error en sincronización manual: %s", exc, exc_info=True)
         return jsonify({"success": False, "error": str(exc)}), 500

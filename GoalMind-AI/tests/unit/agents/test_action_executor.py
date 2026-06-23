@@ -204,6 +204,12 @@ class TestCreateEvent:
 
     def test_with_id_tarea(self, mongo_mock):
         tid = ObjectId()
+        mongo_mock.local_db["Tasks"].insert_one({
+            "_id": tid,
+            "contenido": "T",
+            "usuario_id": USER_ID,
+            "event_ids": [],
+        })
         out = action_executor_node(
             _state("create_event", {
                 "titulo": "E", "fecha_inicio": "2026-05-17T10:00",
@@ -212,6 +218,13 @@ class TestCreateEvent:
             None,
         )
         assert "Evento creado" in out["final_response"]
+        event = mongo_mock.local_db["Events"].find_one({"titulo": "E"})
+        assert event is not None
+        assert "id_tarea" not in event
+        assert event["referencia_tipo"] == "tarea"
+        assert str(event["referencia_id"]) == str(tid)
+        task = mongo_mock.local_db["Tasks"].find_one({"_id": tid})
+        assert str(event["_id"]) in [str(eid) for eid in task["event_ids"]]
 
 
 class TestUpdateProject:
