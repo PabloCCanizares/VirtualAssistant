@@ -3,14 +3,14 @@ from datetime import datetime
 from bson import ObjectId
 from flask import Blueprint, flash, jsonify, redirect, render_template, request, url_for
 
-from database.mongo_conn import get_app_user_id
 from model.category_model import CategoryModel
 from model.goal_model import GoalModel
 from model.project_model import ProjectModel
 from model.task_model import TaskModel
+from services.user_context import current_user_id
 
 task_bp = Blueprint("task_bp", __name__, url_prefix="/tasks")
-DEFAULT_USER_ID = get_app_user_id()
+DEFAULT_USER_ID = current_user_id()
 
 
 def _serialize_task(task):
@@ -32,7 +32,7 @@ def _serialize_task(task):
 
 def _load_categories():
     """Carga todas las categorias y las serializa para los templates."""
-    categories = CategoryModel.get_all_categories(usuario_id=DEFAULT_USER_ID)
+    categories = CategoryModel.get_all_categories(usuario_id=current_user_id())
     return [{
         "_id": str(c["_id"]),
         "name": c.get("name", "")
@@ -50,13 +50,13 @@ def _get_category_names(category_ids):
     """
     if not category_ids:
         return {}
-    categories = CategoryModel.get_categories_by_ids(category_ids, usuario_id=DEFAULT_USER_ID)
+    categories = CategoryModel.get_categories_by_ids(category_ids, usuario_id=current_user_id())
     return {str(c["_id"]): c.get("name", "") for c in categories}
 
 
 def _load_goal_context():
-    goals = GoalModel.get_all_goals(usuario_id=DEFAULT_USER_ID)
-    projects = ProjectModel.get_all_projects(usuario_id=DEFAULT_USER_ID)
+    goals = GoalModel.get_all_goals(usuario_id=current_user_id())
+    projects = ProjectModel.get_all_projects(usuario_id=current_user_id())
 
     project_titles = {}
     project_dict = {}  # Para almacenar proyectos completos
@@ -108,7 +108,7 @@ def _load_goal_context():
 # -------------------------------------------------------------
 @task_bp.route("/", methods=["GET"])
 def list_tasks():
-    tasks = TaskModel.get_all_tasks(usuario_id=DEFAULT_USER_ID)
+    tasks = TaskModel.get_all_tasks(usuario_id=current_user_id())
     goals_view, goal_titles, goal_project_titles, projects_with_goals = _load_goal_context()
     tasks_view = [_serialize_task(t) for t in tasks]
     categories = _load_categories()
@@ -135,7 +135,7 @@ def list_tasks():
 def view_task(task_id):
     """Muestra una tarea concreta (por ID)."""
     try:
-        task = TaskModel.get_task_by_id(task_id, usuario_id=DEFAULT_USER_ID)
+        task = TaskModel.get_task_by_id(task_id, usuario_id=current_user_id())
         if not task:
             flash("Tarea no encontrada", "warning")
             return redirect(url_for("task_bp.list_tasks"))
@@ -167,7 +167,7 @@ def list_tasks_by_user(user_id=None):
     """Muestra todas las tareas creadas por un usuario espec??fico."""
     try:
         if user_id in (None, "0", 0):
-            user_id = DEFAULT_USER_ID
+            user_id = current_user_id()
         tasks = TaskModel.get_task_by_user(user_id)
         tasks_view = [_serialize_task(t) for t in tasks]
         goals_view, goal_titles, goal_project_titles, projects_with_goals = _load_goal_context()
@@ -220,7 +220,7 @@ def add_task():
             except Exception:
                 pass
 
-        user_id = request.form.get("usuario_id") or DEFAULT_USER_ID
+        user_id = request.form.get("usuario_id") or current_user_id()
         data = {
             "usuario_id": user_id,
             "contenido": request.form.get("contenido"),
@@ -284,7 +284,7 @@ def update_task(task_id):
         # Limpieza de valores vacios (pero mantener arrays vacios si se enviaron)
         updates = {k: v for k, v in updates.items() if v not in [None, ""]}
 
-        TaskModel.update_task(task_id, updates, usuario_id=DEFAULT_USER_ID)
+        TaskModel.update_task(task_id, updates, usuario_id=current_user_id())
         flash("Tarea actualizada correctamente", "success")
     except Exception as e:
         flash(f"Error al actualizar la tarea: {e}", "danger")
@@ -299,7 +299,7 @@ def update_task(task_id):
 def delete_task(task_id):
     """Elimina una tarea local y remota."""
     try:
-        TaskModel.delete_task(task_id, usuario_id=DEFAULT_USER_ID)
+        TaskModel.delete_task(task_id, usuario_id=current_user_id())
         flash(" Tarea eliminada correctamente", "success")
     except Exception as e:
         flash(f" Error al eliminar la tarea: {e}", "danger")
@@ -326,7 +326,11 @@ def filter_by_category():
             if part:
                 categoria_ids.append(part)
 
-    tasks = TaskModel.search_tasks(nombre=nombre, category_ids=categoria_ids if categoria_ids else None, usuario_id=DEFAULT_USER_ID)
+    tasks = TaskModel.search_tasks(
+        nombre=nombre,
+        category_ids=categoria_ids if categoria_ids else None,
+        usuario_id=current_user_id(),
+    )
     tasks_view = [_serialize_task(t) for t in tasks]
     goals_view, goal_titles, goal_project_titles, projects_with_goals = _load_goal_context()
     categories = _load_categories()
@@ -357,7 +361,7 @@ def search_by_id():
     task = None
     if task_id:
         try:
-            task = TaskModel.get_task_by_id(task_id, usuario_id=DEFAULT_USER_ID)
+            task = TaskModel.get_task_by_id(task_id, usuario_id=current_user_id())
             if task is None:
                 flash("No se encontro ninguna tarea con ese ID.", "warning")
         except Exception:
@@ -400,7 +404,7 @@ def bulk_delete_tasks():
         return redirect(url_for("task_bp.list_tasks"))
 
     try:
-        deleted = TaskModel.delete_tasks_by_ids(ids, usuario_id=DEFAULT_USER_ID)
+        deleted = TaskModel.delete_tasks_by_ids(ids, usuario_id=current_user_id())
         if request.is_json:
             return jsonify({"success": True, "message": f"Se eliminaron {deleted} tarea(s).", "deleted_count": deleted})
         flash(f"Se eliminaron {deleted} tarea(s).", "success")
@@ -436,12 +440,16 @@ def bulk_assign_goal():
             return jsonify({"success": False, "message": "No has seleccionado ningún objetivo."}), 400
         
         # Verificar que el objetivo existe
-        goal = GoalModel.get_goal_by_id(goal_id, usuario_id=DEFAULT_USER_ID)
+        goal = GoalModel.get_goal_by_id(goal_id, usuario_id=current_user_id())
         if not goal:
             return jsonify({"success": False, "message": "El objetivo seleccionado no existe."}), 404
         
         # Asignar el objetivo a las tareas
-        updated_count = TaskModel.assign_goal_to_tasks(task_ids, goal_id, usuario_id=DEFAULT_USER_ID)
+        updated_count = TaskModel.assign_goal_to_tasks(
+            task_ids,
+            goal_id,
+            usuario_id=current_user_id(),
+        )
         
         return jsonify({
             "success": True,
@@ -472,7 +480,7 @@ def get_tasks_by_date_range():
             return jsonify({}), 200
 
         # Obtener todas las tareas
-        tasks = TaskModel.get_all_tasks(usuario_id=DEFAULT_USER_ID)
+        tasks = TaskModel.get_all_tasks(usuario_id=current_user_id())
 
         # Agrupar por fecha_limite
         tasks_by_date = {}

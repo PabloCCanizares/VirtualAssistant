@@ -4,10 +4,10 @@ from ai.config import get_settings, resolve_chat_model
 from ai.graph import run_graph_chat, stream_graph_chat
 from ai.services.action_state import get_pending_action
 from ai.services.session_mutations_state import get_session_mutations_json
-from database.mongo_conn import get_app_user_id
+from services.user_context import current_user_id
 
 logger = logging.getLogger(__name__)
-DEFAULT_USER_ID = get_app_user_id()
+DEFAULT_USER_ID = current_user_id()
 ALLOWED_DEEP_SEARCH_MODES = {"auto", "on", "off"}
 
 
@@ -28,7 +28,7 @@ def run_chat(message, history, deep_search_mode=None, model_id=None):
     settings = get_settings()
     selected_model = resolve_chat_model(settings, model_id)
 
-    user_id = settings.default_user_id or DEFAULT_USER_ID
+    user_id = settings.default_user_id or current_user_id()
     context_json = "{}"
 
     try:
@@ -75,7 +75,7 @@ def stream_chat(message, history, deep_search_mode=None, model_id=None):
     settings = get_settings()
     selected_model = resolve_chat_model(settings, model_id)
 
-    user_id = settings.default_user_id or DEFAULT_USER_ID
+    user_id = settings.default_user_id or current_user_id()
     context_json = "{}"
 
     try:

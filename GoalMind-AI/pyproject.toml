@@ -15,7 +15,7 @@ markers = [
 
 [tool.coverage.run]
 branch = true
-source = ["ai", "controllers", "database", "model", "config", "bootstrap"]
+source = ["ai", "controllers", "database", "model", "services", "config", "bootstrap"]
 omit = [
     "*/__pycache__/*",
     "*/.venv/*",

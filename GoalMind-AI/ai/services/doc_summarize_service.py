@@ -13,9 +13,9 @@ from database.gridfs_storage import (
     download_file_from_local_storage,
     download_file_from_remote_storage,
 )
-from database.mongo_conn import get_app_user_id
 from model.project_document_model import ProjectDocumentModel
 from model.project_model import ProjectModel
+from services.user_context import current_user_id
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +35,7 @@ def summarize_and_save_note(doc_id: str, project_id: str) -> str:
         RuntimeError: si falla la descarga, la extracción o el LLM.
     """
     settings = get_settings()
-    user_id = settings.default_user_id or get_app_user_id()
+    user_id = settings.default_user_id or current_user_id()
 
     # 1. Resolver modelo LLM
     if settings.llm_provider == "gemini":

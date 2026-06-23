@@ -7,7 +7,7 @@ from bson import ObjectId
 from ai.services.action_state import clear_pending_action
 from ai.services.session_mutations_state import append_session_mutation
 from ai.state import AppState
-from database.mongo_conn import flush_deletion_queue, get_app_user_id, queue_deletion
+from database.mongo_conn import flush_deletion_queue, queue_deletion
 from model.event_model import eventModel
 from model.goal_model import GoalModel
 from model.project_model import ProjectModel
@@ -19,6 +19,7 @@ from services.project_service import (
 from services.project_service import (
     delete_project_cascade as service_delete_project_cascade,
 )
+from services.user_context import current_user_id
 
 logger = logging.getLogger(__name__)
 
@@ -117,7 +118,7 @@ def _parse_object_id(value: Optional[str]) -> Optional[ObjectId]:
 
 
 def _ensure_user_id(state: AppState) -> str:
-    return str(state.get("user_id") or get_app_user_id())
+    return str(state.get("user_id") or current_user_id())
 
 
 def _delete_project_cascade(project_id: str, user_id: str) -> None:

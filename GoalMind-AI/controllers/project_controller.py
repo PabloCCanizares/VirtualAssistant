@@ -24,16 +24,17 @@ from database.gridfs_storage import (
     promote_local_file_to_remote,
     upload_stream_to_local_storage,
 )
-from database.mongo_conn import flush_deletion_queue, get_app_user_id, queue_deletion
+from database.mongo_conn import flush_deletion_queue, queue_deletion
 from model.category_model import CategoryModel
 from model.goal_model import GoalModel
 from model.project_document_model import ProjectDocumentModel
 from model.project_model import ProjectModel
 from model.task_model import TaskModel
 from services.project_service import delete_project_cascade as service_delete_project_cascade
+from services.user_context import current_user_id
 
 project_bp = Blueprint("project_bp", __name__, url_prefix="/projects")
-DEFAULT_USER_ID = get_app_user_id()
+DEFAULT_USER_ID = current_user_id()
 
 
 def _serialize_id(value):
@@ -52,7 +53,7 @@ def _serialize_project(project):
 
 def _load_categories():
     """Carga todas las categorias y las serializa para los templates."""
-    categories = CategoryModel.get_all_categories(usuario_id=DEFAULT_USER_ID)
+    categories = CategoryModel.get_all_categories(usuario_id=current_user_id())
     return [{
         "_id": str(c["_id"]),
         "name": c.get("name", "")
@@ -169,9 +170,9 @@ def _created_at_value(project):
 @project_bp.route("/", methods=["GET"])
 def list_projects():
     try:
-        projects = ProjectModel.get_all_projects(usuario_id=DEFAULT_USER_ID)
-        goals = GoalModel.get_all_goals(usuario_id=DEFAULT_USER_ID)
-        documents = ProjectDocumentModel.get_all_documents(usuario_id=DEFAULT_USER_ID)
+        projects = ProjectModel.get_all_projects(usuario_id=current_user_id())
+        goals = GoalModel.get_all_goals(usuario_id=current_user_id())
+        documents = ProjectDocumentModel.get_all_documents(usuario_id=current_user_id())
         categories = _load_categories()
     except Exception as e:
         flash(f"No se pudieron cargar los proyectos: {e}", "danger")
@@ -278,7 +279,7 @@ def add_project():
             except Exception:
                 pass
 
-        user_id = request.form.get("usuario_id") or DEFAULT_USER_ID
+        user_id = request.form.get("usuario_id") or current_user_id()
         data = {
             "titulo": request.form.get("titulo"),
             "descripcion": request.form.get("descripcion"),
@@ -307,13 +308,13 @@ def add_project():
 # -------------------------------------------------------------
 @project_bp.route("/<project_id>", methods=["GET"])
 def view_project(project_id):
-    project = ProjectModel.get_project_by_id(project_id, usuario_id=DEFAULT_USER_ID)
+    project = ProjectModel.get_project_by_id(project_id, usuario_id=current_user_id())
     if not project:
         flash("Proyecto no encontrado.", "warning")
         return redirect(url_for("project_bp.list_projects"))
 
-    goals = GoalModel.get_by_project(project_id, usuario_id=DEFAULT_USER_ID)
-    docs = ProjectDocumentModel.get_by_project(project_id, usuario_id=DEFAULT_USER_ID)
+    goals = GoalModel.get_by_project(project_id, usuario_id=current_user_id())
+    docs = ProjectDocumentModel.get_by_project(project_id, usuario_id=current_user_id())
     categories = _load_categories()
 
     goals_view = [_serialize_goal(g) for g in goals]
@@ -335,7 +336,7 @@ def view_project(project_id):
     goal_tasks = {}
     for goal in goals_view:
         goal_id = goal["_id"]
-        tasks = TaskModel.get_tasks_by_goal(goal_id, usuario_id=DEFAULT_USER_ID)
+        tasks = TaskModel.get_tasks_by_goal(goal_id, usuario_id=current_user_id())
         goal_tasks[goal_id] = [
             {
                 "_id": _serialize_id(t.get("_id")),
@@ -376,7 +377,7 @@ def add_project_note(project_id):
             flash("La anotacion no puede estar vacia.", "warning")
             return redirect(url_for("project_bp.view_project", project_id=project_id))
 
-        project = ProjectModel.get_project_by_id(project_id, usuario_id=DEFAULT_USER_ID)
+        project = ProjectModel.get_project_by_id(project_id, usuario_id=current_user_id())
         if not project:
             flash("Proyecto no encontrado.", "warning")
             return redirect(url_for("project_bp.list_projects"))
@@ -388,7 +389,7 @@ def add_project_note(project_id):
         }
         notes = project.get("notas", []) or []
         notes.append(note)
-        ProjectModel.update_project(project_id, {"notas": notes}, usuario_id=DEFAULT_USER_ID)
+        ProjectModel.update_project(project_id, {"notas": notes}, usuario_id=current_user_id())
         flash("Anotacion agregada.", "success")
     except Exception as e:
         flash(f"Error al agregar anotacion: {e}", "danger")
@@ -399,14 +400,14 @@ def add_project_note(project_id):
 @project_bp.route("/<project_id>/notes/<note_id>/delete", methods=["POST"])
 def delete_project_note(project_id, note_id):
     try:
-        project = ProjectModel.get_project_by_id(project_id, usuario_id=DEFAULT_USER_ID)
+        project = ProjectModel.get_project_by_id(project_id, usuario_id=current_user_id())
         if not project:
             flash("Proyecto no encontrado.", "warning")
             return redirect(url_for("project_bp.list_projects"))
 
         notes = project.get("notas", []) or []
         notes = [n for n in notes if str(n.get("_id")) != str(note_id)]
-        ProjectModel.update_project(project_id, {"notas": notes}, usuario_id=DEFAULT_USER_ID)
+        ProjectModel.update_project(project_id, {"notas": notes}, usuario_id=current_user_id())
         flash("Anotacion eliminada.", "success")
     except Exception as e:
         flash(f"Error al eliminar anotacion: {e}", "danger")
@@ -445,7 +446,7 @@ def update_project(project_id):
             
         updates = {k: v for k, v in updates.items() if v not in [None, ""]}
 
-        ProjectModel.update_project(project_id, updates, usuario_id=DEFAULT_USER_ID)
+        ProjectModel.update_project(project_id, updates, usuario_id=current_user_id())
         flash("Proyecto actualizado correctamente", "success")
     except Exception as e:
         flash(f"Error al actualizar el proyecto: {e}", "danger")
@@ -462,7 +463,7 @@ def delete_project(project_id):
 
     result = service_delete_project_cascade(
         project_id,
-        usuario_id=DEFAULT_USER_ID,
+        usuario_id=current_user_id(),
         goal_model=GoalModel,
         project_document_model=ProjectDocumentModel,
         project_model=ProjectModel,
@@ -490,7 +491,7 @@ def delete_project(project_id):
 # -------------------------------------------------------------
 @project_bp.route("/<project_id>/documents", methods=["POST"])
 def upload_document(project_id):
-    project = ProjectModel.get_project_by_id(project_id, usuario_id=DEFAULT_USER_ID)
+    project = ProjectModel.get_project_by_id(project_id, usuario_id=current_user_id())
     if not project:
         flash("Proyecto no encontrado.", "warning")
         return redirect(url_for("project_bp.list_projects"))
@@ -512,7 +513,7 @@ def upload_document(project_id):
     storage_metadata = {
         "project_id": str(project_id),
         "goal_id": str(goal_id) if goal_id else None,
-        "usuario_id": DEFAULT_USER_ID,
+        "usuario_id": current_user_id(),
         "filename": unique_name,
     }
     local_upload_id = upload_stream_to_local_storage(
@@ -546,11 +547,11 @@ def upload_document(project_id):
     if remote_upload_id is not None:
         doc_data["upload_id"] = remote_upload_id
         doc_data["remote_sync_pending"] = False
-        ProjectDocumentModel.insert_document(doc_data, usuario_id=DEFAULT_USER_ID)
+        ProjectDocumentModel.insert_document(doc_data, usuario_id=current_user_id())
         flash("Documento subido correctamente y sincronizado en remoto.", "success")
         return redirect(url_for("project_bp.view_project", project_id=project_id))
 
-    ProjectDocumentModel.insert_document(doc_data, usuario_id=DEFAULT_USER_ID)
+    ProjectDocumentModel.insert_document(doc_data, usuario_id=current_user_id())
     flash("Documento subido correctamente en local. Se sincronizara en remoto cuando haya conexion.", "success")
 
     return redirect(url_for("project_bp.view_project", project_id=project_id))
@@ -561,7 +562,7 @@ def upload_document(project_id):
 # -------------------------------------------------------------
 @project_bp.route("/documents/<doc_id>/view", methods=["GET"])
 def view_document(doc_id):
-    doc = ProjectDocumentModel.get_document_by_id(doc_id, usuario_id=DEFAULT_USER_ID)
+    doc = ProjectDocumentModel.get_document_by_id(doc_id, usuario_id=current_user_id())
     if not doc:
         flash("Documento no encontrado.", "warning")
         return redirect(url_for("project_bp.list_projects"))
@@ -585,7 +586,7 @@ def view_document(doc_id):
 # -------------------------------------------------------------
 @project_bp.route("/documents/<doc_id>/download", methods=["GET"])
 def download_document(doc_id):
-    doc = ProjectDocumentModel.get_document_by_id(doc_id, usuario_id=DEFAULT_USER_ID)
+    doc = ProjectDocumentModel.get_document_by_id(doc_id, usuario_id=current_user_id())
     if not doc:
         flash("Documento no encontrado.", "warning")
         return redirect(url_for("project_bp.list_projects"))
@@ -608,7 +609,7 @@ def download_document(doc_id):
 # -------------------------------------------------------------
 @project_bp.route("/documents/<doc_id>/delete", methods=["POST"])
 def delete_document(doc_id):
-    doc = ProjectDocumentModel.get_document_by_id(doc_id, usuario_id=DEFAULT_USER_ID)
+    doc = ProjectDocumentModel.get_document_by_id(doc_id, usuario_id=current_user_id())
     if not doc:
         flash("Documento no encontrado.", "warning")
         return redirect(url_for("project_bp.list_projects"))
@@ -616,7 +617,7 @@ def delete_document(doc_id):
     errors = []
 
     try:
-        ProjectDocumentModel.delete_document(doc_id, usuario_id=DEFAULT_USER_ID)
+        ProjectDocumentModel.delete_document(doc_id, usuario_id=current_user_id())
     except Exception as e:
         errors.append(f"borrado local/remoto: {e}")
 

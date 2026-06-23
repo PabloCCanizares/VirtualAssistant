@@ -5,14 +5,14 @@ from datetime import datetime, timezone
 
 from flask import Blueprint, current_app, render_template
 
-from database.mongo_conn import get_app_user_id
 from model.event_model import eventModel
 from model.goal_model import GoalModel
 from model.project_model import ProjectModel
 from model.task_model import TaskModel
+from services.user_context import current_user_id
 
 stats_bp = Blueprint("stats_bp", __name__, url_prefix="/stats")
-DEFAULT_USER_ID = get_app_user_id()
+DEFAULT_USER_ID = current_user_id()
 
 # Palette tomada del dashboard (accent, accent2, good, warn, bad)
 PALETTE = {
@@ -79,7 +79,7 @@ def _is_in_ym(dt_obj, year):
     return d.year == year
 
 def _load_all_tasks():
-    tasks = TaskModel.get_all_tasks(usuario_id=DEFAULT_USER_ID)
+    tasks = TaskModel.get_all_tasks(usuario_id=current_user_id())
     out = []
     for t in tasks:
         t = dict(t) if not isinstance(t, dict) else t.copy()
@@ -110,14 +110,14 @@ def stats_tasks_completed_month():
     }
 
 def stats_projects_progress():
-    projects = ProjectModel.get_all_projects(usuario_id=DEFAULT_USER_ID)
+    projects = ProjectModel.get_all_projects(usuario_id=current_user_id())
     result = []
     for p in projects:
         pid = p.get("_id")
         if isinstance(pid, dict) and "$oid" in pid:
             pid = pid["$oid"]
         pid_str = str(pid) if pid is not None else None
-        goals = GoalModel.get_by_project(pid, usuario_id=DEFAULT_USER_ID)
+        goals = GoalModel.get_by_project(pid, usuario_id=current_user_id())
         avg = ProjectModel.calculate_progress_from_goals(goals)
         result.append({
             "project_id": pid_str,
@@ -147,7 +147,7 @@ def stats_tasks_relevance_month():
             "meta": {"year": year}}
 
 def stats_events_by_type_month():
-    raw_events = eventModel.get_all_events(usuario_id=DEFAULT_USER_ID)
+    raw_events = eventModel.get_all_events(usuario_id=current_user_id())
     all_events = []
     for e in raw_events:
         e = dict(e) if not isinstance(e, dict) else e.copy()

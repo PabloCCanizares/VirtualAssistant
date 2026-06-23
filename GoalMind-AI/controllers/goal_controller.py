@@ -2,15 +2,16 @@
 from bson import ObjectId
 from flask import Blueprint, flash, jsonify, redirect, render_template, request, url_for
 
-from database.mongo_conn import flush_deletion_queue, get_app_user_id, queue_deletion
+from database.mongo_conn import flush_deletion_queue, queue_deletion
 from model.category_model import CategoryModel
 from model.goal_model import GoalModel
 from model.project_model import ProjectModel
 from model.task_model import TaskModel
 from services.project_service import delete_goal_cascade as service_delete_goal_cascade
+from services.user_context import current_user_id
 
 goal_bp = Blueprint("goal_bp", __name__, url_prefix="/goals")
-DEFAULT_USER_ID = get_app_user_id()
+DEFAULT_USER_ID = current_user_id()
 
 
 def _serialize_goal(goal):
@@ -32,7 +33,7 @@ def _serialize_goal(goal):
 
 def _load_categories():
     """Carga todas las categorias y las serializa para los templates."""
-    categories = CategoryModel.get_all_categories(usuario_id=DEFAULT_USER_ID)
+    categories = CategoryModel.get_all_categories(usuario_id=current_user_id())
     return [{
         "_id": str(c["_id"]),
         "name": c.get("name", "")
@@ -45,7 +46,7 @@ def _build_category_names(categories):
 
 
 def _load_projects():
-    projects = ProjectModel.get_all_projects(usuario_id=DEFAULT_USER_ID)
+    projects = ProjectModel.get_all_projects(usuario_id=current_user_id())
     projects_view = []
     project_titles = {}
     for project in projects:
@@ -84,7 +85,7 @@ def add_goal():
             except Exception:
                 pass
 
-        user_id = request.form.get("usuario_id") or DEFAULT_USER_ID
+        user_id = request.form.get("usuario_id") or current_user_id()
         data = {
             "usuario_id": user_id,
             "project_id": project_id,
@@ -115,7 +116,7 @@ def add_goal():
 def view_goal(goal_id):
     """Muestra el detalle de un objetivo especifico."""
     try:
-        goal = GoalModel.get_goal_by_id(goal_id, usuario_id=DEFAULT_USER_ID)
+        goal = GoalModel.get_goal_by_id(goal_id, usuario_id=current_user_id())
         if not goal:
             flash("Objetivo no encontrado.", "warning")
             return redirect(url_for("project_bp.list_projects"))
@@ -126,7 +127,7 @@ def view_goal(goal_id):
         category_names = _build_category_names(categories)
 
         # Obtener tareas asociadas a este objetivo
-        tasks = TaskModel.get_tasks_by_goal(goal_id, usuario_id=DEFAULT_USER_ID)
+        tasks = TaskModel.get_tasks_by_goal(goal_id, usuario_id=current_user_id())
         tasks_view = []
         for task in tasks:
             task_view = dict(task)
@@ -195,7 +196,7 @@ def update_goal(goal_id):
         if request.form.get("project_id"):
             updates["project_id"] = request.form.get("project_id")
 
-        GoalModel.update_goal(goal_id, updates, usuario_id=DEFAULT_USER_ID)
+        GoalModel.update_goal(goal_id, updates, usuario_id=current_user_id())
         flash("Objetivo actualizado correctamente", "success")
     except Exception as e:
         flash(f"Error al actualizar el objetivo: {e}", "danger")
@@ -214,7 +215,7 @@ def delete_goal(goal_id):
     # Obtener project_id antes de borrar para el redirect
     project_id = None
     try:
-        goal = GoalModel.get_goal_by_id(goal_id, usuario_id=DEFAULT_USER_ID)
+        goal = GoalModel.get_goal_by_id(goal_id, usuario_id=current_user_id())
         if goal:
             project_id = str(goal.get("project_id", "")) if goal.get("project_id") else None
     except Exception:
@@ -223,7 +224,7 @@ def delete_goal(goal_id):
     try:
         result = service_delete_goal_cascade(
             goal_id,
-            usuario_id=DEFAULT_USER_ID,
+            usuario_id=current_user_id(),
             goal_model=GoalModel,
             task_model=TaskModel,
             queue_delete=queue_deletion,

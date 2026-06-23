@@ -5,7 +5,7 @@ from typing import Any, Dict, List, Optional, Tuple
 from bson import ObjectId
 from flask import Blueprint, jsonify, render_template, request
 
-from database.mongo_conn import get_app_user_id, get_collection
+from database.mongo_conn import get_collection
 from model.goal_model import GoalModel
 from model.task_model import TaskModel
 from services.event_service import (
@@ -13,9 +13,10 @@ from services.event_service import (
     reference_from_event,
     sync_event_association,
 )
+from services.user_context import current_user_id
 
 calendar_bp = Blueprint("calendar_bp", __name__)
-DEFAULT_USER_ID = get_app_user_id()
+DEFAULT_USER_ID = current_user_id()
 
 @calendar_bp.route("/calendar", methods=["GET"])
 def calendar_page():
@@ -72,7 +73,7 @@ def _sync_event_association(event_id, old_ref_id, old_ref_tipo, new_ref_id, new_
         old_ref_tipo,
         new_ref_id,
         new_ref_tipo,
-        usuario_id=DEFAULT_USER_ID,
+        usuario_id=current_user_id(),
         task_model=TaskModel,
         goal_model=GoalModel,
     )
@@ -97,13 +98,13 @@ def api_list_events():
 
     # Añadir filtro de usuario
     from model.event_model import _uid_filter
-    query.update(_uid_filter(DEFAULT_USER_ID))
+    query.update(_uid_filter(current_user_id()))
 
     if start_dt and end_dt:
         # Intersección: (inicio <= end) y (fin >= start)
         query = {
             "$and": [
-                _uid_filter(DEFAULT_USER_ID),
+                _uid_filter(current_user_id()),
                 {"$or": [
                     {"fecha_inicio": {"$lte": end_dt}, "fecha_fin": {"$gte": start_dt}},
                     {"start": {"$lte": end_dt}, "end": {"$gte": start_dt}},
@@ -111,9 +112,9 @@ def api_list_events():
             ]
         }
     elif start_dt:
-        query = {"$and": [_uid_filter(DEFAULT_USER_ID), {"$or": [{"fecha_inicio": {"$gte": start_dt}}, {"start": {"$gte": start_dt}}]}]}
+        query = {"$and": [_uid_filter(current_user_id()), {"$or": [{"fecha_inicio": {"$gte": start_dt}}, {"start": {"$gte": start_dt}}]}]}
     elif end_dt:
-        query = {"$and": [_uid_filter(DEFAULT_USER_ID), {"$or": [{"fecha_inicio": {"$lte": end_dt}}, {"start": {"$lte": end_dt}}]}]}
+        query = {"$and": [_uid_filter(current_user_id()), {"$or": [{"fecha_inicio": {"$lte": end_dt}}, {"start": {"$lte": end_dt}}]}]}
 
     docs = list(col.find(query).sort("fecha_inicio", 1))
 
@@ -168,7 +169,7 @@ def api_create_event():
         "fecha_inicio": start_dt,  # aware UTC
         "fecha_fin": end_dt,       # aware UTC
         "tipo_evento": (payload.get("tipo_evento") or "").strip() or None,
-        "usuario_id": DEFAULT_USER_ID,
+        "usuario_id": current_user_id(),
         # Referencia unificada
         "referencia_id": ref_id,
         "referencia_tipo": ref_tipo,
@@ -333,10 +334,10 @@ def api_events_timeline():
     from model.event_model import _uid_filter
 
     if tipo == "past":
-        query = {"$and": [_uid_filter(DEFAULT_USER_ID), {"fecha_fin": {"$lt": now}}]}
+        query = {"$and": [_uid_filter(current_user_id()), {"fecha_fin": {"$lt": now}}]}
         sort_dir = -1
     else:
-        query = {"$and": [_uid_filter(DEFAULT_USER_ID), {"fecha_fin": {"$gte": now}}]}
+        query = {"$and": [_uid_filter(current_user_id()), {"fecha_fin": {"$gte": now}}]}
         sort_dir = 1
 
     docs = list(col.find(query).sort("fecha_fin", sort_dir))
