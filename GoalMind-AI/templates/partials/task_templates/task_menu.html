@@ -4,10 +4,10 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/panels.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/task_menu.css') }}">
 
-<section class="mission-shell">
+<section class="mission-shell mission-shell--tasks">
   {% include "partials/task_templates/task_header.html" %}
 
-  <div class="mission-grid">
+  <div class="mission-grid mission-grid--workbench">
     <section class="mission-main">
       {% include "partials/task_templates/tasks_center_panel.html" %}
     </section>

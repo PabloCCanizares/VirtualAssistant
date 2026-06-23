@@ -9,11 +9,26 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/calendar.css') }}">
 {% endif %}
 
-<section class="mission-shell">
+{% set mission_titles = {
+  "dashboard": "GoalMind - AI",
+  "agenda": "Agenda",
+  "objetivos": "Objetivos",
+  "estadisticas": "Estadísticas",
+  "config": "Configuración"
+} %}
+{% set mission_subtitles = {
+  "dashboard": "Resumen ejecutivo del asistente personal · estado operativo en tiempo real",
+  "agenda": "Vista temporal de tareas, objetivos y eventos",
+  "objetivos": "Seguimiento de metas, foco y progreso conectado",
+  "estadisticas": "Señales visuales para entender carga, avance y prioridades",
+  "config": "Preferencias locales, modelos de IA y conexión de datos"
+} %}
+
+<section class="mission-shell mission-shell--{{ page }}">
 
   <div class="mission-heading">
-    <h1 class="mission-title">GoalMind - AI</h1>
-    <p class="mission-subtitle">Resumen ejecutivo del asistente personal · estado operativo en tiempo real</p>
+    <h1 class="mission-title">{{ mission_titles.get(page, "GoalMind - AI") }}</h1>
+    <p class="mission-subtitle">{{ mission_subtitles.get(page, "Resumen ejecutivo del asistente personal · estado operativo en tiempo real") }}</p>
   </div>
   {% include "partials/header.html" %}
 

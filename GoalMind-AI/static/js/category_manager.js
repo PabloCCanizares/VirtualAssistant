@@ -39,9 +39,22 @@
       .then(r => r.json())
       .then(data => {
         if (data.success && data.categories.length > 0) {
-          container.innerHTML = data.categories
+          const seenNames = new Set();
+          const uniqueCategories = data.categories.filter(function(category) {
+            const normalizedName = String(category.name || '').trim().toLowerCase();
+            if (!normalizedName || seenNames.has(normalizedName)) return false;
+            seenNames.add(normalizedName);
+            return true;
+          });
+          const visibleCategories = uniqueCategories.slice(0, 14);
+          const remainingCount = uniqueCategories.length - visibleCategories.length;
+          const pills = visibleCategories
             .map(c => `<div class="sidebar-pill">${escapeHtml(c.name)}</div>`)
             .join('');
+          const morePill = remainingCount > 0
+            ? `<div class="sidebar-pill sidebar-pill-more">+${remainingCount}</div>`
+            : '';
+          container.innerHTML = pills + morePill;
         } else {
           container.innerHTML = '<div class="sidebar-pill">Sin categorias</div>';
         }
