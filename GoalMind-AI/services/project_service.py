@@ -1,11 +1,23 @@
 from dataclasses import dataclass, field
+from datetime import datetime
 from typing import Any, Callable
+from uuid import uuid4
 
 
 @dataclass
 class CascadeDeleteResult:
     deleted: bool = False
     errors: list[str] = field(default_factory=list)
+
+
+@dataclass
+class ProjectNoteResult:
+    ok: bool
+    message: str
+    level: str = "success"
+    redirect_to_list: bool = False
+    project_id: Any = None
+    note: dict | None = None
 
 
 def _default_dependencies():
@@ -22,6 +34,87 @@ def _default_dependencies():
         "task_model": TaskModel,
         "queue_delete": queue_deletion,
     }
+
+
+def add_project_note(
+    project_id: Any,
+    text: str,
+    *,
+    usuario_id: Any,
+    project_model=None,
+    note_id_factory: Callable[[], Any] | None = None,
+    now_fn: Callable[[], Any] | None = None,
+) -> ProjectNoteResult:
+    deps = _default_dependencies()
+    project_model = project_model or deps["project_model"]
+    note_id_factory = note_id_factory or (lambda: uuid4().hex)
+    now_fn = now_fn or datetime.utcnow
+
+    note_text = (text or "").strip()
+    if not note_text:
+        return ProjectNoteResult(
+            ok=False,
+            message="La anotacion no puede estar vacia.",
+            level="warning",
+            project_id=project_id,
+        )
+
+    project = project_model.get_project_by_id(project_id, usuario_id=usuario_id)
+    if not project:
+        return ProjectNoteResult(
+            ok=False,
+            message="Proyecto no encontrado.",
+            level="warning",
+            redirect_to_list=True,
+            project_id=project_id,
+        )
+
+    note = {
+        "_id": str(note_id_factory()),
+        "text": note_text,
+        "created_at": now_fn(),
+    }
+    notes = project.get("notas", []) or []
+    notes.append(note)
+    project_model.update_project(project_id, {"notas": notes}, usuario_id=usuario_id)
+
+    return ProjectNoteResult(
+        ok=True,
+        message="Anotacion agregada.",
+        project_id=project_id,
+        note=note,
+    )
+
+
+def delete_project_note(
+    project_id: Any,
+    note_id: Any,
+    *,
+    usuario_id: Any,
+    project_model=None,
+) -> ProjectNoteResult:
+    deps = _default_dependencies()
+    project_model = project_model or deps["project_model"]
+
+    project = project_model.get_project_by_id(project_id, usuario_id=usuario_id)
+    if not project:
+        return ProjectNoteResult(
+            ok=False,
+            message="Proyecto no encontrado.",
+            level="warning",
+            redirect_to_list=True,
+            project_id=project_id,
+        )
+
+    notes = project.get("notas", []) or []
+    filtered_notes = [n for n in notes if str(n.get("_id")) != str(note_id)]
+    project_model.update_project(project_id, {"notas": filtered_notes}, usuario_id=usuario_id)
+
+    return ProjectNoteResult(
+        ok=True,
+        message="Anotacion eliminada.",
+        project_id=project_id,
+    )
 
 
 def delete_goal_cascade(

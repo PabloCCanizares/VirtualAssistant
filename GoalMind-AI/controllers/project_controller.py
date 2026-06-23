@@ -1,7 +1,6 @@
 # controllers/project_controller.py
 from datetime import datetime
 from io import BytesIO
-from uuid import uuid4
 
 from bson import ObjectId
 from flask import (
@@ -52,7 +51,9 @@ from services.project_document_service import (
 from services.project_document_service import (
     upload_project_document as service_upload_project_document,
 )
+from services.project_service import add_project_note as service_add_project_note
 from services.project_service import delete_project_cascade as service_delete_project_cascade
+from services.project_service import delete_project_note as service_delete_project_note
 from services.user_context import current_user_id
 
 project_bp = Blueprint("project_bp", __name__, url_prefix="/projects")
@@ -371,25 +372,15 @@ def view_project(project_id):
 @project_bp.route("/<project_id>/notes/add", methods=["POST"])
 def add_project_note(project_id):
     try:
-        text = (request.form.get("note_text") or "").strip()
-        if not text:
-            flash("La anotacion no puede estar vacia.", "warning")
-            return redirect(url_for("project_bp.view_project", project_id=project_id))
-
-        project = ProjectModel.get_project_by_id(project_id, usuario_id=current_user_id())
-        if not project:
-            flash("Proyecto no encontrado.", "warning")
+        result = service_add_project_note(
+            project_id,
+            request.form.get("note_text") or "",
+            usuario_id=current_user_id(),
+            project_model=ProjectModel,
+        )
+        flash(result.message, result.level)
+        if result.redirect_to_list:
             return redirect(url_for("project_bp.list_projects"))
-
-        note = {
-            "_id": uuid4().hex,
-            "text": text,
-            "created_at": datetime.utcnow(),
-        }
-        notes = project.get("notas", []) or []
-        notes.append(note)
-        ProjectModel.update_project(project_id, {"notas": notes}, usuario_id=current_user_id())
-        flash("Anotacion agregada.", "success")
     except Exception as e:
         flash(f"Error al agregar anotacion: {e}", "danger")
 
@@ -399,15 +390,15 @@ def add_project_note(project_id):
 @project_bp.route("/<project_id>/notes/<note_id>/delete", methods=["POST"])
 def delete_project_note(project_id, note_id):
     try:
-        project = ProjectModel.get_project_by_id(project_id, usuario_id=current_user_id())
-        if not project:
-            flash("Proyecto no encontrado.", "warning")
+        result = service_delete_project_note(
+            project_id,
+            note_id,
+            usuario_id=current_user_id(),
+            project_model=ProjectModel,
+        )
+        flash(result.message, result.level)
+        if result.redirect_to_list:
             return redirect(url_for("project_bp.list_projects"))
-
-        notes = project.get("notas", []) or []
-        notes = [n for n in notes if str(n.get("_id")) != str(note_id)]
-        ProjectModel.update_project(project_id, {"notas": notes}, usuario_id=current_user_id())
-        flash("Anotacion eliminada.", "success")
     except Exception as e:
         flash(f"Error al eliminar anotacion: {e}", "danger")
 
