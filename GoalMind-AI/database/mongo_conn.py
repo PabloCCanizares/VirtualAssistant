@@ -23,6 +23,8 @@ from flask import current_app
 from flask_pymongo import PyMongo
 from pymongo import MongoClient, ReplaceOne
 
+from database.mongo_settings import load_mongo_settings, redact_mongo_uri
+
 try:
     from dotenv import set_key as _dotenv_set_key
 except ImportError:
@@ -126,15 +128,14 @@ def init_app(app):
     global mongo_remote, _local_db_name, _remote_db_name, _configured_remote_uri
 
     # ------------- LEER CONFIGURACIÓN -------------
-    local_uri = os.getenv("MONGO_LOCAL_URI", "mongodb://127.0.0.1:27017")
-    _local_db_name = os.getenv("MONGO_LOCAL_DB", "VirtualAssistantDB")
-    remote_uri = (os.getenv("MONGO_REMOTE_URI") or "").strip()
-    _remote_db_name = os.getenv("MONGO_REMOTE_DB", "VirtualAssistantDB")
-    _configured_remote_uri = remote_uri
-    _persist_user_nickname(remote_uri)
+    settings = load_mongo_settings()
+    _local_db_name = settings.local_db
+    _remote_db_name = settings.remote_db
+    _configured_remote_uri = settings.remote_uri
+    _persist_user_nickname(settings.remote_uri)
 
     # ------------- CONEXIÓN LOCAL -------------
-    app.config["MONGO_URI"] = f"{local_uri}/{_local_db_name}"
+    app.config["MONGO_URI"] = settings.local_connection_uri
     mongo_local.init_app(app)
     app.mongo_local = mongo_local
     print("Conectado a MongoDB local")
@@ -144,11 +145,11 @@ def init_app(app):
     app.mongo_remote = None
 
     # ------------- CONEXIÓN REMOTA (ATLAS) -------------
-    if remote_uri and internet_available():
+    if settings.remote_configured and internet_available():
         print("Internet disponible - probando conexion a MongoDB Atlas...")
 
         try:
-            client = _create_mongo_client(remote_uri)
+            client = _create_mongo_client(settings.remote_uri)
             mongo_remote = client
             app.mongo_remote = client
             print("Conectado a MongoDB Atlas")
@@ -157,7 +158,7 @@ def init_app(app):
             mongo_remote = None
             app.mongo_remote = None
             print(f"No se pudo conectar a Atlas, se usará SOLO la base local.\nDetalle: {e}")
-    elif not remote_uri:
+    elif not settings.remote_configured:
         print("Sin URI remota configurada → se usará solo la base local.")
     else:
         print("Sin conexión a internet → se usará solo la base local.")
@@ -177,7 +178,8 @@ def ensure_remote_connection(app=None):
             app.mongo_remote = mongo_remote
         return True
 
-    remote_uri = (_configured_remote_uri or os.getenv("MONGO_REMOTE_URI", "")).strip()
+    settings = load_mongo_settings()
+    remote_uri = (_configured_remote_uri or settings.remote_uri).strip()
     if not remote_uri:
         return False
 
@@ -206,39 +208,40 @@ def reconnect_databases(app=None):
     local_ok = False
     remote_ok = False
 
+    settings = load_mongo_settings()
+
     # --- Local ---
-    new_local_uri = os.getenv("MONGO_LOCAL_URI", "mongodb://127.0.0.1:27017")
-    new_local_db = os.getenv("MONGO_LOCAL_DB", "VirtualAssistantDB")
     try:
         old_client = mongo_local.cx
-        new_client = MongoClient(f"{new_local_uri}/{new_local_db}")
+        new_client = MongoClient(settings.local_connection_uri)
         new_client.admin.command("ping")
         old_client.close()
         mongo_local.cx = new_client
-        _local_db_name = new_local_db
-        app.config["MONGO_URI"] = f"{new_local_uri}/{new_local_db}"
+        _local_db_name = settings.local_db
+        app.config["MONGO_URI"] = settings.local_connection_uri
         app.mongo_local = mongo_local
         local_ok = True
-        logger.info("Reconexion local completada: %s/%s", new_local_uri, new_local_db)
+        logger.info(
+            "Reconexion local completada: %s",
+            redact_mongo_uri(settings.local_connection_uri),
+        )
     except Exception as exc:
         errors.append(f"MONGO_LOCAL_URI: {exc}")
         logger.warning("Fallo reconexion local: %s", exc)
 
     # --- Remoto ---
-    new_remote_uri = (os.getenv("MONGO_REMOTE_URI") or "").strip()
-    new_remote_db = os.getenv("MONGO_REMOTE_DB", "VirtualAssistantDB")
-    if new_remote_uri:
+    if settings.remote_configured:
         try:
             if mongo_remote is not None:
                 mongo_remote.close()
-            client = _create_mongo_client(new_remote_uri)
+            client = _create_mongo_client(settings.remote_uri)
             mongo_remote = client
-            _remote_db_name = new_remote_db
-            _configured_remote_uri = new_remote_uri
+            _remote_db_name = settings.remote_db
+            _configured_remote_uri = settings.remote_uri
             app.mongo_remote = mongo_remote
             remote_ok = True
-            logger.info("Reconexion remota completada: %s", new_remote_db)
-            _persist_user_nickname(new_remote_uri)
+            logger.info("Reconexion remota completada: %s", settings.remote_db)
+            _persist_user_nickname(settings.remote_uri)
         except Exception as exc:
             mongo_remote = None
             app.mongo_remote = None

@@ -175,6 +175,40 @@ class TestReconnectDatabases:
         out = mongo_conn.reconnect_databases(app)
         assert out["remote"] is True  # sin URI: se considera "ok" (vacio intencional)
 
+    def test_reconnect_uses_normalized_local_connection_uri(
+        self, mongo_mock, monkeypatch
+    ):
+        from flask import Flask
+
+        app = Flask(__name__)
+        app.mongo_local = mongo_conn.mongo_local
+        captured = {}
+
+        class _FakeClient:
+            def __init__(self, uri):
+                captured["uri"] = uri
+                self.admin = self
+
+            def command(self, name):
+                assert name == "ping"
+
+            def close(self):
+                pass
+
+        monkeypatch.setattr(mongo_conn, "MongoClient", _FakeClient)
+        monkeypatch.delenv("MONGO_REMOTE_URI", raising=False)
+        monkeypatch.setenv(
+            "MONGO_LOCAL_URI",
+            "mongodb://localhost:27017/?directConnection=true",
+        )
+        monkeypatch.setenv("MONGO_LOCAL_DB", "test_local")
+
+        out = mongo_conn.reconnect_databases(app)
+
+        assert out["local"] is True
+        assert captured["uri"] == "mongodb://localhost:27017/test_local?directConnection=true"
+        assert app.config["MONGO_URI"] == captured["uri"]
+
     def test_reconnect_with_invalid_local_uri(self, mongo_mock, monkeypatch):
         from flask import Flask
         app = Flask(__name__)
