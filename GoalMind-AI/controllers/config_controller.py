@@ -22,8 +22,10 @@ except ModuleNotFoundError:
 from database.mongo_conn import (
     ENV_PATH,
     ensure_remote_connection,
-    flush_deletion_queue,
     reconnect_databases,
+)
+from services.mongo_sync_service import (
+    flush_deletion_queue,
     sync_all_collections,
     sync_local_to_remote,
 )

@@ -6,10 +6,9 @@ from database.mongo_conn import (
     get_app_user_id,
     get_collection,
     remote_uid_filter,
-    sync_from_remote,
-    sync_to_remote,
 )
 from model.goal_model import GoalModel
+from services.mongo_sync_service import sync_from_remote, sync_to_remote
 
 
 def _uid_filter(_=None):

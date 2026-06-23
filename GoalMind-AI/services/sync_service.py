@@ -24,11 +24,11 @@ def run_full_sync(
     if ensure_remote_connection_fn is None:
         from database.mongo_conn import ensure_remote_connection as ensure_remote_connection_fn
     if flush_deletion_queue_fn is None:
-        from database.mongo_conn import flush_deletion_queue as flush_deletion_queue_fn
+        from services.mongo_sync_service import flush_deletion_queue as flush_deletion_queue_fn
     if sync_all_collections_fn is None:
-        from database.mongo_conn import sync_all_collections as sync_all_collections_fn
+        from services.mongo_sync_service import sync_all_collections as sync_all_collections_fn
     if sync_local_to_remote_fn is None:
-        from database.mongo_conn import sync_local_to_remote as sync_local_to_remote_fn
+        from services.mongo_sync_service import sync_local_to_remote as sync_local_to_remote_fn
     if promote_pending_remote_uploads_fn is None:
         from model.project_document_model import ProjectDocumentModel
 

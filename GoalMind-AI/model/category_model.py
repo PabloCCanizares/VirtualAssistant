@@ -2,7 +2,8 @@ from datetime import datetime
 
 from bson import ObjectId
 
-from database.mongo_conn import get_app_user_id, get_collection, remote_uid_filter, sync_to_remote
+from database.mongo_conn import get_app_user_id, get_collection, remote_uid_filter
+from services.mongo_sync_service import sync_to_remote
 
 
 def _uid_filter(_=None):

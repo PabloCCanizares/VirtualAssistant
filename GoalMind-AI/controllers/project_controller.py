@@ -24,12 +24,12 @@ from database.gridfs_storage import (
     promote_local_file_to_remote,
     upload_stream_to_local_storage,
 )
-from database.mongo_conn import flush_deletion_queue, queue_deletion
 from model.category_model import CategoryModel
 from model.goal_model import GoalModel
 from model.project_document_model import ProjectDocumentModel
 from model.project_model import ProjectModel
 from model.task_model import TaskModel
+from services.mongo_sync_service import flush_deletion_queue, queue_deletion
 from services.project_service import delete_project_cascade as service_delete_project_cascade
 from services.user_context import current_user_id
 

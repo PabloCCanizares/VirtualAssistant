@@ -9,11 +9,11 @@ class CascadeDeleteResult:
 
 
 def _default_dependencies():
-    from database.mongo_conn import queue_deletion
     from model.goal_model import GoalModel
     from model.project_document_model import ProjectDocumentModel
     from model.project_model import ProjectModel
     from model.task_model import TaskModel
+    from services.mongo_sync_service import queue_deletion
 
     return {
         "goal_model": GoalModel,

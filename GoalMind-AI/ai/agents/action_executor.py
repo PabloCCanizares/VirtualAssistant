@@ -7,12 +7,12 @@ from bson import ObjectId
 from ai.services.action_state import clear_pending_action
 from ai.services.session_mutations_state import append_session_mutation
 from ai.state import AppState
-from database.mongo_conn import flush_deletion_queue, queue_deletion
 from model.event_model import eventModel
 from model.goal_model import GoalModel
 from model.project_model import ProjectModel
 from model.task_model import TaskModel
 from services.event_service import normalize_reference
+from services.mongo_sync_service import flush_deletion_queue, queue_deletion
 from services.project_service import (
     delete_goal_cascade as service_delete_goal_cascade,
 )

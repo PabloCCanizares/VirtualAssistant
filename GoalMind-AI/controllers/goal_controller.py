@@ -2,11 +2,11 @@
 from bson import ObjectId
 from flask import Blueprint, flash, jsonify, redirect, render_template, request, url_for
 
-from database.mongo_conn import flush_deletion_queue, queue_deletion
 from model.category_model import CategoryModel
 from model.goal_model import GoalModel
 from model.project_model import ProjectModel
 from model.task_model import TaskModel
+from services.mongo_sync_service import flush_deletion_queue, queue_deletion
 from services.project_service import delete_goal_cascade as service_delete_goal_cascade
 from services.user_context import current_user_id
 
