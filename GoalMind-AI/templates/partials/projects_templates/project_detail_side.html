@@ -1,7 +1,25 @@
 <aside class="side-panel">
 
+  <div class="side-panel-card project-action-rail-card">
+    <p class="project-action-eyebrow"><span aria-hidden="true">✦</span> Acción recomendada</p>
+    {% if goals and goals|length > 0 %}
+      {% set first_goal = goals[0] %}
+      <a class="project-action-tile" href="{{ url_for('goal_bp.view_goal', goal_id=first_goal['_id']) }}">
+        <span>Añadir tarea a<br>{{ first_goal.get('titulo','Objetivo') }}</span>
+        <span class="project-action-arrow" aria-hidden="true">›</span>
+      </a>
+    {% else %}
+      <a class="project-action-tile" href="#newGoalCard" data-open-panel="newGoalCard">
+        <span>Crear el primer<br>objetivo</span>
+        <span class="project-action-arrow" aria-hidden="true">›</span>
+      </a>
+    {% endif %}
+  </div>
+
+  <div class="project-action-rail-label">Panel de acciones</div>
+
   <!-- Editar proyecto (colapsable) -->
-  <div class="side-panel-card collapsible">
+  <div class="side-panel-card collapsible" id="editProjectCard">
     <div class="side-panel-header">
     <span class="side-panel-icon">✏️</span>
       <h3 class="side-panel-title">Editar proyecto</h3>
@@ -89,7 +107,7 @@
   </div>
 
   <!-- Crear nuevo objetivo para este proyecto (colapsable) -->
-  <div class="side-panel-card collapsible">
+  <div class="side-panel-card collapsible" id="newGoalCard">
     <div class="side-panel-header">
      <span class="side-panel-icon">🎯</span>
       <h3 class="side-panel-title">Nuevo objetivo</h3>
@@ -165,7 +183,7 @@
   <div class="side-panel-card collapsible" id="documentDropCard">
     <div class="side-panel-header">
     <span class="side-panel-icon">📎</span>
-      <h3 class="side-panel-title">Asociar documento</h3>
+      <h3 class="side-panel-title">Subir documento</h3>
       <span class="side-panel-toggle"></span>
     </div>
 
@@ -194,7 +212,7 @@
   </div>
 
   <!-- Eliminar proyecto (colapsable) -->
-  <div class="side-panel-card collapsible">
+  <div class="side-panel-card collapsible" id="deleteProjectCard">
     <div class="side-panel-header">
       <span class="side-panel-icon">🗑️</span>
       <h3 class="side-panel-title">Eliminar proyecto</h3>
@@ -216,11 +234,6 @@
   </div>
 
 </aside>
-
-
-    <div class="project-note-modal-body" id="projectNoteModalBody"></div>
-  </div>
-</div>
 
 <!-- Modal para subir documento con drag & drop -->
 <div class="upload-modal-overlay" id="uploadModalOverlay">
@@ -288,6 +301,44 @@ document.addEventListener('DOMContentLoaded', function() {
   const form = document.getElementById('uploadModalForm');
   const fileInput = document.getElementById('modalFileInput');
   const titleInput = document.getElementById('document_title');
+
+  function openPanelById(panelId) {
+    const card = document.getElementById(panelId);
+    if (!card) return;
+    card.closest('.side-panel')?.querySelectorAll('.side-panel-card.collapsible.expanded').forEach(other => {
+      if (other !== card && !other.classList.contains('locked')) {
+        other.classList.remove('expanded');
+      }
+    });
+    card.classList.add('expanded');
+    const rail = card.closest('.mission-side-panel');
+    if (rail) {
+      const railTop = rail.getBoundingClientRect().top;
+      const cardTop = card.getBoundingClientRect().top;
+      rail.scrollTo({
+        top: rail.scrollTop + cardTop - railTop - 8,
+        behavior: 'smooth'
+      });
+    }
+    const firstField = card.querySelector('input, textarea, select');
+    if (firstField) {
+      requestAnimationFrame(() => firstField.focus({ preventScroll: true }));
+    }
+  }
+
+  document.querySelectorAll('[data-open-panel]').forEach(trigger => {
+    trigger.addEventListener('click', function(event) {
+      event.preventDefault();
+      openPanelById(this.dataset.openPanel);
+    });
+  });
+
+  document.querySelectorAll('[data-open-document-upload]').forEach(trigger => {
+    trigger.addEventListener('click', function(event) {
+      event.preventDefault();
+      openPanelById('documentDropCard');
+    });
+  });
   
   // Inicializar el modal
   const uploadModal = new UploadModal(modal, {

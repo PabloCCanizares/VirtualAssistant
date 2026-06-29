@@ -7,6 +7,8 @@ from bson import ObjectId
 
 from model.task_model import TaskModel
 from model.goal_model import GoalModel
+from model.project_model import ProjectModel
+from model.event_model import eventModel
 from database.mongo_conn import get_app_user_id
 
 stats_bp = Blueprint("stats_bp", __name__, url_prefix="/stats")
@@ -162,6 +164,23 @@ def stats_goals_progress():
     result.sort(key=lambda x: x["progreso"], reverse=True)
     return {"uid": uuid.uuid4().hex, "palette": PALETTE, "goals": result, "count": len(result)}
 
+
+def stats_projects_progress():
+    projects = ProjectModel.get_all_projects(usuario_id=DEFAULT_USER_ID)
+    result = []
+    for project in projects:
+        goals = GoalModel.get_by_project(project.get("_id"), usuario_id=DEFAULT_USER_ID)
+        progress = ProjectModel.calculate_progress_from_goals(goals)
+        result.append(
+            {
+                "project_id": str(project.get("_id")),
+                "titulo": project.get("titulo"),
+                "progreso_medio": progress,
+                "num_goals": len(goals),
+            }
+        )
+    return {"uid": uuid.uuid4().hex, "palette": PALETTE, "projects": result, "count": len(result)}
+
 def stats_tasks_relevance_month():
     PRIOR_POINTS = {"alta":1, "media":1, "baja":1, "high":1, "medium":1, "low":1}
     tasks = _load_all_tasks()
@@ -181,24 +200,23 @@ def stats_tasks_relevance_month():
             "meta": {"year": year}}
 
 def stats_events_by_type_month():
-    tasks = _load_all_tasks()
-    year = _year_now()
-    month_tasks = [t for t in tasks if _is_in_ym(t.get("fecha_limite"), year)]
-    total = len(month_tasks)
+    events = eventModel.get_all_events(usuario_id=DEFAULT_USER_ID)
+    total = len(events)
     counts = {}
-    for t in month_tasks:
-        cat = (t.get("categoria") or "sin_categoria").strip()
-        counts[cat] = counts.get(cat, 0) + 1
+    for event in events:
+        event_type = (event.get("tipo_evento") or "sin_tipo").strip()
+        counts[event_type] = counts.get(event_type, 0) + 1
     distribution = [{"tipo": tipo, "count": cnt, "percentage": round((cnt/total*100.0) if total else 0.0,2)}
                     for tipo, cnt in counts.items()]
     distribution.sort(key=lambda x: x["count"], reverse=True)
-    return {"uid": uuid.uuid4().hex, "palette": PALETTE, "total": total, "distribution": distribution, "items": month_tasks,
-            "meta": {"year": year}}
+    return {"uid": uuid.uuid4().hex, "palette": PALETTE, "total": total, "distribution": distribution, "items": events,
+            "meta": {"year": _year_now()}}
 
 # Mapa de rutas -> template parcial (autónomo)
 _STAT_MAP = {
     "tasks_completed_month": {"fn": stats_tasks_completed_month, "template": "partials/stats_templates/stat_tasks_completed_panel.html", "title": "Tareas cumplidas (mes actual)"},
     "goals_progress": {"fn": stats_goals_progress, "template": "partials/stats_templates/stat_goals_progress_panel.html", "title": "Progreso por objetivos"},
+    "projects_progress": {"fn": stats_projects_progress, "template": "partials/stats_templates/stat_projects_progress_panel.html", "title": "Progreso por proyectos"},
     "tasks_relevance": {"fn": stats_tasks_relevance_month, "template": "partials/stats_templates/stat_tasks_relevance_panel.html", "title": "Relevancia de tareas (este mes)"},
     "events_by_type": {"fn": stats_events_by_type_month, "template": "partials/stats_templates/stat_events_by_type_panel.html", "title": "Eventos por tipo (este mes)"},
 }

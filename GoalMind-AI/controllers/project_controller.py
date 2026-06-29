@@ -1,4 +1,6 @@
 # controllers/project_controller.py
+from io import BytesIO
+import mimetypes
 from datetime import datetime
 from pathlib import Path
 from uuid import uuid4
@@ -12,6 +14,12 @@ from model.project_document_model import ProjectDocumentModel
 from model.project_model import ProjectModel
 from model.task_model import TaskModel
 from model.category_model import CategoryModel
+from database.gridfs_storage import (
+    download_file_from_local_storage,
+    download_file_from_remote_storage,
+    promote_local_file_to_remote,
+    upload_stream_to_local_storage,
+)
 from database.mongo_conn import queue_deletion, flush_deletion_queue, get_app_user_id
 
 project_bp = Blueprint("project_bp", __name__, url_prefix="/projects")
@@ -81,6 +89,68 @@ def _importance_value(project):
     return _parse_importance(project.get("importancia"), default=0) or 0
 
 
+def _format_size(size):
+    try:
+        value = int(size or 0)
+    except Exception:
+        value = 0
+    if value < 1024:
+        return f"{value} B"
+    if value < 1024**2:
+        return f"{value / 1024:.1f} KB"
+    if value < 1024**3:
+        return f"{value / 1024**2:.1f} MB"
+    return f"{value / 1024**3:.1f} GB"
+
+
+def _document_name(doc):
+    return (doc.get("original_name") or doc.get("filename") or "documento").strip()
+
+
+def _resolve_document_mimetype(doc):
+    content_type = (doc.get("content_type") or "").strip()
+    name = _document_name(doc)
+    if content_type and content_type != "application/octet-stream":
+        return content_type
+    guessed, _ = mimetypes.guess_type(name)
+    return guessed or "application/octet-stream"
+
+
+def _detect_preview_mode(doc, mimetype):
+    name = _document_name(doc).lower()
+    mt = (mimetype or "").lower()
+    if mt == "application/pdf" or name.endswith(".pdf"):
+        return "pdf"
+    if mt.startswith("image/"):
+        return "image"
+    if mt.startswith("text/") or name.endswith((".txt", ".md", ".csv", ".json", ".log")):
+        return "text"
+    return "unsupported"
+
+
+def _download_document_bytes(doc):
+    local_id = doc.get("local_upload_id")
+    if local_id:
+        data = download_file_from_local_storage(local_id)
+        if data:
+            return data
+    remote_id = doc.get("upload_id")
+    if remote_id:
+        return download_file_from_remote_storage(remote_id, app=current_app)
+    return None
+
+
+def _stream_size(stream):
+    try:
+        current = stream.tell()
+        stream.seek(0, 2)
+        size = stream.tell()
+        stream.seek(current)
+        return size
+    except Exception:
+        return 0
+
+
 def _created_at_value(project):
     return project.get("created_at") or datetime.min
 
@@ -135,11 +205,11 @@ def list_projects():
 
     status_filter = (request.args.get("status") or "").strip()
     if status_filter and status_filter.lower() != "all":
-        projects = [p for p in projects if (p.get("estado") or "").strip().lower() == status_filter.lower()]
+        projects = [p for p in projects if (p.get("estado") or "Activo").strip().lower() == status_filter.lower()]
 
     priority_filter = (request.args.get("priority") or "").strip()
     if priority_filter and priority_filter.lower() != "all":
-        projects = [p for p in projects if (p.get("prioridad") or "").strip().lower() == priority_filter.lower()]
+        projects = [p for p in projects if (p.get("prioridad") or "Media").strip().lower() == priority_filter.lower()]
 
     category_filter = (request.args.get("category") or "").strip()
     if category_filter and category_filter.lower() != "all":
@@ -487,23 +557,50 @@ def upload_document(project_id):
         flash("Nombre de archivo no valido.", "warning")
         return redirect(url_for("project_bp.view_project", project_id=project_id))
 
-    upload_root = Path(current_app.config.get("UPLOAD_ROOT", "uploads"))
-    project_dir = upload_root / "projects" / str(project_id)
-    project_dir.mkdir(parents=True, exist_ok=True)
+    content_type = file.mimetype or "application/octet-stream"
+    metadata = {
+        "project_id": str(project_id),
+        "goal_id": str(goal_id) if goal_id else "",
+        "usuario_id": DEFAULT_USER_ID,
+    }
+    size = _stream_size(file.stream)
+    local_upload_id = upload_stream_to_local_storage(
+        file.stream,
+        original_name=file.filename,
+        content_type=content_type,
+        metadata=metadata,
+    )
+    if not local_upload_id:
+        flash("No se pudo guardar el documento.", "danger")
+        return redirect(url_for("project_bp.view_project", project_id=project_id))
 
-    unique_name = f"{datetime.utcnow().strftime('%Y%m%d%H%M%S')}_{uuid4().hex}_{safe_name}"
-    file_path = project_dir / unique_name
-    file.save(file_path)
+    remote_upload_id = None
+    try:
+        remote_upload_id = promote_local_file_to_remote(
+            local_upload_id,
+            original_name=file.filename,
+            content_type=content_type,
+            metadata=metadata,
+            app=current_app,
+        )
+    except Exception:
+        remote_upload_id = None
 
     doc_data = {
         "project_id": project_id,
         "goal_id": goal_id,
-        "filename": unique_name,
+        "filename": safe_name,
         "original_name": file.filename,
-        "content_type": file.mimetype or "application/octet-stream",
-        "size": file_path.stat().st_size,
-        "local_path": str(file_path),
+        "content_type": content_type,
+        "size": size,
     }
+    if remote_upload_id:
+        doc_data["upload_id"] = remote_upload_id
+        doc_data["local_upload_id"] = local_upload_id
+        doc_data["remote_sync_pending"] = False
+    else:
+        doc_data["local_upload_id"] = local_upload_id
+        doc_data["remote_sync_pending"] = True
 
     ProjectDocumentModel.insert_document(doc_data, usuario_id=DEFAULT_USER_ID)
     flash("Documento subido correctamente", "success")
@@ -521,17 +618,17 @@ def download_document(doc_id):
         flash("Documento no encontrado.", "warning")
         return redirect(url_for("project_bp.list_projects"))
 
-    local_path = doc.get("local_path")
-    if not local_path:
-        flash("Documento sin ruta local.", "warning")
+    data = _download_document_bytes(doc)
+    if not data:
+        flash("Archivo no encontrado en almacenamiento.", "warning")
         return redirect(url_for("project_bp.view_project", project_id=doc.get("project_id")))
 
-    file_path = Path(local_path)
-    if not file_path.exists():
-        flash("Archivo no encontrado en disco.", "warning")
-        return redirect(url_for("project_bp.view_project", project_id=doc.get("project_id")))
-
-    return send_file(file_path, as_attachment=True, download_name=doc.get("original_name") or file_path.name)
+    return send_file(
+        BytesIO(data),
+        as_attachment=True,
+        download_name=_document_name(doc),
+        mimetype=_resolve_document_mimetype(doc),
+    )
 
 
 # -------------------------------------------------------------
@@ -544,21 +641,16 @@ def view_document(doc_id):
         flash("Documento no encontrado.", "warning")
         return redirect(url_for("project_bp.list_projects"))
 
-    local_path = doc.get("local_path")
-    if not local_path:
-        flash("Documento sin ruta local.", "warning")
-        return redirect(url_for("project_bp.view_project", project_id=doc.get("project_id")))
-
-    file_path = Path(local_path)
-    if not file_path.exists():
-        flash("Archivo no encontrado en disco.", "warning")
+    data = _download_document_bytes(doc)
+    if not data:
+        flash("Archivo no encontrado en almacenamiento.", "warning")
         return redirect(url_for("project_bp.view_project", project_id=doc.get("project_id")))
 
     return send_file(
-        file_path,
+        BytesIO(data),
         as_attachment=False,
-        download_name=doc.get("original_name") or file_path.name,
-        mimetype=doc.get("content_type") or None,
+        download_name=_document_name(doc),
+        mimetype=_resolve_document_mimetype(doc),
     )
 
 
@@ -572,15 +664,11 @@ def delete_document(doc_id):
         flash("Documento no encontrado.", "warning")
         return redirect(url_for("project_bp.list_projects"))
 
-    if not doc.get("upload_id"):
-        local_path = doc.get("local_path")
-        if local_path:
-            try:
-                Path(local_path).unlink(missing_ok=True)
-            except Exception:
-                pass
-
-    ProjectDocumentModel.delete_document(doc_id, usuario_id=DEFAULT_USER_ID)
-    flash("Documento eliminado", "success")
+    try:
+        ProjectDocumentModel.delete_document(doc_id, usuario_id=DEFAULT_USER_ID)
+        flash("Documento eliminado", "success")
+    except Exception as e:
+        flash(f"No se pudo eliminar el documento completamente: {e}", "warning")
+    queue_deletion("ProjectDocuments", str(doc_id))
 
     return redirect(url_for("project_bp.view_project", project_id=doc.get("project_id")))

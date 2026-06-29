@@ -127,7 +127,7 @@ def add_goal():
         project_id = request.form.get("project_id")
         if not project_id:
             flash("Debes seleccionar un proyecto antes de crear un objetivo.", "warning")
-            return redirect(url_for("goal_bp.list_goals"))
+            return redirect(url_for("project_bp.list_projects"))
 
         # Procesar categorias (pueden venir como lista o string separado por comas)
         categorias_raw = request.form.getlist("categorias")
@@ -264,14 +264,18 @@ def update_goal(goal_id):
     if redirect_to.startswith("/"):
         return redirect(redirect_to)
 
-    return redirect(url_for("goal_bp.list_goals"))
+    return redirect(url_for("goal_bp.view_goal", goal_id=goal_id))
 
 # -------------------------------------------------------------
 # 🗑️ ELIMINAR OBJETIVO (individual)
 # -------------------------------------------------------------
 @goal_bp.route("/delete/<goal_id>", methods=["POST"])
 def delete_goal(goal_id):
+    project_id = None
     try:
+        goal = GoalModel.get_goal_by_id(goal_id, usuario_id=DEFAULT_USER_ID)
+        if goal:
+            project_id = goal.get("project_id")
         task_ids = []
         try:
             tasks = TaskModel.get_tasks_by_goal(goal_id, usuario_id=DEFAULT_USER_ID)
@@ -303,7 +307,9 @@ def delete_goal(goal_id):
     redirect_to = (request.form.get("redirect_to") or "").strip()
     if redirect_to.startswith("/"):
         return redirect(redirect_to)
-    return redirect(url_for("goal_bp.list_goals"))
+    if project_id:
+        return redirect(url_for("project_bp.view_project", project_id=project_id))
+    return redirect(url_for("project_bp.list_projects"))
 
 # -------------------------------------------------------------
 # 🗑️🗑️ ELIMINAR MÚLTIPLES OBJETIVOS

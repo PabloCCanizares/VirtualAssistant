@@ -37,3 +37,25 @@ class AppState(TypedDict, total=False):
     action_result_message: str      # mensaje resultado de action_executor (para la cola)
     # --- Contexto de mutaciones de sesión ---
     session_mutations_json: str     # JSON string de las mutaciones de esta sesión
+    # --- Deep search / deep research ---
+    deep_search_mode: str
+    deep_search_requested: bool
+    deep_search_error: str
+    deep_search_results: list[dict]
+    deep_research_sources: list[dict]
+    deep_research_notes: str
+    deep_research_plan: list[dict]
+    deep_research_iterations: list[dict]
+    deep_research_warnings: list[str]
+    # --- Documentos ---
+    doc_op: str
+    doc_error: str
+    doc_read_mode: str
+    doc_target_id: str
+    doc_target_ids: list[str]
+    doc_target_name: str
+    doc_target_project_id: str
+    doc_target_goal_id: str
+    doc_content_text: str
+    doc_analyze_points: str
+    doc_notes_data: list[dict]

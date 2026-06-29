@@ -114,6 +114,26 @@ class TestListProjects:
         resp = client.get(f"/projects/?status=activo&priority=alta&category={cat_id}")
         assert resp.status_code == 200
 
+    def test_filter_uses_visual_defaults_for_missing_status_priority(self, client, monkeypatch):
+        captured = {}
+
+        def _capture_render(template_name, **ctx):
+            captured.update(ctx)
+            return "OK"
+
+        monkeypatch.setattr(project_controller, "render_template", _capture_render)
+        _stub_loaders(
+            monkeypatch,
+            projects=[
+                _project_doc("Defaulted", estado=None, prioridad=None),
+                _project_doc("Low", estado="Activo", prioridad="Baja"),
+            ],
+        )
+
+        resp = client.get("/projects/?status=Activo&priority=Media")
+        assert resp.status_code == 200
+        assert [project["titulo"] for project in captured["projects"]] == ["Defaulted"]
+
     def test_sort_cookie_is_set(self, client, monkeypatch):
         _stub_loaders(monkeypatch, projects=[_project_doc()])
         resp = client.get("/projects/?order=importance-asc")

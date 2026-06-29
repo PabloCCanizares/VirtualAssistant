@@ -1,7 +1,7 @@
 import logging
 import os
 import time
-from typing import Sequence
+from typing import Any, Sequence
 
 from langchain_core.messages import BaseMessage
 
@@ -11,6 +11,27 @@ logger = logging.getLogger(__name__)
 
 class LLMInvokeError(RuntimeError):
     """Error al invocar el modelo tras agotar retries."""
+
+
+def _extract_text(content: Any) -> str:
+    """Normaliza respuestas de proveedores que devuelven texto o bloques multimodales."""
+    if isinstance(content, str):
+        return content.strip()
+
+    if isinstance(content, list):
+        parts = []
+        for item in content:
+            if isinstance(item, dict):
+                if item.get("type") == "text":
+                    parts.append(str(item.get("text") or ""))
+                continue
+            parts.append(str(item))
+        return "".join(parts).strip()
+
+    if content is None:
+        return ""
+
+    return str(content).strip()
 
 
 def invoke_with_retry(
@@ -48,7 +69,7 @@ def invoke_with_retry(
     for attempt in range(attempts):
         try:
             response = llm.invoke(list(messages))
-            return (response.content or "").strip()
+            return _extract_text(getattr(response, "content", ""))
         except Exception as exc:  # pragma: no cover - cobertura por tests de integración
             last_exc = exc
             if attempt >= attempts - 1:

@@ -8,10 +8,10 @@
   backdrop-filter: blur(12px);
   background: linear-gradient(180deg, rgba(16,24,43,.95), rgba(11,15,26,.92));
   border-right: 1px solid var(--border);
-  padding: 28px 20px;
+  padding: 24px 16px;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 20px;
   min-height: 100vh;
   position: sticky;
   top: 0;
@@ -22,7 +22,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding-bottom: 20px;
+  padding-bottom: 18px;
   border-bottom: 1px solid rgba(255,255,255,.06);
 }
 
@@ -65,11 +65,11 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px 14px;
+  padding: 10px 12px;
   border-radius: 12px;
   color: var(--text);
   text-decoration: none;
-  font-size: 14px;
+  font-size: 13.5px;
   font-weight: 500;
   border: 1px solid transparent;
   background: transparent;
@@ -101,7 +101,7 @@
 
 .sidebar-nav-icon {
   font-size: 18px;
-  width: 24px;
+  width: 22px;
   text-align: center;
 }
 
@@ -1428,13 +1428,13 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 24px 0;
+  padding: 18px 0;
   margin: 0;
 }
 
 .sidebar-ai-btn {
-  width: 80px;
-  height: 80px;
+  width: 68px;
+  height: 68px;
   border-radius: 50%;
   border: none;
   background: rgba(25, 40, 75, 0.95);
@@ -1463,8 +1463,8 @@
 }
 
 .sidebar-ai-btn:hover {
-  width: 90px;
-  height: 90px;
+  width: 74px;
+  height: 74px;
   box-shadow:
     0 0 40px rgba(25, 40, 75, 0.7),
     0 0 80px rgba(25, 40, 75, 0.4),
@@ -1482,13 +1482,13 @@
 }
 
 .sidebar-ai-btn-icon {
-  font-size: 28px;
+  font-size: 24px;
   filter: drop-shadow(0 0 10px rgba(108, 163, 220, 0.6));
   transition: all 0.3s ease;
 }
 
 .sidebar-ai-btn:hover .sidebar-ai-btn-icon {
-  font-size: 32px;
+  font-size: 27px;
   filter: drop-shadow(0 0 15px rgba(108, 163, 220, 0.8));
 }
 

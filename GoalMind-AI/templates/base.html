@@ -4,6 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>GoalMind AI — Dashboard</title>
+  <link rel="icon" href="data:,">
 
   <!-- Estilo general de la app -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
@@ -14,7 +15,7 @@
   <!-- Estilos Mission Control para paneles de estadisticas -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/stats_theme.css') }}">
 </head>
-<body>
+<body class="page-{{ page|default('dashboard') }}">
   <div class="app">
     {% include "partials/left_panel.html" %}
     <main>

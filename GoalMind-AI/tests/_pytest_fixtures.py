@@ -126,6 +126,24 @@ def clean_state():
 
 
 @pytest.fixture
+def reset_pending_actions():
+    from ai.services.action_state import _pending_actions
+
+    _pending_actions.clear()
+    yield
+    _pending_actions.clear()
+
+
+@pytest.fixture
+def reset_session_mutations():
+    from ai.services.session_mutations_state import _session_mutations
+
+    _session_mutations.clear()
+    yield
+    _session_mutations.clear()
+
+
+@pytest.fixture
 def offline(monkeypatch):
     """`internet_available()` devuelve False durante el test."""
     from database import mongo_conn

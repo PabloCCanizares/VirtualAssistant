@@ -148,6 +148,36 @@ def api_list_events():
 
     return jsonify(events)
 
+
+@calendar_bp.route("/api/events/timeline", methods=["GET"])
+def api_events_timeline():
+    timeline_type = (request.args.get("type") or "upcoming").strip().lower()
+    now = datetime.now(timezone.utc)
+    col, _ = _events_col()
+
+    from model.event_model import _uid_filter
+
+    if timeline_type == "past":
+        date_query = {"$or": [{"fecha_fin": {"$lt": now}}, {"end": {"$lt": now}}]}
+        sort_dir = -1
+    else:
+        date_query = {"$or": [{"fecha_fin": {"$gte": now}}, {"end": {"$gte": now}}]}
+        sort_dir = 1
+
+    docs = list(col.find({"$and": [_uid_filter(DEFAULT_USER_ID), date_query]}).sort("fecha_inicio", sort_dir))
+    events = []
+    for d in docs:
+        out = dict(d)
+        out["_id"] = str(out.get("_id"))
+        for key in ("fecha_inicio", "fecha_fin", "created_at", "updated_at", "start", "end"):
+            out[key] = _iso_utc(out.get(key))
+        for key in ("id_usuario", "usuario_id", "referencia_id", "id_objetivo", "id_tarea"):
+            if isinstance(out.get(key), ObjectId):
+                out[key] = str(out[key])
+        events.append(out)
+    return jsonify(events)
+
+
 @calendar_bp.route("/api/events", methods=["POST"])
 def api_create_event():
     """

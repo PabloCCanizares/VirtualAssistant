@@ -1,6 +1,61 @@
-<header class="mission-heading">
-  <h1 class="mission-title">PROYECTO · {{ project.get('titulo','(sin titulo)') }}</h1>
-  <p class="mission-subtitle">
-    {{ project.get('descripcion','Gestiona objetivos y documentos desde esta vista.') }}
-  </p>
+<header class="project-workspace-header">
+  <div class="project-workspace-identity">
+    <div class="project-workspace-icon" aria-hidden="true">
+      <svg viewBox="0 0 48 48" fill="none">
+        <path d="M24 6 40 15.2v17.6L24 42 8 32.8V15.2L24 6Z" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/>
+        <path d="M8.5 15.5 24 24.5l15.5-9M24 24.5V42" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <div class="project-workspace-title-block">
+      <nav class="project-breadcrumb" aria-label="Ruta del proyecto">
+        <a href="{{ url_for('project_bp.list_projects') }}">Proyectos</a>
+        <span aria-hidden="true">/</span>
+        <span>{{ project.get('titulo','(sin titulo)') }}</span>
+      </nav>
+      <div class="project-workspace-title-row">
+        <h1 class="project-workspace-title">{{ project.get('titulo','(sin titulo)') }}</h1>
+        <span class="project-live-dot" aria-hidden="true"></span>
+      </div>
+      <div class="project-workspace-meta" aria-label="Resumen del proyecto">
+        <span>{{ project.get('estado','Activo') }}</span>
+        <span>Prioridad {{ project.get('prioridad','Media')|lower }}</span>
+        <span>{{ goals|length if goals else 0 }} objetivo{% if not goals or goals|length != 1 %}s{% endif %}</span>
+      </div>
+      <section class="project-workspace-summary" aria-label="Descripción del proyecto">
+        <span class="project-workspace-summary-label">Descripción</span>
+        {% set project_description = project.get('descripcion') %}
+        <p class="project-workspace-description{% if not project_description %} is-empty{% endif %}">
+          {{ project_description if project_description else 'Sin descripción todavía. Añádela desde Editar proyecto para que el contexto quede visible aquí.' }}
+        </p>
+        <div class="project-workspace-context-row" aria-label="Contexto del proyecto">
+          {% if project.get('categorias') and project.categorias|length > 0 %}
+            {% for cat_id in project.categorias[:3] %}
+              <span>{{ category_names.get(cat_id, 'Categoría') }}</span>
+            {% endfor %}
+            {% if project.categorias|length > 3 %}
+              <span>+{{ project.categorias|length - 3 }}</span>
+            {% endif %}
+          {% else %}
+            <span>Sin categoría</span>
+          {% endif %}
+          {% set fecha_inicio = project.get('fecha_inicio') %}
+          {% if fecha_inicio %}
+            <span>Inicio {{ (fecha_inicio|string)[:10] }}</span>
+          {% endif %}
+          {% set fecha_fin = project.get('fecha_fin') %}
+          {% if fecha_fin %}
+            <span>Fin {{ (fecha_fin|string)[:10] }}</span>
+          {% endif %}
+        </div>
+      </section>
+    </div>
+  </div>
+  <div class="project-workspace-actions" aria-label="Acciones del proyecto">
+    <button type="button" class="project-header-action project-header-action-primary" data-open-panel="editProjectCard">
+      Editar proyecto
+    </button>
+    <button type="button" class="project-header-action" data-open-document-upload>
+      Subir documento
+    </button>
+  </div>
 </header>

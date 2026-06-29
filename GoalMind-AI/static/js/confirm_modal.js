@@ -17,6 +17,9 @@ class ConfirmModal {
   init() {
     // Obtener referencias a los elementos
     this.modal = document.getElementById('confirmModal');
+    if (!this.modal) {
+      return;
+    }
     this.overlay = this.modal.querySelector('.confirm-modal-overlay');
     this.title = this.modal.querySelector('#confirmModalTitle');
     this.body = this.modal.querySelector('#confirmModalBody');
@@ -52,6 +55,9 @@ class ConfirmModal {
    * @param {Function} options.callback - Callback a ejecutar al confirmar (alternativa a form)
    */
   show(options = {}) {
+    if (!this.modal) {
+      return;
+    }
     const {
       title = '¿Confirmar acción?',
       message = '¿Estás seguro de que deseas continuar?',
@@ -84,6 +90,9 @@ class ConfirmModal {
   }
 
   close() {
+    if (!this.modal) {
+      return;
+    }
     this.modal.classList.remove('active');
     this.modal.setAttribute('aria-hidden', 'true');
   }

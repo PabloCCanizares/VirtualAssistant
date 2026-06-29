@@ -23,6 +23,25 @@ class ProjectModel:
     COLLECTION = "Projects"
 
     @staticmethod
+    def calculate_progress_from_goals(goals):
+        if not goals:
+            return 0.0
+        values = []
+        for goal in goals:
+            try:
+                values.append(float(goal.get("progreso", 0) or 0))
+            except Exception:
+                values.append(0.0)
+        return sum(values) / len(values) if values else 0.0
+
+    @staticmethod
+    def calculate_progress(project_id, usuario_id=None):
+        from model.goal_model import GoalModel
+
+        goals = GoalModel.get_by_project(project_id, usuario_id=usuario_id)
+        return ProjectModel.calculate_progress_from_goals(goals)
+
+    @staticmethod
     def get_all_projects(usuario_id=None):
         local_col, _ = get_collection(ProjectModel.COLLECTION)
         return list(local_col.find(_uid_filter(usuario_id)).sort("created_at", -1))

@@ -20,6 +20,32 @@ class TaskModel:
 
     COLLECTION = "Tasks"
 
+    @staticmethod
+    def recalculate_goal_progress(goal_id, usuario_id=None):
+        local_col, _ = get_collection(TaskModel.COLLECTION)
+        goals_col, _ = get_collection("Goals")
+        tasks = TaskModel.get_tasks_by_goal(goal_id, usuario_id=usuario_id)
+        if not tasks:
+            progress = 0.0
+        else:
+            completed = sum(1 for task in tasks if (task.get("estado") or "").lower() == "completada")
+            progress = (completed / len(tasks)) * 100.0
+
+        queries = []
+        if isinstance(goal_id, ObjectId):
+            queries.append({"_id": goal_id})
+        else:
+            try:
+                if ObjectId.is_valid(str(goal_id)):
+                    queries.append({"_id": ObjectId(str(goal_id))})
+            except Exception:
+                pass
+            if goal_id is not None:
+                queries.append({"_id": str(goal_id)})
+        if queries:
+            goals_col.update_many({"$or": queries}, {"$set": {"progreso": progress, "updated_at": datetime.utcnow()}})
+        return progress
+
     # -------------------------------------------------------------
     #  INSERTAR
     # -------------------------------------------------------------
@@ -257,6 +283,11 @@ class TaskModel:
         updated_task = local_col.find_one({"_id": _id})
 
         sync_to_remote(TaskModel.COLLECTION, updated_task)
+
+        if updated_task and "estado" in (updates or {}):
+            goal_id = updated_task.get("objetivo_id") or updated_task.get("goal_id")
+            if goal_id:
+                TaskModel.recalculate_goal_progress(goal_id, usuario_id=usuario_id)
 
         print(f"♻️ Tarea {_id} actualizada y sincronizada.")
         return updated_task

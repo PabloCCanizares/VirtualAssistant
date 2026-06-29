@@ -52,7 +52,12 @@ def _resolve_project_id(params: Dict[str, Any], context: Dict[str, Any]) -> Tupl
     pid = params.get("project_id")
     if pid:
         return str(pid), None
-    title = params.get("project_title") or params.get("titulo_proyecto") or params.get("proyecto")
+    title = (
+        params.get("project_title")
+        or params.get("titulo_proyecto")
+        or params.get("proyecto")
+        or params.get("titulo")
+    )
     project, matches = _match_by_title(context.get("projects", []), "titulo", title)
     if project:
         return str(project.get("_id")), None
@@ -65,7 +70,12 @@ def _resolve_goal_id(params: Dict[str, Any], context: Dict[str, Any]) -> Tuple[O
     gid = params.get("goal_id")
     if gid:
         return str(gid), None
-    title = params.get("goal_title") or params.get("titulo_objetivo") or params.get("objetivo")
+    title = (
+        params.get("goal_title")
+        or params.get("titulo_objetivo")
+        or params.get("objetivo")
+        or params.get("titulo")
+    )
     goal, matches = _match_by_title(context.get("goals", []), "titulo", title)
     if goal:
         return str(goal.get("_id")), None

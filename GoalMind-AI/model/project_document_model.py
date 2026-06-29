@@ -3,6 +3,11 @@ from datetime import datetime
 from bson import ObjectId
 
 from database.mongo_conn import get_collection, sync_from_remote, sync_to_remote, get_app_user_id
+from database.gridfs_storage import (
+    delete_file_from_local_storage,
+    delete_file_from_remote_storage,
+    promote_local_file_to_remote,
+)
 
 
 def _uid_filter(usuario_id):
@@ -81,9 +86,67 @@ class ProjectDocumentModel:
         result = local_col.insert_one(doc_data)
         doc_data["_id"] = result.inserted_id
 
-        sync_to_remote(ProjectDocumentModel.COLLECTION, doc_data)
+        if not doc_data.get("remote_sync_pending"):
+            sync_to_remote(ProjectDocumentModel.COLLECTION, doc_data)
         print(f"Documento insertado y sincronizado: {doc_data['_id']}")
         return doc_data
+
+    @staticmethod
+    def update_document(doc_id, updates, usuario_id=None, sync_remote=True):
+        local_col, _ = get_collection(ProjectDocumentModel.COLLECTION)
+        _id = ObjectId(doc_id) if not isinstance(doc_id, ObjectId) else doc_id
+        norm = dict(updates or {})
+        for key in ("project_id", "goal_id", "upload_id", "local_upload_id"):
+            if norm.get(key) and not isinstance(norm[key], ObjectId):
+                try:
+                    norm[key] = ObjectId(str(norm[key]))
+                except Exception:
+                    pass
+        norm["updated_at"] = datetime.utcnow()
+        query = {"_id": _id, **_uid_filter(usuario_id)}
+        local_col.update_one(query, {"$set": norm})
+        updated = local_col.find_one({"_id": _id})
+        if sync_remote and updated and not updated.get("remote_sync_pending"):
+            sync_to_remote(ProjectDocumentModel.COLLECTION, updated)
+        return updated
+
+    @staticmethod
+    def get_pending_remote_uploads(usuario_id=None):
+        local_col, _ = get_collection(ProjectDocumentModel.COLLECTION)
+        query = {
+            "$and": [
+                {"remote_sync_pending": True},
+                {"local_upload_id": {"$exists": True, "$ne": None}},
+                _uid_filter(usuario_id),
+            ]
+        }
+        return list(local_col.find(query).sort("uploaded_at", 1))
+
+    @staticmethod
+    def promote_pending_remote_uploads(usuario_id=None, app=None):
+        promoted = 0
+        for doc in ProjectDocumentModel.get_pending_remote_uploads(usuario_id=usuario_id):
+            remote_id = promote_local_file_to_remote(
+                doc.get("local_upload_id"),
+                original_name=doc.get("original_name") or doc.get("filename") or "documento",
+                content_type=doc.get("content_type"),
+                metadata={
+                    "project_id": str(doc.get("project_id", "")),
+                    "goal_id": str(doc.get("goal_id", "")) if doc.get("goal_id") else "",
+                    "usuario_id": str(doc.get("usuario_id", "")),
+                },
+                app=app,
+            )
+            if not remote_id:
+                continue
+            ProjectDocumentModel.update_document(
+                doc["_id"],
+                {"upload_id": remote_id, "remote_sync_pending": False},
+                usuario_id=usuario_id,
+                sync_remote=True,
+            )
+            promoted += 1
+        return promoted
 
     @staticmethod
     def delete_document(doc_id, usuario_id=None):
@@ -91,6 +154,19 @@ class ProjectDocumentModel:
         _id = ObjectId(doc_id) if not isinstance(doc_id, ObjectId) else doc_id
 
         query = {"_id": _id, **_uid_filter(usuario_id)}
+        doc = local_col.find_one(query)
+        if not doc:
+            return False
+        if doc.get("local_upload_id"):
+            try:
+                delete_file_from_local_storage(doc.get("local_upload_id"))
+            except Exception:
+                pass
+        if doc.get("upload_id"):
+            try:
+                delete_file_from_remote_storage(doc.get("upload_id"))
+            except Exception:
+                pass
         res = local_col.delete_one(query)
 
         if remote_col is not None:

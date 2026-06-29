@@ -1,63 +1,57 @@
-<section class="panel-container">
-
-  <!-- Hero del proyecto -->
-  <div class="panel-hero">
-    <div class="panel-hero-content">
-      <p class="panel-subtitle">Proyecto activo</p>
-      <h2 class="panel-hero-title">{{ project.get('titulo','(sin titulo)') }}</h2>
-      <p class="panel-hero-desc">{{ project.get('descripcion','Sin descripcion') }}</p>
-      <div class="grid-card-meta" style="margin-top: 12px;">
-        {% if project.get('categorias') and project.categorias|length > 0 %}
-          {% for cat_id in project.categorias %}
-            <span class="panel-badge">{{ category_names.get(cat_id, 'Categoria') }}</span>
-          {% endfor %}
-        {% else %}
-          <span class="panel-badge">Sin categoria</span>
-        {% endif %}
-        <span class="panel-badge accent">{{ project.get('estado','Activo') }}</span>
-        <span class="panel-badge">{{ project.get('prioridad','Media') }}</span>
-      </div>
-    </div>
-    <div class="panel-kpis">
-      <div class="panel-kpi">
-        <div class="panel-kpi-label">Objetivos</div>
-        <div class="panel-kpi-value">{{ goals|length if goals else 0 }}</div>
-      </div>
-      <div class="panel-kpi">
-        <div class="panel-kpi-label">Documentos</div>
-        <div class="panel-kpi-value">{{ documents|length if documents else 0 }}</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- PRIMERA FILA: Grid de 2 columnas -->
+<section class="panel-container project-workspace-main">
   <div class="project-detail-grid">
 
-    <!-- Columna 1: Vista Arbol de objetivos con tareas desplegables -->
-    <div class="panel-section panel-accent project-tree-section">
+    <div class="panel-section panel-accent project-tree-section project-primary-section">
       <div class="panel-header">
         <h3 class="panel-title">
-          <span class="panel-title-icon"></span>
-          Estructura del proyecto
+          Objetivos
         </h3>
-        <span class="panel-badge accent">vista arbol</span>
+        <div class="panel-actions">
+          <span class="panel-badge accent">{{ goals|length if goals else 0 }} objetivo{% if not goals or goals|length != 1 %}s{% endif %}</span>
+          {% if not goals or goals|length == 0 %}
+            <a class="panel-action-btn panel-action-btn-small" href="#newGoalCard" data-open-panel="newGoalCard">Nuevo objetivo</a>
+          {% endif %}
+        </div>
       </div>
       <div class="tree-view project-tree-view">
         {% if goals and goals|length > 0 %}
           {% for goal in goals %}
-            <div class="tree-item folder tree-item-goal" data-goal-id="{{ goal['_id'] }}">
-              <span class="tree-item-toggle">▶</span>
-              <span class="tree-item-icon"></span>
-              <span class="tree-item-text">{{ goal.get('titulo') }}</span>
-              <span class="tree-item-badge">{{ (goal_tasks.get(goal['_id'], [])|length) if goal_tasks else 0 }} tareas</span>
-              <form method="post"
-                    action="{{ url_for('goal_bp.delete_goal', goal_id=goal['_id']) }}"
-                    data-confirm-message="¿Eliminar este objetivo?"
-                    class="tree-item-action"
-                    style="display: inline;">
-                <input type="hidden" name="redirect_to" value="{{ url_for('project_bp.view_project', project_id=project['_id']) }}">
-                <button type="submit" class="panel-action-btn panel-action-btn-small danger tree-item-delete" title="Eliminar objetivo">🗑️</button>
-              </form>
+            {% set progreso = goal.get('progreso', 0) %}
+            {% set task_count = (goal_tasks.get(goal['_id'], [])|length) if goal_tasks else 0 %}
+            <div class="tree-item folder tree-item-goal project-objective-card" data-goal-id="{{ goal['_id'] }}">
+              <div class="project-objective-main">
+                <button type="button" class="tree-item-toggle project-goal-disclosure" aria-label="Desplegar tareas">⌃</button>
+                <span class="project-objective-icon" aria-hidden="true">
+                  <svg viewBox="0 0 36 36" fill="none">
+                    <circle cx="18" cy="18" r="13" stroke="currentColor" stroke-width="2"/>
+                    <circle cx="18" cy="18" r="6" stroke="currentColor" stroke-width="2"/>
+                    <circle cx="18" cy="18" r="2.2" fill="currentColor"/>
+                  </svg>
+                </span>
+                <span class="project-objective-copy">
+                  <span class="tree-item-text">{{ goal.get('titulo') }}</span>
+                  <span class="project-objective-tasks">{{ task_count }} tarea{% if task_count != 1 %}s{% endif %}</span>
+                </span>
+                <span class="project-objective-progress" style="--progress:{{ progreso }}%">
+                  <span>{{ progreso }}%</span>
+                </span>
+              </div>
+              <div class="project-objective-footer">
+                <span class="project-objective-bar" aria-hidden="true">
+                  <span style="width: {{ progreso }}%"></span>
+                </span>
+                <div class="project-objective-actions">
+                  <a class="panel-action-btn primary panel-action-btn-small project-objective-task-btn"
+                     href="{{ url_for('goal_bp.view_goal', goal_id=goal['_id']) }}">
+                    Añadir tarea
+                  </a>
+                  <a class="panel-action-btn panel-action-btn-small project-objective-open-btn"
+                     href="{{ url_for('goal_bp.view_goal', goal_id=goal['_id']) }}">
+                    Abrir objetivo
+                  </a>
+                </div>
+              </div>
+              <span class="tree-item-badge">{{ task_count }} tareas</span>
             </div>
             <div class="tree-children tree-tasks-container" data-goal-id="{{ goal['_id'] }}" style="display: none;">
               {% set tasks = goal_tasks.get(goal['_id'], []) if goal_tasks else [] %}
@@ -86,14 +80,15 @@
       </div>
     </div>
 
-    <!-- Columna 2: Lista de documentos del proyecto -->
-    <div class="panel-section panel-accent project-docs-section">
+    <div class="panel-section panel-accent project-docs-section project-secondary-section">
       <div class="panel-header">
         <h3 class="panel-title">
-          <span class="panel-title-icon">📎</span>
-          Documentos del proyecto
+          Documentos
         </h3>
-        <span class="panel-badge">{{ documents|length if documents else 0 }} archivos</span>
+        <div class="panel-actions">
+          <span class="panel-badge">{{ documents|length if documents else 0 }} archivos</span>
+          <button type="button" class="panel-action-btn panel-action-btn-small" data-open-document-upload>Subir documento</button>
+        </div>
       </div>
       <div class="project-docs-list">
         {% if documents and documents|length > 0 %}
@@ -130,61 +125,57 @@
         </ul>
         {% else %}
         <div class="empty-state" style="padding: 24px;">
-          <div class="empty-state-icon">📎</div>
-          <p class="empty-state-desc">Sube archivos desde el panel derecho.</p>
+          <div class="empty-state-icon project-empty-mark">DOC</div>
+          <p class="empty-state-desc">Sube documentos para mantener el contexto del proyecto cerca.</p>
+          <button type="button" class="panel-action-btn primary panel-action-btn-small" data-open-document-upload>Subir documento</button>
         </div>
         {% endif %}
       </div>
     </div>
 
-  </div>
+    <div class="panel-section panel-accent project-notes-section">
+      <div class="panel-header">
+        <h3 class="panel-title">
+          Notas
+        </h3>
+        <span class="panel-badge">{{ (project.get('notas', [])|length) if project else 0 }} notas</span>
+      </div>
 
-  <!-- ANOTACIONES DEL PROYECTO -->
-  <div class="panel-section panel-accent project-notes-section">
-    <div class="panel-header">
-      <h3 class="panel-title">
-        <span class="panel-title-icon">📝</span>
-        Anotaciones del proyecto
-      </h3>
-      <span class="panel-badge">{{ (project.get('notas', [])|length) if project else 0 }} notas</span>
+      <form method="post" action="{{ url_for('project_bp.add_project_note', project_id=project['_id']) }}" class="project-note-form">
+        <textarea name="note_text" class="project-note-input" rows="3" placeholder="Escribe una anotación..."></textarea>
+        <div class="project-note-actions">
+          <button type="submit" class="panel-action-btn primary">Nueva anotación</button>
+        </div>
+      </form>
+
+      {% set notes = project.get('notas', []) %}
+      {% if notes and notes|length > 0 %}
+        <ul class="item-list project-notes-list project-notion-notes">
+          {% for note in notes|reverse %}
+            <li class="item-card item-card-compact project-note-item project-notion-note" data-note-text="{{ note.get('text','')|e }}" data-note-date="{{ (note.get('created_at') or '')|string|replace('T',' ')|truncate(16, True, '') }}">
+              <span class="project-note-handle" aria-hidden="true">⋮⋮</span>
+              <button type="button" class="project-note-content" aria-label="Abrir nota">
+                <span class="project-note-bullet" aria-hidden="true"></span>
+                <span class="project-note-text">{{ note.get('text','') }}</span>
+                <span class="project-note-meta">{{ (note.get('created_at') or '')|string|replace('T',' ')|truncate(16, True, '') }}</span>
+              </button>
+              <form method="post" action="{{ url_for('project_bp.delete_project_note', project_id=project['_id'], note_id=note.get('_id')) }}" data-confirm-message="¿Eliminar esta anotación?" class="project-note-delete-form">
+                <button type="submit" class="project-note-delete-btn" title="Eliminar anotación" aria-label="Eliminar anotación">Eliminar</button>
+              </form>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <div class="empty-state">
+          <div class="empty-state-icon project-empty-mark">NOTA</div>
+          <p class="empty-state-desc">Aún no hay anotaciones.</p>
+        </div>
+      {% endif %}
     </div>
 
-    <form method="post" action="{{ url_for('project_bp.add_project_note', project_id=project['_id']) }}" class="project-note-form">
-      <textarea name="note_text" class="project-note-input" rows="3" placeholder="Escribe una anotación..."></textarea>
-      <div class="project-note-actions">
-        <button type="submit" class="panel-action-btn primary">Agregar nota</button>
-      </div>
-    </form>
-
-    {% set notes = project.get('notas', []) %}
-    {% if notes and notes|length > 0 %}
-      <ul class="item-list project-notes-list">
-        {% for note in notes|reverse %}
-          <li class="item-card item-card-compact project-note-item" data-note-text="{{ note.get('text','')|e }}" data-note-date="{{ (note.get('created_at') or '')|string|replace('T',' ')|truncate(16, True, '') }}">
-            <div class="item-card-header">
-              <div class="item-content">
-                <div class="item-meta">
-                  <span class="item-meta-tag">{{ (note.get('created_at') or '')|string|replace('T',' ')|truncate(16, True, '') }}</span>
-                </div>
-                <p class="item-desc">{{ note.get('text','') }}</p>
-              </div>
-              <form method="post" action="{{ url_for('project_bp.delete_project_note', project_id=project['_id'], note_id=note.get('_id')) }}" data-confirm-message="¿Eliminar esta anotación?" class="project-note-delete-form">
-                <button type="submit" class="panel-action-btn panel-action-btn-small danger" title="Eliminar">Eliminar</button>
-              </form>
-            </div>
-          </li>
-        {% endfor %}
-      </ul>
-    {% else %}
-      <div class="empty-state">
-        <div class="empty-state-icon">??</div>
-        <p class="empty-state-desc">Aún no hay anotaciones.</p>
-      </div>
-    {% endif %}
   </div>
 
-  <!-- SEGUNDA FILA: Lista completa de objetivos (ancho completo) -->
-  <div class="panel-section panel-accent">
+  <div class="panel-section panel-accent project-goal-directory">
     <div class="panel-header">
       <h3 class="panel-title">
         Objetivos del proyecto
@@ -383,13 +374,21 @@ document.addEventListener('DOMContentLoaded', function() {
       const tasksContainer = document.querySelector(`.tree-tasks-container[data-goal-id="${goalId}"]`);
       const toggle = this.querySelector('.tree-item-toggle');
       
-      if (tasksContainer) {
-        const isVisible = tasksContainer.style.display !== 'none';
-        tasksContainer.style.display = isVisible ? 'none' : 'block';
-        toggle.textContent = isVisible ? '▶' : '▼';
-        this.classList.toggle('expanded', !isVisible);
-      }
+    if (tasksContainer) {
+      const isVisible = tasksContainer.style.display !== 'none';
+      tasksContainer.style.display = isVisible ? 'none' : 'block';
+        if (toggle) toggle.textContent = isVisible ? '⌃' : '⌄';
+      this.classList.toggle('expanded', !isVisible);
+    }
     });
+
+    const disclosure = item.querySelector('.project-goal-disclosure');
+    if (disclosure) {
+      disclosure.addEventListener('click', function(e) {
+        e.stopPropagation();
+        item.click();
+      });
+    }
   });
 });
 </script>
@@ -480,7 +479,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   document.querySelectorAll('.project-note-item').forEach(item => {
     item.addEventListener('click', (e) => {
-      if (e.target.closest('form') || e.target.closest('button')) return;
+      if (e.target.closest('.project-note-delete-form')) return;
       openNote(item);
     });
   });

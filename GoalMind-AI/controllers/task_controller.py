@@ -43,6 +43,16 @@ def _build_category_names(categories):
     return {cat["_id"]: cat["name"] for cat in categories}
 
 
+def _split_category_values(values):
+    out = []
+    for value in values or []:
+        for part in str(value).split(","):
+            part = part.strip()
+            if part:
+                out.append(part)
+    return out
+
+
 def _get_category_names(category_ids):
     """
     Dado un array de category_ids, devuelve un dict {id: nombre}.
@@ -202,12 +212,7 @@ def add_task():
             return redirect(url_for("task_bp.list_tasks"))
 
         # Procesar categorias (pueden venir como lista o string separado por comas)
-        categorias_raw = request.form.getlist("categorias")
-        if not categorias_raw:
-            # Intentar como string separado por comas
-            cat_str = request.form.get("categorias", "")
-            if cat_str:
-                categorias_raw = [c.strip() for c in cat_str.split(",") if c.strip()]
+        categorias_raw = _split_category_values(request.form.getlist("categorias"))
         
         # Convertir a ObjectIds
         categorias = []
@@ -245,11 +250,7 @@ def update_task(task_id):
     """Actualiza una tarea existente y la sincroniza."""
     try:
         # Procesar categorias
-        categorias_raw = request.form.getlist("categorias")
-        if not categorias_raw:
-            cat_str = request.form.get("categorias", "")
-            if cat_str:
-                categorias_raw = [c.strip() for c in cat_str.split(",") if c.strip()]
+        categorias_raw = _split_category_values(request.form.getlist("categorias"))
         
         categorias = []
         for cat_id in categorias_raw:
@@ -309,7 +310,7 @@ def filter_by_category():
     Busca en todas las tareas sin importar el usuario dueno.
     """
     nombre = request.args.get("nombre", "").strip()
-    categoria_ids = request.args.getlist("categoria")
+    categoria_ids = _split_category_values(request.args.getlist("categoria"))
     
     # Usar el nuevo metodo de busqueda combinada
     tasks = TaskModel.search_tasks(nombre=nombre, category_ids=categoria_ids if categoria_ids else None, usuario_id=DEFAULT_USER_ID)

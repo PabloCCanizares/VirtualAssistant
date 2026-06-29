@@ -1,5 +1,7 @@
 ﻿import json
 import logging
+import re
+import unicodedata
 
 from langchain_core.messages import HumanMessage, SystemMessage
 
@@ -10,14 +12,24 @@ from ai.state import AppState
 
 logger = logging.getLogger(__name__)
 
-VALID_CATEGORIES = {"action", "weekly_summary", "weekly_plan", "recommendations", "progress", "research", "off_topic"}
+VALID_CATEGORIES = {
+    "action",
+    "weekly_summary",
+    "weekly_plan",
+    "recommendations",
+    "progress",
+    "deep_research",
+    "research",
+    "document",
+    "off_topic",
+}
 
 OFF_TOPIC_MESSAGE = (
     "Lo siento, solo puedo ayudarte con la gestion de tus proyectos, objetivos, "
     "tareas y calendario. ¿Hay algo relacionado en lo que pueda ayudarte?"
 )
 
-CONFIRM_WORDS = {"si", "sí­", "confirmo", "confirmar", "adelante", "ejecuta", "ok", "vale"}
+CONFIRM_WORDS = {"si", "confirmo", "confirmar", "adelante", "ejecuta", "ok", "vale"}
 CANCEL_WORDS = {"no", "cancela", "cancelar", "anula", "detener"}
 
 
@@ -29,13 +41,29 @@ def _last_user_text(messages: list) -> str:
 
 
 def _is_confirmation(user_text: str) -> bool:
-    normalized = (user_text or "").strip().lower()
-    return normalized in CONFIRM_WORDS or normalized.startswith("confirm")
+    normalized = _normalize_confirmation_text(user_text)
+    tokens = set(re.findall(r"\b\w+\b", normalized))
+    return (
+        normalized in CONFIRM_WORDS
+        or normalized.startswith("confirm")
+        or bool(tokens & CONFIRM_WORDS)
+    )
 
 
 def _is_cancellation(user_text: str) -> bool:
-    normalized = (user_text or "").strip().lower()
-    return normalized in CANCEL_WORDS or normalized.startswith("cancel")
+    normalized = _normalize_confirmation_text(user_text)
+    tokens = set(re.findall(r"\b\w+\b", normalized))
+    return (
+        normalized in CANCEL_WORDS
+        or normalized.startswith("cancel")
+        or bool(tokens & CANCEL_WORDS)
+    )
+
+
+def _normalize_confirmation_text(user_text: str) -> str:
+    text = (user_text or "").strip().lower()
+    text = unicodedata.normalize("NFKD", text)
+    return "".join(ch for ch in text if not unicodedata.combining(ch))
 
 
 def _parse_supervisor_json(text: str) -> dict:
@@ -54,6 +82,81 @@ def _parse_supervisor_json(text: str) -> dict:
         except Exception:
             return {}
     return {}
+
+
+def _extract_docs_from_mutations(session_mutations_json: str) -> list[dict]:
+    try:
+        mutations = json.loads(session_mutations_json or "[]")
+    except Exception:
+        return []
+    if not isinstance(mutations, list):
+        return []
+
+    docs = []
+    seen = set()
+    for item in mutations:
+        if not isinstance(item, dict):
+            continue
+        if item.get("type") != "document":
+            continue
+        if item.get("action") not in {"listed", "read", "created"}:
+            continue
+        doc_id = str(item.get("id") or "").strip()
+        if not doc_id or doc_id in seen:
+            continue
+        seen.add(doc_id)
+        description = item.get("description") or ""
+        project_name = ""
+        marker = "proyecto:"
+        if marker in description.lower():
+            project_name = description.split(":", 1)[1].strip()
+        docs.append(
+            {
+                "_id": doc_id,
+                "original_name": item.get("name") or "sin nombre",
+                "_project_name": project_name,
+            }
+        )
+    return docs
+
+
+def _build_doc_list_for_resolver(docs: list[dict], context: dict) -> str:
+    projects = {str(p.get("_id")): p for p in (context or {}).get("projects", [])}
+    categories = {
+        str(c.get("_id")): c.get("nombre") or c.get("name") or "sin categoria"
+        for c in (context or {}).get("categories", [])
+    }
+    lines = []
+    for doc in docs or []:
+        project = projects.get(str(doc.get("project_id", "")))
+        project_name = (
+            (project or {}).get("titulo")
+            or doc.get("_project_name")
+            or "sin proyecto"
+        )
+        cat_ids = (project or {}).get("categorias") or []
+        cat_names = [categories.get(str(cid), "sin categoria") for cid in cat_ids]
+        category_text = ", ".join(cat_names) if cat_names else "sin categoría"
+        lines.append(
+            " | ".join(
+                [
+                    f"ID: {doc.get('_id', '')}",
+                    f"Nombre: {doc.get('original_name') or doc.get('filename') or 'sin nombre'}",
+                    f"Proyecto: {project_name}",
+                    f"Categorias: {category_text}",
+                ]
+            )
+        )
+    return "\n".join(lines)
+
+
+def _build_project_list_for_resolver(projects: list[dict]) -> str:
+    lines = []
+    for project in projects or []:
+        lines.append(
+            f"ID: {project.get('_id', '')} | Titulo: {project.get('titulo') or 'sin titulo'}"
+        )
+    return "\n".join(lines)
 
 
 def supervisor_node(state: AppState, llm) -> AppState:
@@ -152,14 +255,25 @@ def supervisor_node(state: AppState, llm) -> AppState:
             "final_response": OFF_TOPIC_MESSAGE,
         }
 
-    return {
+    result = {
         "route": category,
         "query_type": category,
         "use_critic": use_critic,
     }
+    for key in (
+        "context_needed",
+        "doc_op",
+        "doc_read_mode",
+        "doc_target_id",
+        "doc_target_ids",
+        "doc_target_project_id",
+        "doc_target_goal_id",
+        "doc_analyze_points",
+    ):
+        if key in parsed:
+            result[key] = parsed[key]
+    return result
 
 
 def route_after_supervisor(state: AppState) -> str:
     return state.get("route", "research")
-
-

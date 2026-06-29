@@ -57,12 +57,15 @@ def queue_executor_node(state: AppState, _llm) -> AppState:
         "action_result_message": None,
         "action_result_id": None,
         "current_action_ref_id": None,
+        "final_response": None,
     }
 
     if not queue:
         # Cola vacia: construir resumen final
         base_updates["final_response"] = _build_summary(results)
         base_updates["action_queue"] = []
+        base_updates["action_name"] = None
+        base_updates["action_parameters"] = {}
         return base_updates
 
     # Sacar la siguiente accion

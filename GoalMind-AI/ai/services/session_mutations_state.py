@@ -29,6 +29,8 @@ def append_session_mutation(user_id: Optional[str], mutation: Dict[str, Any]) ->
         "name": mutation.get("name", ""),
         "timestamp": datetime.now(timezone.utc).isoformat(),
     }
+    if "description" in mutation:
+        record["description"] = mutation.get("description", "")
     with _lock:
         key = str(user_id)
         if key not in _session_mutations:

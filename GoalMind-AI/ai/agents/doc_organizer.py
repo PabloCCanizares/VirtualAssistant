@@ -110,6 +110,15 @@ def doc_organizer_node(state: AppState) -> AppState:
     if doc_op == "write_note":
         project_id = state.get("doc_target_project_id", "")
         if not project_id:
+            context = {}
+            try:
+                context = json.loads(state.get("context_json") or "{}")
+            except Exception:
+                context = {}
+            projects = context.get("projects", [])
+            if len(projects) == 1:
+                project_id = str(projects[0].get("_id", ""))
+        if not project_id:
             msg = "No se pudo identificar el proyecto para agregar la anotación."
             return {"doc_op": "write_note", "doc_error": msg, "final_response": msg}
         return {"doc_op": "write_note", "doc_target_project_id": project_id}

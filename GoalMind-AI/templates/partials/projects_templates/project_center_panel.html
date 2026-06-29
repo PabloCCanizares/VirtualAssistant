@@ -1,194 +1,290 @@
-<section class="panel-container">
+{% set project_total = projects|length if projects else 0 %}
+{% set document_total = doc_counts.values()|sum if doc_counts else 0 %}
+{% set active_projects = namespace(count=0) %}
+{% for project in projects or [] %}
+  {% if (project.get('estado', 'Activo') or 'Activo')|lower == 'activo' %}
+    {% set active_projects.count = active_projects.count + 1 %}
+  {% endif %}
+{% endfor %}
+{% set portfolio_health = ((active_projects.count / project_total) * 100)|round|int if project_total else 0 %}
+{% set active_view = request.args.get('view', 'grid') if request else 'grid' %}
+{% if active_view not in ['grid', 'list'] %}
+  {% set active_view = 'grid' %}
+{% endif %}
+{% set is_list_view = active_view == 'list' %}
+{% set grid_view_url = url_for('project_bp.list_projects', q=project_query, category=project_category, status=project_status, priority=project_priority, order=project_sort, view='grid') %}
+{% set list_view_url = url_for('project_bp.list_projects', q=project_query, category=project_category, status=project_status, priority=project_priority, order=project_sort, view='list') %}
 
-  <!-- Hero Section -->
-  <div class="panel-hero">
-    <div class="panel-hero-content">
-      <p class="panel-subtitle">Vision general</p>
-      <h2 class="panel-hero-title">Panel de Proyectos</h2>
-      <p class="panel-hero-desc">Gestiona tus proyectos, objetivos y tareas con un layout visual estilo Mission Control.</p>
-    </div>
-    <div class="panel-kpis">
-      <div class="panel-kpi">
-        <div class="panel-kpi-label">Proyectos</div>
-        <div class="panel-kpi-value">{{ projects|length if projects else 0 }}</div>
+<section class="panel-container projects-command-center">
+  <div class="projects-kpi-strip" aria-label="Resumen de proyectos">
+    <div class="projects-kpi-card">
+      <span class="projects-kpi-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M4 7.5A2.5 2.5 0 016.5 5H10l2 2h5.5A2.5 2.5 0 0120 9.5v7A2.5 2.5 0 0117.5 19h-11A2.5 2.5 0 014 16.5z"/></svg>
+      </span>
+      <div>
+        <strong>{{ project_total }}</strong>
+        <span>proyectos</span>
       </div>
-      <div class="panel-kpi">
-        <div class="panel-kpi-label">Objetivos</div>
-        <div class="panel-kpi-value">{{ goal_counts.values()|sum if goal_counts else 0 }}</div>
+    </div>
+    <div class="projects-kpi-card">
+      <span class="projects-kpi-icon success" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M4 12h4l2 6 4-12 2 6h4"/></svg>
+      </span>
+      <div>
+        <strong>{{ active_projects.count }}</strong>
+        <span>activos</span>
+      </div>
+    </div>
+    <div class="projects-kpi-card">
+      <span class="projects-kpi-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg>
+      </span>
+      <div>
+        <strong>{{ document_total }}</strong>
+        <span>documentos</span>
+      </div>
+    </div>
+    <div class="projects-health-card">
+      <div class="progress-ring small" style="--progress:{{ portfolio_health }}%">
+        <span class="progress-ring-value">{{ portfolio_health }}</span>
+      </div>
+      <div>
+        <span>Salud de cartera</span>
+        <strong>{{ 'Bien' if portfolio_health >= 60 else 'Revisar' }}</strong>
       </div>
     </div>
   </div>
 
-  <!-- Tarjetas de proyectos con progress rings -->
-  <div class="panel-section panel-accent">
-    <div class="panel-header">
-      <h3 class="panel-title">
-        Proyectos activos
-      </h3>
-      <div class="panel-actions">
-        <div class="panel-search">
-          <button type="button" class="panel-search-btn-icon" aria-expanded="false" aria-controls="projectSearchDropdown" aria-label="Buscar">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
-              <path d="M10 4a6 6 0 104.472 10.02l4.254 4.254 1.414-1.414-4.254-4.254A6 6 0 0010 4zm0 2a4 4 0 110 8 4 4 0 010-8z"/>
-            </svg>
-            <span class="panel-search-tooltip" role="tooltip">Buscar</span>
-          </button>
-          <div id="projectSearchDropdown" class="panel-search-dropdown" role="menu">
-            <form method="get" action="{{ url_for('project_bp.list_projects') }}">
-              <label class="panel-form-label project-search-label" for="project_search">Buscar proyecto</label>
-              <input type="text" id="project_search" name="q" class="panel-search-input" placeholder="Nombre del proyecto..." value="{{ project_query or '' }}">
-              <input type="hidden" name="order" value="{{ project_sort }}">
-              <div class="panel-search-actions">
-                <button type="submit" class="panel-search-btn">Buscar</button>
-              </div>
-            </form>
-          </div>
-        </div>
-        <div class="panel-filter">
-          <button type="button" class="panel-filter-btn" aria-expanded="false" aria-controls="projectFilterDropdown" aria-label="Ordenar">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M8 4l-3 3m3-3l3 3m-3-3v16"/>
-              <path d="M16 20l3-3m-3 3l-3-3m3 3V4"/>
-            </svg>
-            <span class="panel-filter-tooltip" role="tooltip">Ordenar</span>
-          </button>
-          <div id="projectFilterDropdown" class="panel-filter-dropdown" role="menu">
-            <label class="panel-form-label project-sort-label" for="project_sort">Ordenar por importancia</label>
-            <select id="project_sort" class="panel-form-select project-sort-select">
-              <option value="importance-desc" {% if project_sort == 'importance-desc' %}selected{% endif %}>Importancia (mayor a menor)</option>
-              <option value="importance-asc" {% if project_sort == 'importance-asc' %}selected{% endif %}>Importancia (menor a mayor)</option>
-            </select>
-          </div>
-        </div>
-        <div class="panel-filter">
-          <button type="button" class="panel-filter-btn panel-filter-btn-alt" aria-expanded="false" aria-controls="projectAdvancedFilterDropdown" aria-label="Filtrar">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
-              <path d="M3 5h18v2H3zM6 11h12v2H6zM10 17h4v2h-4z"/>
-            </svg>
-            <span class="panel-filter-tooltip" role="tooltip">Filtrar</span>
-          </button>
-          <div id="projectAdvancedFilterDropdown" class="panel-filter-dropdown" role="menu">
-            <form method="get" action="{{ url_for('project_bp.list_projects') }}">
-              <label class="panel-form-label" for="project_filter_status">Estado</label>
-              <select id="project_filter_status" name="status" class="panel-form-select">
-                <option value="all" {% if project_status == 'all' %}selected{% endif %}>Todos</option>
-                <option value="Activo" {% if project_status == 'Activo' %}selected{% endif %}>Activo</option>
-                <option value="En pausa" {% if project_status == 'En pausa' %}selected{% endif %}>En pausa</option>
-                <option value="Completado" {% if project_status == 'Completado' %}selected{% endif %}>Completado</option>
-              </select>
-
-              <label class="panel-form-label" for="project_filter_category">Categoria</label>
-              <select id="project_filter_category" name="category" class="panel-form-select">
-                <option value="all" {% if project_category == 'all' %}selected{% endif %}>Todas</option>
-                {% for cat in categories %}
-                  <option value="{{ cat['_id'] }}" {% if project_category == cat['_id'] %}selected{% endif %}>{{ cat['name'] }}</option>
-                {% endfor %}
-              </select>
-
-              <label class="panel-form-label" for="project_filter_priority">Prioridad</label>
-              <select id="project_filter_priority" name="priority" class="panel-form-select">
-                <option value="all" {% if project_priority == 'all' %}selected{% endif %}>Todas</option>
-                <option value="Baja" {% if project_priority == 'Baja' %}selected{% endif %}>Baja</option>
-                <option value="Media" {% if project_priority == 'Media' %}selected{% endif %}>Media</option>
-                <option value="Alta" {% if project_priority == 'Alta' %}selected{% endif %}>Alta</option>
-              </select>
-
-              <input type="hidden" name="order" value="{{ project_sort }}">
-              <input type="hidden" name="q" value="{{ project_query or '' }}">
-              <div class="panel-search-actions">
-                <button type="submit" class="panel-search-btn">Aplicar</button>
-              </div>
-            </form>
-          </div>
-        </div>
-        <span class="panel-badge accent">{{ projects|length if projects else 0 }} proyectos</span>
+  <div class="panel-section panel-accent projects-board">
+    <div class="projects-board-header">
+      <div>
+        <span class="projects-board-eyebrow">Todos los proyectos</span>
+        <h3 class="panel-title">{{ 'Vista operativa' if is_list_view else 'Panel de Proyectos' }}</h3>
+        <p class="projects-board-subtitle">Mostrando {{ project_total }} de {{ project_total }} proyectos</p>
       </div>
-    </div>
-
-    {% if projects and projects|length > 0 %}
-    <div class="cards-grid">
-      {% for project in projects %}
-      {% set progreso = project_progress.get(project['_id'], 0) if project_progress else 0 %}
-      <div class="grid-card" data-project-id="{{ project['_id'] }}" data-importance="{{ project.get('importancia', 0) }}">
-        <!-- Menu de 3 puntos -->
-        <div class="grid-card-menu">
-          <button class="grid-card-menu-btn" type="button" aria-label="Opciones del proyecto">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-              <circle cx="8" cy="3" r="1.5"/>
-              <circle cx="8" cy="8" r="1.5"/>
-              <circle cx="8" cy="13" r="1.5"/>
+      <div class="projects-board-tools">
+        <span class="panel-badge accent">{{ project_total }} proyectos</span>
+        <div class="projects-view-toggle" aria-label="Cambiar vista de proyectos">
+          <a class="projects-view-toggle-btn {% if not is_list_view %}active{% endif %}"
+             href="{{ grid_view_url }}"
+             aria-current="{{ 'page' if not is_list_view else 'false' }}">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z"/>
             </svg>
-          </button>
-          
-          <!-- Dropdown principal -->
-          <div class="grid-card-dropdown" data-dropdown="main">
-            <button type="button" class="dropdown-item" data-action="rename">
-              <span class="dropdown-icon">✏️</span>
-              Cambiar nombre
-            </button>
-            <button type="button" class="dropdown-item dropdown-item-danger" data-action="delete">
-              <span class="dropdown-icon">🗑️</span>
-              Eliminar proyecto
-            </button>
-          </div>
-          
-          <!-- Submenu de confirmacion para borrar -->
-          <div class="grid-card-dropdown grid-card-dropdown-confirm" data-dropdown="confirm-delete">
-            <p class="dropdown-confirm-text">¿Estas seguro de eliminar este proyecto?</p>
-            <div class="dropdown-confirm-actions">
-              <form action="{{ url_for('project_bp.delete_project', project_id=project['_id']) }}" method="post" class="dropdown-confirm-form">
-                <button type="submit" class="dropdown-btn dropdown-btn-danger">Si</button>
-              </form>
-              <button type="button" class="dropdown-btn dropdown-btn-cancel" data-action="cancel-delete">No</button>
-            </div>
-          </div>
-          
-          <!-- Submenu para renombrar -->
-          <div class="grid-card-dropdown grid-card-dropdown-rename" data-dropdown="rename">
-            <form action="{{ url_for('project_bp.update_project', project_id=project['_id']) }}" method="post" class="dropdown-rename-form">
-              <div class="dropdown-rename-field">
-                <label class="dropdown-rename-label">Nuevo nombre</label>
-                <input type="text" name="titulo" class="dropdown-rename-input" placeholder="Nombre del proyecto" value="{{ project.get('titulo','') }}">
-              </div>
-              <div class="dropdown-rename-actions">
-                <button type="button" class="dropdown-btn dropdown-btn-cancel" data-action="cancel-rename">Cancelar</button>
-                <button type="submit" class="dropdown-btn dropdown-btn-primary">Actualizar</button>
-              </div>
-            </form>
-          </div>
-        </div>
-
-        <h4 class="grid-card-title">{{ project.get('titulo','(sin titulo)') }}</h4>
-        
-        <!-- Progress Ring -->
-        <div class="progress-ring" style="--progress:{{ progreso }}%">
-          <span class="progress-ring-value">{{ progreso }}%</span>
-        </div>
-        
-        <div class="grid-card-meta">
-          {% set cat_ids = project.get('categorias', []) %}
-          {% set first_cat = cat_ids[0] if cat_ids and cat_ids|length > 0 else None %}
-          <span class="panel-badge">{{ category_names.get(first_cat, 'Sin categoria') }}</span>
-          {% set estado = project.get('estado','Activo') %}
-          <span class="panel-badge {% if estado == 'Completado' %}success{% elif estado == 'Activo' %}accent{% else %}warning{% endif %}">
-            {{ estado }}
-          </span>
-        </div>
-        <div class="grid-card-footer">
-          {% set desc = project.get('descripcion') or 'Sin descripcion' %}
-          {{ desc[:80] }}{% if desc|length > 80 %}...{% endif %}
-        </div>
-        <div class="grid-card-footer">
-          {{ goal_counts.get(project['_id'], 0) }} objetivos {{ doc_counts.get(project['_id'], 0) }} documentos
-        </div>
-        <div class="panel-actions">
-          <a class="panel-action-btn primary" href="{{ url_for('project_bp.view_project', project_id=project['_id']) }}">
-            Abrir proyecto
+            Cuadrícula
+          </a>
+          <a class="projects-view-toggle-btn {% if is_list_view %}active{% endif %}"
+             href="{{ list_view_url }}"
+             aria-current="{{ 'page' if is_list_view else 'false' }}">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M5 6h14M5 12h14M5 18h14"/>
+            </svg>
+            Lista
           </a>
         </div>
       </div>
-      {% endfor %}
     </div>
+
+    <form class="projects-filter-bar" method="get" action="{{ url_for('project_bp.list_projects') }}">
+      <input type="hidden" name="view" value="{{ active_view }}">
+      <label class="projects-search-field" for="project_search">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
+          <path d="M10 4a6 6 0 104.472 10.02l4.254 4.254 1.414-1.414-4.254-4.254A6 6 0 0010 4zm0 2a4 4 0 110 8 4 4 0 010-8z"/>
+        </svg>
+        <input type="text" id="project_search" name="q" placeholder="Buscar proyectos..." value="{{ project_query or '' }}">
+      </label>
+      <select id="project_filter_category" name="category" class="panel-form-select projects-filter-select" aria-label="Categoria">
+        <option value="all" {% if project_category == 'all' %}selected{% endif %}>Todos</option>
+        {% for cat in categories %}
+          <option value="{{ cat['_id'] }}" {% if project_category == cat['_id'] %}selected{% endif %}>{{ cat['name'] }}</option>
+        {% endfor %}
+      </select>
+      <select id="project_filter_status" name="status" class="panel-form-select projects-filter-select" aria-label="Estado">
+        <option value="all" {% if project_status == 'all' %}selected{% endif %}>Estado: Todos</option>
+        <option value="Activo" {% if project_status == 'Activo' %}selected{% endif %}>Activo</option>
+        <option value="En pausa" {% if project_status == 'En pausa' %}selected{% endif %}>En pausa</option>
+        <option value="Completado" {% if project_status == 'Completado' %}selected{% endif %}>Completado</option>
+      </select>
+      <select id="project_filter_priority" name="priority" class="panel-form-select projects-filter-select" aria-label="Prioridad">
+        <option value="all" {% if project_priority == 'all' %}selected{% endif %}>Prioridad: Todas</option>
+        <option value="Alta" {% if project_priority == 'Alta' %}selected{% endif %}>Alta prioridad</option>
+        <option value="Media" {% if project_priority == 'Media' %}selected{% endif %}>Prioridad media</option>
+        <option value="Baja" {% if project_priority == 'Baja' %}selected{% endif %}>Prioridad baja</option>
+      </select>
+      <select id="project_sort" name="order" class="panel-form-select projects-filter-select" aria-label="Ordenar">
+        <option value="importance-desc" {% if project_sort == 'importance-desc' %}selected{% endif %}>Ordenar: Importancia</option>
+        <option value="importance-asc" {% if project_sort == 'importance-asc' %}selected{% endif %}>Ordenar: Menor importancia</option>
+      </select>
+    </form>
+
+    {% if projects and projects|length > 0 %}
+      {% if is_list_view %}
+        <div class="projects-table-wrap">
+          <table class="projects-table">
+            <thead>
+              <tr>
+                <th>Proyecto</th>
+                <th>Estado</th>
+                <th>Prioridad</th>
+                <th>Objetivos</th>
+                <th>Docs</th>
+                <th>Progreso</th>
+                <th>Próximo hito</th>
+                <th><span class="sr-only">Acción</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for project in projects %}
+              {% set progreso = project_progress.get(project['_id'], 0) if project_progress else 0 %}
+              {% set project_goals = goal_counts.get(project['_id'], 0) if goal_counts else 0 %}
+              {% set project_docs = doc_counts.get(project['_id'], 0) if doc_counts else 0 %}
+              {% set project_title = project.get('titulo','(sin titulo)') %}
+              {% set priority = project.get('prioridad','Media') %}
+              {% set estado = project.get('estado','Activo') %}
+              {% set project_due = project.get('fecha_fin') %}
+              <tr>
+                <td class="projects-table-project">
+                  <a class="projects-table-project-link" href="{{ url_for('project_bp.view_project', project_id=project['_id']) }}">
+                    <span class="project-table-icon" aria-hidden="true">{{ project_title[:1]|upper }}</span>
+                    <span>
+                      <strong>{{ project_title }}</strong>
+                      <small>
+                        {% set desc = project.get('descripcion') or 'Sin descripcion' %}
+                        {{ desc[:78] }}{% if desc|length > 78 %}...{% endif %}
+                      </small>
+                    </span>
+                  </a>
+                </td>
+                <td>
+                  <span class="panel-badge {% if estado == 'Completado' %}success{% elif estado == 'Activo' %}accent{% else %}warning{% endif %}">
+                    {{ estado }}
+                  </span>
+                </td>
+                <td>
+                  <span class="panel-badge {% if priority == 'Alta' %}danger{% elif priority == 'Baja' %}success{% else %}warning{% endif %}">
+                    {{ priority }}
+                  </span>
+                </td>
+                <td class="projects-table-number">{{ project_goals }}</td>
+                <td class="projects-table-number">{{ project_docs }}</td>
+                <td class="projects-table-progress">
+                  <span class="projects-table-progress-value">{{ progreso }}%</span>
+                  <span class="projects-progress-line" aria-hidden="true">
+                    <span style="width: {{ progreso }}%"></span>
+                  </span>
+                </td>
+                <td class="projects-table-milestone">
+                  <span>{{ project.get('proximo_hito') or project.get('next_milestone') or ('Entrega ' ~ project_due if project_due else ('Revisar objetivos' if project_goals else 'Definir alcance')) }}</span>
+                </td>
+                <td>
+                  <a class="projects-table-open" href="{{ url_for('project_bp.view_project', project_id=project['_id']) }}">Abrir</a>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="cards-grid projects-card-grid">
+          {% for project in projects %}
+          {% set progreso = project_progress.get(project['_id'], 0) if project_progress else 0 %}
+          {% set project_goals = goal_counts.get(project['_id'], 0) if goal_counts else 0 %}
+          {% set project_docs = doc_counts.get(project['_id'], 0) if doc_counts else 0 %}
+          {% set project_title = project.get('titulo','(sin titulo)') %}
+          {% set priority = project.get('prioridad','Media') %}
+          {% set is_featured = project_goals >= 3 or project_title == 'TFGs 25/26' %}
+          <article class="grid-card project-work-card {% if is_featured %}is-featured{% endif %}" data-project-id="{{ project['_id'] }}" data-importance="{{ project.get('importancia', 0) }}">
+            <div class="grid-card-menu">
+              <button class="grid-card-menu-btn" type="button" aria-label="Opciones del proyecto">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                  <circle cx="8" cy="3" r="1.5"/>
+                  <circle cx="8" cy="8" r="1.5"/>
+                  <circle cx="8" cy="13" r="1.5"/>
+                </svg>
+              </button>
+
+              <div class="grid-card-dropdown" data-dropdown="main">
+                <button type="button" class="dropdown-item" data-action="rename">
+                  <span class="dropdown-icon">✏️</span>
+                  Cambiar nombre
+                </button>
+                <button type="button" class="dropdown-item dropdown-item-danger" data-action="delete">
+                  <span class="dropdown-icon">🗑️</span>
+                  Eliminar proyecto
+                </button>
+              </div>
+
+              <div class="grid-card-dropdown grid-card-dropdown-confirm" data-dropdown="confirm-delete">
+                <p class="dropdown-confirm-text">¿Estas seguro de eliminar este proyecto?</p>
+                <div class="dropdown-confirm-actions">
+                  <form action="{{ url_for('project_bp.delete_project', project_id=project['_id']) }}" method="post" class="dropdown-confirm-form">
+                    <button type="submit" class="dropdown-btn dropdown-btn-danger">Si</button>
+                  </form>
+                  <button type="button" class="dropdown-btn dropdown-btn-cancel" data-action="cancel-delete">No</button>
+                </div>
+              </div>
+
+              <div class="grid-card-dropdown grid-card-dropdown-rename" data-dropdown="rename">
+                <form action="{{ url_for('project_bp.update_project', project_id=project['_id']) }}" method="post" class="dropdown-rename-form">
+                  <div class="dropdown-rename-field">
+                    <label class="dropdown-rename-label">Nuevo nombre</label>
+                    <input type="text" name="titulo" class="dropdown-rename-input" placeholder="Nombre del proyecto" value="{{ project.get('titulo','') }}">
+                  </div>
+                  <div class="dropdown-rename-actions">
+                    <button type="button" class="dropdown-btn dropdown-btn-cancel" data-action="cancel-rename">Cancelar</button>
+                    <button type="submit" class="dropdown-btn dropdown-btn-primary">Actualizar</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+
+            <div class="project-card-icon" aria-hidden="true">{{ project_title[:1]|upper }}</div>
+
+            <div class="project-card-body">
+              <div class="project-card-heading">
+                <h4 class="grid-card-title">{{ project_title }}</h4>
+                {% if is_featured %}
+                  <span class="project-card-star" aria-label="Proyecto destacado">★</span>
+                {% endif %}
+              </div>
+              <p class="project-card-desc">
+                {% set desc = project.get('descripcion') or 'Sin descripcion' %}
+                {{ desc[:130] }}{% if desc|length > 130 %}...{% endif %}
+              </p>
+              <div class="grid-card-meta project-card-chips">
+                {% set cat_ids = project.get('categorias', []) %}
+                {% set first_cat = cat_ids[0] if cat_ids and cat_ids|length > 0 else None %}
+                {% set estado = project.get('estado','Activo') %}
+                <span class="panel-badge {% if estado == 'Completado' %}success{% elif estado == 'Activo' %}accent{% else %}warning{% endif %}">
+                  {{ estado }}
+                </span>
+                <span class="panel-badge {% if priority == 'Alta' %}danger{% elif priority == 'Baja' %}success{% else %}warning{% endif %}">
+                  {{ priority }}
+                </span>
+                <span class="panel-badge">{{ category_names.get(first_cat, 'Sin categoria') }}</span>
+              </div>
+              <div class="project-card-metrics">
+                <span>{{ project_goals }} objetivos</span>
+                <span>{{ project_docs }} documentos</span>
+              </div>
+            </div>
+
+            <div class="project-card-side">
+              <div class="project-card-progress-block">
+                <span class="project-card-progress-value">{{ progreso }}%</span>
+                <span class="projects-progress-line" aria-hidden="true">
+                  <span style="width: {{ progreso }}%"></span>
+                </span>
+              </div>
+              <a class="panel-action-btn primary project-open-btn" href="{{ url_for('project_bp.view_project', project_id=project['_id']) }}">
+                Abrir
+                <span aria-hidden="true">→</span>
+              </a>
+            </div>
+          </article>
+          {% endfor %}
+        </div>
+      {% endif %}
     {% else %}
     <div class="empty-state">
       <h4 class="empty-state-title">No hay proyectos registrados</h4>
@@ -290,21 +386,13 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
-  // Preferencia de orden (servidor)
-  const sortSelect = document.getElementById('project_sort');
-  if (sortSelect) {
-    sortSelect.addEventListener('change', () => {
-      const url = new URL(window.location.href);
-      url.searchParams.set('order', sortSelect.value);
-      window.location.href = url.toString();
-    });
-  }
-
-  const orderInput = document.querySelector('.panel-search input[name="order"]');
-  if (orderInput && sortSelect) {
-    orderInput.value = sortSelect.value;
-    sortSelect.addEventListener('change', () => {
-      orderInput.value = sortSelect.value;
+  // Filtros visibles: los desplegables se aplican al cambiar; la busqueda se envia con Enter.
+  const filterForm = document.querySelector('.projects-filter-bar');
+  if (filterForm) {
+    filterForm.querySelectorAll('.projects-filter-select').forEach(select => {
+      select.addEventListener('change', () => {
+        filterForm.submit();
+      });
     });
   }
 
@@ -398,4 +486,3 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 });
 </script>
-<script src="{{ url_for('static', filename='js/category_selector.js') }}"></script>

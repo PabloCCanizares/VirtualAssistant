@@ -1,107 +1,172 @@
-<aside class="side-panel">
+{% set side_project_total = projects|length if projects else 0 %}
+{% set side_objective_total = goal_counts.values()|sum if goal_counts else 0 %}
+{% set side_document_total = doc_counts.values()|sum if doc_counts else 0 %}
+{% set side_progress_total = project_progress.values()|sum if project_progress else 0 %}
+{% set side_average_progress = (side_progress_total / side_project_total)|round|int if side_project_total else 0 %}
+{% set priority_counts = namespace(alta=0, media=0, baja=0) %}
+{% for project in projects or [] %}
+  {% set priority_value = (project.get('prioridad', 'Media') or 'Media')|lower %}
+  {% if priority_value == 'alta' %}
+    {% set priority_counts.alta = priority_counts.alta + 1 %}
+  {% elif priority_value == 'baja' %}
+    {% set priority_counts.baja = priority_counts.baja + 1 %}
+  {% else %}
+    {% set priority_counts.media = priority_counts.media + 1 %}
+  {% endif %}
+{% endfor %}
 
-  <!-- Formulario de nuevo proyecto (colapsable) -->
-  <div class="side-panel-card collapsible">
+<aside class="side-panel projects-side-panel">
+
+  <div class="side-panel-card collapsible expanded locked projects-create-card">
     <div class="side-panel-header">
-      <span class="side-panel-icon">➕</span>
-      <h3 class="side-panel-title">Nuevo proyecto</h3>
-      <span class="side-panel-toggle"></span>
+      <span class="side-panel-icon" aria-hidden="true">✦</span>
+      <h3 class="side-panel-title">Crear / Capturar</h3>
+      <span class="projects-panel-minus" aria-hidden="true">−</span>
     </div>
 
     <div class="side-panel-card-content">
-      <form method="post"
-            action="{{ url_for('project_bp.add_project') }}"
-            class="panel-form">
+      <div class="projects-capture-card">
+        <h4 class="projects-create-form-title">Captura inteligente</h4>
+        <p class="projects-side-intro">Describe una iniciativa, una idea o un resultado. GoalMind la guardará como proyecto accionable.</p>
 
-        <div class="panel-form-group">
-          <label class="panel-form-label" for="titulo">Titulo</label>
-          <input type="text"
-                 name="titulo"
-                 id="titulo"
-                 class="panel-form-input"
-                 placeholder="Investigacion IA aplicada"
-                 required>
-        </div>
+        <form method="post"
+              action="{{ url_for('project_bp.add_project') }}"
+              class="panel-form projects-create-form">
 
-        <div class="panel-form-group">
-          <label class="panel-form-label" for="descripcion">Descripcion</label>
-          <textarea name="descripcion"
-                    id="descripcion"
-                    class="panel-form-textarea"
-                    rows="3"
-                    placeholder="Resumen y alcance del proyecto"></textarea>
-        </div>
-
-        <div class="panel-form-row">
           <div class="panel-form-group">
-            <label class="panel-form-label" for="fecha_inicio">Fecha inicio</label>
-            <input type="date"
-                   name="fecha_inicio"
-                   id="fecha_inicio"
-                   class="panel-form-input">
+            <label class="panel-form-label" for="titulo">Nombre del proyecto</label>
+            <input type="text"
+                   name="titulo"
+                   id="titulo"
+                   class="panel-form-input"
+                   placeholder="Ej. Lanzamiento web"
+                   required>
           </div>
+
           <div class="panel-form-group">
-            <label class="panel-form-label" for="fecha_fin">Fecha fin</label>
-            <input type="date"
-                   name="fecha_fin"
-                   id="fecha_fin"
-                   class="panel-form-input">
+            <label class="panel-form-label" for="descripcion">Contexto inicial</label>
+            <textarea name="descripcion"
+                      id="descripcion"
+                      class="panel-form-textarea projects-capture-textarea"
+                      rows="5"
+                      maxlength="1000"
+                      placeholder="Ej. Quiero lanzar un curso online sobre inteligencia artificial para docentes..."></textarea>
           </div>
-        </div>
 
-        <div class="panel-form-group">
-          <label class="panel-form-label">Categorias</label>
-          <div data-category-selector 
-               data-name="categorias" 
-               data-selected=""
-               data-allow-create="true"></div>
-        </div>
+          <div class="projects-convert-options" aria-label="La IA puede convertir esta captura en">
+            <span>
+              <strong>Proyecto</strong>
+              <small>Plan con objetivos</small>
+            </span>
+            <span>
+              <strong>Objetivo</strong>
+              <small>Meta medible</small>
+            </span>
+            <span>
+              <strong>Tarea</strong>
+              <small>Acción concreta</small>
+            </span>
+          </div>
 
-        <div class="panel-form-group">
-          <label class="panel-form-label" for="prioridad">Prioridad</label>
-          <select name="prioridad" id="prioridad" class="panel-form-select">
-            <option value="Baja">Baja</option>
-            <option value="Media" selected>Media</option>
-            <option value="Alta">Alta</option>
-          </select>
-        </div>
+          <div class="projects-form-grid">
+            <div class="panel-form-group">
+              <label class="panel-form-label" for="estado">Estado</label>
+              <select name="estado" id="estado" class="panel-form-select">
+                <option value="Activo" selected>Activo</option>
+                <option value="En pausa">En pausa</option>
+                <option value="Completado">Completado</option>
+              </select>
+            </div>
+            <div class="panel-form-group">
+              <label class="panel-form-label" for="prioridad">Prioridad</label>
+              <select name="prioridad" id="prioridad" class="panel-form-select">
+                <option value="Baja">Baja</option>
+                <option value="Media" selected>Media</option>
+                <option value="Alta">Alta</option>
+              </select>
+            </div>
+          </div>
 
-        <div class="panel-form-group">
-          <label class="panel-form-label" for="importancia">Importancia (0-10)</label>
-          <input type="number" name="importancia" id="importancia" class="panel-form-input" min="0" max="10" step="1" value="5">
-        </div>
+          <button type="submit" class="panel-form-submit projects-create-submit">
+            Crear proyecto
+            <span aria-hidden="true">+</span>
+          </button>
+        </form>
+      </div>
 
-        <div class="panel-form-group" style="max-width: 100%;">
-          <label class="panel-form-label" for="estado">Estado</label>
-          <select name="estado" id="estado" class="panel-form-select">
-            <option value="Activo" selected>Activo</option>
-            <option value="En pausa">En pausa</option>
-            <option value="Completado">Completado</option>
-          </select>
-        </div>
-
-        <button type="submit" class="panel-form-submit">Crear proyecto</button>
-      </form>
+      <div class="projects-capture-divider" aria-hidden="true"><span>o</span></div>
+      <button type="button"
+              class="projects-capture-btn"
+              onclick="document.getElementById('descripcion')?.focus();">
+        Capturar desde nota rápida
+      </button>
     </div>
   </div>
 
-  <!-- Consejos (no colapsable - sin form) -->
-  <div class="side-panel-card">
+  <div class="side-panel-card projects-insights-card">
     <div class="side-panel-header">
-      <span class="side-panel-icon">💡</span>
-      <h3 class="side-panel-title">Consejos</h3>
+      <span class="side-panel-icon" aria-hidden="true">▥</span>
+      <h3 class="side-panel-title">Insights de cartera</h3>
     </div>
-    <div class="ai-suggestion-item">
-      <strong>Define alcance</strong>
-      <p>Un proyecto claro facilita priorizar objetivos y evitar tareas sueltas.</p>
+
+    <div class="projects-insights-grid">
+      <div class="projects-insight-stat">
+        <span>Proyectos</span>
+        <strong>{{ side_project_total }}</strong>
+      </div>
+      <div class="projects-insight-stat">
+        <span>Objetivos</span>
+        <strong>{{ side_objective_total }}</strong>
+      </div>
+      <div class="projects-insight-stat">
+        <span>Documentos</span>
+        <strong>{{ side_document_total }}</strong>
+      </div>
     </div>
-    <div class="ai-suggestion-item">
-      <strong>Adjunta contexto</strong>
-      <p>Sube documentos clave para centralizar la informacion.</p>
+
+    <div class="projects-priority-bars">
+      <div>
+        <span>Alta</span>
+        <strong>{{ priority_counts.alta }}</strong>
+        <i style="width: {{ ((priority_counts.alta / side_project_total) * 100)|round|int if side_project_total else 0 }}%"></i>
+      </div>
+      <div>
+        <span>Media</span>
+        <strong>{{ priority_counts.media }}</strong>
+        <i style="width: {{ ((priority_counts.media / side_project_total) * 100)|round|int if side_project_total else 0 }}%"></i>
+      </div>
+      <div>
+        <span>Baja</span>
+        <strong>{{ priority_counts.baja }}</strong>
+        <i style="width: {{ ((priority_counts.baja / side_project_total) * 100)|round|int if side_project_total else 0 }}%"></i>
+      </div>
+    </div>
+
+    <div class="projects-average-progress">
+      <span>Progreso promedio</span>
+      <strong>{{ side_average_progress }}%</strong>
+      <div class="projects-progress-line" aria-hidden="true">
+        <span style="width: {{ side_average_progress }}%"></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="side-panel-card projects-recommendation-card">
+    <div class="side-panel-header">
+      <span class="side-panel-icon" aria-hidden="true">✧</span>
+      <h3 class="side-panel-title">Recomendaciones IA</h3>
+    </div>
+    <div class="ai-suggestion-item featured">
+      <strong>{{ 'Prioriza proyectos de alta prioridad' if priority_counts.alta else 'Define el siguiente hito' }}</strong>
+      <p>
+        {% if priority_counts.alta %}
+          Tienes {{ priority_counts.alta }} proyecto{{ '' if priority_counts.alta == 1 else 's' }} marcado{{ '' if priority_counts.alta == 1 else 's' }} como alta prioridad. Revisa su próximo hito antes de crear más contexto.
+        {% else %}
+          La cartera está estable. El siguiente avance claro es completar hitos y objetivos para mejorar el seguimiento operativo.
+        {% endif %}
+      </p>
+      <a class="panel-action-btn secondary" href="{{ url_for('project_bp.list_projects', priority='Alta') }}">Ver sugerencia</a>
     </div>
   </div>
 
 </aside>
-
-<script src="{{ url_for('static', filename='js/side_panel_collapsible.js') }}"></script>
-<script src="{{ url_for('static', filename='js/category_selector.js') }}"></script>

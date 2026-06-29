@@ -13,7 +13,18 @@ function initCollapsiblePanels() {
     const cards = sidePanel.querySelectorAll('.side-panel-card.collapsible');
 
     function toggleCard(card) {
-      card.classList.toggle('expanded');
+      const shouldOpen = !card.classList.contains('expanded');
+      const isProjectDetail = Boolean(card.closest('.mission-shell--project-detail'));
+
+      if (isProjectDetail && shouldOpen) {
+        cards.forEach(other => {
+          if (other !== card && !other.classList.contains('locked')) {
+            other.classList.remove('expanded');
+          }
+        });
+      }
+
+      card.classList.toggle('expanded', shouldOpen);
     }
 
     // Configurar cada card colapsable

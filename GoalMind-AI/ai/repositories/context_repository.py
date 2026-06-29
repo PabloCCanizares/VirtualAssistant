@@ -4,7 +4,9 @@ from datetime import date, datetime, timedelta
 from bson import ObjectId
 
 from model.event_model import eventModel
+from model.category_model import CategoryModel
 from model.goal_model import GoalModel
+from model.project_document_model import ProjectDocumentModel
 from model.project_model import ProjectModel
 from model.task_model import TaskModel
 
@@ -80,6 +82,50 @@ def _load_user_context(user_id):
         "projects": [_serialize_value(project) for project in projects],
         "events": [_serialize_value(e) for e in events],
     }
+
+
+def _load_tasks(user_id):
+    return [_serialize_value(task) for task in TaskModel.get_task_by_user(user_id)]
+
+
+def _load_goals(user_id):
+    return [_serialize_value(goal) for goal in GoalModel.get_by_user_id(user_id)]
+
+
+def _load_projects(user_id):
+    return [_serialize_value(project) for project in ProjectModel.get_by_user_id(user_id)]
+
+
+def _load_events(user_id):
+    return [_serialize_value(event) for event in eventModel.get_events_by_user(user_id)]
+
+
+def _load_documents(user_id):
+    return [_serialize_value(doc) for doc in ProjectDocumentModel.get_all_documents(usuario_id=user_id)]
+
+
+def _load_categories(user_id):
+    return [_serialize_value(category) for category in CategoryModel.get_all_categories(usuario_id=user_id)]
+
+
+_COLLECTION_LOADERS = {
+    "tasks": _load_tasks,
+    "goals": _load_goals,
+    "projects": _load_projects,
+    "events": _load_events,
+    "documents": _load_documents,
+    "categories": _load_categories,
+}
+
+
+def load_user_collections(user_id, collection_names) -> str:
+    context = {"user_id": str(user_id)}
+    for name in collection_names or []:
+        loader = _COLLECTION_LOADERS.get(str(name))
+        if not loader:
+            continue
+        context[str(name)] = loader(user_id)
+    return json.dumps(context, ensure_ascii=True)
 
 
 def _load_weekly_due_context(user_id, ref_date=None):
@@ -170,7 +216,10 @@ def _load_weekly_planner_context(user_id, ref_date=None):
 
 
 def get_user_context_json(user_id) -> str:
-    return json.dumps(_load_user_context(user_id), ensure_ascii=True)
+    return load_user_collections(
+        user_id,
+        ["tasks", "goals", "projects", "events", "documents", "categories"],
+    )
 
 
 def get_weekly_due_context_json(user_id, ref_date=None) -> str:
