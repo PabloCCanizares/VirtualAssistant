@@ -56,11 +56,24 @@ def extract_username_from_uri(uri: str) -> str:
 
 
 def get_app_user_id() -> str:
-    """Devuelve el user ID activo: generado desde nickname o DEFAULT_USER_ID."""
+    """Devuelve el user ID activo configurado para la app."""
+    explicit_user_id = (os.getenv("APP_USER_ID") or "").strip()
+    if explicit_user_id:
+        return explicit_user_id
+
     nickname = (os.getenv("APP_USER_NICKNAME") or "").strip()
     if nickname and nickname != "shared_user":
         return generate_user_id_from_nickname(nickname)
-    return os.getenv("DEFAULT_USER_ID", "66ffbbbbbbbbbbbbbbbb0100")
+
+    default_user_id = (os.getenv("DEFAULT_USER_ID") or "").strip()
+    if default_user_id:
+        return default_user_id
+
+    remote_username = extract_username_from_uri(os.getenv("MONGO_REMOTE_URI", ""))
+    if remote_username and remote_username != "shared_user":
+        return generate_user_id_from_nickname(remote_username)
+
+    return "66ffbbbbbbbbbbbbbbbb0100"
 
 
 def remote_uid_filter(usuario_id=None):
@@ -296,6 +309,7 @@ def init_app(app):
 
             mongo_remote = client
             app.mongo_remote = client
+            _persist_user_nickname(remote_uri)
             print("Conectado a MongoDB Atlas")
         except Exception as e:
             # Si falla el handshake SSL o cualquier otra cosa → seguimos solo con local

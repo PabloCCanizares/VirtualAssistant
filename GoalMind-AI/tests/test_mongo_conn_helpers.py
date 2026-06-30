@@ -48,22 +48,55 @@ class TestGenerateUserIdFromNickname:
 
 class TestGetAppUserId:
     def test_default_when_no_nickname(self, monkeypatch):
+        monkeypatch.delenv("APP_USER_ID", raising=False)
         monkeypatch.delenv("APP_USER_NICKNAME", raising=False)
+        monkeypatch.delenv("DEFAULT_USER_ID", raising=False)
+        monkeypatch.delenv("MONGO_REMOTE_URI", raising=False)
         assert mongo_conn.get_app_user_id() == "66ffbbbbbbbbbbbbbbbb0100"
 
     def test_default_when_nickname_is_shared_user(self, monkeypatch):
+        monkeypatch.delenv("APP_USER_ID", raising=False)
         monkeypatch.setenv("APP_USER_NICKNAME", "shared_user")
+        monkeypatch.delenv("DEFAULT_USER_ID", raising=False)
+        monkeypatch.delenv("MONGO_REMOTE_URI", raising=False)
         assert mongo_conn.get_app_user_id() == "66ffbbbbbbbbbbbbbbbb0100"
 
+    def test_explicit_app_user_id_takes_precedence(self, monkeypatch):
+        monkeypatch.setenv("APP_USER_ID", "agent-lab")
+        monkeypatch.setenv("APP_USER_NICKNAME", "local_user")
+        monkeypatch.setenv("DEFAULT_USER_ID", "fallback-user")
+        monkeypatch.setenv("MONGO_REMOTE_URI", "mongodb+srv://atlas_user:secret@cluster.mongodb.net/db")
+        assert mongo_conn.get_app_user_id() == "agent-lab"
+
     def test_derived_id_for_real_nickname(self, monkeypatch):
+        monkeypatch.delenv("APP_USER_ID", raising=False)
+        monkeypatch.delenv("DEFAULT_USER_ID", raising=False)
+        monkeypatch.delenv("MONGO_REMOTE_URI", raising=False)
         monkeypatch.setenv("APP_USER_NICKNAME", "dani")
         out = mongo_conn.get_app_user_id()
         assert len(out) == 24
         assert out != "66ffbbbbbbbbbbbbbbbb0100"
 
+    def test_derived_id_from_atlas_username_when_no_nickname(self, monkeypatch):
+        monkeypatch.delenv("APP_USER_ID", raising=False)
+        monkeypatch.delenv("APP_USER_NICKNAME", raising=False)
+        monkeypatch.delenv("DEFAULT_USER_ID", raising=False)
+        monkeypatch.setenv("MONGO_REMOTE_URI", "mongodb+srv://atlas_user:secret@cluster.mongodb.net/db")
+        assert mongo_conn.get_app_user_id() == mongo_conn.generate_user_id_from_nickname("atlas_user")
+
+    def test_explicit_nickname_takes_precedence_over_atlas_username(self, monkeypatch):
+        monkeypatch.delenv("APP_USER_ID", raising=False)
+        monkeypatch.delenv("DEFAULT_USER_ID", raising=False)
+        monkeypatch.setenv("APP_USER_NICKNAME", "local_user")
+        monkeypatch.setenv("MONGO_REMOTE_URI", "mongodb+srv://atlas_user:secret@cluster.mongodb.net/db")
+        assert mongo_conn.get_app_user_id() == mongo_conn.generate_user_id_from_nickname("local_user")
+
 
 class TestRemoteUidFilter:
     def test_with_valid_objectid_returns_or_clause(self, monkeypatch):
+        monkeypatch.delenv("APP_USER_ID", raising=False)
+        monkeypatch.delenv("DEFAULT_USER_ID", raising=False)
+        monkeypatch.delenv("MONGO_REMOTE_URI", raising=False)
         monkeypatch.setenv("APP_USER_NICKNAME", "dani")
         # get_app_user_id() devuelve 24 hex chars (formato ObjectId valido)
         result = mongo_conn.remote_uid_filter()

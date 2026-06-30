@@ -1,79 +1,58 @@
 <aside class="side-panel">
 
   <div class="side-panel-card project-action-rail-card">
-    <p class="project-action-eyebrow"><span aria-hidden="true">✦</span> Acción recomendada</p>
+    <div class="project-side-card-heading">
+      <span class="project-side-card-icon project-side-card-icon-recommended" aria-hidden="true"></span>
+      <div>
+        <h3 class="project-side-card-title">Acción recomendada</h3>
+        <p class="project-side-card-copy">Crea tareas para tu objetivo actual y comienza a hacer progreso.</p>
+      </div>
+    </div>
     {% if goals and goals|length > 0 %}
       {% set first_goal = goals[0] %}
-      <a class="project-action-tile" href="{{ url_for('goal_bp.view_goal', goal_id=first_goal['_id']) }}">
-        <span>Añadir tarea a<br>{{ first_goal.get('titulo','Objetivo') }}</span>
-        <span class="project-action-arrow" aria-hidden="true">›</span>
-      </a>
+      <a class="project-side-card-cta project-side-card-cta-purple" href="{{ url_for('goal_bp.view_goal', goal_id=first_goal['_id']) }}">Crear tareas</a>
     {% else %}
-      <a class="project-action-tile" href="#newGoalCard" data-open-panel="newGoalCard">
-        <span>Crear el primer<br>objetivo</span>
-        <span class="project-action-arrow" aria-hidden="true">›</span>
-      </a>
+      <button type="button" class="project-side-card-cta project-side-card-cta-purple" data-open-panel="newGoalCard">Crear tareas</button>
     {% endif %}
   </div>
 
-  <div class="project-action-rail-label">Panel de acciones</div>
-
-  <!-- Editar proyecto (colapsable) -->
-  <div class="side-panel-card collapsible" id="editProjectCard">
+  <div class="side-panel-card collapsible project-side-action-card project-side-action-card-edit" id="editProjectCard">
     <div class="side-panel-header">
-    <span class="side-panel-icon">✏️</span>
-      <h3 class="side-panel-title">Editar proyecto</h3>
+      <span class="side-panel-icon" aria-hidden="true"></span>
+      <div class="side-panel-title-block">
+        <h3 class="side-panel-title">Editar proyecto</h3>
+        <p class="side-panel-desc">Actualiza la información y configuración del proyecto.</p>
+      </div>
       <span class="side-panel-toggle"></span>
     </div>
+    <button type="button" class="project-side-card-cta" data-open-panel="editProjectCard">Editar</button>
 
     <div class="side-panel-card-content">
-      <form method="post"
-            action="{{ url_for('project_bp.update_project', project_id=project['_id']) }}"
-            class="panel-form">
-
+      <form method="post" action="{{ url_for('project_bp.update_project', project_id=project['_id']) }}" class="panel-form">
         <div class="panel-form-group">
           <label class="panel-form-label" for="titulo">Titulo</label>
-          <input type="text"
-                 name="titulo"
-                 id="titulo"
-                 class="panel-form-input"
-                 value="{{ project.get('titulo','') }}"
-                 required>
+          <input type="text" name="titulo" id="titulo" class="panel-form-input" value="{{ project.get('titulo','') }}" required>
         </div>
 
         <div class="panel-form-group">
           <label class="panel-form-label" for="descripcion">Descripcion</label>
-          <textarea name="descripcion"
-                    id="descripcion"
-                    class="panel-form-textarea"
-                    rows="3">{{ project.get('descripcion','') }}</textarea>
+          <textarea name="descripcion" id="descripcion" class="panel-form-textarea" rows="3">{{ project.get('descripcion','') }}</textarea>
         </div>
 
         <div class="panel-form-row">
           <div class="panel-form-group">
             <label class="panel-form-label" for="fecha_inicio">Fecha inicio</label>
-            <input type="date"
-                   name="fecha_inicio"
-                   id="fecha_inicio"
-                   class="panel-form-input"
-                   value="{{ ((project.get('fecha_inicio') or '')|string)[:10] }}">
+            <input type="date" name="fecha_inicio" id="fecha_inicio" class="panel-form-input" value="{{ ((project.get('fecha_inicio') or '')|string)[:10] }}">
           </div>
           <div class="panel-form-group">
             <label class="panel-form-label" for="fecha_fin">Fecha fin</label>
-            <input type="date"
-                   name="fecha_fin"
-                   id="fecha_fin"
-                   class="panel-form-input"
-                   value="{{ ((project.get('fecha_fin') or '')|string)[:10] }}">
+            <input type="date" name="fecha_fin" id="fecha_fin" class="panel-form-input" value="{{ ((project.get('fecha_fin') or '')|string)[:10] }}">
           </div>
         </div>
 
         <div class="panel-form-group">
           <label class="panel-form-label">Categorias</label>
-          <div data-category-selector
-               data-name="categorias"
-               data-selected="{{ project.get('categorias', [])|join(',') }}"
-               data-allow-create="true"></div>
+          <div data-category-selector data-name="categorias" data-selected="{{ project.get('categorias', [])|join(',') }}" data-allow-create="true"></div>
         </div>
 
         <div class="panel-form-group">
@@ -91,7 +70,7 @@
           <input type="number" name="importancia" id="importancia" class="panel-form-input" min="0" max="10" step="1" value="{{ project.get('importancia', 5) }}">
         </div>
 
-        <div class="panel-form-group" style="max-width: 100%;">
+        <div class="panel-form-group">
           <label class="panel-form-label" for="estado">Estado</label>
           {% set st = project.get('estado','Activo') %}
           <select name="estado" id="estado" class="panel-form-select">
@@ -106,33 +85,29 @@
     </div>
   </div>
 
-  <!-- Crear nuevo objetivo para este proyecto (colapsable) -->
-  <div class="side-panel-card collapsible" id="newGoalCard">
+  <div class="side-panel-card collapsible project-side-action-card project-side-action-card-goal" id="newGoalCard">
     <div class="side-panel-header">
-     <span class="side-panel-icon">🎯</span>
-      <h3 class="side-panel-title">Nuevo objetivo</h3>
+      <span class="side-panel-icon" aria-hidden="true"></span>
+      <div class="side-panel-title-block">
+        <h3 class="side-panel-title">Nuevo objetivo</h3>
+        <p class="side-panel-desc">Añade un nuevo objetivo para este proyecto.</p>
+      </div>
       <span class="side-panel-toggle"></span>
     </div>
+    <button type="button" class="project-side-card-cta" data-open-panel="newGoalCard">Nuevo objetivo</button>
 
     <div class="side-panel-card-content">
-      <form method="post"
-            action="{{ url_for('goal_bp.add_goal') }}"
-            class="panel-form">
-
-        <!-- project_id hardcodeado -->
+      <form method="post" action="{{ url_for('goal_bp.add_goal') }}" class="panel-form">
         <input type="hidden" name="project_id" value="{{ project['_id'] }}">
 
         <div class="panel-form-group">
           <label class="panel-form-label" for="goal_titulo">Titulo</label>
-          <input type="text" name="titulo" id="goal_titulo"
-                 class="panel-form-input" placeholder="Nombre del objetivo" required>
+          <input type="text" name="titulo" id="goal_titulo" class="panel-form-input" placeholder="Nombre del objetivo" required>
         </div>
 
         <div class="panel-form-group">
           <label class="panel-form-label" for="goal_descripcion">Descripcion</label>
-          <textarea name="descripcion" id="goal_descripcion"
-                    class="panel-form-textarea" rows="3"
-                    placeholder="Descripcion del objetivo"></textarea>
+          <textarea name="descripcion" id="goal_descripcion" class="panel-form-textarea" rows="3" placeholder="Descripcion del objetivo"></textarea>
         </div>
 
         <div class="panel-form-row">
@@ -148,10 +123,7 @@
 
         <div class="panel-form-group">
           <label class="panel-form-label">Categorias</label>
-          <div data-category-selector
-               data-name="categorias"
-               data-selected=""
-               data-allow-create="true"></div>
+          <div data-category-selector data-name="categorias" data-selected="" data-allow-create="true"></div>
         </div>
 
         <div class="panel-form-row">
@@ -179,16 +151,18 @@
     </div>
   </div>
 
-  <!-- Asociar documento - Drag & Drop (colapsable) -->
-  <div class="side-panel-card collapsible" id="documentDropCard">
+  <div class="side-panel-card collapsible project-side-action-card project-side-action-card-doc" id="documentDropCard">
     <div class="side-panel-header">
-    <span class="side-panel-icon">📎</span>
-      <h3 class="side-panel-title">Subir documento</h3>
+      <span class="side-panel-icon" aria-hidden="true"></span>
+      <div class="side-panel-title-block">
+        <h3 class="side-panel-title">Subir documento</h3>
+        <p class="side-panel-desc">Añade documentos relevantes al proyecto.</p>
+      </div>
       <span class="side-panel-toggle"></span>
     </div>
+    <button type="button" class="project-side-card-cta" data-open-document-upload>Subir documento</button>
 
     <div class="side-panel-card-content">
-      <!-- Zona de drag & drop -->
       <div class="dropzone" id="documentDropzone">
         <div class="dropzone-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -196,52 +170,37 @@
             <path d="M15 4v5h5"/>
           </svg>
         </div>
-        <p class="dropzone-text">
-          <strong>Arrastra un documento aqui</strong>
-          o haz click para seleccionar
-        </p>
-        <p class="dropzone-hint">PDF, Word, Excel, imagenes...</p>
+        <p class="dropzone-text"><strong>Arrastra un documento aquí</strong> o haz click para seleccionar</p>
+        <p class="dropzone-hint">PDF, Word, Excel, imágenes...</p>
         <input type="file" id="dropzoneFileInput" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.md,.png,.jpg,.jpeg,.gif,.webp">
-      </div>
-
-      <div class="empty-state" style="padding: 16px 0;">
-     <div class="empty-state-icon" style="font-size: 32px;">📚</div>
-        <p class="empty-state-desc" style="font-size: 12px;">Arrastra un archivo arriba para subir uno nuevo.</p>
       </div>
     </div>
   </div>
 
-  <!-- Eliminar proyecto (colapsable) -->
-  <div class="side-panel-card collapsible" id="deleteProjectCard">
+  <div class="side-panel-card collapsible project-side-action-card project-side-action-card-danger" id="deleteProjectCard">
     <div class="side-panel-header">
-      <span class="side-panel-icon">🗑️</span>
-      <h3 class="side-panel-title">Eliminar proyecto</h3>
+      <span class="side-panel-icon" aria-hidden="true"></span>
+      <div class="side-panel-title-block">
+        <h3 class="side-panel-title">Eliminar proyecto</h3>
+        <p class="side-panel-desc">Elimina este proyecto y todos sus datos asociados.</p>
+      </div>
       <span class="side-panel-toggle"></span>
     </div>
+    <button type="button" class="project-side-card-cta" data-open-panel="deleteProjectCard">Eliminar proyecto</button>
 
     <div class="side-panel-card-content">
-      <p style="font-size: 13px; color: var(--muted); margin: 0 0 16px;">
-        Esta accion eliminara el proyecto y todos sus datos asociados. Esta accion no se puede deshacer.
-      </p>
-      <form method="post"
-            action="{{ url_for('project_bp.delete_project', project_id=project['_id']) }}"
-            data-confirm-message="¿Estás seguro de que quieres eliminar este proyecto? Esta acción no se puede deshacer.">
-        <button type="submit" class="panel-action-btn danger" style="width: 100%; justify-content: center;">
-          Eliminar proyecto
-        </button>
+      <form method="post" action="{{ url_for('project_bp.delete_project', project_id=project['_id']) }}" data-confirm-message="¿Estás seguro de que quieres eliminar este proyecto? Esta acción no se puede deshacer.">
+        <button type="submit" class="panel-action-btn danger">Eliminar proyecto</button>
       </form>
     </div>
   </div>
 
 </aside>
 
-<!-- Modal para subir documento con drag & drop -->
 <div class="upload-modal-overlay" id="uploadModalOverlay">
   <div class="upload-modal" id="uploadModal">
     <div class="upload-modal-header">
-      <h3 class="upload-modal-title">
-        <span>📤</span> Subir documento
-      </h3>
+      <h3 class="upload-modal-title">Subir documento</h3>
       <button type="button" class="upload-modal-close">&times;</button>
     </div>
 
@@ -252,20 +211,10 @@
       </div>
     </div>
 
-    <form method="post"
-          action="{{ url_for('project_bp.upload_document', project_id=project['_id']) }}"
-          class="upload-modal-form"
-          enctype="multipart/form-data"
-          id="uploadModalForm">
-
+    <form method="post" action="{{ url_for('project_bp.upload_document', project_id=project['_id']) }}" class="upload-modal-form" enctype="multipart/form-data" id="uploadModalForm">
       <div class="panel-form-group">
         <label class="panel-form-label" for="document_title">Nombre del documento</label>
-        <input type="text"
-               name="document_title"
-               id="document_title"
-               class="panel-form-input"
-               placeholder="Nombre con el que se guardara"
-               required>
+        <input type="text" name="document_title" id="document_title" class="panel-form-input" placeholder="Nombre con el que se guardará" required>
       </div>
 
       <div class="panel-form-group">
@@ -280,7 +229,6 @@
         </select>
       </div>
 
-      <!-- Input oculto para el archivo -->
       <input type="file" name="document" id="modalFileInput" style="display: none;" required>
 
       <div class="upload-modal-actions">
@@ -295,8 +243,6 @@
 <script src="{{ url_for('static', filename='js/category_selector.js') }}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  const dropzone = document.getElementById('documentDropzone');
-  const modalOverlay = document.getElementById('uploadModalOverlay');
   const modal = document.getElementById('uploadModal');
   const form = document.getElementById('uploadModalForm');
   const fileInput = document.getElementById('modalFileInput');
@@ -315,10 +261,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (rail) {
       const railTop = rail.getBoundingClientRect().top;
       const cardTop = card.getBoundingClientRect().top;
-      rail.scrollTo({
-        top: rail.scrollTop + cardTop - railTop - 8,
-        behavior: 'smooth'
-      });
+      rail.scrollTo({ top: rail.scrollTop + cardTop - railTop - 8, behavior: 'smooth' });
     }
     const firstField = card.querySelector('input, textarea, select');
     if (firstField) {
@@ -329,6 +272,7 @@ document.addEventListener('DOMContentLoaded', function() {
   document.querySelectorAll('[data-open-panel]').forEach(trigger => {
     trigger.addEventListener('click', function(event) {
       event.preventDefault();
+      event.stopPropagation();
       openPanelById(this.dataset.openPanel);
     });
   });
@@ -336,63 +280,51 @@ document.addEventListener('DOMContentLoaded', function() {
   document.querySelectorAll('[data-open-document-upload]').forEach(trigger => {
     trigger.addEventListener('click', function(event) {
       event.preventDefault();
+      event.stopPropagation();
       openPanelById('documentDropCard');
     });
   });
-  
-  // Inicializar el modal
+
+  function handleDocumentFile(file, sourceInput) {
+    if (!file) return;
+
+    const dataTransfer = new DataTransfer();
+    dataTransfer.items.add(file);
+    fileInput.files = dataTransfer.files;
+    titleInput.value = file.name.replace(/\.[^/.]+$/, '');
+    uploadModal.open(file);
+
+    if (sourceInput) {
+      sourceInput.value = '';
+    }
+  }
+
   const uploadModal = new UploadModal(modal, {
-    onSubmit: function(formData, file) {
-      // El form se enviara normalmente con el archivo
+    onSubmit: function() {
       form.submit();
     },
     onCancel: function() {
-      // Reset
       fileInput.value = '';
       titleInput.value = '';
     }
   });
 
-  // Inicializar dropzone
-  initDropzone(dropzone, {
-    onDrop: function(file) {
-      // Actualizar el input de archivo oculto
-      const dataTransfer = new DataTransfer();
-      dataTransfer.items.add(file);
-      fileInput.files = dataTransfer.files;
-      
-      // Sugerir nombre basado en el archivo (sin extension)
-      const suggestedName = file.name.replace(/\.[^/.]+$/, '');
-      titleInput.value = suggestedName;
-      
-      // Abrir modal
-      uploadModal.open(file);
-    }
-  });
-
-  // Tambien manejar click en el input file del dropzone
-  const dropzoneInput = document.getElementById('dropzoneFileInput');
-  if (dropzoneInput) {
-    dropzoneInput.addEventListener('change', function(e) {
-      if (e.target.files.length > 0) {
-        const file = e.target.files[0];
-        
-        // Actualizar el input de archivo del modal
-        const dataTransfer = new DataTransfer();
-        dataTransfer.items.add(file);
-        fileInput.files = dataTransfer.files;
-        
-        // Sugerir nombre
-        const suggestedName = file.name.replace(/\.[^/.]+$/, '');
-        titleInput.value = suggestedName;
-        
-        // Abrir modal
-        uploadModal.open(file);
-        
-        // Reset el input del dropzone para permitir seleccionar el mismo archivo
-        dropzoneInput.value = '';
+  document.querySelectorAll('#documentDropzone, [data-project-document-dropzone]').forEach(uploadDropzone => {
+    initDropzone(uploadDropzone, {
+      onDrop: function(file) {
+        handleDocumentFile(file, uploadDropzone.querySelector('input[type="file"]'));
       }
     });
-  }
+
+    uploadDropzone.addEventListener('keydown', function(event) {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        const input = uploadDropzone.querySelector('input[type="file"]');
+        if (input) {
+          input.click();
+        }
+      }
+    });
+  });
 });
 </script>

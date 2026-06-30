@@ -31,3 +31,6 @@ Thumbs.db
 
 # === Datos locales de la app ===
 GoalMind-AI/.claude/
+/GoalMind-AI/venv
+/GoalMind-AI/tmp_edge_profile*/
+/GoalMind-AI/tmp_project_current_compare*.png

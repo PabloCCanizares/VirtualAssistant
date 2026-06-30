@@ -1,26 +1,28 @@
+{% set notes = project.get('notas', []) %}
+
 <section class="panel-container project-workspace-main">
   <div class="project-detail-grid">
 
-    <div class="panel-section panel-accent project-tree-section project-primary-section">
+    <section class="panel-section panel-accent project-flow-section project-primary-section">
       <div class="panel-header">
-        <h3 class="panel-title">
-          Objetivos
-        </h3>
+        <div>
+          <span class="projects-board-eyebrow">Trabajo activo</span>
+          <h3 class="panel-title">Objetivos y tareas</h3>
+        </div>
         <div class="panel-actions">
           <span class="panel-badge accent">{{ goals|length if goals else 0 }} objetivo{% if not goals or goals|length != 1 %}s{% endif %}</span>
-          {% if not goals or goals|length == 0 %}
-            <a class="panel-action-btn panel-action-btn-small" href="#newGoalCard" data-open-panel="newGoalCard">Nuevo objetivo</a>
-          {% endif %}
+          <a class="panel-action-btn panel-action-btn-small" href="#newGoalCard" data-open-panel="newGoalCard">Nuevo objetivo</a>
         </div>
       </div>
-      <div class="tree-view project-tree-view">
+
+      <div class="project-objective-list">
         {% if goals and goals|length > 0 %}
           {% for goal in goals %}
             {% set progreso = goal.get('progreso', 0) %}
-            {% set task_count = (goal_tasks.get(goal['_id'], [])|length) if goal_tasks else 0 %}
-            <div class="tree-item folder tree-item-goal project-objective-card" data-goal-id="{{ goal['_id'] }}">
+            {% set tasks = goal_tasks.get(goal['_id'], []) if goal_tasks else [] %}
+            {% set task_count = tasks|length %}
+            <article class="project-objective-card" data-goal-id="{{ goal['_id'] }}">
               <div class="project-objective-main">
-                <button type="button" class="tree-item-toggle project-goal-disclosure" aria-label="Desplegar tareas">⌃</button>
                 <span class="project-objective-icon" aria-hidden="true">
                   <svg viewBox="0 0 36 36" fill="none">
                     <circle cx="18" cy="18" r="13" stroke="currentColor" stroke-width="2"/>
@@ -28,14 +30,17 @@
                     <circle cx="18" cy="18" r="2.2" fill="currentColor"/>
                   </svg>
                 </span>
+
                 <span class="project-objective-copy">
-                  <span class="tree-item-text">{{ goal.get('titulo') }}</span>
+                  <span class="tree-item-text">{{ goal.get('titulo','(sin titulo)') }}</span>
                   <span class="project-objective-tasks">{{ task_count }} tarea{% if task_count != 1 %}s{% endif %}</span>
                 </span>
+
                 <span class="project-objective-progress" style="--progress:{{ progreso }}%">
                   <span>{{ progreso }}%</span>
                 </span>
               </div>
+
               <div class="project-objective-footer">
                 <span class="project-objective-bar" aria-hidden="true">
                   <span style="width: {{ progreso }}%"></span>
@@ -47,118 +52,156 @@
                   </a>
                   <a class="panel-action-btn panel-action-btn-small project-objective-open-btn"
                      href="{{ url_for('goal_bp.view_goal', goal_id=goal['_id']) }}">
-                    Abrir objetivo
+                    Abrir
                   </a>
                 </div>
               </div>
-              <span class="tree-item-badge">{{ task_count }} tareas</span>
-            </div>
-            <div class="tree-children tree-tasks-container" data-goal-id="{{ goal['_id'] }}" style="display: none;">
-              {% set tasks = goal_tasks.get(goal['_id'], []) if goal_tasks else [] %}
-              {% if tasks|length > 0 %}
-                {% for task in tasks %}
-                  <div class="tree-item task">
-                    <span class="tree-item-icon"> - </span>
-                    <span class="tree-item-text">{{ task.titulo }}</span>
-                    <span class="tree-item-status tree-item-status-{{ task.estado|lower|replace(' ', '-') }}">{{ task.estado }}</span>
+
+              <div class="project-task-preview">
+                {% if tasks|length > 0 %}
+                  <ul class="project-task-list">
+                    {% for task in tasks[:4] %}
+                      <li>
+                        <span class="project-task-dot" aria-hidden="true"></span>
+                        <span class="project-task-title">{{ task.titulo }}</span>
+                        <span class="project-task-status">{{ task.estado }}</span>
+                      </li>
+                    {% endfor %}
+                    {% if tasks|length > 4 %}
+                      <li class="project-task-more">+{{ tasks|length - 4 }} tareas más</li>
+                    {% endif %}
+                  </ul>
+                {% else %}
+                  <div class="project-task-empty">
+                    <span class="project-task-dot" aria-hidden="true"></span>
+                    <span>Sin tareas asociadas</span>
                   </div>
-                {% endfor %}
-              {% else %}
-                <div class="tree-item tree-item-empty">
-                  <span class="tree-item-icon"></span>
-                  <span class="tree-item-text tree-item-text-muted">Sin tareas asociadas</span>
-                </div>
-              {% endif %}
-            </div>
+                {% endif %}
+              </div>
+            </article>
           {% endfor %}
         {% else %}
-          <div class="empty-state" style="padding: 24px;">
-            <div class="empty-state-icon">🌱</div>
-            <p class="empty-state-desc">Agrega objetivos a este proyecto para verlos aqui.</p>
+          <div class="empty-state project-empty-card">
+            <div class="empty-state-icon project-empty-mark">OBJ</div>
+            <h4 class="empty-state-title">Sin objetivos asociados</h4>
+            <p class="empty-state-desc">Crea el primer objetivo para ordenar las siguientes tareas de este proyecto.</p>
+            <a class="panel-action-btn primary panel-action-btn-small" href="#newGoalCard" data-open-panel="newGoalCard">Nuevo objetivo</a>
           </div>
         {% endif %}
       </div>
-    </div>
+    </section>
 
-    <div class="panel-section panel-accent project-docs-section project-secondary-section">
+    <section class="panel-section panel-accent project-docs-section project-secondary-section">
       <div class="panel-header">
-        <h3 class="panel-title">
-          Documentos
-        </h3>
+        <div>
+          <span class="projects-board-eyebrow">Contexto</span>
+          <h3 class="panel-title">Documentos</h3>
+        </div>
         <div class="panel-actions">
-          <span class="panel-badge">{{ documents|length if documents else 0 }} archivos</span>
-          <button type="button" class="panel-action-btn panel-action-btn-small" data-open-document-upload>Subir documento</button>
+          <span class="panel-badge">{{ documents|length if documents else 0 }} archivo{% if not documents or documents|length != 1 %}s{% endif %}</span>
+          <button type="button" class="panel-action-btn panel-action-btn-small" data-open-document-upload>Subir</button>
         </div>
       </div>
+
       <div class="project-docs-list">
-        {% if documents and documents|length > 0 %}
-        <ul class="item-list" style="max-height: 480px;">
-          {% for doc in documents %}
-          <li class="item-card item-card-compact">
-            <div class="item-card-header">
-              <div class="item-content">
-                <h4 class="item-title item-title-small">{{ doc.get('original_name', doc.get('filename')) }}</h4>
-                <div class="item-meta">
-                  {% if doc.get('goal_id') %}
-                  <span class="item-meta-tag"> {{ goal_titles.get(doc.get('goal_id'), 'Objetivo') }}</span>
-                  {% endif %}
-                  <span class="item-meta-tag"> {{ (doc.get('size', 0) / 1024) | round(1) }} KB</span>
-                </div>
-              </div>
-              <div class="panel-actions panel-actions-compact">
-                <a class="panel-action-btn panel-action-btn-small" href="{{ url_for('project_bp.view_document', doc_id=doc['_id']) }}" target="_blank" rel="noopener" title="Ver">
-                  Ver
-                </a>
-                <a class="panel-action-btn panel-action-btn-small" href="{{ url_for('project_bp.download_document', doc_id=doc['_id']) }}" title="Descargar">
-                  Descargar
-                </a>
-                <form method="post"
-                      action="{{ url_for('project_bp.delete_document', doc_id=doc['_id']) }}"
-                      data-confirm-message="¿Eliminar este documento?"
-                      style="display: inline;">
-                  <button type="submit" class="panel-action-btn panel-action-btn-small danger" title="Eliminar">Eliminar</button>
-                </form>
-              </div>
-            </div>
-          </li>
-          {% endfor %}
-        </ul>
-        {% else %}
-        <div class="empty-state" style="padding: 24px;">
-          <div class="empty-state-icon project-empty-mark">DOC</div>
-          <p class="empty-state-desc">Sube documentos para mantener el contexto del proyecto cerca.</p>
-          <button type="button" class="panel-action-btn primary panel-action-btn-small" data-open-document-upload>Subir documento</button>
+        <div class="project-inline-dropzone" data-project-document-dropzone role="button" tabindex="0" aria-label="Subir documento al proyecto">
+          <span class="project-inline-dropzone-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M12 16V4"/>
+              <path d="m7 9 5-5 5 5"/>
+              <path d="M5 20h14"/>
+            </svg>
+          </span>
+          <span class="project-inline-dropzone-copy">
+            <strong>Arrastra documentos aqui</strong>
+            <small>o haz click para seleccionar</small>
+          </span>
+          <input type="file" class="project-inline-dropzone-input" tabindex="-1" aria-label="Seleccionar documento" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.md,.png,.jpg,.jpeg,.gif,.webp">
         </div>
+
+        {% if documents and documents|length > 0 %}
+          <ul class="item-list project-document-list">
+            {% for doc in documents %}
+              <li class="item-card item-card-compact project-document-item">
+                <a class="project-document-open-card"
+                   href="{{ url_for('project_bp.view_document', doc_id=doc['_id']) }}"
+                   target="_blank"
+                   rel="noopener"
+                   title="Abrir documento">
+                  <span class="project-document-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/>
+                      <path d="M14 2v6h6"/>
+                      <path d="M8 13h8M8 17h5"/>
+                    </svg>
+                  </span>
+                  <div class="item-content">
+                    <h4 class="item-title item-title-small">{{ doc.get('original_name', doc.get('filename')) }}</h4>
+                  </div>
+                </a>
+                <div class="project-document-footer">
+                  <span class="project-document-size">{{ (doc.get('size', 0) / 1024) | round(1) }} KBs</span>
+                  <div class="project-document-actions">
+                  <a class="panel-action-btn panel-action-btn-small project-document-icon-action" href="{{ url_for('project_bp.download_document', doc_id=doc['_id']) }}" title="Descargar" aria-label="Descargar documento">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                      <path d="M12 3v12"/>
+                      <path d="m7 10 5 5 5-5"/>
+                      <path d="M5 21h14"/>
+                    </svg>
+                  </a>
+                  <form method="post"
+                        action="{{ url_for('project_bp.delete_document', doc_id=doc['_id']) }}"
+                        data-confirm-message="¿Eliminar este documento?">
+                    <button type="submit" class="panel-action-btn panel-action-btn-small danger project-document-icon-action" title="Eliminar" aria-label="Eliminar documento">
+                      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M3 6h18"/>
+                        <path d="M8 6V4h8v2"/>
+                        <path d="m19 6-1 14H6L5 6"/>
+                        <path d="M10 11v5M14 11v5"/>
+                      </svg>
+                    </button>
+                  </form>
+                  </div>
+                </div>
+              </li>
+            {% endfor %}
+          </ul>
+          <button type="button" class="panel-action-btn primary project-doc-upload-primary" data-open-document-upload>Subir documento</button>
+        {% else %}
+          <div class="empty-state project-empty-card">
+            <div class="empty-state-icon project-empty-mark">DOC</div>
+            <p class="empty-state-desc">Sube documentos para mantener el contexto del proyecto cerca.</p>
+            <button type="button" class="panel-action-btn primary panel-action-btn-small" data-open-document-upload>Subir documento</button>
+          </div>
         {% endif %}
       </div>
-    </div>
+    </section>
 
-    <div class="panel-section panel-accent project-notes-section">
+    <section class="panel-section panel-accent project-notes-section">
       <div class="panel-header">
-        <h3 class="panel-title">
-          Notas
-        </h3>
-        <span class="panel-badge">{{ (project.get('notas', [])|length) if project else 0 }} notas</span>
+        <div>
+          <span class="projects-board-eyebrow">Memoria rápida</span>
+          <h3 class="panel-title">Notas</h3>
+        </div>
+        <span class="panel-badge">{{ notes|length }} nota{% if notes|length != 1 %}s{% endif %}</span>
       </div>
 
-      <form method="post" action="{{ url_for('project_bp.add_project_note', project_id=project['_id']) }}" class="project-note-form">
-        <textarea name="note_text" class="project-note-input" rows="3" placeholder="Escribe una anotación..."></textarea>
-        <div class="project-note-actions">
-          <button type="submit" class="panel-action-btn primary">Nueva anotación</button>
-        </div>
-      </form>
-
-      {% set notes = project.get('notas', []) %}
       {% if notes and notes|length > 0 %}
         <ul class="item-list project-notes-list project-notion-notes">
           {% for note in notes|reverse %}
             <li class="item-card item-card-compact project-note-item project-notion-note" data-note-text="{{ note.get('text','')|e }}" data-note-date="{{ (note.get('created_at') or '')|string|replace('T',' ')|truncate(16, True, '') }}">
-              <span class="project-note-handle" aria-hidden="true">⋮⋮</span>
+              <span class="project-note-doc-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/>
+                  <path d="M14 2v6h6"/>
+                  <path d="M8 13h8M8 17h5"/>
+                </svg>
+              </span>
               <button type="button" class="project-note-content" aria-label="Abrir nota">
-                <span class="project-note-bullet" aria-hidden="true"></span>
                 <span class="project-note-text">{{ note.get('text','') }}</span>
                 <span class="project-note-meta">{{ (note.get('created_at') or '')|string|replace('T',' ')|truncate(16, True, '') }}</span>
               </button>
+              <span class="project-note-menu" aria-hidden="true">...</span>
               <form method="post" action="{{ url_for('project_bp.delete_project_note', project_id=project['_id'], note_id=note.get('_id')) }}" data-confirm-message="¿Eliminar esta anotación?" class="project-note-delete-form">
                 <button type="submit" class="project-note-delete-btn" title="Eliminar anotación" aria-label="Eliminar anotación">Eliminar</button>
               </form>
@@ -166,187 +209,21 @@
           {% endfor %}
         </ul>
       {% else %}
-        <div class="empty-state">
+        <div class="empty-state project-empty-card">
           <div class="empty-state-icon project-empty-mark">NOTA</div>
           <p class="empty-state-desc">Aún no hay anotaciones.</p>
         </div>
       {% endif %}
-    </div>
+
+      <form method="post" action="{{ url_for('project_bp.add_project_note', project_id=project['_id']) }}" class="project-note-form">
+        <textarea name="note_text" class="project-note-input" rows="3" placeholder="Nueva anotación..."></textarea>
+        <div class="project-note-actions">
+          <button type="submit" class="panel-action-btn primary">Añadir</button>
+        </div>
+      </form>
+    </section>
 
   </div>
-
-  <div class="panel-section panel-accent project-goal-directory">
-    <div class="panel-header">
-      <h3 class="panel-title">
-        Objetivos del proyecto
-      </h3>
-      <div class="panel-actions">
-        <span class="panel-badge accent">{{ goals|length if goals else 0 }} objetivos</span>
-      </div>
-    </div>
-
-    {% if goals and goals|length > 0 %}
-    <ul class="item-list" id="projectGoalsList">
-      {% for goal in goals %}
-      {% set progreso = goal.get('progreso', 0) %}
-      <li class="item-card project-goal-item" data-goal-id="{{ goal['_id'] }}">
-        <div class="item-card-header project-goal-header">
-          <div class="progress-ring small" style="--progress:{{ progreso }}%">
-            <span class="progress-ring-value">{{ progreso }}%</span>
-          </div>
-          <div class="item-content">
-            <h4 class="item-title">{{ goal.get('titulo','(sin titulo)') }}</h4>
-            <div class="item-meta">
-              {% if goal.get('categorias') and goal.categorias|length > 0 %}
-                {% for cat_id in goal.categorias[:2] %}
-                  <span class="item-meta-tag">{{ category_names.get(cat_id, 'Categoria') }}</span>
-                {% endfor %}
-                {% if goal.categorias|length > 2 %}
-                  <span class="item-meta-tag">+{{ goal.categorias|length - 2 }}</span>
-                {% endif %}
-              {% else %}
-                <span class="item-meta-tag">Sin categoria</span>
-              {% endif %}
-              {% set estado = goal.get('estado','En progreso') %}
-              <span class="item-meta-tag status-{{ estado|lower|replace(' ', '-') }}">{{ estado }}</span>
-              <span class="item-meta-tag">{{ goal.get('prioridad','Media') }}</span>
-              {% set num_tasks = (goal_tasks.get(goal['_id'], [])|length) if goal_tasks else 0 %}
-              <span class="item-meta-tag">{{ num_tasks }} tareas</span>
-            </div>
-          </div>
-          <button type="button" class="item-card-arrow project-goal-toggle" aria-label="Ver detalles">▼</button>
-        </div>
-
-        <div class="item-details" aria-hidden="true">
-          <form class="goal-edit-form"
-                action="{{ url_for('goal_bp.update_goal', goal_id=goal['_id']) }}"
-                method="post">
-            <input type="hidden" name="project_id" value="{{ project['_id'] }}">
-            <input type="hidden" name="redirect_to" value="{{ url_for('project_bp.view_project', project_id=project['_id']) }}">
-
-            <div class="goal-fields-view">
-              <div class="item-details-grid">
-                <div class="item-detail-row">
-                  <span class="item-detail-label">Descripcion</span>
-                  <span class="item-detail-value">{{ goal.get('descripcion','(sin descripcion)') }}</span>
-                </div>
-                <div class="item-detail-row">
-                  <span class="item-detail-label">Estado</span>
-                  <span class="item-detail-value">{{ estado }}</span>
-                </div>
-                <div class="item-detail-row">
-                  <span class="item-detail-label">Prioridad</span>
-                  <span class="item-detail-value">{{ goal.get('prioridad','Media') }}</span>
-                </div>
-                <div class="item-detail-row">
-                  <span class="item-detail-label">Progreso</span>
-                  <span class="item-detail-value">{{ progreso }}%</span>
-                </div>
-                <div class="item-detail-row">
-                  <span class="item-detail-label">Inicio</span>
-                  {% set fi = goal.get('fecha_inicio') %}
-                  <span class="item-detail-value">{{ fi.strftime('%Y-%m-%d') if fi and fi is not string else (fi or '—')[:10] if fi else '—' }}</span>
-                </div>
-                <div class="item-detail-row">
-                  <span class="item-detail-label">Fin</span>
-                  {% set ff = goal.get('fecha_fin') %}
-                  <span class="item-detail-value">{{ ff.strftime('%Y-%m-%d') if ff and ff is not string else (ff or '—')[:10] if ff else '—' }}</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="goal-fields-edit panel-form" style="display:none;">
-              <div class="panel-form-group">
-                <label class="panel-form-label">Titulo</label>
-                <input type="text" name="titulo" class="panel-form-input" value="{{ goal.get('titulo','') }}" required>
-              </div>
-
-              <div class="panel-form-group">
-                <label class="panel-form-label">Descripcion</label>
-                <textarea name="descripcion" class="panel-form-textarea" rows="3">{{ goal.get('descripcion','') }}</textarea>
-              </div>
-
-              <div class="panel-form-row">
-                <div class="panel-form-group">
-                  <label class="panel-form-label">Fecha inicio</label>
-                  {% set fi = goal.get('fecha_inicio') %}
-                  <input type="date" name="fecha_inicio" class="panel-form-input" value="{{ fi.strftime('%Y-%m-%d') if fi and fi is not string else (fi or '')[:10] if fi else '' }}">
-                </div>
-                <div class="panel-form-group">
-                  <label class="panel-form-label">Fecha fin</label>
-                  {% set ff = goal.get('fecha_fin') %}
-                  <input type="date" name="fecha_fin" class="panel-form-input" value="{{ ff.strftime('%Y-%m-%d') if ff and ff is not string else (ff or '')[:10] if ff else '' }}">
-                </div>
-              </div>
-
-              <div class="panel-form-group">
-                <label class="panel-form-label">Categorias</label>
-                <div data-category-selector 
-                     data-name="categorias" 
-                     data-selected="{{ goal.get('categorias', [])|join(',') }}"
-                     data-allow-create="true"></div>
-              </div>
-
-              <div class="panel-form-row">
-                <div class="panel-form-group">
-                  <label class="panel-form-label">Estado</label>
-                  {% set st = goal.get('estado','En progreso') %}
-                  <select name="estado" class="panel-form-select">
-                    <option value="Pendiente" {% if st == 'Pendiente' %}selected{% endif %}>Pendiente</option>
-                    <option value="En progreso" {% if st == 'En progreso' %}selected{% endif %}>En progreso</option>
-                    <option value="Completado" {% if st == 'Completado' %}selected{% endif %}>Completado</option>
-                    <option value="Pausado" {% if st == 'Pausado' %}selected{% endif %}>Pausado</option>
-                  </select>
-                </div>
-                <div class="panel-form-group">
-                  <label class="panel-form-label">Prioridad</label>
-                  {% set pr = goal.get('prioridad','Media')|lower %}
-                  <select name="prioridad" class="panel-form-select">
-                    <option value="Baja" {% if pr == 'baja' %}selected{% endif %}>Baja</option>
-                    <option value="Media" {% if pr == 'media' %}selected{% endif %}>Media</option>
-                    <option value="Alta" {% if pr == 'alta' %}selected{% endif %}>Alta</option>
-                  </select>
-                </div>
-              </div>
-
-              <div class="panel-form-group">
-                <label class="panel-form-label">Progreso (%)</label>
-                <input type="number" name="progreso" class="panel-form-input" min="0" max="100" value="{{ progreso }}">
-              </div>
-            </div>
-
-            <div class="item-actions">
-              <a class="panel-action-btn" href="{{ url_for('goal_bp.view_goal', goal_id=goal['_id']) }}">Abrir objetivo</a>
-              <button type="button" class="panel-action-btn btn-edit">Editar</button>
-              <button type="submit" class="panel-action-btn success btn-confirm" style="display:none;">Confirmar</button>
-              <button type="button" class="panel-action-btn btn-cancel" style="display:none;">Cancelar</button>
-              <button type="submit"
-                      class="panel-action-btn danger goal-delete-btn"
-                      title="Eliminar"
-                      form="delete-{{ goal['_id'] }}">Eliminar</button>
-            </div>
-          </form>
-        </div>
-
-        <form id="delete-{{ goal['_id'] }}"
-              action="{{ url_for('goal_bp.delete_goal', goal_id=goal['_id']) }}"
-              method="post"
-              data-confirm-message="¿Eliminar este objetivo?"
-              style="display:none;">
-          <input type="hidden" name="redirect_to" value="{{ url_for('project_bp.view_project', project_id=project['_id']) }}">
-        </form>
-      </li>
-      {% endfor %}
-    </ul>
-    {% else %}
-    <div class="empty-state">
-      <h4 class="empty-state-title">Sin objetivos asociados</h4>
-      <p class="empty-state-desc">Crea objetivos en la seccion de Objetivos y asignalos a este proyecto.</p>
-    </div>
-    {% endif %}
-  </div>
-
-
 
   <div class="project-note-modal" id="projectNoteModal" aria-hidden="true" role="dialog" aria-modal="true">
     <div class="project-note-modal-overlay" data-action="close"></div>
@@ -359,103 +236,7 @@
       <div class="project-note-modal-body" id="projectNoteModalBody"></div>
     </div>
   </div>
-
 </section>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  // Toggle para expandir/colapsar tareas de cada objetivo en el arbol
-  document.querySelectorAll('.tree-item-goal').forEach(item => {
-    item.addEventListener('click', function(e) {
-      if (e && e.target && e.target.closest('form, button')) {
-        return;
-      }
-      const goalId = this.dataset.goalId;
-      const tasksContainer = document.querySelector(`.tree-tasks-container[data-goal-id="${goalId}"]`);
-      const toggle = this.querySelector('.tree-item-toggle');
-      
-    if (tasksContainer) {
-      const isVisible = tasksContainer.style.display !== 'none';
-      tasksContainer.style.display = isVisible ? 'none' : 'block';
-        if (toggle) toggle.textContent = isVisible ? '⌃' : '⌄';
-      this.classList.toggle('expanded', !isVisible);
-    }
-    });
-
-    const disclosure = item.querySelector('.project-goal-disclosure');
-    if (disclosure) {
-      disclosure.addEventListener('click', function(e) {
-        e.stopPropagation();
-        item.click();
-      });
-    }
-  });
-});
-</script>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  const goalItems = document.querySelectorAll('.project-goal-item');
-
-  goalItems.forEach(item => {
-    const header = item.querySelector('.project-goal-header');
-    const details = item.querySelector('.item-details');
-    const toggle = item.querySelector('.project-goal-toggle');
-    const form = item.querySelector('.goal-edit-form');
-
-    const view = form ? form.querySelector('.goal-fields-view') : null;
-    const edit = form ? form.querySelector('.goal-fields-edit') : null;
-    const btnEdit = form ? form.querySelector('.btn-edit') : null;
-    const btnConfirm = form ? form.querySelector('.btn-confirm') : null;
-    const btnCancel = form ? form.querySelector('.btn-cancel') : null;
-
-    function toggleExpand(forceOpen = null) {
-      if (!details) return;
-      const isOpen = item.classList.contains('expanded');
-      const shouldOpen = forceOpen === null ? !isOpen : forceOpen;
-      item.classList.toggle('expanded', shouldOpen);
-      details.setAttribute('aria-hidden', shouldOpen ? 'false' : 'true');
-      if (toggle) toggle.textContent = shouldOpen ? '▲' : '▼';
-    }
-
-    if (header) {
-      header.addEventListener('click', (e) => {
-        if (e.target.closest('button, a, input, textarea, select, form')) return;
-        toggleExpand();
-      });
-    }
-    if (toggle) {
-      toggle.addEventListener('click', (e) => {
-        e.stopPropagation();
-        toggleExpand();
-      });
-    }
-
-    if (btnEdit) {
-      btnEdit.addEventListener('click', () => {
-        if (view) view.style.display = 'none';
-        if (edit) edit.style.display = 'flex';
-        if (btnEdit) btnEdit.style.display = 'none';
-        if (btnConfirm) btnConfirm.style.display = 'inline-flex';
-        if (btnCancel) btnCancel.style.display = 'inline-flex';
-        toggleExpand(true);
-      });
-    }
-
-    if (btnCancel) {
-      btnCancel.addEventListener('click', () => {
-        if (edit) edit.style.display = 'none';
-        if (view) view.style.display = 'block';
-        if (btnEdit) btnEdit.style.display = 'inline-flex';
-        if (btnConfirm) btnConfirm.style.display = 'none';
-        if (btnCancel) btnCancel.style.display = 'none';
-      });
-    }
-  });
-});
-</script>
-
-<script src="{{ url_for('static', filename='js/category_selector.js') }}"></script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -478,8 +259,8 @@ document.addEventListener('DOMContentLoaded', function() {
   };
 
   document.querySelectorAll('.project-note-item').forEach(item => {
-    item.addEventListener('click', (e) => {
-      if (e.target.closest('.project-note-delete-form')) return;
+    item.addEventListener('click', (event) => {
+      if (event.target.closest('.project-note-delete-form')) return;
       openNote(item);
     });
   });
@@ -490,8 +271,8 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeModal();
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') closeModal();
   });
 });
 </script>

@@ -1,61 +1,97 @@
+{% set project_title = project.get('titulo','(sin titulo)') %}
+{% set total_tasks = namespace(count=0) %}
+{% for goal in goals or [] %}
+  {% set total_tasks.count = total_tasks.count + ((goal_tasks.get(goal['_id'], [])|length) if goal_tasks else 0) %}
+{% endfor %}
+{% set note_count = (project.get('notas', [])|length) if project else 0 %}
+
+<nav class="project-breadcrumb project-breadcrumb--top" aria-label="Ruta del proyecto">
+  <span class="project-breadcrumb-icon" aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="none">
+      <path d="M3 7.5A2.5 2.5 0 0 1 5.5 5H10l2 2h6.5A2.5 2.5 0 0 1 21 9.5v7A2.5 2.5 0 0 1 18.5 19h-13A2.5 2.5 0 0 1 3 16.5Z"/>
+    </svg>
+  </span>
+  <a href="{{ url_for('project_bp.list_projects') }}">Proyectos</a>
+  <span aria-hidden="true">/</span>
+  <span>{{ project_title }}</span>
+</nav>
+
 <header class="project-workspace-header">
-  <div class="project-workspace-identity">
-    <div class="project-workspace-icon" aria-hidden="true">
-      <svg viewBox="0 0 48 48" fill="none">
-        <path d="M24 6 40 15.2v17.6L24 42 8 32.8V15.2L24 6Z" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/>
-        <path d="M8.5 15.5 24 24.5l15.5-9M24 24.5V42" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-    </div>
-    <div class="project-workspace-title-block">
-      <nav class="project-breadcrumb" aria-label="Ruta del proyecto">
-        <a href="{{ url_for('project_bp.list_projects') }}">Proyectos</a>
-        <span aria-hidden="true">/</span>
-        <span>{{ project.get('titulo','(sin titulo)') }}</span>
-      </nav>
-      <div class="project-workspace-title-row">
-        <h1 class="project-workspace-title">{{ project.get('titulo','(sin titulo)') }}</h1>
-        <span class="project-live-dot" aria-hidden="true"></span>
+  <div class="project-workspace-topline">
+    <div class="project-workspace-identity">
+      <div class="project-workspace-icon" aria-hidden="true">
+        <svg viewBox="0 0 48 48" fill="none">
+          <circle cx="24" cy="24" r="17" stroke="currentColor" stroke-width="3"/>
+          <path d="M7 24h34M24 7c5.2 4.7 7.8 10.3 7.8 17S29.2 36.3 24 41M24 7c-5.2 4.7-7.8 10.3-7.8 17S18.8 36.3 24 41" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+        </svg>
       </div>
-      <div class="project-workspace-meta" aria-label="Resumen del proyecto">
-        <span>{{ project.get('estado','Activo') }}</span>
-        <span>Prioridad {{ project.get('prioridad','Media')|lower }}</span>
-        <span>{{ goals|length if goals else 0 }} objetivo{% if not goals or goals|length != 1 %}s{% endif %}</span>
-      </div>
-      <section class="project-workspace-summary" aria-label="Descripción del proyecto">
-        <span class="project-workspace-summary-label">Descripción</span>
-        {% set project_description = project.get('descripcion') %}
-        <p class="project-workspace-description{% if not project_description %} is-empty{% endif %}">
-          {{ project_description if project_description else 'Sin descripción todavía. Añádela desde Editar proyecto para que el contexto quede visible aquí.' }}
-        </p>
-        <div class="project-workspace-context-row" aria-label="Contexto del proyecto">
-          {% if project.get('categorias') and project.categorias|length > 0 %}
-            {% for cat_id in project.categorias[:3] %}
-              <span>{{ category_names.get(cat_id, 'Categoría') }}</span>
-            {% endfor %}
-            {% if project.categorias|length > 3 %}
-              <span>+{{ project.categorias|length - 3 }}</span>
-            {% endif %}
-          {% else %}
-            <span>Sin categoría</span>
-          {% endif %}
-          {% set fecha_inicio = project.get('fecha_inicio') %}
-          {% if fecha_inicio %}
-            <span>Inicio {{ (fecha_inicio|string)[:10] }}</span>
-          {% endif %}
-          {% set fecha_fin = project.get('fecha_fin') %}
-          {% if fecha_fin %}
-            <span>Fin {{ (fecha_fin|string)[:10] }}</span>
-          {% endif %}
+
+      <div class="project-workspace-title-block">
+        <div class="project-workspace-title-row">
+          <h1 class="project-workspace-title">{{ project_title }}</h1>
+          <span class="project-live-dot" aria-hidden="true"></span>
         </div>
-      </section>
+
+        <div class="project-workspace-meta" aria-label="Resumen del proyecto">
+          <span>{{ project.get('estado','Activo') }}</span>
+          <span>Prioridad {{ project.get('prioridad','Media')|lower }}</span>
+          <span>{{ goals|length if goals else 0 }} objetivo{% if not goals or goals|length != 1 %}s{% endif %}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="project-workspace-actions" aria-label="Acciones del proyecto">
+      <button type="button" class="project-header-action project-header-action-primary" data-open-panel="editProjectCard">
+        <span class="project-header-action-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M12 20h9"/>
+            <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>
+          </svg>
+        </span>
+        Editar
+      </button>
+      <button type="button" class="project-header-action" data-open-document-upload>
+        <span class="project-header-action-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/>
+            <path d="M14 2v6h6"/>
+            <path d="M12 18v-6"/>
+            <path d="m9 15 3 3 3-3"/>
+          </svg>
+        </span>
+        Documento
+      </button>
     </div>
   </div>
-  <div class="project-workspace-actions" aria-label="Acciones del proyecto">
-    <button type="button" class="project-header-action project-header-action-primary" data-open-panel="editProjectCard">
-      Editar proyecto
-    </button>
-    <button type="button" class="project-header-action" data-open-document-upload>
-      Subir documento
-    </button>
-  </div>
+
+  <section class="project-workspace-kpis" aria-label="Métricas del proyecto">
+    <div class="project-kpi-card">
+      <span class="project-kpi-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>
+      </span>
+      <span>Objetivos</span>
+      <strong>{{ goals|length if goals else 0 }}</strong>
+    </div>
+    <div class="project-kpi-card">
+      <span class="project-kpi-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none"><path d="m4 7 2 2 4-4"/><path d="M13 8h7"/><path d="m4 17 2 2 4-4"/><path d="M13 18h7"/></svg>
+      </span>
+      <span>Tareas</span>
+      <strong>{{ total_tasks.count }}</strong>
+    </div>
+    <div class="project-kpi-card">
+      <span class="project-kpi-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h5"/></svg>
+      </span>
+      <span>Documentos</span>
+      <strong>{{ documents|length if documents else 0 }}</strong>
+    </div>
+    <div class="project-kpi-card">
+      <span class="project-kpi-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/></svg>
+      </span>
+      <span>Eventos</span>
+      <strong>0</strong>
+    </div>
+  </section>
 </header>

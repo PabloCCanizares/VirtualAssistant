@@ -26,26 +26,48 @@
   border-bottom: 1px solid rgba(255,255,255,.06);
 }
 
-.sidebar-brand-dot {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: conic-gradient(from 180deg, var(--accent), var(--accent-2));
-  box-shadow: 0 0 20px var(--accent);
-  animation: pulse 2s ease-in-out infinite;
+.sidebar-brand-mark {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border-radius: 14px;
+  border: 1px solid rgba(108,243,255,.16);
+  background:
+    radial-gradient(circle at 30% 22%, rgba(108,243,255,.16), transparent 60%),
+    radial-gradient(circle at 74% 70%, rgba(139,123,255,.16), transparent 58%),
+    linear-gradient(145deg, rgba(255,255,255,.045), rgba(255,255,255,.012));
+  color: var(--accent);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.04), 0 12px 28px rgba(0,0,0,.22), 0 0 22px rgba(108,243,255,.14);
+  animation: brand-glow 2.8s ease-in-out infinite;
 }
 
-@keyframes pulse {
-  0%, 100% { box-shadow: 0 0 20px var(--accent); }
-  50% { box-shadow: 0 0 30px var(--accent), 0 0 40px var(--accent-2); }
+.sidebar-brand-mark svg {
+  width: 31px;
+  height: 31px;
+  filter:
+    drop-shadow(0 0 7px rgba(108,243,255,.34))
+    drop-shadow(0 0 10px rgba(139,123,255,.18));
+}
+
+@keyframes brand-glow {
+  0%, 100% {
+    border-color: rgba(108,243,255,.16);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.04), 0 12px 28px rgba(0,0,0,.22), 0 0 18px rgba(108,243,255,.12);
+  }
+  50% {
+    border-color: rgba(139,123,255,.30);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 12px 30px rgba(0,0,0,.24), 0 0 30px rgba(108,243,255,.18);
+  }
 }
 
 .sidebar-brand-title {
-  font-size: 15px;
-  font-weight: 700;
+  font-size: 16px;
+  font-weight: 800;
   color: var(--text);
   margin: 0;
-  letter-spacing: 0.3px;
+  letter-spacing: 0;
 }
 
 .sidebar-tagline {
@@ -100,9 +122,27 @@
 }
 
 .sidebar-nav-icon {
-  font-size: 18px;
   width: 22px;
-  text-align: center;
+  height: 22px;
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  color: rgba(196,210,240,.78);
+}
+
+.sidebar-nav-icon svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.sidebar-nav-item:hover .sidebar-nav-icon,
+.sidebar-nav-item[aria-current="page"] .sidebar-nav-icon,
+.sidebar-nav-item.active .sidebar-nav-icon {
+  color: var(--accent);
 }
 
 /* Sidebar Sections */
