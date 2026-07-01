@@ -59,6 +59,7 @@ def _register_blueprints(flask_app: Flask) -> None:
     from controllers.ai_chat_controller import ai_chat_bp
     from controllers.calendar_controller import calendar_bp
     from controllers.category_controller import category_bp
+    from controllers.config_controller import config_bp
     from controllers.dashboard_controller import dashboard_bp
     from controllers.goal_controller import goal_bp
     from controllers.project_controller import project_bp
@@ -72,6 +73,7 @@ def _register_blueprints(flask_app: Flask) -> None:
     flask_app.register_blueprint(calendar_bp)
     flask_app.register_blueprint(stats_bp)
     flask_app.register_blueprint(category_bp)
+    flask_app.register_blueprint(config_bp)
     flask_app.register_blueprint(ai_chat_bp)
 
 def setup_scheduler(flask_app: Flask, logger: logging.Logger) -> None:

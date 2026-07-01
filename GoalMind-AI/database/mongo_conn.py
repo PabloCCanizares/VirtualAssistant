@@ -1,26 +1,19 @@
 
 ### !!!!!!!!! Comprobar la lista de IP en MongoDB Atlas si hay problemas de conexión !!!!!!!!! ###
 
-# Utilidades para manejo de rutas y archivos
+import hashlib
+import json
+import logging
+import os
+import socket
+from datetime import datetime
 from pathlib import Path
+from urllib.parse import urlparse
 
-# Permite la conexion a la base de datos MongoDB via Flask-PyMongo (Local y Remota).
+import certifi
+from bson import ObjectId
 from flask_pymongo import PyMongo
 from pymongo import MongoClient
-import logging
-
-# Módulo estándar de python para comprobar conexion a internet
-import socket
-# Módulo estándar de python para manejo de JSON
-import json
-# Módulo estándar de python para variables de entorno y hashing
-import os
-import hashlib
-from urllib.parse import urlparse
-# Certificados raíz (para evitar problemas TLS/SSL con Atlas en macOS, etc.) [si da error ejecutar en comandos: pip install certifi]
-import certifi
-from datetime import datetime
-from bson import ObjectId
 
 ############################### Configuracion de la base de datos MongoDB #############################
 # Ruta al archivo JSON que contiene las credenciales de la base de datos remota (fallback)
@@ -36,7 +29,7 @@ _local_db_name = "VirtualAssistantDB"
 _remote_db_name = "VirtualAssistantDB"
 
 # Lista de colecciones para sincronización
-collections = ["Tasks", "Goals", "Projects", "ProjectDocuments", "Events"]
+collections = ["Tasks", "Goals", "Projects", "ProjectDocuments", "Events", "PlanningSessions"]
 _configured_remote_uri = ""
 logger = logging.getLogger(__name__)
 
@@ -169,6 +162,26 @@ def _id_variants(value):
 def _find_by_id_variants(collection, value):
     for candidate in _id_variants(value):
         found = collection.find_one({"_id": candidate})
+        if found is not None:
+            return found
+    return None
+
+
+def _id_lookup_key(value):
+    return (type(value).__name__, str(value))
+
+
+def _build_id_doc_map(documents):
+    doc_map = {}
+    for doc in documents:
+        if "_id" in doc:
+            doc_map[_id_lookup_key(doc["_id"])] = doc
+    return doc_map
+
+
+def _find_in_id_doc_map(doc_map, value):
+    for candidate in _id_variants(value):
+        found = doc_map.get(_id_lookup_key(candidate))
         if found is not None:
             return found
     return None
@@ -407,9 +420,10 @@ def sync_to_remote(collection_name, obj):
 
 def sync_all_collections():
     """Sincroniza todas las colecciones desde la base remota hacia local."""
-    from flask import current_app
+    from flask import current_app, has_app_context
 
-    if not ensure_remote_connection(current_app):
+    app = current_app if has_app_context() else None
+    if not ensure_remote_connection(app):
         return 0
 
     pulled_docs = 0
@@ -453,9 +467,10 @@ def sync_all_collections():
 
 def sync_local_to_remote():
     """Sube a la nube los documentos que existan en local pero no en remoto."""
-    from flask import current_app
+    from flask import current_app, has_app_context
 
-    if not ensure_remote_connection(current_app):
+    app = current_app if has_app_context() else None
+    if not ensure_remote_connection(app):
         return 0
 
     pushed_docs = 0
@@ -465,19 +480,24 @@ def sync_local_to_remote():
 
         if remote_col is None:
             continue
+        remote_doc_map = _build_id_doc_map(remote_col.find())
         for local_doc in local_col.find():
             if str(local_doc.get("_id")) in pending_ids:
                 continue
             if col == "ProjectDocuments" and local_doc.get("remote_sync_pending"):
                 continue
-            remote_doc = _find_by_id_variants(remote_col, local_doc.get("_id"))
-            if remote_doc is not None and _remote_should_replace_local(local_doc, remote_doc):
-                continue
+            remote_doc = _find_in_id_doc_map(remote_doc_map, local_doc.get("_id"))
             doc_to_push = dict(local_doc)
             if col == "ProjectDocuments" and doc_to_push.get("upload_id"):
                 doc_to_push.pop("local_upload_id", None)
+            if remote_doc is not None:
+                if _remote_should_replace_local(doc_to_push, remote_doc):
+                    continue
+                if remote_doc == doc_to_push:
+                    continue
             remote_filter = {"_id": remote_doc["_id"]} if remote_doc else {"_id": doc_to_push["_id"]}
             remote_col.replace_one(remote_filter, doc_to_push, upsert=True)
+            remote_doc_map[_id_lookup_key(doc_to_push["_id"])] = doc_to_push
             pushed_docs += 1
     return pushed_docs
 
