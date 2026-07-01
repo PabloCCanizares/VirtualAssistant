@@ -136,6 +136,26 @@ class TestFindByIdVariants:
         assert mongo_conn._find_by_id_variants(col, ObjectId()) is None
 
 
+class TestIdDocMap:
+    def test_finds_objectid_doc_from_string_lookup(self):
+        oid = ObjectId()
+        doc_map = mongo_conn._build_id_doc_map([{"_id": oid, "x": 1}])
+
+        found = mongo_conn._find_in_id_doc_map(doc_map, str(oid))
+
+        assert found is not None
+        assert found["x"] == 1
+
+    def test_finds_string_doc_from_objectid_lookup(self):
+        oid = ObjectId()
+        doc_map = mongo_conn._build_id_doc_map([{"_id": str(oid), "x": 1}])
+
+        found = mongo_conn._find_in_id_doc_map(doc_map, oid)
+
+        assert found is not None
+        assert found["x"] == 1
+
+
 class TestGetLocalAndRemoteDatabase:
     def test_get_local_database_returns_db(self, mongo_mock):
         db = mongo_conn.get_local_database()
