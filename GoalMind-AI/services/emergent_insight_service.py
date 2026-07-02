@@ -10,6 +10,7 @@ from services.heuristics.types import IMPACT_RANK, bounded_limit
 from services.user_context_service import (
     DOCUMENT_FIELDS,
     PROJECT_FIELDS,
+    build_active_scope,
     doc_id,
     get_user_dataset,
     get_user_snapshot,
@@ -95,13 +96,16 @@ def _task_goal_id(task: dict) -> str:
     return ref_id(task.get("objetivo_id") or task.get("goal_id"))
 
 
-def _project_task_counts(project: dict, dataset: dict) -> tuple[int, int, int]:
+def _project_task_counts(project: dict, dataset: dict, scope: dict | None = None) -> tuple[int, int, int]:
+    active_scope = scope or build_active_scope(dataset)
     project_id = doc_id(project)
-    goals = [goal for goal in dataset["goals"] if ref_id(goal.get("project_id")) == project_id]
+    goals = [
+        goal for goal in active_scope["goals"] if ref_id(goal.get("project_id")) == project_id
+    ]
     goal_ids = {doc_id(goal) for goal in goals}
     tasks = [
         task
-        for task in dataset["tasks"]
+        for task in active_scope["tasks"]
         if _task_goal_id(task) in goal_ids or ref_id(task.get("project_id")) == project_id
     ]
     pending = [task for task in tasks if not is_completed(task)]
@@ -109,14 +113,17 @@ def _project_task_counts(project: dict, dataset: dict) -> tuple[int, int, int]:
 
 
 def _recent_task_count_for_project(
-    project: dict, dataset: dict, *, now: datetime, days: int
+    project: dict, dataset: dict, *, now: datetime, days: int, scope: dict | None = None
 ) -> int:
+    active_scope = scope or build_active_scope(dataset)
     project_id = doc_id(project)
     since = now - timedelta(days=days)
-    goals = [goal for goal in dataset["goals"] if ref_id(goal.get("project_id")) == project_id]
+    goals = [
+        goal for goal in active_scope["goals"] if ref_id(goal.get("project_id")) == project_id
+    ]
     goal_ids = {doc_id(goal) for goal in goals}
     count = 0
-    for task in dataset["tasks"]:
+    for task in active_scope["tasks"]:
         if _task_goal_id(task) not in goal_ids and ref_id(task.get("project_id")) != project_id:
             continue
         timestamp = item_timestamp(task)
@@ -125,14 +132,21 @@ def _recent_task_count_for_project(
     return count
 
 
-def _find_research_without_execution(dataset: dict, now: datetime) -> list[dict]:
+def _find_research_without_execution(
+    dataset: dict, now: datetime, scope: dict | None = None
+) -> list[dict]:
+    active_scope = scope or build_active_scope(dataset)
     insights = []
-    for project in dataset["projects"]:
+    for project in active_scope["projects"]:
         project_id = doc_id(project)
-        docs = [doc for doc in dataset["documents"] if ref_id(doc.get("project_id")) == project_id]
+        docs = [
+            doc for doc in active_scope["documents"] if ref_id(doc.get("project_id")) == project_id
+        ]
         notes = project.get("notas") or []
-        recent_tasks = _recent_task_count_for_project(project, dataset, now=now, days=14)
-        _, total_tasks, pending_tasks = _project_task_counts(project, dataset)
+        recent_tasks = _recent_task_count_for_project(
+            project, dataset, now=now, days=14, scope=active_scope
+        )
+        _, total_tasks, pending_tasks = _project_task_counts(project, dataset, scope=active_scope)
         knowledge_signals = len(docs) + len(notes)
         if knowledge_signals < 3 or recent_tasks > 0:
             continue
@@ -181,10 +195,13 @@ def _find_research_without_execution(dataset: dict, now: datetime) -> list[dict]
     return insights
 
 
-def _find_priority_attention_mismatch(dataset: dict, now: datetime, stale_days: int) -> list[dict]:
+def _find_priority_attention_mismatch(
+    dataset: dict, now: datetime, stale_days: int, scope: dict | None = None
+) -> list[dict]:
+    active_scope = scope or build_active_scope(dataset)
     stale_before = now - timedelta(days=stale_days)
     entities = []
-    for project in dataset["projects"]:
+    for project in active_scope["projects"]:
         if str(project.get("prioridad") or "").lower() not in {"alta", "high"}:
             continue
         timestamp = item_timestamp(project)
@@ -192,7 +209,7 @@ def _find_priority_attention_mismatch(dataset: dict, now: datetime, stale_days: 
             entities.append(
                 {"type": "project", "id": doc_id(project), "title": project.get("titulo") or ""}
             )
-    for task in dataset["tasks"]:
+    for task in active_scope["tasks"]:
         if str(task.get("prioridad") or "").lower() not in {"alta", "high"} or is_completed(task):
             continue
         timestamp = item_timestamp(task)
@@ -245,6 +262,7 @@ def find_emergent_insights(
 ) -> dict[str, Any]:
     current = now or datetime.utcnow()
     dataset = get_user_dataset(usuario_id=usuario_id)
+    active_scope = build_active_scope(dataset)
     atomic = atomic_findings or run_atomic_findings(
         usuario_id=dataset["user_id"],
         now=current,
@@ -383,8 +401,10 @@ def find_emergent_insights(
             )
         )
 
-    insights.extend(_find_research_without_execution(dataset, current))
-    insights.extend(_find_priority_attention_mismatch(dataset, current, stale_days))
+    insights.extend(_find_research_without_execution(dataset, current, scope=active_scope))
+    insights.extend(
+        _find_priority_attention_mismatch(dataset, current, stale_days, scope=active_scope)
+    )
     insights.sort(
         key=lambda insight: (IMPACT_RANK.get(insight["impact"], 9), -insight["confidence"])
     )
@@ -487,8 +507,9 @@ def build_agent_context(
     ]
 
     dataset = get_user_dataset(usuario_id=analysis["user_id"])
+    active_scope = build_active_scope(dataset)
     key_projects = sorted(
-        dataset["projects"],
+        active_scope["projects"],
         key=lambda project: (
             0 if str(project.get("prioridad") or "").lower() in {"alta", "high"} else 1,
             str(project.get("titulo") or ""),

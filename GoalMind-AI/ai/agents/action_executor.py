@@ -8,6 +8,7 @@ from bson import ObjectId
 from database.mongo_conn import queue_deletion, flush_deletion_queue, get_app_user_id
 from model.event_model import eventModel
 from model.goal_model import GoalModel
+from model.project_document_folder_model import ProjectDocumentFolderModel
 from model.project_document_model import ProjectDocumentModel
 from model.project_model import ProjectModel
 from model.task_model import TaskModel
@@ -159,6 +160,15 @@ def _delete_project_cascade(project_id: str, user_id: str) -> None:
             pass
         if doc.get("_id"):
             queue_deletion("ProjectDocuments", doc.get("_id"))
+
+    folders = ProjectDocumentFolderModel.get_by_project(project_id, usuario_id=user_id)
+    for folder in folders:
+        try:
+            ProjectDocumentFolderModel.delete_folder(folder.get("_id"), usuario_id=user_id)
+        except Exception:
+            pass
+        if folder.get("_id"):
+            queue_deletion("ProjectDocumentFolders", folder.get("_id"))
 
     ProjectModel.delete_project(project_id)
     queue_deletion("Projects", project_id)

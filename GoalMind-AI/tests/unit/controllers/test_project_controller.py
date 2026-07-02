@@ -49,6 +49,30 @@ def client(monkeypatch):
         project_controller, "download_file_from_remote_storage",
         lambda fid, app=None: None,
     )
+    monkeypatch.setattr(
+        project_controller, "delete_file_from_local_storage",
+        lambda fid: True,
+    )
+    monkeypatch.setattr(
+        project_controller, "delete_file_from_remote_storage",
+        lambda fid, app=None: True,
+    )
+    monkeypatch.setattr(
+        project_controller.ProjectDocumentFolderModel, "get_by_project",
+        staticmethod(lambda project_id, usuario_id=None: []),
+    )
+    monkeypatch.setattr(
+        project_controller.ProjectDocumentFolderModel, "get_folder_by_id",
+        staticmethod(lambda folder_id, usuario_id=None: None),
+    )
+    monkeypatch.setattr(
+        project_controller.ProjectDocumentFolderModel, "insert_folder",
+        staticmethod(lambda data, usuario_id=None: {**data, "_id": ObjectId()}),
+    )
+    monkeypatch.setattr(
+        project_controller.ProjectDocumentFolderModel, "delete_folder",
+        staticmethod(lambda folder_id, usuario_id=None: True),
+    )
     app.register_blueprint(project_bp)
     return app.test_client()
 
@@ -261,6 +285,109 @@ class TestViewProject:
         assert b"goals" in resp.data
         assert b"documents" in resp.data
         assert b"goal_tasks" in resp.data
+
+
+# ---------------------------------------------------------------------------
+# POST /projects/<project_id>/folders/add + delete
+# ---------------------------------------------------------------------------
+
+
+class TestDocumentFolders:
+    def test_add_folder_inserts_and_redirects(self, client, monkeypatch):
+        pid = ObjectId()
+        captured = {}
+
+        def _insert_folder(data, usuario_id=None):
+            captured["data"] = data
+            return {**data, "_id": ObjectId()}
+
+        monkeypatch.setattr(
+            project_controller.ProjectModel, "get_project_by_id",
+            staticmethod(lambda p, usuario_id=None: {"_id": pid, "titulo": "P"}),
+        )
+        monkeypatch.setattr(
+            project_controller.ProjectDocumentFolderModel, "get_by_project",
+            staticmethod(lambda p, usuario_id=None: []),
+        )
+        monkeypatch.setattr(
+            project_controller.ProjectDocumentFolderModel, "insert_folder",
+            staticmethod(_insert_folder),
+        )
+
+        resp = client.post(f"/projects/{pid}/folders/add", data={"folder_name": "Bibliografia"})
+
+        assert resp.status_code == 302
+        assert captured["data"]["name"] == "Bibliografia"
+        assert captured["data"]["project_id"] == str(pid)
+
+    def test_add_folder_reuses_existing_name(self, client, monkeypatch):
+        pid = ObjectId()
+        fid = ObjectId()
+        monkeypatch.setattr(
+            project_controller.ProjectModel, "get_project_by_id",
+            staticmethod(lambda p, usuario_id=None: {"_id": pid, "titulo": "P"}),
+        )
+        monkeypatch.setattr(
+            project_controller.ProjectDocumentFolderModel, "get_by_project",
+            staticmethod(lambda p, usuario_id=None: [{"_id": fid, "project_id": pid, "name": "Docs"}]),
+        )
+
+        resp = client.post(f"/projects/{pid}/folders/add", data={"folder_name": "docs"})
+
+        assert resp.status_code == 302
+        assert f"folder={fid}".encode() in resp.headers["Location"].encode()
+
+    def test_delete_folder_with_documents_is_blocked(self, client, monkeypatch):
+        pid = ObjectId()
+        fid = ObjectId()
+        deleted = {"called": False}
+        monkeypatch.setattr(
+            project_controller.ProjectModel, "get_project_by_id",
+            staticmethod(lambda p, usuario_id=None: {"_id": pid, "titulo": "P"}),
+        )
+        monkeypatch.setattr(
+            project_controller.ProjectDocumentFolderModel, "get_folder_by_id",
+            staticmethod(lambda f, usuario_id=None: {"_id": fid, "project_id": pid, "name": "Docs"}),
+        )
+        monkeypatch.setattr(
+            project_controller.ProjectDocumentModel, "get_by_project",
+            staticmethod(lambda p, usuario_id=None: [{"_id": ObjectId(), "folder_id": fid}]),
+        )
+        monkeypatch.setattr(
+            project_controller.ProjectDocumentFolderModel, "delete_folder",
+            staticmethod(lambda *a, **k: deleted.update({"called": True}) or True),
+        )
+
+        resp = client.post(f"/projects/{pid}/folders/{fid}/delete")
+
+        assert resp.status_code == 302
+        assert deleted["called"] is False
+
+    def test_delete_empty_folder_queues_deletion(self, client, monkeypatch):
+        pid = ObjectId()
+        fid = ObjectId()
+        queue_calls = []
+        monkeypatch.setattr(
+            project_controller.ProjectModel, "get_project_by_id",
+            staticmethod(lambda p, usuario_id=None: {"_id": pid, "titulo": "P"}),
+        )
+        monkeypatch.setattr(
+            project_controller.ProjectDocumentFolderModel, "get_folder_by_id",
+            staticmethod(lambda f, usuario_id=None: {"_id": fid, "project_id": pid, "name": "Docs"}),
+        )
+        monkeypatch.setattr(
+            project_controller.ProjectDocumentModel, "get_by_project",
+            staticmethod(lambda p, usuario_id=None: []),
+        )
+        monkeypatch.setattr(
+            project_controller, "queue_deletion",
+            lambda col, did: queue_calls.append((col, did)),
+        )
+
+        resp = client.post(f"/projects/{pid}/folders/{fid}/delete")
+
+        assert resp.status_code == 302
+        assert queue_calls == [("ProjectDocumentFolders", str(fid))]
 
 
 # ---------------------------------------------------------------------------
@@ -503,6 +630,34 @@ class TestUploadDocument:
         assert captured["d"]["remote_sync_pending"] is False
         assert "upload_id" in captured["d"]
 
+    def test_upload_can_target_folder(self, client, monkeypatch):
+        proj_id = ObjectId()
+        folder_id = ObjectId()
+        captured = {}
+        monkeypatch.setattr(
+            project_controller.ProjectModel, "get_project_by_id",
+            staticmethod(lambda p, usuario_id=None: {"_id": proj_id, "titulo": "P"}),
+        )
+        monkeypatch.setattr(
+            project_controller.ProjectDocumentFolderModel, "get_folder_by_id",
+            staticmethod(lambda f, usuario_id=None: {"_id": folder_id, "project_id": proj_id, "name": "Docs"}),
+        )
+        monkeypatch.setattr(
+            project_controller.ProjectDocumentModel, "insert_document",
+            staticmethod(lambda d, usuario_id=None: captured.setdefault("d", d) or d),
+        )
+        resp = client.post(
+            f"/projects/{proj_id}/documents",
+            data={
+                "folder_id": str(folder_id),
+                "document": (BytesIO(b"contenido"), "x.txt"),
+            },
+            content_type="multipart/form-data",
+        )
+        assert resp.status_code == 302
+        assert captured["d"]["folder_id"] == str(folder_id)
+        assert f"folder={folder_id}".encode() in resp.headers["Location"].encode()
+
     def test_upload_falls_back_to_local_when_remote_fails(self, client, monkeypatch):
         proj_id = ObjectId()
         captured = {}
@@ -612,6 +767,107 @@ class TestViewAndDownloadDocument:
             staticmethod(lambda d, usuario_id=None: None),
         )
         resp = client.get(f"/projects/documents/{ObjectId()}/download")
+        assert resp.status_code == 302
+
+    def test_open_text_document_renders_editor(self, client, monkeypatch):
+        doc = {
+            "_id": ObjectId(),
+            "original_name": "nota.txt",
+            "content_type": "text/plain",
+            "local_upload_id": ObjectId(),
+            "project_id": ObjectId(),
+            "size": 5,
+        }
+        monkeypatch.setattr(
+            project_controller.ProjectDocumentModel, "get_document_by_id",
+            staticmethod(lambda d, usuario_id=None: doc),
+        )
+        resp = client.get(f"/projects/documents/{doc['_id']}/open")
+        assert resp.status_code == 200
+        assert b"project_document_viewer" in resp.data
+        assert b"text_content" in resp.data
+
+    def test_text_document_content_returns_json(self, client, monkeypatch):
+        doc = {
+            "_id": ObjectId(),
+            "original_name": "nota.txt",
+            "content_type": "text/plain",
+            "local_upload_id": ObjectId(),
+            "project_id": ObjectId(),
+            "size": 10,
+        }
+        monkeypatch.setattr(
+            project_controller.ProjectDocumentModel, "get_document_by_id",
+            staticmethod(lambda d, usuario_id=None: doc),
+        )
+        resp = client.get(f"/projects/documents/{doc['_id']}/text")
+        assert resp.status_code == 200
+        assert resp.get_json()["content"] == "file-bytes"
+
+    def test_update_text_document_uploads_new_version(self, client, monkeypatch):
+        doc_id = ObjectId()
+        old_local_id = ObjectId()
+        old_remote_id = ObjectId()
+        new_local_id = ObjectId()
+        new_remote_id = ObjectId()
+        captured = {}
+        doc = {
+            "_id": doc_id,
+            "original_name": "nota.txt",
+            "content_type": "text/plain",
+            "local_upload_id": old_local_id,
+            "upload_id": old_remote_id,
+            "project_id": ObjectId(),
+            "usuario_id": "u1",
+        }
+        monkeypatch.setattr(
+            project_controller.ProjectDocumentModel, "get_document_by_id",
+            staticmethod(lambda d, usuario_id=None: doc),
+        )
+
+        def _upload(stream, original_name=None, content_type=None, metadata=None):
+            captured["bytes"] = stream.read()
+            captured["metadata"] = metadata
+            return new_local_id
+
+        monkeypatch.setattr(project_controller, "upload_stream_to_local_storage", _upload)
+        monkeypatch.setattr(
+            project_controller,
+            "promote_local_file_to_remote",
+            lambda *a, **k: new_remote_id,
+        )
+        monkeypatch.setattr(
+            project_controller.ProjectDocumentModel,
+            "update_document",
+            staticmethod(lambda d, updates, usuario_id=None, sync_remote=True: captured.update({"updates": updates}) or doc),
+        )
+
+        resp = client.post(
+            f"/projects/documents/{doc_id}/text/update",
+            data={"content": "hola"},
+        )
+
+        assert resp.status_code == 302
+        assert captured["bytes"] == b"hola"
+        assert captured["metadata"]["project_id"] == str(doc["project_id"])
+        assert captured["updates"]["local_upload_id"] == new_local_id
+        assert captured["updates"]["upload_id"] == new_remote_id
+        assert captured["updates"]["remote_sync_pending"] is False
+        assert captured["updates"]["size"] == 4
+
+    def test_update_text_document_blocks_binary(self, client, monkeypatch):
+        doc = {
+            "_id": ObjectId(),
+            "original_name": "datos.bin",
+            "content_type": "application/octet-stream",
+            "local_upload_id": ObjectId(),
+            "project_id": ObjectId(),
+        }
+        monkeypatch.setattr(
+            project_controller.ProjectDocumentModel, "get_document_by_id",
+            staticmethod(lambda d, usuario_id=None: doc),
+        )
+        resp = client.post(f"/projects/documents/{doc['_id']}/text/update", data={"content": "x"})
         assert resp.status_code == 302
 
 

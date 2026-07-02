@@ -179,6 +179,87 @@ class TestViewGoal:
 
 
 # ---------------------------------------------------------------------------
+# POST /goals/<goal_id>/notes/*
+# ---------------------------------------------------------------------------
+
+
+class TestGoalNotes:
+    def test_add_goal_note_appends_note(self, client, monkeypatch):
+        gid = str(ObjectId())
+        goal = {"_id": ObjectId(gid), "notas": []}
+        captured = {}
+
+        monkeypatch.setattr(
+            goal_controller.GoalModel,
+            "get_goal_by_id",
+            staticmethod(lambda goal_id, usuario_id=None: goal),
+        )
+        monkeypatch.setattr(
+            goal_controller.GoalModel,
+            "update_goal",
+            staticmethod(
+                lambda goal_id, updates, usuario_id=None: captured.update(
+                    {"goal_id": goal_id, "updates": updates}
+                )
+            ),
+        )
+
+        resp = client.post(f"/goals/{gid}/notes/add", data={"note_text": "Idea clave"})
+
+        assert resp.status_code == 302
+        assert captured["goal_id"] == gid
+        assert len(captured["updates"]["notas"]) == 1
+        assert captured["updates"]["notas"][0]["text"] == "Idea clave"
+        assert "_id" in captured["updates"]["notas"][0]
+        assert "created_at" in captured["updates"]["notas"][0]
+
+    def test_add_goal_note_ignores_empty_text(self, client, monkeypatch):
+        called = {"update": False}
+        monkeypatch.setattr(
+            goal_controller.GoalModel,
+            "update_goal",
+            staticmethod(lambda *args, **kwargs: called.update({"update": True})),
+        )
+
+        resp = client.post(f"/goals/{ObjectId()}/notes/add", data={"note_text": "   "})
+
+        assert resp.status_code == 302
+        assert called["update"] is False
+
+    def test_delete_goal_note_removes_matching_note(self, client, monkeypatch):
+        gid = str(ObjectId())
+        goal = {
+            "_id": ObjectId(gid),
+            "notas": [
+                {"_id": "n1", "text": "quitar"},
+                {"_id": "n2", "text": "mantener"},
+            ],
+        }
+        captured = {}
+
+        monkeypatch.setattr(
+            goal_controller.GoalModel,
+            "get_goal_by_id",
+            staticmethod(lambda goal_id, usuario_id=None: goal),
+        )
+        monkeypatch.setattr(
+            goal_controller.GoalModel,
+            "update_goal",
+            staticmethod(
+                lambda goal_id, updates, usuario_id=None: captured.update(
+                    {"goal_id": goal_id, "updates": updates}
+                )
+            ),
+        )
+
+        resp = client.post(f"/goals/{gid}/notes/n1/delete")
+
+        assert resp.status_code == 302
+        assert captured["goal_id"] == gid
+        assert [note["_id"] for note in captured["updates"]["notas"]] == ["n2"]
+
+
+# ---------------------------------------------------------------------------
 # POST /goals/<goal_id>
 # ---------------------------------------------------------------------------
 

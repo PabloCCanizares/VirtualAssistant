@@ -659,6 +659,94 @@ main{
   color: var(--text);
 }
 
+/* ====== Modal global de confirmacion ====== */
+.confirm-modal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 3000;
+  padding: 18px;
+}
+
+.confirm-modal.active {
+  display: flex;
+}
+
+.confirm-modal-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, .72);
+  backdrop-filter: blur(6px);
+}
+
+.confirm-modal-content {
+  position: relative;
+  width: min(430px, 92vw);
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 16px;
+  background: linear-gradient(180deg, rgba(16,24,43,.98), rgba(9,14,25,.96));
+  box-shadow: 0 24px 70px rgba(0,0,0,.55);
+  color: var(--text);
+}
+
+.confirm-modal-header,
+.confirm-modal-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+
+.confirm-modal-actions {
+  justify-content: flex-end;
+  border-top: 1px solid rgba(255,255,255,.08);
+  border-bottom: 0;
+}
+
+.confirm-modal-title {
+  margin: 0;
+  color: var(--text);
+  font-size: 16px;
+}
+
+.confirm-modal-close {
+  width: 32px;
+  height: 32px;
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 9px;
+  background: rgba(255,255,255,.04);
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.confirm-modal-body {
+  padding: 18px 16px;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.confirm-modal-actions .panel-action-btn {
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 10px;
+  background: rgba(255,255,255,.05);
+  color: var(--text);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.confirm-modal-actions .panel-action-btn.danger {
+  border-color: rgba(255,107,136,.36);
+  background: rgba(255,107,136,.14);
+  color: #ff9caf;
+}
+
 /* ====== Scrollbar personalizado (dark) ====== */
 .calendar-container *::-webkit-scrollbar{ width:8px; height:8px; }
 .calendar-container *::-webkit-scrollbar-thumb{

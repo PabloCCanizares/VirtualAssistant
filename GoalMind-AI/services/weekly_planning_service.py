@@ -12,6 +12,7 @@ from services.emergent_insight_service import analyze_operating_system
 from services.user_context_service import (
     PROJECT_FIELDS,
     TASK_FIELDS,
+    build_active_scope,
     doc_id,
     get_user_dataset,
     is_completed,
@@ -443,10 +444,11 @@ def _task_entry(task: dict, reason: str, *, estimated_minutes: int, assumed_esti
 def _build_plan_from_session(session: dict, now: datetime) -> dict[str, Any]:
     answers = session.get("answers") or {}
     dataset = get_user_dataset(usuario_id=session["usuario_id"])
+    active_scope = build_active_scope(dataset)
     analysis = analyze_operating_system(usuario_id=session["usuario_id"], now=now, limit=20)
-    goals_by_id = {doc_id(goal): goal for goal in dataset["goals"]}
-    projects_by_id = {doc_id(project): project for project in dataset["projects"]}
-    pending_tasks = [task for task in dataset["tasks"] if not is_completed(task)]
+    goals_by_id = {doc_id(goal): goal for goal in active_scope["goals"]}
+    projects_by_id = {doc_id(project): project for project in active_scope["projects"]}
+    pending_tasks = [task for task in active_scope["tasks"] if not is_completed(task)]
     focus_terms = _normalize_list(answers.get("weekly_top_priorities"))
     avoid_terms = _normalize_list(answers.get("avoid_this_week"))
     sorted_tasks = sorted(
@@ -522,7 +524,7 @@ def _build_plan_from_session(session: dict, now: datetime) -> dict[str, Any]:
         assumptions.append(f"La capacidad se ajusta por energia {energy}.")
 
     focus_projects = []
-    for project in dataset["projects"]:
+    for project in active_scope["projects"]:
         title = str(project.get("titulo") or "")
         if focus_terms and not _matches_focus(title, focus_terms):
             continue

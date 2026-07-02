@@ -11,6 +11,7 @@
   <div class="mission-grid">
     <section class="mission-main">
       <section class="panel-container">
+        {% set notes = goal.get('notas', []) %}
 
         <!-- Hero del objetivo -->
         <div class="panel-hero">
@@ -55,6 +56,22 @@
               <button type="button" class="panel-action-btn primary" id="btnEditGoal">
                 Editar objetivo
               </button>
+              <form method="post"
+                    action="{{ url_for('goal_bp.delete_goal', goal_id=goal['_id']) }}"
+                    data-confirm-message="Eliminar este objetivo y sus tareas asociadas?"
+                    class="goal-delete-inline-form">
+                {% if goal.get('project_id') %}
+                  <input type="hidden" name="redirect_to" value="{{ url_for('project_bp.view_project', project_id=goal.get('project_id')) }}">
+                {% endif %}
+                <button type="submit" class="panel-action-btn danger goal-delete-icon-btn" title="Eliminar objetivo" aria-label="Eliminar objetivo">
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M3 6h18"/>
+                    <path d="M8 6V4h8v2"/>
+                    <path d="m19 6-1 14H6L5 6"/>
+                    <path d="M10 11v5M14 11v5"/>
+                  </svg>
+                </button>
+              </form>
             </div>
           </div>
 
@@ -120,6 +137,62 @@
               <div class="goal-progress-label">Progreso total</div>
             </div>
           </div>
+        </div>
+
+        <!-- Notas del objetivo -->
+        <div class="panel-section panel-accent goal-notes-section">
+          <div class="panel-header">
+            <div>
+              <span class="panel-subtitle">Memoria rapida</span>
+              <h3 class="panel-title">Notas del objetivo</h3>
+            </div>
+            <span class="panel-badge accent">{{ notes|length }} nota{% if notes|length != 1 %}s{% endif %}</span>
+          </div>
+
+          <form method="post" action="{{ url_for('goal_bp.add_goal_note', goal_id=goal['_id']) }}" class="goal-note-form">
+            <textarea name="note_text" class="goal-note-input" rows="3" placeholder="Escribe una nota para este objetivo..." required></textarea>
+            <div class="goal-note-actions">
+              <button type="submit" class="panel-action-btn primary">A&ntilde;adir nota</button>
+            </div>
+          </form>
+
+          {% if notes and notes|length > 0 %}
+            <ul class="goal-note-list">
+              {% for note in notes|reverse %}
+                <li class="goal-note-item">
+                  <span class="goal-note-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/>
+                      <path d="M14 2v6h6"/>
+                      <path d="M8 13h8M8 17h5"/>
+                    </svg>
+                  </span>
+                  <span class="goal-note-content">
+                    <strong>{{ note.get('text','') }}</strong>
+                    <small>{{ (note.get('created_at') or '')|string|replace('T',' ')|truncate(16, True, '') }}</small>
+                  </span>
+                  <form method="post"
+                        action="{{ url_for('goal_bp.delete_goal_note', goal_id=goal['_id'], note_id=note.get('_id')) }}"
+                        data-confirm-message="Eliminar esta anotacion?"
+                        class="goal-note-delete-form">
+                    <button type="submit" class="goal-note-delete-btn" title="Eliminar nota" aria-label="Eliminar nota">
+                      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M3 6h18"/>
+                        <path d="M8 6V4h8v2"/>
+                        <path d="m19 6-1 14H6L5 6"/>
+                        <path d="M10 11v5M14 11v5"/>
+                      </svg>
+                    </button>
+                  </form>
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <div class="empty-state goal-note-empty">
+              <h4 class="empty-state-title">Sin notas todavia</h4>
+              <p class="empty-state-desc">Anota decisiones, ideas o contexto que no quieras perder.</p>
+            </div>
+          {% endif %}
         </div>
 
         <!-- Lista de tareas asociadas -->
@@ -421,10 +494,7 @@
           <input type="number" name="progreso" id="editProgreso" class="panel-form-input" min="0" max="100" value="{{ goal.get('progreso', 0) }}">
         </div>
 
-        <div class="panel-actions" style="margin-top: 16px; justify-content: space-between;">
-          <form action="{{ url_for('goal_bp.delete_goal', goal_id=goal['_id']) }}" method="post" style="display: inline;" data-confirm-message="¿Eliminar este objetivo?">
-            <button type="submit" class="panel-action-btn danger">Eliminar objetivo</button>
-          </form>
+        <div class="panel-actions" style="margin-top: 16px; justify-content: flex-end;">
           <div style="display: flex; gap: 10px;">
             <button type="button" class="panel-action-btn" id="cancelEditGoal">Cancelar</button>
             <button type="submit" class="panel-action-btn primary">Guardar cambios</button>

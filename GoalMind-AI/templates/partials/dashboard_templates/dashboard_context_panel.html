@@ -1,0 +1,78 @@
+<aside class="gm-intel-panel" aria-label="Contexto inteligente">
+  <section class="gm-panel gm-intel-card">
+    <div class="gm-panel-header">
+      <div>
+        <span class="gm-panel-kicker">Contexto inteligente</span>
+        <h3>Recomendaciones de GoalMind AI</h3>
+      </div>
+      <span class="gm-intel-collapse" aria-hidden="true"></span>
+    </div>
+
+    <div class="gm-intel-section">
+      <div class="gm-intel-list">
+        {% for item in dashboard.smart_items[:3] %}
+          <div class="gm-intel-item gm-tone-{{ item.tone }}">
+            <span class="gm-intel-icon" aria-hidden="true"></span>
+            <span>
+              <strong>{{ item.label }}</strong>
+              <small>{{ item.detail }}</small>
+            </span>
+          </div>
+        {% endfor %}
+      </div>
+      <a class="gm-intel-link" href="{{ url_for('dashboard_bp.estadisticas') }}">Ver todas las recomendaciones</a>
+    </div>
+
+    <div class="gm-intel-section">
+      <div class="gm-intel-section-title">Proximos eventos</div>
+      {% if dashboard.events %}
+        <div class="gm-event-list gm-event-list-compact">
+          {% for event in dashboard.events[:4] %}
+            <a class="gm-event-row" href="{{ event.url }}">
+              <span>
+                <strong>{{ event.day }}</strong>
+                <small>{{ event.time }}</small>
+              </span>
+              <span>
+                <b>{{ event.title }}</b>
+                <small>{{ event.type }}{% if event.duration %} &middot; {{ event.duration }}{% endif %}</small>
+              </span>
+            </a>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="gm-empty-state gm-empty-state-compact">
+          <strong>Sin eventos proximos</strong>
+          <span>La agenda no tiene bloqueos cercanos.</span>
+        </div>
+      {% endif %}
+      <a class="gm-intel-link" href="{{ url_for('calendar_bp.calendar_page') }}">Ver agenda completa</a>
+    </div>
+
+    <div class="gm-intel-section">
+      <div class="gm-intel-section-title">Alertas y riesgos</div>
+      <div class="gm-risk-list">
+        {% for alert in dashboard.alerts %}
+          <div class="gm-risk-item gm-tone-{{ alert.tone }}">
+            <span class="gm-risk-icon" aria-hidden="true"></span>
+            <span>
+              <strong>{{ alert.label }}</strong>
+              <small>{{ alert.detail }}</small>
+            </span>
+          </div>
+        {% endfor %}
+      </div>
+      <a class="gm-intel-link" href="{{ url_for('task_bp.list_tasks_by_user') }}">Ver todos los riesgos</a>
+    </div>
+
+    <div class="gm-next-action">
+      <span class="gm-next-action-icon" aria-hidden="true"></span>
+      <div>
+        <span class="gm-intel-section-title">Siguiente mejor accion</span>
+        <strong>{{ dashboard.main_action.label }}</strong>
+        <small>{{ dashboard.main_action.detail }}</small>
+      </div>
+      <a class="gm-next-action-btn" href="{{ dashboard.main_action.url }}">Ir</a>
+    </div>
+  </section>
+</aside>

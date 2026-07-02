@@ -108,6 +108,100 @@ def test_get_user_snapshot_filters_active_user_and_serializes_dates(mongo_mock):
     assert snapshot["upcoming_deadlines"][0]["task"]["fecha_limite"] == due_at.isoformat()
 
 
+def test_mcp_cognition_ignores_paused_and_completed_projects(mongo_mock):
+    active_project = ObjectId()
+    paused_project = ObjectId()
+    completed_project = ObjectId()
+    active_goal = ObjectId()
+    paused_goal = ObjectId()
+    completed_goal = ObjectId()
+    yesterday = datetime.utcnow() - timedelta(days=1)
+
+    mongo_mock.local_db["Projects"].insert_many(
+        [
+            {
+                "_id": active_project,
+                "titulo": "Proyecto activo",
+                "estado": "Activo",
+                "usuario_id": USER_ID,
+            },
+            {
+                "_id": paused_project,
+                "titulo": "Proyecto pausado",
+                "estado": "Pausado",
+                "usuario_id": USER_ID,
+            },
+            {
+                "_id": completed_project,
+                "titulo": "Proyecto completado",
+                "estado": "Completado",
+                "usuario_id": USER_ID,
+            },
+        ]
+    )
+    mongo_mock.local_db["Goals"].insert_many(
+        [
+            {
+                "_id": active_goal,
+                "titulo": "Objetivo activo",
+                "project_id": active_project,
+                "usuario_id": USER_ID,
+            },
+            {
+                "_id": paused_goal,
+                "titulo": "Objetivo pausado",
+                "project_id": paused_project,
+                "usuario_id": USER_ID,
+            },
+            {
+                "_id": completed_goal,
+                "titulo": "Objetivo completado",
+                "project_id": completed_project,
+                "usuario_id": USER_ID,
+            },
+        ]
+    )
+    mongo_mock.local_db["Tasks"].insert_many(
+        [
+            {
+                "_id": ObjectId(),
+                "contenido": "Tarea activa",
+                "objetivo_id": active_goal,
+                "estado": "pendiente",
+                "usuario_id": USER_ID,
+            },
+            {
+                "_id": ObjectId(),
+                "contenido": "Tarea pausada",
+                "objetivo_id": paused_goal,
+                "estado": "pendiente",
+                "usuario_id": USER_ID,
+            },
+            {
+                "_id": ObjectId(),
+                "contenido": "Tarea completada de proyecto cerrado",
+                "objetivo_id": completed_goal,
+                "fecha_limite": yesterday,
+                "estado": "pendiente",
+                "usuario_id": USER_ID,
+            },
+        ]
+    )
+
+    snapshot = tools.get_user_snapshot()["snapshot"]
+    findings = tools.find_atomic_findings(limit=200)["analysis"]
+
+    assert snapshot["counts"]["projects"] == 1
+    assert snapshot["counts"]["goals"] == 1
+    assert snapshot["counts"]["tasks"] == 1
+    assert snapshot["counts"]["ignored_inactive_projects"] == 2
+    assert snapshot["counts"]["ignored_inactive_goals"] == 2
+    assert "Proyecto pausado" not in str(snapshot)
+    assert "Proyecto completado" not in str(snapshot)
+    assert "Tarea pausada" not in str(findings)
+    assert "Tarea completada de proyecto cerrado" not in str(findings)
+
+
 def test_get_dashboard_briefing_returns_assistant_tasks_for_initial_dashboard(mongo_mock):
     yesterday = datetime.utcnow() - timedelta(days=1)
     mongo_mock.local_db["Projects"].insert_many(

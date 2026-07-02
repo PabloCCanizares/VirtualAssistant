@@ -361,10 +361,18 @@
               <button type="button" class="panel-action-btn btn-edit">✏️ Editar</button>
               <button type="submit" class="panel-action-btn success btn-confirm" style="display:none;">Confirmar</button>
               <button type="button" class="panel-action-btn btn-cancel" style="display:none;">Cancelar</button>
-              <button type="button"
-                      class="panel-action-btn danger task-delete-btn"
-                      title="Eliminar"
-                      form="delete-{{ goal['_id'] }}">Eliminar</button>
+              <button type="submit"
+                      class="panel-action-btn danger goal-delete-icon-btn"
+                      title="Eliminar objetivo"
+                      aria-label="Eliminar objetivo"
+                      form="delete-{{ goal['_id'] }}">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M3 6h18"/>
+                  <path d="M8 6V4h8v2"/>
+                  <path d="m19 6-1 14H6L5 6"/>
+                  <path d="M10 11v5M14 11v5"/>
+                </svg>
+              </button>
             </div>
 
           </form>
@@ -374,8 +382,9 @@
         <form id="delete-{{ goal['_id'] }}"
               action="{{ url_for('goal_bp.delete_goal', goal_id=goal['_id']) }}"
               method="post"
-              data-confirm-message="¿Eliminar este objetivo?"
+              data-confirm-message="Eliminar este objetivo y sus tareas asociadas?"
               style="display:none;">
+          <input type="hidden" name="redirect_to" value="{{ url_for('goal_bp.list_goals') }}">
           {% if csrf_token is defined %}{{ csrf_token() }}{% endif %}
         </form>
 

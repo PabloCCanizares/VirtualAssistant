@@ -85,6 +85,29 @@
     </div>
   </div>
 
+  <div class="side-panel-card collapsible project-side-action-card project-side-action-card-note" id="newProjectNoteCard">
+    <div class="side-panel-header">
+      <span class="side-panel-icon" aria-hidden="true"></span>
+      <div class="side-panel-title-block">
+        <h3 class="side-panel-title">Nueva nota</h3>
+        <p class="side-panel-desc">Guarda una idea, decisión o contexto rápido del proyecto.</p>
+      </div>
+      <span class="side-panel-toggle"></span>
+    </div>
+    <button type="button" class="project-side-card-cta" data-open-panel="newProjectNoteCard">Nueva nota</button>
+
+    <div class="side-panel-card-content">
+      <form method="post" action="{{ url_for('project_bp.add_project_note', project_id=project['_id']) }}" class="panel-form">
+        <div class="panel-form-group">
+          <label class="panel-form-label" for="project_note_text">Nota</label>
+          <textarea name="note_text" id="project_note_text" class="panel-form-textarea" rows="5" placeholder="Escribe una nota del proyecto..." required></textarea>
+        </div>
+
+        <button type="submit" class="panel-form-submit">Guardar nota</button>
+      </form>
+    </div>
+  </div>
+
   <div class="side-panel-card collapsible project-side-action-card project-side-action-card-goal" id="newGoalCard">
     <div class="side-panel-header">
       <span class="side-panel-icon" aria-hidden="true"></span>
@@ -147,6 +170,29 @@
         </div>
 
         <button type="submit" class="panel-form-submit">Crear objetivo</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="side-panel-card collapsible project-side-action-card project-side-action-card-folder" id="newFolderCard">
+    <div class="side-panel-header">
+      <span class="side-panel-icon" aria-hidden="true"></span>
+      <div class="side-panel-title-block">
+        <h3 class="side-panel-title">Nueva carpeta</h3>
+        <p class="side-panel-desc">Organiza los documentos del proyecto por bloques.</p>
+      </div>
+      <span class="side-panel-toggle"></span>
+    </div>
+    <button type="button" class="project-side-card-cta" data-open-panel="newFolderCard">Nueva carpeta</button>
+
+    <div class="side-panel-card-content">
+      <form method="post" action="{{ url_for('project_bp.add_document_folder', project_id=project['_id']) }}" class="panel-form">
+        <div class="panel-form-group">
+          <label class="panel-form-label" for="folder_name">Nombre</label>
+          <input type="text" name="folder_name" id="folder_name" class="panel-form-input" placeholder="Nombre de la carpeta" required>
+        </div>
+
+        <button type="submit" class="panel-form-submit">Crear carpeta</button>
       </form>
     </div>
   </div>
@@ -229,6 +275,18 @@
         </select>
       </div>
 
+      <div class="panel-form-group">
+        <label class="panel-form-label" for="modal_folder_id">Carpeta</label>
+        <select name="folder_id" id="modal_folder_id" class="panel-form-select">
+          <option value="" {% if not current_folder_id %}selected{% endif %}>Raiz del proyecto</option>
+          {% if document_folders and document_folders|length > 0 %}
+            {% for folder in document_folders %}
+              <option value="{{ folder['_id'] }}" {% if current_folder_id == folder['_id'] %}selected{% endif %}>{{ folder.get('name', 'Carpeta') }}</option>
+            {% endfor %}
+          {% endif %}
+        </select>
+      </div>
+
       <input type="file" name="document" id="modalFileInput" style="display: none;" required>
 
       <div class="upload-modal-actions">
@@ -247,6 +305,8 @@ document.addEventListener('DOMContentLoaded', function() {
   const form = document.getElementById('uploadModalForm');
   const fileInput = document.getElementById('modalFileInput');
   const titleInput = document.getElementById('document_title');
+  const folderInput = document.getElementById('modal_folder_id');
+  const activeFolderId = document.querySelector('[data-project-document-dropzone]')?.dataset.currentFolder || '';
 
   function openPanelById(panelId) {
     const card = document.getElementById(panelId);
@@ -292,6 +352,10 @@ document.addEventListener('DOMContentLoaded', function() {
     dataTransfer.items.add(file);
     fileInput.files = dataTransfer.files;
     titleInput.value = file.name.replace(/\.[^/.]+$/, '');
+    if (folderInput) {
+      const sourceFolderId = sourceInput?.closest('[data-project-document-dropzone]')?.dataset.currentFolder;
+      folderInput.value = sourceFolderId !== undefined ? sourceFolderId : activeFolderId;
+    }
     uploadModal.open(file);
 
     if (sourceInput) {

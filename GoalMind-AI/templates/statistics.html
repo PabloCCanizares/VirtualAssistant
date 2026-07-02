@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="gm-statistics-shell" aria-label="Estadisticas GoalMind AI">
+  <header class="gm-dashboard-header gm-statistics-header">
+    <div>
+      <span class="gm-dashboard-kicker">Estadisticas &middot; {{ now().strftime('%d/%m/%Y') }}</span>
+      <h2>Panel de estadisticas</h2>
+      <p>Lectura agregada de tareas, objetivos, relevancia y eventos.</p>
+    </div>
+    <a class="gm-panel-link" href="{{ url_for('dashboard_bp.dashboard') }}">Volver al dashboard</a>
+  </header>
+
+  <section class="gm-statistics-grid">
+    <div class="dashboard-stats-cell" data-stat="tasks_completed_month" id="cell-tasks_completed_month">
+      <div class="panel-placeholder"><span>Cargando tareas cumplidas...</span></div>
+    </div>
+    <div class="dashboard-stats-cell" data-stat="goals_progress" id="cell-goals_progress">
+      <div class="panel-placeholder"><span>Cargando progreso objetivos...</span></div>
+    </div>
+    <div class="dashboard-stats-cell" data-stat="tasks_relevance" id="cell-tasks_relevance">
+      <div class="panel-placeholder"><span>Cargando relevancia tareas...</span></div>
+    </div>
+    <div class="dashboard-stats-cell" data-stat="events_by_type" id="cell-events_by_type">
+      <div class="panel-placeholder"><span>Cargando eventos por tipo...</span></div>
+    </div>
+  </section>
+</section>
+
+<script src="{{ url_for('static', filename='js/dashboard_stats.js') }}"></script>
+{% endblock %}

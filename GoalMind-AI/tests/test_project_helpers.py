@@ -40,12 +40,21 @@ class TestSerializeGoal:
 
 class TestSerializeDocument:
     def test_converts_doc_ids(self):
-        did, pid, gid = ObjectId(), ObjectId(), ObjectId()
-        doc = {"_id": did, "project_id": pid, "goal_id": gid, "filename": "x.pdf"}
+        did, pid, gid, fid = ObjectId(), ObjectId(), ObjectId(), ObjectId()
+        doc = {"_id": did, "project_id": pid, "goal_id": gid, "folder_id": fid, "filename": "x.pdf"}
         out = pc._serialize_document(doc)
         assert out["_id"] == str(did)
         assert out["project_id"] == str(pid)
         assert out["goal_id"] == str(gid)
+        assert out["folder_id"] == str(fid)
+
+
+class TestSerializeFolder:
+    def test_converts_folder_ids(self):
+        fid, pid = ObjectId(), ObjectId()
+        out = pc._serialize_folder({"_id": fid, "project_id": pid, "name": "Docs"})
+        assert out["_id"] == str(fid)
+        assert out["project_id"] == str(pid)
 
 
 class TestFormatSize:

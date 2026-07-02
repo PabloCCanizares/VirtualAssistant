@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/panels.css') }}">
+
+<section class="document-viewer-shell">
+  <header class="document-viewer-header">
+    <div class="document-viewer-title-block">
+      <a class="document-viewer-back" href="{{ back_url }}" aria-label="Volver al proyecto">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M15 18 9 12l6-6"/>
+        </svg>
+      </a>
+      <div>
+        <span class="projects-board-eyebrow">Documento</span>
+        <h1 class="document-viewer-title">{{ document_name }}</h1>
+        <p class="document-viewer-meta">{{ mimetype }} - {{ document_size }}</p>
+      </div>
+    </div>
+
+    <div class="document-viewer-actions">
+      <a class="panel-action-btn panel-action-btn-small" href="{{ raw_url }}" target="_blank" rel="noopener">Abrir original</a>
+      <a class="panel-action-btn panel-action-btn-small" href="{{ download_url }}">Descargar</a>
+    </div>
+  </header>
+
+  <section class="document-viewer-panel document-viewer-panel--{{ preview_mode }}">
+    {% if preview_mode == 'pdf' %}
+      <iframe class="document-viewer-frame" src="{{ raw_url }}" title="{{ document_name }}"></iframe>
+    {% elif preview_mode == 'image' %}
+      <div class="document-viewer-image-wrap">
+        <img class="document-viewer-image" src="{{ raw_url }}" alt="{{ document_name }}">
+      </div>
+    {% elif preview_mode == 'text' %}
+      <form method="post" action="{{ url_for('project_bp.update_text_document', doc_id=doc['_id']) }}" class="document-editor-form">
+        <textarea name="content" class="document-editor-textarea" spellcheck="false">{{ text_content }}</textarea>
+        <div class="document-editor-footer">
+          <span>{{ text_encoding }}</span>
+          <button type="submit" class="panel-action-btn primary">Guardar cambios</button>
+        </div>
+      </form>
+    {% else %}
+      <div class="document-viewer-empty">
+        <div class="empty-state-icon project-empty-mark">DOC</div>
+        <h2>Vista previa no disponible</h2>
+        <a class="panel-action-btn primary" href="{{ download_url }}">Descargar archivo</a>
+      </div>
+    {% endif %}
+  </section>
+</section>
+{% endblock %}

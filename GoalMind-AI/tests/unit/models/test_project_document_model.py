@@ -87,6 +87,15 @@ class TestInsertDocument:
         })
         assert isinstance(out["goal_id"], ObjectId)
 
+    def test_insert_converts_string_folder_id_to_oid(self, mongo_mock):
+        fid = str(ObjectId())
+        out = ProjectDocumentModel.insert_document({
+            "project_id": ObjectId(),
+            "folder_id": fid,
+            "original_name": "x.txt",
+        })
+        assert isinstance(out["folder_id"], ObjectId)
+
 
 class TestUpdateDocument:
     def test_updates_fields(self, mongo_mock):
@@ -103,6 +112,12 @@ class TestUpdateDocument:
         d = _insert_doc(mongo_mock)
         out = ProjectDocumentModel.update_document(d["_id"], {"original_name": "y"}, sync_remote=False)
         assert out["original_name"] == "y"
+
+    def test_update_converts_folder_id(self, mongo_mock):
+        d = _insert_doc(mongo_mock)
+        fid = str(ObjectId())
+        out = ProjectDocumentModel.update_document(d["_id"], {"folder_id": fid}, sync_remote=False)
+        assert isinstance(out["folder_id"], ObjectId)
 
 
 class TestPendingRemoteUploads:

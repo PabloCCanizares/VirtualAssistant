@@ -1,0 +1,150 @@
+<section class="gm-summary-strip" aria-label="Resumen del dia">
+  {% for card in dashboard.summary_cards %}
+    <article class="gm-summary-card gm-tone-{{ card.tone }}">
+      <div class="gm-summary-topline">
+        <span class="gm-summary-icon gm-summary-icon-{{ card.icon }}" aria-hidden="true"></span>
+        <span>{{ card.label }}</span>
+      </div>
+      <strong>{{ card.value }}</strong>
+      <small>{{ card.detail }}</small>
+      <span class="gm-summary-subdetail">{{ card.subdetail }}</span>
+      <i class="gm-kpi-progress"><em style="width: {{ card.progress }}%"></em></i>
+    </article>
+  {% endfor %}
+</section>
+
+<div class="gm-dashboard-grid">
+  <div class="gm-dashboard-main">
+    <div class="gm-operational-grid">
+      <section class="gm-panel gm-plan-panel">
+        <div class="gm-panel-header">
+          <div>
+            <span class="gm-panel-kicker">Plan del dia</span>
+            <h3>Prioridad inmediata</h3>
+          </div>
+          <a class="gm-panel-link" href="{{ url_for('calendar_bp.calendar_page') }}">Ver agenda</a>
+        </div>
+
+        {% if dashboard.plan_items %}
+          <div class="gm-plan-list gm-plan-timeline">
+            {% for item in dashboard.plan_items %}
+              <a class="gm-plan-item gm-tone-{{ item.tone }}" href="{{ item.url }}">
+                <span class="gm-plan-node" aria-hidden="true"></span>
+                <span class="gm-plan-time">{{ item.time }}</span>
+                <span class="gm-plan-body">
+                  <strong>{{ item.title }}</strong>
+                  <small>{{ item.kind }} &middot; {{ item.meta }}</small>
+                </span>
+                <span class="gm-plan-chip">{{ item.kind }}</span>
+              </a>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="gm-empty-state">
+            <strong>Dia despejado</strong>
+            <span>No hay eventos ni tareas criticas para hoy.</span>
+          </div>
+        {% endif %}
+      </section>
+
+      <div class="gm-work-grid">
+        <section class="gm-panel">
+          <div class="gm-panel-header">
+            <div>
+              <span class="gm-panel-kicker">Proyectos activos</span>
+              <h3>Cartera viva</h3>
+            </div>
+            <a class="gm-panel-link" href="{{ url_for('project_bp.list_projects') }}">Ver todos</a>
+          </div>
+
+          {% if dashboard.projects %}
+            <div class="gm-project-list">
+              {% for project in dashboard.projects %}
+                <a class="gm-project-row" href="{{ project.url }}">
+                  <span class="gm-project-mark">{{ project.title[:1]|upper }}</span>
+                  <span class="gm-project-main">
+                    <strong>{{ project.title }}</strong>
+                    <small>{{ project.status }} &middot; entrega: {{ project.due }}</small>
+                  </span>
+                  <span class="gm-progress-block">
+                    <b>{{ project.progress }}%</b>
+                    <i class="gm-progress"><em style="width: {{ project.progress }}%"></em></i>
+                    <small>{{ project.goals }} obj. &middot; {{ project.documents }} docs</small>
+                  </span>
+                  <span class="gm-row-menu" aria-hidden="true"></span>
+                </a>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="gm-empty-state">
+              <strong>Sin proyectos activos</strong>
+              <span>Cuando haya proyectos, apareceran aqui.</span>
+            </div>
+          {% endif %}
+        </section>
+
+        <section class="gm-panel">
+          <div class="gm-panel-header">
+            <div>
+              <span class="gm-panel-kicker">Objetivos en progreso</span>
+              <h3>Avance real</h3>
+            </div>
+            <a class="gm-panel-link" href="{{ url_for('goal_bp.list_goals') }}">Ver todos</a>
+          </div>
+
+          {% if dashboard.goals %}
+            <div class="gm-goal-list">
+              {% for goal in dashboard.goals %}
+                <a class="gm-goal-row" href="{{ goal.url }}">
+                  <span class="gm-goal-mark" aria-hidden="true"></span>
+                  <span>
+                    <strong>{{ goal.title }}</strong>
+                    <small>Fin: {{ goal.deadline }} &middot; {{ goal.tasks }} tareas</small>
+                  </span>
+                  <span class="gm-goal-progress">
+                    <b>{{ goal.progress }}%</b>
+                    <i class="gm-progress"><em style="width: {{ goal.progress }}%"></em></i>
+                  </span>
+                </a>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="gm-empty-state">
+              <strong>Sin objetivos activos</strong>
+              <span>Los objetivos activos se mostraran en esta zona.</span>
+            </div>
+          {% endif %}
+        </section>
+      </div>
+    </div>
+
+    <section class="gm-panel gm-bottom-grid">
+      <div class="gm-panel-header">
+        <div>
+          <span class="gm-panel-kicker">Estadisticas rapidas</span>
+          <h3>Pulso general</h3>
+        </div>
+        <a class="gm-panel-link" href="{{ url_for('dashboard_bp.estadisticas') }}">Detalle</a>
+      </div>
+
+      <div class="gm-stat-grid">
+        {% for stat in dashboard.stats %}
+          <article class="gm-stat-tile gm-tone-{{ stat.tone }}">
+            <span>{{ stat.label }}</span>
+            <small>{{ stat.period }}</small>
+            <strong>{{ stat.value }}</strong>
+            <em class="gm-stat-delta gm-trend-{{ stat.trend }}">{{ stat.delta }}</em>
+            <i class="gm-progress"><em style="width: {{ stat.progress }}%"></em></i>
+            <div class="gm-mini-bars" aria-hidden="true">
+              {% for bar in stat.bars %}
+                <span style="height: {{ bar }}%"></span>
+              {% endfor %}
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    </section>
+  </div>
+
+  {% include "partials/dashboard_templates/dashboard_context_panel.html" %}
+</div>

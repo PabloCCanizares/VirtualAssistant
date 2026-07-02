@@ -10,8 +10,10 @@ from services.user_context_service import (
     GOAL_FIELDS,
     PROJECT_FIELDS,
     TASK_FIELDS,
+    build_active_scope,
     doc_id,
-    is_archived,
+    is_active_goal,
+    is_active_project,
     is_completed,
     item_timestamp,
     parse_datetime,
@@ -75,7 +77,11 @@ def _progress(item: dict) -> float:
 
 
 def _is_active_project(project: dict) -> bool:
-    return not is_completed(project) and not is_archived(project)
+    return is_active_project(project)
+
+
+def _is_active_goal(goal: dict) -> bool:
+    return is_active_goal(goal)
 
 
 def _is_pending_task(task: dict) -> bool:
@@ -83,10 +89,11 @@ def _is_pending_task(task: dict) -> bool:
 
 
 def build_indexes(dataset: dict[str, Any]) -> dict[str, Any]:
-    projects = dataset["projects"]
-    goals = dataset["goals"]
-    tasks = dataset["tasks"]
-    documents = dataset["documents"]
+    active_scope = build_active_scope(dataset)
+    projects = active_scope["projects"]
+    goals = active_scope["goals"]
+    tasks = active_scope["tasks"]
+    documents = active_scope["documents"]
 
     project_by_id = {doc_id(project): project for project in projects}
     goal_by_id = {doc_id(goal): goal for goal in goals}
@@ -114,7 +121,10 @@ def build_indexes(dataset: dict[str, Any]) -> dict[str, Any]:
         "tasks_by_goal": tasks_by_goal,
         "tasks_by_project": tasks_by_project,
         "documents_by_project": documents_by_project,
-        "active_projects": [project for project in projects if _is_active_project(project)],
+        "active_projects": projects,
+        "active_goals": goals,
+        "active_tasks": tasks,
+        "active_documents": documents,
         "pending_tasks": [task for task in tasks if _is_pending_task(task)],
         "completed_tasks": [task for task in tasks if is_completed(task)],
     }
@@ -136,7 +146,7 @@ def _project_activity_at(project: dict, ctx: HeuristicContext) -> datetime | Non
 
     for goal in project_goals:
         timestamps.append(item_timestamp(goal))
-    for task in ctx.dataset["tasks"]:
+    for task in ctx.indexes["active_tasks"]:
         if _task_goal_id(task) in goal_ids or _task_project_id(task) == project_id:
             timestamps.append(item_timestamp(task))
     for document in ctx.indexes["documents_by_project"].get(project_id, []):
@@ -151,7 +161,7 @@ def _project_goal_task_counts(project: dict, ctx: HeuristicContext) -> tuple[int
     goal_ids = {doc_id(goal) for goal in goals}
     task_count = sum(
         1
-        for task in ctx.dataset["tasks"]
+        for task in ctx.indexes["active_tasks"]
         if _task_goal_id(task) in goal_ids or _task_project_id(task) == project_id
     )
     return len(goals), task_count
@@ -159,7 +169,7 @@ def _project_goal_task_counts(project: dict, ctx: HeuristicContext) -> tuple[int
 
 def evaluate_project_without_goals(ctx: HeuristicContext) -> list[dict]:
     findings = []
-    for project in ctx.dataset["projects"]:
+    for project in ctx.indexes["active_projects"]:
         if ctx.indexes["goals_by_project"].get(doc_id(project)):
             continue
         findings.append(
@@ -184,7 +194,7 @@ def evaluate_project_without_goals(ctx: HeuristicContext) -> list[dict]:
 
 def evaluate_goal_without_tasks(ctx: HeuristicContext) -> list[dict]:
     findings = []
-    for goal in ctx.dataset["goals"]:
+    for goal in ctx.indexes["active_goals"]:
         if ctx.indexes["tasks_by_goal"].get(doc_id(goal)):
             continue
         findings.append(
@@ -210,7 +220,7 @@ def evaluate_goal_without_tasks(ctx: HeuristicContext) -> list[dict]:
 def evaluate_orphan_task(ctx: HeuristicContext) -> list[dict]:
     findings = []
     goal_ids = set(ctx.indexes["goal_by_id"])
-    for task in ctx.dataset["tasks"]:
+    for task in ctx.indexes["active_tasks"]:
         if not _is_pending_task(task):
             continue
         goal_id = _task_goal_id(task)
@@ -239,7 +249,7 @@ def evaluate_orphan_task(ctx: HeuristicContext) -> list[dict]:
 
 def evaluate_project_tasks_without_goal(ctx: HeuristicContext) -> list[dict]:
     findings = []
-    for task in ctx.dataset["tasks"]:
+    for task in ctx.indexes["active_tasks"]:
         if not _is_pending_task(task):
             continue
         project_id = _task_project_id(task)
@@ -272,7 +282,7 @@ def evaluate_project_tasks_without_goal(ctx: HeuristicContext) -> list[dict]:
 
 def evaluate_overdue_task(ctx: HeuristicContext) -> list[dict]:
     findings = []
-    for task in ctx.dataset["tasks"]:
+    for task in ctx.indexes["active_tasks"]:
         if not _is_pending_task(task):
             continue
         due_at = parse_datetime(task.get("fecha_limite"))
@@ -303,7 +313,7 @@ def evaluate_overdue_task(ctx: HeuristicContext) -> list[dict]:
 def evaluate_due_soon_task(ctx: HeuristicContext) -> list[dict]:
     findings = []
     due_soon_days = ctx.parameters["due_soon_days"]
-    for task in ctx.dataset["tasks"]:
+    for task in ctx.indexes["active_tasks"]:
         if not _is_pending_task(task):
             continue
         due_at = parse_datetime(task.get("fecha_limite"))
@@ -341,7 +351,7 @@ def evaluate_due_soon_task(ctx: HeuristicContext) -> list[dict]:
 def evaluate_stale_project(ctx: HeuristicContext) -> list[dict]:
     findings = []
     stale_before = ctx.now - timedelta(days=ctx.parameters["stale_days"])
-    for project in ctx.dataset["projects"]:
+    for project in ctx.indexes["active_projects"]:
         if not _is_active_project(project):
             continue
         activity_at = _project_activity_at(project, ctx)
@@ -374,8 +384,8 @@ def evaluate_stale_project(ctx: HeuristicContext) -> list[dict]:
 def evaluate_stale_goal(ctx: HeuristicContext) -> list[dict]:
     findings = []
     stale_before = ctx.now - timedelta(days=ctx.parameters["stale_days"])
-    for goal in ctx.dataset["goals"]:
-        if is_completed(goal):
+    for goal in ctx.indexes["active_goals"]:
+        if not _is_active_goal(goal):
             continue
         activity_at = _goal_activity_at(goal, ctx)
         if activity_at is not None and activity_at >= stale_before:
@@ -407,7 +417,7 @@ def evaluate_stale_goal(ctx: HeuristicContext) -> list[dict]:
 def evaluate_overloaded_goal(ctx: HeuristicContext) -> list[dict]:
     findings = []
     threshold = ctx.parameters["overloaded_task_threshold"]
-    for goal in ctx.dataset["goals"]:
+    for goal in ctx.indexes["active_goals"]:
         pending = [
             task
             for task in ctx.indexes["tasks_by_goal"].get(doc_id(goal), [])
@@ -484,7 +494,7 @@ def evaluate_too_many_pending_tasks(ctx: HeuristicContext) -> list[dict]:
 
 def evaluate_priority_mismatch(ctx: HeuristicContext) -> list[dict]:
     findings = []
-    for task in ctx.dataset["tasks"]:
+    for task in ctx.indexes["active_tasks"]:
         if not _is_pending_task(task) or not _is_low_priority(task):
             continue
         due_at = parse_datetime(task.get("fecha_limite"))
@@ -518,7 +528,7 @@ def evaluate_priority_mismatch(ctx: HeuristicContext) -> list[dict]:
 def evaluate_untitled_project(ctx: HeuristicContext) -> list[dict]:
     findings = []
     weak_titles = {"", "sin titulo", "sin título", "untitled", "nuevo proyecto"}
-    for project in ctx.dataset["projects"]:
+    for project in ctx.indexes["active_projects"]:
         title = _clean(project.get("titulo")).lower()
         if title not in weak_titles:
             continue
@@ -555,7 +565,7 @@ def evaluate_missing_project_description(ctx: HeuristicContext) -> list[dict]:
             requires_confirmation=True,
             confidence=0.86,
         )
-        for project in ctx.dataset["projects"]
+        for project in ctx.indexes["active_projects"]
         if not _clean(project.get("descripcion"))
     ]
 
@@ -575,7 +585,7 @@ def evaluate_missing_goal_description(ctx: HeuristicContext) -> list[dict]:
             requires_confirmation=True,
             confidence=0.84,
         )
-        for goal in ctx.dataset["goals"]
+        for goal in ctx.indexes["active_goals"]
         if not _clean(goal.get("descripcion"))
     ]
 
@@ -595,7 +605,7 @@ def evaluate_task_without_priority(ctx: HeuristicContext) -> list[dict]:
             requires_confirmation=True,
             confidence=0.82,
         )
-        for task in ctx.dataset["tasks"]
+        for task in ctx.indexes["active_tasks"]
         if _is_pending_task(task) and not _clean(task.get("prioridad"))
     ]
 
@@ -615,7 +625,7 @@ def evaluate_task_without_due_date(ctx: HeuristicContext) -> list[dict]:
             requires_confirmation=True,
             confidence=0.78,
         )
-        for task in ctx.dataset["tasks"]
+        for task in ctx.indexes["active_tasks"]
         if _is_pending_task(task) and parse_datetime(task.get("fecha_limite")) is None
     ]
 
@@ -623,7 +633,7 @@ def evaluate_task_without_due_date(ctx: HeuristicContext) -> list[dict]:
 def evaluate_project_low_progress_with_many_tasks(ctx: HeuristicContext) -> list[dict]:
     findings = []
     threshold = ctx.parameters["low_progress_threshold"]
-    for project in ctx.dataset["projects"]:
+    for project in ctx.indexes["active_projects"]:
         _, task_count = _project_goal_task_counts(project, ctx)
         if task_count < 5 or _progress(project) > threshold:
             continue
@@ -650,7 +660,7 @@ def evaluate_project_low_progress_with_many_tasks(ctx: HeuristicContext) -> list
 
 def evaluate_goal_zero_progress_with_completed_tasks(ctx: HeuristicContext) -> list[dict]:
     findings = []
-    for goal in ctx.dataset["goals"]:
+    for goal in ctx.indexes["active_goals"]:
         tasks = ctx.indexes["tasks_by_goal"].get(doc_id(goal), [])
         completed = [task for task in tasks if is_completed(task)]
         if not completed or _progress(goal) > 0:
@@ -680,7 +690,7 @@ def evaluate_goal_zero_progress_with_completed_tasks(ctx: HeuristicContext) -> l
 def evaluate_goal_progress_stale(ctx: HeuristicContext) -> list[dict]:
     findings = []
     stale_before = ctx.now - timedelta(days=ctx.parameters["stale_days"])
-    for goal in ctx.dataset["goals"]:
+    for goal in ctx.indexes["active_goals"]:
         if _progress(goal) >= 100:
             continue
         updated_at = parse_datetime(goal.get("updated_at"))

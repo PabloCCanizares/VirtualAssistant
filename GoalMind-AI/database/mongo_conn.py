@@ -29,7 +29,15 @@ _local_db_name = "VirtualAssistantDB"
 _remote_db_name = "VirtualAssistantDB"
 
 # Lista de colecciones para sincronización
-collections = ["Tasks", "Goals", "Projects", "ProjectDocuments", "Events", "PlanningSessions"]
+collections = [
+    "Tasks",
+    "Goals",
+    "Projects",
+    "ProjectDocuments",
+    "ProjectDocumentFolders",
+    "Events",
+    "PlanningSessions",
+]
 _configured_remote_uri = ""
 logger = logging.getLogger(__name__)
 

@@ -11,6 +11,7 @@ from services.user_context_service import (
     GOAL_FIELDS,
     PROJECT_FIELDS,
     TASK_FIELDS,
+    build_active_scope,
     doc_id,
     get_user_dataset,
     is_completed,
@@ -228,7 +229,15 @@ def build_operating_map(
     """Build a read-only relationship map across projects, goals and work items."""
     current = now or datetime.utcnow()
     bounded = bounded_limit(limit, default=50, maximum=200)
-    dataset = get_user_dataset(usuario_id=usuario_id)
+    raw_dataset = get_user_dataset(usuario_id=usuario_id)
+    active_scope = build_active_scope(raw_dataset)
+    dataset = {
+        **raw_dataset,
+        "projects": active_scope["projects"],
+        "goals": active_scope["goals"],
+        "tasks": active_scope["tasks"],
+        "documents": active_scope["documents"],
+    }
     projects_by_id = _index_by_id(dataset["projects"])
     goals_by_id = _index_by_id(dataset["goals"])
     tasks_by_id = _index_by_id(dataset["tasks"])

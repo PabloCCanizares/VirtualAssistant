@@ -127,9 +127,32 @@ def is_completed(item: dict) -> bool:
     return status in {"completada", "completado", "done", "finalizada", "finalizado"}
 
 
+def is_paused(item: dict) -> bool:
+    status = str(item.get("estado") or "").strip().lower()
+    return status in {
+        "pausada",
+        "pausado",
+        "paused",
+        "pause",
+        "en pausa",
+        "on hold",
+        "hold",
+        "suspendida",
+        "suspendido",
+    }
+
+
 def is_archived(item: dict) -> bool:
     status = str(item.get("estado") or "").strip().lower()
     return status in {"archivado", "archivada", "archivo", "cerrado", "cerrada"}
+
+
+def is_active_project(project: dict) -> bool:
+    return not is_completed(project) and not is_paused(project) and not is_archived(project)
+
+
+def is_active_goal(goal: dict) -> bool:
+    return not is_completed(goal) and not is_paused(goal) and not is_archived(goal)
 
 
 def item_timestamp(item: dict) -> datetime | None:
@@ -173,8 +196,60 @@ def _task_goal_id(task: dict) -> str:
     return ref_id(task.get("objetivo_id") or task.get("goal_id"))
 
 
+def _task_project_id(task: dict) -> str:
+    return ref_id(task.get("project_id"))
+
+
 def _task_due_at(task: dict) -> datetime | None:
     return parse_datetime(task.get("fecha_limite"))
+
+
+def build_active_scope(dataset: dict) -> dict[str, Any]:
+    """Return only entities that should contribute to operational cognition."""
+    project_by_id = {doc_id(project): project for project in dataset["projects"]}
+    active_projects = [project for project in dataset["projects"] if is_active_project(project)]
+    active_project_ids = {doc_id(project) for project in active_projects}
+
+    def project_scope_allows(project_id: str) -> bool:
+        return not project_id or project_id not in project_by_id or project_id in active_project_ids
+
+    active_goals = [
+        goal
+        for goal in dataset["goals"]
+        if is_active_goal(goal) and project_scope_allows(_goal_project_id(goal))
+    ]
+    goal_by_id = {doc_id(goal): goal for goal in dataset["goals"]}
+    active_goal_ids = {doc_id(goal) for goal in active_goals}
+
+    def goal_scope_allows(goal_id: str) -> bool:
+        return not goal_id or goal_id not in goal_by_id or goal_id in active_goal_ids
+
+    active_tasks = [
+        task
+        for task in dataset["tasks"]
+        if project_scope_allows(_task_project_id(task)) and goal_scope_allows(_task_goal_id(task))
+    ]
+    active_documents = [
+        document
+        for document in dataset["documents"]
+        if project_scope_allows(ref_id(document.get("project_id")))
+        and goal_scope_allows(ref_id(document.get("goal_id")))
+    ]
+
+    return {
+        "projects": active_projects,
+        "goals": active_goals,
+        "tasks": active_tasks,
+        "documents": active_documents,
+        "project_ids": active_project_ids,
+        "goal_ids": active_goal_ids,
+        "ignored_projects": [
+            project for project in dataset["projects"] if doc_id(project) not in active_project_ids
+        ],
+        "ignored_goals": [
+            goal for goal in dataset["goals"] if doc_id(goal) not in active_goal_ids
+        ],
+    }
 
 
 def _recent_items(dataset: dict, *, limit: int = 10) -> list[dict]:
@@ -208,23 +283,28 @@ def _recent_items(dataset: dict, *, limit: int = 10) -> list[dict]:
 def get_user_snapshot(usuario_id: str | None = None, *, now: datetime | None = None) -> dict:
     current = now or datetime.utcnow()
     dataset = get_user_dataset(usuario_id=usuario_id)
+    active_scope = build_active_scope(dataset)
+    active_dataset = {
+        **dataset,
+        "projects": active_scope["projects"],
+        "goals": active_scope["goals"],
+        "tasks": active_scope["tasks"],
+        "documents": active_scope["documents"],
+    }
 
-    project_ids_with_goals = {_goal_project_id(goal) for goal in dataset["goals"]}
-    goal_ids_with_tasks = {_task_goal_id(task) for task in dataset["tasks"] if _task_goal_id(task)}
+    project_ids_with_goals = {_goal_project_id(goal) for goal in active_scope["goals"]}
+    goal_ids_with_tasks = {
+        _task_goal_id(task) for task in active_scope["tasks"] if _task_goal_id(task)
+    }
 
     projects_without_goals = [
-        project for project in dataset["projects"] if doc_id(project) not in project_ids_with_goals
+        project for project in active_scope["projects"] if doc_id(project) not in project_ids_with_goals
     ]
     goals_without_tasks = [
-        goal for goal in dataset["goals"] if doc_id(goal) not in goal_ids_with_tasks
+        goal for goal in active_scope["goals"] if doc_id(goal) not in goal_ids_with_tasks
     ]
-    pending_tasks = [task for task in dataset["tasks"] if not is_completed(task)]
-    completed_tasks = [task for task in dataset["tasks"] if is_completed(task)]
-    active_projects = [
-        project
-        for project in dataset["projects"]
-        if not is_completed(project) and not is_archived(project)
-    ]
+    pending_tasks = [task for task in active_scope["tasks"] if not is_completed(task)]
+    completed_tasks = [task for task in active_scope["tasks"] if is_completed(task)]
 
     upcoming = []
     for task in pending_tasks:
@@ -243,23 +323,25 @@ def get_user_snapshot(usuario_id: str | None = None, *, now: datetime | None = N
         "user_id": dataset["user_id"],
         "generated_at": serialize_value(current),
         "counts": {
-            "projects": len(dataset["projects"]),
-            "goals": len(dataset["goals"]),
-            "tasks": len(dataset["tasks"]),
-            "documents": len(dataset["documents"]),
+            "projects": len(active_scope["projects"]),
+            "goals": len(active_scope["goals"]),
+            "tasks": len(active_scope["tasks"]),
+            "documents": len(active_scope["documents"]),
             "events": len(dataset["events"]),
             "pending_tasks": len(pending_tasks),
             "completed_tasks": len(completed_tasks),
-            "active_projects": len(active_projects),
+            "active_projects": len(active_scope["projects"]),
             "projects_without_goals": len(projects_without_goals),
             "goals_without_tasks": len(goals_without_tasks),
+            "ignored_inactive_projects": len(active_scope["ignored_projects"]),
+            "ignored_inactive_goals": len(active_scope["ignored_goals"]),
         },
         "projects_without_goals": [
             public_doc(project, PROJECT_FIELDS) for project in projects_without_goals
         ],
         "goals_without_tasks": [public_doc(goal, GOAL_FIELDS) for goal in goals_without_tasks],
         "upcoming_deadlines": upcoming[:10],
-        "recent_activity": _recent_items(dataset, limit=10),
+        "recent_activity": _recent_items(active_dataset, limit=10),
     }
 
 

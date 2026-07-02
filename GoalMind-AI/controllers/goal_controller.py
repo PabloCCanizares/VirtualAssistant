@@ -1,4 +1,7 @@
 # controllers/goal_controller.py
+from datetime import datetime
+from uuid import uuid4
+
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from database.mongo_conn import queue_deletion, flush_deletion_queue, get_app_user_id
 from model.goal_model import GoalModel
@@ -211,6 +214,55 @@ def view_goal(goal_id):
     except Exception as e:
         flash(f"Error al cargar el objetivo: {e}", "danger")
         return redirect(url_for("goal_bp.list_goals"))
+
+
+# -------------------------------------------------------------
+# ANOTACIONES DE OBJETIVO
+# -------------------------------------------------------------
+@goal_bp.route("/<goal_id>/notes/add", methods=["POST"])
+def add_goal_note(goal_id):
+    try:
+        text = (request.form.get("note_text") or "").strip()
+        if not text:
+            flash("La anotacion no puede estar vacia.", "warning")
+            return redirect(url_for("goal_bp.view_goal", goal_id=goal_id))
+
+        goal = GoalModel.get_goal_by_id(goal_id, usuario_id=DEFAULT_USER_ID)
+        if not goal:
+            flash("Objetivo no encontrado.", "warning")
+            return redirect(url_for("goal_bp.list_goals"))
+
+        note = {
+            "_id": uuid4().hex,
+            "text": text,
+            "created_at": datetime.utcnow(),
+        }
+        notes = goal.get("notas", []) or []
+        notes.append(note)
+        GoalModel.update_goal(goal_id, {"notas": notes}, usuario_id=DEFAULT_USER_ID)
+        flash("Anotacion agregada.", "success")
+    except Exception as e:
+        flash(f"Error al agregar anotacion: {e}", "danger")
+
+    return redirect(url_for("goal_bp.view_goal", goal_id=goal_id))
+
+
+@goal_bp.route("/<goal_id>/notes/<note_id>/delete", methods=["POST"])
+def delete_goal_note(goal_id, note_id):
+    try:
+        goal = GoalModel.get_goal_by_id(goal_id, usuario_id=DEFAULT_USER_ID)
+        if not goal:
+            flash("Objetivo no encontrado.", "warning")
+            return redirect(url_for("goal_bp.list_goals"))
+
+        notes = goal.get("notas", []) or []
+        notes = [note for note in notes if str(note.get("_id")) != str(note_id)]
+        GoalModel.update_goal(goal_id, {"notas": notes}, usuario_id=DEFAULT_USER_ID)
+        flash("Anotacion eliminada.", "success")
+    except Exception as e:
+        flash(f"Error al eliminar anotacion: {e}", "danger")
+
+    return redirect(url_for("goal_bp.view_goal", goal_id=goal_id))
 
 
 # -------------------------------------------------------------

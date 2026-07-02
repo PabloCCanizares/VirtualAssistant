@@ -80,6 +80,8 @@ class ProjectDocumentModel:
             doc_data["project_id"] = ObjectId(str(doc_data["project_id"]))
         if doc_data.get("goal_id") and not isinstance(doc_data["goal_id"], ObjectId):
             doc_data["goal_id"] = ObjectId(str(doc_data["goal_id"]))
+        if doc_data.get("folder_id") and not isinstance(doc_data["folder_id"], ObjectId):
+            doc_data["folder_id"] = ObjectId(str(doc_data["folder_id"]))
         if doc_data.get("upload_id") and not isinstance(doc_data["upload_id"], ObjectId):
             doc_data["upload_id"] = ObjectId(str(doc_data["upload_id"]))
 
@@ -96,7 +98,7 @@ class ProjectDocumentModel:
         local_col, _ = get_collection(ProjectDocumentModel.COLLECTION)
         _id = ObjectId(doc_id) if not isinstance(doc_id, ObjectId) else doc_id
         norm = dict(updates or {})
-        for key in ("project_id", "goal_id", "upload_id", "local_upload_id"):
+        for key in ("project_id", "goal_id", "folder_id", "upload_id", "local_upload_id"):
             if norm.get(key) and not isinstance(norm[key], ObjectId):
                 try:
                     norm[key] = ObjectId(str(norm[key]))
@@ -133,6 +135,7 @@ class ProjectDocumentModel:
                 metadata={
                     "project_id": str(doc.get("project_id", "")),
                     "goal_id": str(doc.get("goal_id", "")) if doc.get("goal_id") else "",
+                    "folder_id": str(doc.get("folder_id", "")) if doc.get("folder_id") else "",
                     "usuario_id": str(doc.get("usuario_id", "")),
                 },
                 app=app,

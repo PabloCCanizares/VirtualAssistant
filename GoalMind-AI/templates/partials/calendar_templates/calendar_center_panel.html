@@ -160,6 +160,15 @@
       <button id="btn-new" class="btn primary">+ Nuevo evento</button>
     </div>
     <div id="calendar"></div>
+    <section id="calendar-cell-view" class="calendar-cell-view" aria-label="Vista Cell compacta">
+      <div class="calendar-cell-main">
+        <div class="calendar-cell-grid-wrap" id="calendar-cell-grid-wrap"></div>
+        <div class="calendar-cell-daily-summary" id="calendar-cell-daily-summary" aria-label="Resumen diario"></div>
+      </div>
+      <aside class="calendar-cell-panel" aria-live="polite">
+        <div id="calendar-cell-panel-content"></div>
+      </aside>
+    </section>
   </div>
 
   <!-- Modal Crear/Editar -->
@@ -453,12 +462,429 @@
     const slotMin = '07:00:00'; // o lee de donde lo tengas
     const slotMax = '24:00:00';
     const initialContentHeight = calcContentHeight(slotMin, slotMax, 120);
+    let calendar = null;
+    let cellModeActive = false;
+    let selectedCellEventId = null;
+
+    function pad2(value) {
+      return String(value).padStart(2, '0');
+    }
+
+    function cloneDate(date) {
+      return new Date(date.getTime());
+    }
+
+    function cellAddDays(date, days) {
+      const next = cloneDate(date);
+      next.setDate(next.getDate() + days);
+      return next;
+    }
+
+    function cellStartOfWeek(date) {
+      const start = cloneDate(date);
+      start.setHours(0, 0, 0, 0);
+      const mondayOffset = (start.getDay() + 6) % 7;
+      start.setDate(start.getDate() - mondayOffset);
+      return start;
+    }
+
+    function sameDay(a, b) {
+      return a.getFullYear() === b.getFullYear()
+        && a.getMonth() === b.getMonth()
+        && a.getDate() === b.getDate();
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function eventEndDate(event) {
+      if (event.end) return event.end;
+      return new Date(event.start.getTime() + 30 * 60 * 1000);
+    }
+
+    function eventType(event) {
+      return event.extendedProps?.tipo_evento || 'otro';
+    }
+
+    function formatCellTime(date) {
+      return `${pad2(date.getHours())}:${pad2(date.getMinutes())}`;
+    }
+
+    function formatCellDuration(event) {
+      const end = eventEndDate(event);
+      const minutes = Math.max(15, Math.round((end - event.start) / 60000));
+      if (minutes < 60) return `${minutes}m`;
+      const hours = Math.floor(minutes / 60);
+      const rest = minutes % 60;
+      return rest ? `${hours}h ${rest}m` : `${hours}h`;
+    }
+
+    function formatCellDateLong(date) {
+      return new Intl.DateTimeFormat('es-ES', {
+        weekday: 'long',
+        day: '2-digit',
+        month: 'long'
+      }).format(date);
+    }
+
+    function formatCellRange(event) {
+      if (event.allDay) return 'Todo el dia';
+      return `${formatCellTime(event.start)} - ${formatCellTime(eventEndDate(event))}`;
+    }
+
+    function firstMetricValue(source, keys, fallback = 'Pendiente') {
+      for (const key of keys) {
+        const value = source?.[key];
+        if (value !== undefined && value !== null && String(value).trim() !== '') {
+          return String(value);
+        }
+      }
+      return fallback;
+    }
+
+    function eventLoadLabel(event) {
+      const raw = event.extendedProps?.raw || {};
+      return firstMetricValue(raw, ['carga', 'carga_llm', 'load', 'workload']);
+    }
+
+    function eventFocusLabel(event) {
+      const raw = event.extendedProps?.raw || {};
+      return firstMetricValue(raw, ['foco', 'foco_llm', 'focus', 'focus_mode']);
+    }
+
+    function dayMetricValue(events, day, keys, fallback = 'Pend.') {
+      const dayEvents = eventsForCellDay(events, day);
+      for (const event of dayEvents) {
+        const value = firstMetricValue(event.extendedProps?.raw || {}, keys, '');
+        if (value) return value;
+      }
+      return fallback;
+    }
+
+    function formatSleepLabel(value) {
+      const text = String(value || '').trim();
+      if (!text || text.toLowerCase().startsWith('pend')) return 'Pend.';
+      const normalized = text.replace(',', '.').replace(/[^\d.]/g, '');
+      const hoursValue = Number(normalized);
+      if (Number.isFinite(hoursValue) && normalized) {
+        const hours = Math.floor(hoursValue);
+        const minutes = Math.round((hoursValue - hours) * 60);
+        return minutes ? `${hours}h ${minutes}m` : `${hours}h`;
+      }
+      return text;
+    }
+
+    function daySleepLabel(events, day) {
+      const value = dayMetricValue(events, day, [
+        'horas_sueno',
+        'sueno_horas',
+        'sleep_hours',
+        'sleep_duration',
+        'sleep',
+        'descanso'
+      ]);
+      return formatSleepLabel(value);
+    }
+
+    function isAllDayOnDate(event, day) {
+      if (!event.allDay) return false;
+      const eventStart = cloneDate(event.start);
+      const eventEnd = event.end ? cloneDate(event.end) : cellAddDays(eventStart, 1);
+      eventStart.setHours(0, 0, 0, 0);
+      eventEnd.setHours(0, 0, 0, 0);
+      const dayStart = cloneDate(day);
+      dayStart.setHours(0, 0, 0, 0);
+      const dayEnd = cellAddDays(dayStart, 1);
+      return eventStart < dayEnd && eventEnd > dayStart;
+    }
+
+    function shouldShowEventInSlot(event, slotStart, slotEnd, visibleStartHour) {
+      if (!event.start || event.allDay) return false;
+      if (!sameDay(event.start, slotStart)) return false;
+      const startsInsideSlot = event.start >= slotStart && event.start < slotEnd;
+      const startsBeforeVisibleRange = event.start < slotStart
+        && slotStart.getHours() === visibleStartHour
+        && eventEndDate(event) > slotStart;
+      return startsInsideSlot || startsBeforeVisibleRange;
+    }
+
+    function eventToEditData(event) {
+      return {
+        id: event.id,
+        title: event.title,
+        start: event.start?.toISOString(),
+        end: event.end?.toISOString(),
+        extendedProps: event.extendedProps || {},
+        descripcion: event.extendedProps?.descripcion || '',
+        tipo_evento: event.extendedProps?.tipo_evento || ''
+      };
+    }
+
+    function eventOverlapsDay(event, day) {
+      if (!event.start) return false;
+      const dayStart = cloneDate(day);
+      dayStart.setHours(0, 0, 0, 0);
+      const dayEnd = cellAddDays(dayStart, 1);
+      return event.start < dayEnd && eventEndDate(event) > dayStart;
+    }
+
+    function eventsForCellDay(events, day) {
+      return events
+        .filter(event => eventOverlapsDay(event, day))
+        .sort((a, b) => a.start - b.start);
+    }
+
+    function renderCellChip(event, allDay = false) {
+      const tipo = escapeHtml(eventType(event));
+      const time = allDay ? 'Dia' : formatCellTime(event.start);
+      const duration = allDay ? '' : ` ${formatCellDuration(event)}`;
+      const selectedClass = selectedCellEventId === event.id ? ' is-selected' : '';
+      return `
+        <button type="button" class="calendar-cell-chip${selectedClass}" data-event-id="${escapeHtml(event.id)}" data-tipo="${tipo}" title="${escapeHtml(event.title)}">
+          <span>${escapeHtml(time)}</span>
+          <strong>${escapeHtml(event.title || '(Sin titulo)')}</strong>
+          ${duration ? `<em>${escapeHtml(duration)}</em>` : ''}
+        </button>
+      `;
+    }
+
+    function renderDailySummary(events, days) {
+      const summaryEl = document.getElementById('calendar-cell-daily-summary');
+      if (!summaryEl) return;
+      const dayFormatter = new Intl.DateTimeFormat('es-ES', { weekday: 'short', day: '2-digit' });
+      const cells = days.map(day => {
+        const dayEvents = eventsForCellDay(events, day);
+        const busyMinutes = dayEvents.reduce((sum, event) => {
+          if (!event.start || event.allDay) return sum;
+          return sum + Math.max(15, Math.round((eventEndDate(event) - event.start) / 60000));
+        }, 0);
+        const hours = Math.floor(busyMinutes / 60);
+        const minutes = busyMinutes % 60;
+        const timeLabel = busyMinutes ? `${hours}h${minutes ? ` ${minutes}m` : ''}` : '0h';
+        const firstEvent = dayEvents.find(event => !event.allDay);
+        const dayLoad = firstMetricValue(dayEvents[0]?.extendedProps?.raw || {}, ['carga_dia', 'carga', 'load'], 'Pend.');
+        const dayFocus = firstMetricValue(dayEvents[0]?.extendedProps?.raw || {}, ['foco_dia', 'foco', 'focus'], 'Pend.');
+        return `
+          <div class="calendar-cell-day-summary">
+            <span>${escapeHtml(dayFormatter.format(day))}</span>
+            <strong>${dayEvents.length}</strong>
+            <em>ev.</em>
+            <small>${escapeHtml(timeLabel)}</small>
+            <mark>${firstEvent ? escapeHtml(formatCellTime(firstEvent.start)) : 'libre'}</mark>
+            <i>Carga <b>${escapeHtml(dayLoad)}</b></i>
+            <i>Foco <b>${escapeHtml(dayFocus)}</b></i>
+          </div>
+        `;
+      }).join('');
+      summaryEl.innerHTML = `
+        <div class="calendar-cell-day-summary-label">Resumen</div>
+        <div class="calendar-cell-day-summary-list">${cells}</div>
+      `;
+    }
+
+    function renderCellPanel(events, days) {
+      const panelEl = document.getElementById('calendar-cell-panel-content');
+      if (!panelEl) return;
+      const selectedEvent = selectedCellEventId ? calendar?.getEventById(selectedCellEventId) : null;
+
+      if (selectedEvent) {
+        const raw = selectedEvent.extendedProps?.raw || {};
+        const description = selectedEvent.extendedProps?.descripcion || raw.descripcion || '';
+        const referenceType = raw.referencia_tipo || raw.id_tarea && 'tarea' || raw.id_objetivo && 'objetivo' || '';
+        panelEl.innerHTML = `
+          <div class="calendar-cell-panel-kicker">Evento</div>
+          <h3>${escapeHtml(selectedEvent.title || '(Sin titulo)')}</h3>
+          <div class="calendar-cell-detail">
+            <div>
+              <span>Cuando</span>
+              <strong>${escapeHtml(formatCellRange(selectedEvent))}</strong>
+            </div>
+            <div>
+              <span>Duracion</span>
+              <strong>${escapeHtml(formatCellDuration(selectedEvent))}</strong>
+            </div>
+            <div>
+              <span>Tipo</span>
+              <strong>${escapeHtml(eventType(selectedEvent))}</strong>
+            </div>
+            <div>
+              <span>Dia</span>
+              <strong>${escapeHtml(formatCellDateLong(selectedEvent.start))}</strong>
+            </div>
+            <div class="calendar-cell-detail-ai">
+              <span>Carga</span>
+              <strong>${escapeHtml(eventLoadLabel(selectedEvent))}</strong>
+            </div>
+            <div class="calendar-cell-detail-ai">
+              <span>Foco</span>
+              <strong>${escapeHtml(eventFocusLabel(selectedEvent))}</strong>
+            </div>
+          </div>
+          ${description ? `<p class="calendar-cell-detail-note">${escapeHtml(description)}</p>` : ''}
+          ${referenceType ? `<p class="calendar-cell-detail-link">${escapeHtml(referenceType)}</p>` : ''}
+          <div class="calendar-cell-panel-actions">
+            <button type="button" class="calendar-cell-panel-btn" id="calendar-cell-edit-event">Editar</button>
+            <button type="button" class="calendar-cell-panel-btn ghost" id="calendar-cell-clear-event">Cerrar</button>
+          </div>
+        `;
+        document.getElementById('calendar-cell-edit-event')?.addEventListener('click', () => {
+          openModal('edit', eventToEditData(selectedEvent));
+        });
+        document.getElementById('calendar-cell-clear-event')?.addEventListener('click', () => {
+          selectedCellEventId = null;
+          renderCellView();
+        });
+        return;
+      }
+
+      const visibleEvents = events.filter(event => {
+        const end = eventEndDate(event);
+        return event.start < cellAddDays(days[days.length - 1], 1) && end >= days[0];
+      });
+      const byType = visibleEvents.reduce((acc, event) => {
+        const tipo = eventType(event);
+        acc[tipo] = (acc[tipo] || 0) + 1;
+        return acc;
+      }, {});
+      const typeRows = Object.entries(byType)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 4)
+        .map(([tipo, count]) => `<span><b>${escapeHtml(count)}</b>${escapeHtml(tipo || 'otro')}</span>`)
+        .join('');
+      panelEl.innerHTML = `
+        <div class="calendar-cell-panel-kicker">Cell</div>
+        <h3>Semana compacta</h3>
+        <div class="calendar-cell-summary">
+          <div><b>${visibleEvents.length}</b><span>eventos</span></div>
+          <div><b>${days.length}</b><span>dias</span></div>
+          <div><b>IA</b><span>carga</span></div>
+          <div><b>IA</b><span>foco</span></div>
+          ${typeRows || '<span><b>0</b>sin eventos</span>'}
+        </div>
+        <p class="calendar-cell-panel-hint">Selecciona un evento para verlo aqui.</p>
+      `;
+    }
+
+    function selectCellEvent(eventId) {
+      selectedCellEventId = eventId;
+      renderCellView();
+    }
+
+    function renderCellView() {
+      if (!calendar) return;
+      const gridWrap = document.getElementById('calendar-cell-grid-wrap');
+      if (!gridWrap) return;
+
+      const startHour = timeStrToMinutes(slotMin) / 60;
+      const endHour = timeStrToMinutes(slotMax) / 60;
+      const weekStart = cellStartOfWeek(calendar.getDate());
+      const days = Array.from({ length: 7 }, (_, index) => cellAddDays(weekStart, index));
+      const events = calendar.getEvents();
+      const dayFormatter = new Intl.DateTimeFormat('es-ES', { weekday: 'short', day: '2-digit', month: 'short' });
+      const today = new Date();
+      const parts = ['<div class="calendar-cell-grid" role="grid">'];
+
+      parts.push('<div class="calendar-cell-head calendar-cell-time-head">Hora</div>');
+      days.forEach(day => {
+        const isToday = sameDay(day, today) ? ' is-today' : '';
+        parts.push(`<div class="calendar-cell-head calendar-cell-day-head${isToday}">${escapeHtml(dayFormatter.format(day))}</div>`);
+      });
+
+      parts.push('<div class="calendar-cell-time calendar-cell-sleep-head">Sueño</div>');
+      days.forEach(day => {
+        parts.push(`
+          <div class="calendar-cell-slot calendar-cell-sleep-row">
+            <span>Horas</span>
+            <strong>${escapeHtml(daySleepLabel(events, day))}</strong>
+          </div>
+        `);
+      });
+
+      for (let hour = startHour; hour < endHour; hour += 1) {
+        const safeHour = Math.floor(hour);
+        const rowTone = Math.round(hour - startHour) % 2 === 0 ? ' is-row-even' : ' is-row-odd';
+        parts.push(`<div class="calendar-cell-time${rowTone}">${pad2(safeHour)}:00</div>`);
+        days.forEach(day => {
+          const slotStart = cloneDate(day);
+          slotStart.setHours(safeHour, 0, 0, 0);
+          const slotEnd = cloneDate(day);
+          slotEnd.setHours(safeHour + 1, 0, 0, 0);
+          const matches = events.filter(event => shouldShowEventInSlot(event, slotStart, slotEnd, startHour));
+          const visible = matches.slice(0, 4).map(event => renderCellChip(event)).join('');
+          const overflow = matches.length > 4
+            ? `<span class="calendar-cell-more">+${matches.length - 4}</span>`
+            : '';
+          const isToday = sameDay(day, today) ? ' is-today' : '';
+          parts.push(`
+            <div class="calendar-cell-slot${isToday}${rowTone}" data-start="${slotStart.toISOString()}" data-end="${slotEnd.toISOString()}">
+              ${visible}${overflow}
+            </div>
+          `);
+        });
+      }
+
+      parts.push('</div>');
+      gridWrap.innerHTML = parts.join('');
+      renderDailySummary(events, days);
+      renderCellPanel(events, days);
+
+      gridWrap.querySelectorAll('.calendar-cell-slot[data-start]').forEach(slot => {
+        slot.addEventListener('click', (event) => {
+          if (event.target.closest('.calendar-cell-chip')) return;
+          openModal('new', { start: slot.dataset.start, end: slot.dataset.end });
+        });
+      });
+
+      gridWrap.querySelectorAll('.calendar-cell-chip').forEach(chip => {
+        chip.addEventListener('click', (event) => {
+          event.stopPropagation();
+          selectCellEvent(chip.dataset.eventId);
+        });
+        chip.addEventListener('dblclick', (event) => {
+          event.stopPropagation();
+          const calendarEvent = calendar.getEventById(chip.dataset.eventId);
+          if (calendarEvent) openModal('edit', eventToEditData(calendarEvent));
+        });
+      });
+    }
+
+    function setCellMode(active) {
+      const container = document.getElementById('calendar-container');
+      const calendarEl = document.getElementById('calendar');
+      cellModeActive = active;
+      container?.classList.toggle('is-cell-mode', active);
+      if (active) {
+        calendarEl?.querySelectorAll('.fc-dayGridMonth-button, .fc-timeGridWeek-button, .fc-timeGridDay-button, .fc-listWeek-button')
+          .forEach(button => button.classList.remove('fc-button-active'));
+      }
+      const cellButton = calendarEl?.querySelector('.fc-cellView-button');
+      cellButton?.classList.toggle('fc-button-active', active);
+      cellButton?.setAttribute('aria-pressed', active ? 'true' : 'false');
+
+      if (active) {
+        renderCellView();
+      } else if (calendar) {
+        calendar.updateSize();
+      }
+    }
+
+    function wireViewButtons(calendarEl) {
+      ['dayGridMonth', 'timeGridWeek', 'timeGridDay', 'listWeek'].forEach(viewName => {
+        calendarEl.querySelector(`.fc-${viewName}-button`)?.addEventListener('click', () => setCellMode(false));
+      });
+    }
 
     // ---------- FullCalendar ----------
     document.addEventListener('DOMContentLoaded', function () {
       const calendarEl = document.getElementById('calendar');
 
-      const calendar = new FullCalendar.Calendar(calendarEl, {
+      calendar = new FullCalendar.Calendar(calendarEl, {
         locale: 'es',
         timeZone: 'local',
         initialView: 'timeGridWeek',
@@ -470,10 +896,19 @@
         selectMirror: true,
         editable: true,              // permite drag & drop y redimensionar
         eventResizableFromStart: true,
+        customButtons: {
+          cellView: {
+            text: 'Cell',
+            click: function () {
+              calendar.changeView('timeGridWeek');
+              setCellMode(true);
+            }
+          }
+        },
         headerToolbar: {
           left: 'prev,next today',
           center: 'title',
-          right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
+          right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek cellView'
         },
         height: window.innerHeight,
         buttonText: {
@@ -539,10 +974,25 @@
         // Redimensionar evento -> guardar
         eventResize: async function (resizeInfo) {
           await quickUpdateDates(resizeInfo);
+        },
+
+        eventDidMount: function (info) {
+          const tipo = info.event.extendedProps?.tipo_evento;
+          if (tipo) info.el.dataset.tipo = tipo;
+        },
+
+        datesSet: function () {
+          if (cellModeActive) renderCellView();
+        },
+
+        eventsSet: function () {
+          if (cellModeActive) renderCellView();
         }
       });
 
       calendar.render();
+      wireViewButtons(calendarEl);
+      setCellMode(true);
 
       // Botones extras
       btnNew.addEventListener('click', () => {
@@ -551,7 +1001,6 @@
         openModal('new', { start: now.toISOString(), end: in1h.toISOString() });
       });
       btnToday.addEventListener('click', () => calendar.today());
-      document.getElementById('btn-today').addEventListener('click', () => calendar.today());
 
       // Guardar (crear/actualizar)
       form.addEventListener('submit', async (e) => {
@@ -662,8 +1111,10 @@
     });
 
     window.addEventListener('resize', () => {
+      if (!calendar) return;
       const h = calcContentHeight(slotMin, slotMax, 120);
       calendar.setOption('contentHeight', h);
+      if (cellModeActive) renderCellView();
     });
   </script>
 </body>
