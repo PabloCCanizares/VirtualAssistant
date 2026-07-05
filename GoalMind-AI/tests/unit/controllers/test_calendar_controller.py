@@ -30,6 +30,20 @@ def events_col(monkeypatch):
     db = client["test"]
     col = db["Events"]
     monkeypatch.setattr(calendar_controller, "_events_col", lambda: (col, None))
+
+    def _queue_deletion(collection_name, target_id):
+        assert collection_name == "Events"
+        queries = [{"_id": target_id}]
+        try:
+            if ObjectId.is_valid(str(target_id)):
+                queries.append({"_id": ObjectId(str(target_id))})
+        except Exception:
+            pass
+        col.delete_many({"$or": queries})
+        return True
+
+    monkeypatch.setattr(calendar_controller, "queue_deletion", _queue_deletion)
+    monkeypatch.setattr(calendar_controller, "flush_deletion_queue", lambda: 0)
     return col
 
 
@@ -143,6 +157,15 @@ class TestApiListEvents:
         assert isinstance(body[0]["referencia_id"], str)
         assert body[0]["referencia_id"] == str(ref)
 
+    def test_legacy_event_infers_time_layer(self, client, events_col):
+        _insert_event(events_col, titulo="Deporte", tipo_evento="otro")
+
+        body = client.get("/api/events").get_json()
+
+        assert body[0]["capa_tiempo"] == "salud"
+        assert body[0]["cuenta_productivo"] is False
+        assert body[0]["cuenta_recuperacion"] is True
+
 
 # ---------------------------------------------------------------------------
 # POST /api/events
@@ -181,6 +204,23 @@ class TestApiCreateEvent:
         # Y se ha guardado.
         assert events_col.count_documents({}) == 1
 
+    def test_creates_event_with_time_layer(self, client, events_col):
+        resp = client.post(
+            "/api/events",
+            json={
+                "titulo": "Cine",
+                "fecha_inicio": "2026-05-17T20:00:00Z",
+                "fecha_fin": "2026-05-17T22:00:00Z",
+                "capa_tiempo": "ocio",
+            },
+        )
+
+        assert resp.status_code == 201
+        body = resp.get_json()
+        assert body["capa_tiempo"] == "ocio"
+        assert body["cuenta_productivo"] is False
+        assert body["cuenta_recuperacion"] is True
+
     def test_creates_event_with_reference_to_task(self, client, events_col, monkeypatch):
         captured = {}
 
@@ -204,6 +244,67 @@ class TestApiCreateEvent:
         assert resp.status_code == 201
         # Se ha invocado add_event_to_task con el task_id.
         assert "called" in captured
+
+    def test_task_event_assigned_to_goal_creates_goal_task(self, client, events_col, monkeypatch):
+        inserted_tasks = []
+        add_calls = []
+        recalc_calls = []
+
+        def _insert_task(task_data, usuario_id=None):
+            task = dict(task_data)
+            task["_id"] = ObjectId()
+            inserted_tasks.append((task, usuario_id))
+            return task
+
+        monkeypatch.setattr(
+            calendar_controller.TaskModel, "insert_task", staticmethod(_insert_task)
+        )
+        monkeypatch.setattr(
+            calendar_controller.TaskModel,
+            "add_event_to_task",
+            staticmethod(lambda *a, **k: add_calls.append((a, k)) or True),
+        )
+        monkeypatch.setattr(
+            calendar_controller.TaskModel,
+            "recalculate_goal_progress",
+            staticmethod(lambda *a, **k: recalc_calls.append((a, k)) or 0),
+        )
+
+        goal_id = ObjectId()
+        resp = client.post(
+            "/api/events",
+            json={
+                "titulo": "Paper jay",
+                "descripcion": "Lectura y notas",
+                "fecha_inicio": "2026-05-17T10:00:00Z",
+                "fecha_fin": "2026-05-17T11:00:00Z",
+                "tipo_evento": "tarea",
+                "referencia_id": str(goal_id),
+                "referencia_tipo": "objetivo",
+            },
+        )
+
+        assert resp.status_code == 201
+        body = resp.get_json()
+        assert len(inserted_tasks) == 1
+        task_doc, usuario_id = inserted_tasks[0]
+        assert usuario_id == calendar_controller.DEFAULT_USER_ID
+        assert task_doc["contenido"] == "Paper jay"
+        assert task_doc["descripcion"] == "Lectura y notas"
+        assert task_doc["objetivo_id"] == goal_id
+        assert str(task_doc["event_ids"][0]) == body["_id"]
+
+        assert body["referencia_tipo"] == "tarea"
+        assert body["referencia_id"] == str(task_doc["_id"])
+        assert body["objetivo_id"] == str(goal_id)
+        assert body["generated_task_id"] == str(task_doc["_id"])
+        assert add_calls
+        assert recalc_calls
+
+        saved = events_col.find_one({"_id": ObjectId(body["_id"])})
+        assert saved["referencia_tipo"] == "tarea"
+        assert saved["referencia_id"] == task_doc["_id"]
+        assert saved["objetivo_id"] == goal_id
 
     def test_invalid_reference_id_is_silently_cleared(self, client):
         resp = client.post(
@@ -247,6 +348,19 @@ class TestApiUpdateEvent:
         assert resp.status_code == 200
         body = resp.get_json()
         assert body["titulo"] == "nuevo"
+
+    def test_updates_time_layer_only(self, client, events_col):
+        ev = _insert_event(events_col, capa_tiempo="productivo")
+
+        resp = client.patch(
+            f"/api/events/{ev['_id']}",
+            json={"capa_tiempo": "mantenimiento"},
+        )
+
+        assert resp.status_code == 200
+        body = resp.get_json()
+        assert body["capa_tiempo"] == "mantenimiento"
+        assert body["cuenta_productivo"] is False
 
     def test_invalid_fecha_inicio_returns_400(self, client, events_col):
         ev = _insert_event(events_col)
@@ -329,6 +443,26 @@ class TestApiDeleteEvent:
         assert resp.get_json()["deleted"] is True
         assert events_col.count_documents({}) == 0
 
+    def test_queues_deletion_to_prevent_remote_resurrection(self, client, events_col, monkeypatch):
+        ev = _insert_event(events_col)
+        queued = []
+        flushed = []
+
+        def _queue_deletion(collection_name, target_id):
+            queued.append((collection_name, target_id))
+            events_col.delete_one({"_id": target_id})
+            return True
+
+        monkeypatch.setattr(calendar_controller, "queue_deletion", _queue_deletion)
+        monkeypatch.setattr(calendar_controller, "flush_deletion_queue", lambda: flushed.append(True) or 1)
+
+        resp = client.delete(f"/api/events/{ev['_id']}")
+
+        assert resp.status_code == 200
+        assert queued == [("Events", ev["_id"])]
+        assert flushed == [True]
+        assert events_col.find_one({"_id": ev["_id"]}) is None
+
     def test_deletes_with_legacy_id_objetivo_triggers_sync(self, client, events_col, monkeypatch):
         ev = _insert_event(events_col, id_objetivo=ObjectId())
         sync_calls = []
@@ -364,6 +498,89 @@ class TestApiTimeline:
         titulos = [e["titulo"] for e in body]
         assert "pasado" in titulos
         assert "futuro" not in titulos
+
+
+# ---------------------------------------------------------------------------
+# GET/PUT /api/daily-metrics
+# ---------------------------------------------------------------------------
+
+
+class TestApiDailyMetrics:
+    def test_requires_start_date(self, client):
+        resp = client.get("/api/daily-metrics")
+
+        assert resp.status_code == 400
+        assert "start" in resp.get_json()["error"]
+
+    def test_saves_and_lists_sleep_metric(self, client, mongo_mock):
+        save_resp = client.put(
+            "/api/daily-metrics/2026-07-02/sleep",
+            json={"sleep_hours": 7.5},
+        )
+
+        assert save_resp.status_code == 200
+        saved = save_resp.get_json()
+        assert saved["date"] == "2026-07-02"
+        assert saved["sleep_hours"] == 7.5
+        assert saved["sleep_source"] == "manual"
+        assert mongo_mock.local_db["DailyMetrics"].count_documents({}) == 1
+
+        list_resp = client.get("/api/daily-metrics?start=2026-07-01&end=2026-07-07")
+        body = list_resp.get_json()
+        assert list_resp.status_code == 200
+        assert len(body) == 1
+        assert body[0]["date"] == "2026-07-02"
+
+    def test_daily_metrics_can_refresh_weather(self, client, monkeypatch):
+        calls = []
+
+        def _fake_weather(start, end, usuario_id=None):
+            calls.append((start, end, usuario_id))
+            return {"updated": 0, "errors": [], "enabled": True}
+
+        monkeypatch.setattr(calendar_controller, "ensure_weather_for_range", _fake_weather)
+
+        resp = client.get("/api/daily-metrics?start=2026-07-01&end=2026-07-07&weather=1")
+
+        assert resp.status_code == 200
+        assert len(calls) == 1
+        assert calls[0][0] == "2026-07-01"
+        assert calls[0][1] == "2026-07-07"
+
+    def test_saves_mood_on_existing_daily_metric(self, client, mongo_mock):
+        client.put(
+            "/api/daily-metrics/2026-07-02/sleep",
+            json={"sleep_hours": 7.5},
+        )
+        mood_resp = client.put(
+            "/api/daily-metrics/2026-07-02/mood",
+            json={"mood_score": 5},
+        )
+
+        assert mood_resp.status_code == 200
+        saved = mood_resp.get_json()
+        assert saved["sleep_hours"] == 7.5
+        assert saved["mood_score"] == 5
+        assert saved["mood_label"] == "muy_bueno"
+        assert mongo_mock.local_db["DailyMetrics"].count_documents({}) == 1
+
+    def test_rejects_invalid_sleep_hours(self, client):
+        resp = client.put(
+            "/api/daily-metrics/2026-07-02/sleep",
+            json={"sleep_hours": 26},
+        )
+
+        assert resp.status_code == 400
+        assert "0 y 24" in resp.get_json()["error"]
+
+    def test_rejects_invalid_mood(self, client):
+        resp = client.put(
+            "/api/daily-metrics/2026-07-02/mood",
+            json={"mood_score": 9},
+        )
+
+        assert resp.status_code == 400
+        assert "1 y 5" in resp.get_json()["error"]
 
 
 # ---------------------------------------------------------------------------

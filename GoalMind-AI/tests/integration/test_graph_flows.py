@@ -17,6 +17,7 @@ hasta `finalize`, con un `ScriptedLLM` que dispatch-ea por substring del
 from __future__ import annotations
 
 import json
+from datetime import datetime
 
 import pytest
 from bson import ObjectId
@@ -187,6 +188,87 @@ class TestResearchFlow:
         assert _final_reply(events) == "respuesta final del writer"
         # El nodo finalize debe haberse activado.
         assert "Finalizador" in _node_keys_traversed(events)
+
+
+class TestWeeklySummaryFallback:
+    """El resumen semanal debe responder aunque el LLM falle en ese nodo."""
+
+    def test_weekly_summary_uses_metrics_fallback_when_llm_fails(
+        self, mongo_mock, patch_llm, scripted_llm
+    ):
+        now = datetime.utcnow()
+        mongo_mock.local_db["Tasks"].insert_many(
+            [
+                {
+                    "_id": ObjectId(),
+                    "contenido": "Cerrada esta semana",
+                    "estado": "completada",
+                    "fecha_limite": now,
+                    "updated_at": now,
+                    "usuario_id": USER_ID_STR,
+                },
+                {
+                    "_id": ObjectId(),
+                    "contenido": "Pendiente hoy",
+                    "estado": "pendiente",
+                    "fecha_limite": now,
+                    "prioridad": "alta",
+                    "usuario_id": USER_ID_STR,
+                },
+            ]
+        )
+        llm = scripted_llm({
+            "supervisor de GoalMind AI": supervisor_response("weekly_summary"),
+            "resumen de la semana": RuntimeError("LLM down"),
+        })
+        patch_llm(llm)
+
+        events = _consume_stream("Hazme un resumen de la semana")
+        reply = _final_reply(events)
+
+        assert "Resumen semanal" in reply
+        assert "No pude generar" not in reply
+        assert "completaste" in reply
+
+
+class TestRecommendationsFallback:
+    """Las recomendaciones deben responder aunque falle el LLM en ese nodo."""
+
+    def test_recommendations_uses_context_fallback_when_llm_fails(
+        self, mongo_mock, patch_llm, scripted_llm
+    ):
+        now = datetime.utcnow()
+        mongo_mock.local_db["Tasks"].insert_one(
+            {
+                "_id": ObjectId(),
+                "contenido": "Preparar demo",
+                "estado": "pendiente",
+                "prioridad": "alta",
+                "fecha_limite": now,
+                "usuario_id": USER_ID_STR,
+            }
+        )
+        mongo_mock.local_db["Projects"].insert_one(
+            {
+                "_id": ObjectId(),
+                "titulo": "TFG",
+                "estado": "activo",
+                "progreso": 0,
+                "usuario_id": USER_ID_STR,
+            }
+        )
+        llm = scripted_llm({
+            "supervisor de GoalMind AI": supervisor_response("recommendations"),
+            "recomendaciones personales": RuntimeError("LLM down"),
+        })
+        patch_llm(llm)
+
+        events = _consume_stream("Dame recomendaciones personales")
+        reply = _final_reply(events)
+
+        assert "Recomendaciones personales" in reply
+        assert "Preparar demo" in reply
+        assert "No pude generar" not in reply
 
 
 class TestDeepResearchFallback:

@@ -1,0 +1,83 @@
+<section class="gm-panel gm-weekly-meeting" id="weeklyMeetingPanel" data-weekly-meeting data-llm-slot="weekly_planning_meeting">
+  <div class="gm-weekly-meeting-hero">
+    <div class="gm-weekly-agent-core" aria-hidden="true">
+      <span></span>
+      <i></i>
+    </div>
+    <div class="gm-weekly-agent-copy">
+      <span class="gm-panel-kicker">Reunion con el agente</span>
+      <h3>Briefing semanal</h3>
+      <div class="gm-weekly-agent-line">
+        <strong data-weekly-meeting-state>Sin reunion</strong>
+        <small data-weekly-meeting-reason>Contexto semanal pendiente.</small>
+      </div>
+    </div>
+    <div class="gm-weekly-meeting-controls">
+      <button class="gm-panel-link gm-weekly-meeting-ghost" type="button" data-weekly-meeting-refresh>Actualizar</button>
+      <button class="gm-panel-link" type="button" data-weekly-meeting-start>Iniciar</button>
+    </div>
+  </div>
+
+  <div class="gm-weekly-signal-strip" aria-label="Estado de la reunion">
+    <div class="gm-weekly-signal gm-signal-capacity">
+      <span>Capacidad</span>
+      <strong data-weekly-signal-capacity>Sin dato</strong>
+      <small data-weekly-signal-budget>Presupuesto semanal</small>
+    </div>
+    <div class="gm-weekly-signal gm-signal-energy">
+      <span>Energia</span>
+      <strong data-weekly-signal-energy>Pendiente</strong>
+      <small data-weekly-signal-session>Sesion sin iniciar</small>
+    </div>
+    <div class="gm-weekly-signal gm-signal-focus">
+      <span>Foco</span>
+      <strong data-weekly-signal-focus>0 frentes</strong>
+      <small data-weekly-signal-success>Criterio no fijado</small>
+    </div>
+    <div class="gm-weekly-signal gm-signal-progress">
+      <span>Briefing</span>
+      <strong data-weekly-signal-progress>0%</strong>
+      <small data-weekly-signal-next>Preguntas pendientes</small>
+    </div>
+  </div>
+
+  <div class="gm-weekly-meeting-grid">
+    <div class="gm-weekly-briefing-board">
+      <div class="gm-weekly-board-head">
+        <span>Contexto declarado</span>
+        <em data-weekly-source>MCP</em>
+      </div>
+      <form class="gm-weekly-meeting-form" data-weekly-meeting-form>
+        <div class="gm-weekly-meeting-fields" data-weekly-meeting-fields></div>
+        <div class="gm-weekly-meeting-actions">
+          <button class="gm-weekly-meeting-save" type="button" data-weekly-meeting-save>Guardar contexto</button>
+          <button class="gm-weekly-meeting-plan-btn" type="button" data-weekly-meeting-plan>Generar plan</button>
+        </div>
+      </form>
+    </div>
+
+    <aside class="gm-weekly-decision-deck" data-weekly-meeting-output>
+      <div class="gm-weekly-capacity-dial">
+        <span>Capacidad efectiva</span>
+        <strong data-weekly-meeting-capacity>Sin plan</strong>
+        <i><em data-weekly-capacity-fill></em></i>
+        <small data-weekly-meeting-focus>Esperando reunion semanal.</small>
+      </div>
+
+      <div class="gm-weekly-plan-stack">
+        <div class="gm-weekly-stack-head">
+          <span>Decisiones de la semana</span>
+          <em data-weekly-plan-count>0 acciones</em>
+        </div>
+        <div class="gm-weekly-meeting-plan-list" data-weekly-meeting-plan-list>
+          <div class="gm-brain-empty">El plan aparecera aqui cuando guardes la reunion.</div>
+        </div>
+      </div>
+
+      <div class="gm-weekly-mcp-console" data-weekly-meeting-mcp-slot>
+        <span>MCP operativo</span>
+        <small data-weekly-meeting-mcp-copy>Conectando herramientas de planificacion semanal.</small>
+      </div>
+    </aside>
+  </div>
+</section>

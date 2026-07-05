@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/config.css') }}">
+
+{% include "partials/config_panel.html" %}
+
+<script src="{{ url_for('static', filename='js/config.js') }}"></script>
+{% endblock %}

@@ -126,10 +126,74 @@ class TestSimpleAgents:
         out = recommendations_node({"messages": [], "context_json": "{}"}, llm)
         assert "draft_response" in out
 
+    def test_recommendations_uses_context_when_llm_fails(self):
+        context = json.dumps({
+            "tasks": [
+                {
+                    "contenido": "Entregar informe",
+                    "estado": "pendiente",
+                    "prioridad": "alta",
+                    "fecha_limite": "2026-07-04T10:00:00",
+                }
+            ],
+            "projects": [
+                {"titulo": "TFG", "estado": "activo", "progreso": 5},
+            ],
+            "goals": [
+                {"titulo": "Cerrar capitulo", "estado": "activo", "fecha_fin": "2026-07-05"},
+            ],
+            "events": [
+                {"titulo": "Revision", "fecha_inicio": "2026-07-05T09:00:00"},
+            ],
+        })
+        llm = ScriptedLLM({"recomendaciones personales": RuntimeError("LLM down")})
+
+        out = recommendations_node({"messages": [], "context_json": context}, llm)
+
+        assert "Recomendaciones personales" in out["draft_response"]
+        assert "Entregar informe" in out["draft_response"]
+        assert "No pude generar" not in out["draft_response"]
+
     def test_weekly_summary(self):
         llm = ScriptedLLM({"resumen de la semana": "Esta semana hiciste X."})
         out = weekly_summary_node({"messages": [], "context_json": "{}"}, llm)
         assert "draft_response" in out
+
+    def test_weekly_summary_uses_metrics_when_llm_fails(self):
+        context = json.dumps({
+            "summary_metrics": {
+                "week_range": {"start": "2026-06-29", "end": "2026-07-05"},
+                "tasks": {
+                    "completed_this_week": 3,
+                    "completed_delta": 1,
+                    "pending_due_this_week": 2,
+                    "due_today": 1,
+                    "overdue": 1,
+                    "high_priority_pending": 1,
+                },
+                "projects": {"active": 2},
+                "goals": {"active": 1},
+                "events": {
+                    "busy_hours_week": 12,
+                    "productive_hours_week": 4,
+                    "focus_hours_week": 2,
+                },
+                "daily_metrics": {
+                    "avg_sleep_hours": 7.5,
+                    "avg_mood_score": 4,
+                },
+                "risks": [
+                    {"label": "Tareas vencidas", "detail": "1 tarea pendiente ya paso su fecha."},
+                ],
+            },
+        })
+        llm = ScriptedLLM({"resumen de la semana": RuntimeError("LLM down")})
+
+        out = weekly_summary_node({"messages": [], "context_json": context}, llm)
+
+        assert "Resumen semanal" in out["draft_response"]
+        assert "completaste 3 tareas" in out["draft_response"]
+        assert "Tareas vencidas" in out["draft_response"]
 
     def test_weekly_planner(self):
         llm = ScriptedLLM({"planificador semanal": "Plan: hacer X el lunes."})

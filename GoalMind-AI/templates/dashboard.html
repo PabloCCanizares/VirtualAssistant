@@ -21,6 +21,12 @@
         <input type="search" placeholder="Buscar..." aria-label="Buscar">
         <span>Ctrl K</span>
       </label>
+      <button class="gm-icon-action" type="button" data-dashboard-summary-reload aria-label="Recargar carga y resumen" title="Recargar carga">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 0 1-15.5 6.2"/><path d="M3 12A9 9 0 0 1 18.5 5.8"/><path d="M18 2v4h4"/><path d="M6 22v-4H2"/></svg>
+      </button>
+      <a class="gm-icon-action" href="{{ url_for('dashboard_bp.weekly_meeting') }}" aria-label="Reunion semanal" title="Reunion semanal">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 8h10M7 12h6"/><path d="M12 21a9 9 0 1 0-8.5-6h3.2L12 21Z"/></svg>
+      </a>
       <a class="gm-icon-action" href="{{ url_for('project_bp.list_projects') }}" aria-label="Nuevo proyecto" title="Nuevo proyecto">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
       </a>
@@ -43,7 +49,7 @@
   {% include "partials/dashboard_templates/dashboard_home_panel.html" %}
 </section>
 
-<script src="{{ url_for('static', filename='js/calendar.js') }}" type="module"></script>
+<script src="{{ url_for('static', filename='js/dashboard_summary.js') }}"></script>
 <script src="{{ url_for('static', filename='js/dashboard_briefing.js') }}"></script>
 <script src="{{ url_for('static', filename='js/dashboard_stats.js') }}"></script>
 {% endblock %}

@@ -1,5 +1,5 @@
 import pytest
-from langchain_core.messages import HumanMessage
+from langchain_core.messages import AIMessage, HumanMessage
 
 pytest.importorskip("langgraph")
 
@@ -144,3 +144,31 @@ def test_main_graph_smoke_off_topic_flow():
     assert "proyectos" in result["final_response"].lower()
     # Solo se llamó una vez (supervisor, sin más LLM calls)
     assert llm.calls == 1
+
+
+def test_main_graph_capabilities_ignores_previous_recommendations_history():
+    """'Que puedes hacer?' no debe reutilizar la ruta de recomendaciones anterior."""
+    llm = _SequenceLLM(
+        [
+            '{"category": "recommendations", "use_critic": false}',
+            "recomendaciones antiguas",
+        ]
+    )
+    app = build_chat_graph(llm)
+
+    result = app.invoke(
+        {
+            "messages": [
+                HumanMessage(content="Dame recomendaciones personales"),
+                AIMessage(content="Recomendaciones personales..."),
+                HumanMessage(content="Que puedes hacer?"),
+            ],
+            "context_json": "{}",
+            "user_id": "u1",
+        }
+    )
+
+    assert "puedo ayudarte" in result["final_response"].lower()
+    assert "resumir tu semana" in result["final_response"].lower()
+    assert "recomendaciones antiguas" not in result["final_response"].lower()
+    assert llm.calls == 0

@@ -29,6 +29,18 @@ OFF_TOPIC_MESSAGE = (
     "tareas y calendario. ¿Hay algo relacionado en lo que pueda ayudarte?"
 )
 
+CAPABILITIES_MESSAGE = (
+    "Puedo ayudarte con GoalMind AI en estas areas:\n"
+    "- Crear, editar, completar o eliminar tareas, proyectos, objetivos y eventos.\n"
+    "- Resumir tu semana y detectar avances, pendientes y riesgos.\n"
+    "- Proponer recomendaciones personales y prioridades segun fechas y carga.\n"
+    "- Preparar un plan semanal con tareas y bloques de agenda.\n"
+    "- Revisar progreso de objetivos y proyectos.\n"
+    "- Leer, resumir o crear notas relacionadas con documentos y proyectos.\n\n"
+    "Puedes pedirme algo como: 'planifica mi semana', 'que deberia priorizar hoy' "
+    "o 'crea una tarea para revisar el informe manana'."
+)
+
 CONFIRM_WORDS = {"si", "confirmo", "confirmar", "adelante", "ejecuta", "ok", "vale"}
 CANCEL_WORDS = {"no", "cancela", "cancelar", "anula", "detener"}
 
@@ -37,6 +49,13 @@ def _last_user_text(messages: list) -> str:
     for message in reversed(messages):
         if isinstance(message, HumanMessage):
             return (message.content or "").strip().lower()
+    return ""
+
+
+def _last_user_content(messages: list) -> str:
+    for message in reversed(messages):
+        if isinstance(message, HumanMessage):
+            return (message.content or "").strip()
     return ""
 
 
@@ -64,6 +83,30 @@ def _normalize_confirmation_text(user_text: str) -> str:
     text = (user_text or "").strip().lower()
     text = unicodedata.normalize("NFKD", text)
     return "".join(ch for ch in text if not unicodedata.combining(ch))
+
+
+def _is_capability_question(user_text: str) -> bool:
+    normalized = _normalize_confirmation_text(user_text)
+    normalized = re.sub(r"\s+", " ", normalized)
+    normalized = normalized.strip(" ?!¡¿.")
+    if normalized in {"ayuda", "help", "opciones", "comandos", "funciones"}:
+        return True
+
+    capability_phrases = (
+        "que puedes hacer",
+        "q puedes hacer",
+        "que sabes hacer",
+        "que haces",
+        "que cosas puedes hacer",
+        "en que puedes ayudar",
+        "en que me puedes ayudar",
+        "como me puedes ayudar",
+        "cuales son tus funciones",
+        "que funciones tienes",
+        "tus capacidades",
+        "que puedo pedirte",
+    )
+    return any(phrase in normalized for phrase in capability_phrases)
 
 
 def _parse_supervisor_json(text: str) -> dict:
@@ -167,6 +210,7 @@ def supervisor_node(state: AppState, llm) -> AppState:
     """
     messages = state.get("messages", [])
     user_text = _last_user_text(messages)
+    original_user_text = _last_user_content(messages)
 
     # Fase 1: Acciones pendientes 
     pending_action = state.get("pending_action_intent")
@@ -224,11 +268,21 @@ def supervisor_node(state: AppState, llm) -> AppState:
             "pending_action_intent": pending_action,
         }
 
+    if _is_capability_question(user_text):
+        return {
+            "route": "finalize",
+            "query_type": "capabilities",
+            "use_critic": False,
+            "final_response": CAPABILITIES_MESSAGE,
+        }
+
     # Fase 2: Clasificacion LLM (sin context_json) 
+    last_user_message = HumanMessage(content=original_user_text) if original_user_text else None
     llm_messages = [
         SystemMessage(content=SUPERVISOR_PROMPT),
     ]
-    llm_messages.extend(messages)
+    if last_user_message:
+        llm_messages.append(last_user_message)
 
     try:
         raw = invoke_with_retry(llm, llm_messages)

@@ -3,11 +3,19 @@ from flask import Blueprint, render_template, request, jsonify
 from bson import ObjectId
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple
+import unicodedata
 
 from model.task_model import TaskModel
 from model.goal_model import GoalModel
+from model.daily_metric_model import DailyMetricModel
 
-from database.mongo_conn import get_collection, get_app_user_id
+from database.mongo_conn import (
+    flush_deletion_queue,
+    get_app_user_id,
+    get_collection,
+    queue_deletion,
+)
+from services.weather_service import ensure_weather_for_range
 
 calendar_bp = Blueprint("calendar_bp", __name__)
 DEFAULT_USER_ID = get_app_user_id()
@@ -58,6 +66,184 @@ def _validate_required(payload: Dict[str, Any], fields: List[str]) -> Optional[s
     missing = [f for f in fields if payload.get(f) in (None, "", [])]
     return f"Faltan campos obligatorios: {', '.join(missing)}" if missing else None
 
+
+TIME_LAYER_DEFAULTS: Dict[str, Dict[str, Any]] = {
+    "productivo": {
+        "bloquea_disponibilidad": True,
+        "cuenta_productivo": True,
+        "cuenta_recuperacion": False,
+        "carga_mental": "media",
+        "carga_fisica": "baja",
+    },
+    "salud": {
+        "bloquea_disponibilidad": True,
+        "cuenta_productivo": False,
+        "cuenta_recuperacion": True,
+        "carga_mental": "baja",
+        "carga_fisica": "media",
+    },
+    "sueno": {
+        "bloquea_disponibilidad": True,
+        "cuenta_productivo": False,
+        "cuenta_recuperacion": True,
+        "carga_mental": "baja",
+        "carga_fisica": "baja",
+    },
+    "mantenimiento": {
+        "bloquea_disponibilidad": True,
+        "cuenta_productivo": False,
+        "cuenta_recuperacion": False,
+        "carga_mental": "baja",
+        "carga_fisica": "baja",
+    },
+    "ocio": {
+        "bloquea_disponibilidad": True,
+        "cuenta_productivo": False,
+        "cuenta_recuperacion": True,
+        "carga_mental": "baja",
+        "carga_fisica": "baja",
+    },
+    "social": {
+        "bloquea_disponibilidad": True,
+        "cuenta_productivo": False,
+        "cuenta_recuperacion": True,
+        "carga_mental": "baja",
+        "carga_fisica": "baja",
+    },
+    "logistica": {
+        "bloquea_disponibilidad": True,
+        "cuenta_productivo": False,
+        "cuenta_recuperacion": False,
+        "carga_mental": "baja",
+        "carga_fisica": "baja",
+    },
+}
+
+TIME_LAYER_HINTS = {
+    "trabajo": "productivo",
+    "estudio": "productivo",
+    "tarea": "productivo",
+    "reunion": "productivo",
+    "entrega": "productivo",
+    "formacion": "productivo",
+    "foco": "productivo",
+    "deporte": "salud",
+    "entreno": "salud",
+    "gym": "salud",
+    "salud": "salud",
+    "medico": "salud",
+    "terapia": "salud",
+    "paseo": "salud",
+    "dormir": "sueno",
+    "sueno": "sueno",
+    "siesta": "sueno",
+    "descanso": "sueno",
+    "comida": "mantenimiento",
+    "comer": "mantenimiento",
+    "cocinar": "mantenimiento",
+    "compra": "mantenimiento",
+    "limpieza": "mantenimiento",
+    "recado": "mantenimiento",
+    "ocio": "ocio",
+    "cine": "ocio",
+    "serie": "ocio",
+    "lectura": "ocio",
+    "hobby": "ocio",
+    "social": "social",
+    "familia": "social",
+    "amigos": "social",
+    "celebracion": "social",
+    "transporte": "logistica",
+    "desplazamiento": "logistica",
+    "viaje": "logistica",
+    "logistica": "logistica",
+}
+
+
+def _normalize_text(value: Any) -> str:
+    text = str(value or "").strip().lower()
+    text = unicodedata.normalize("NFKD", text)
+    return "".join(char for char in text if not unicodedata.combining(char))
+
+
+def _coerce_bool(value: Any, default: bool) -> bool:
+    if isinstance(value, bool):
+        return value
+    if value is None:
+        return default
+    normalized = _normalize_text(value)
+    if normalized in {"1", "true", "si", "yes", "on"}:
+        return True
+    if normalized in {"0", "false", "no", "off"}:
+        return False
+    return default
+
+
+def _infer_time_layer(payload: Dict[str, Any]) -> str:
+    explicit = _normalize_text(
+        payload.get("capa_tiempo")
+        or payload.get("time_layer")
+        or payload.get("categoria_tiempo")
+    )
+    if explicit in TIME_LAYER_DEFAULTS:
+        return explicit
+
+    haystack = " ".join(
+        _normalize_text(payload.get(key))
+        for key in ("tipo_evento", "titulo", "descripcion")
+    )
+    for hint, layer in TIME_LAYER_HINTS.items():
+        if hint in haystack:
+            return layer
+    return "productivo"
+
+
+def _time_layer_fields(payload: Dict[str, Any]) -> Dict[str, Any]:
+    layer = _infer_time_layer(payload)
+    defaults = TIME_LAYER_DEFAULTS[layer]
+    return {
+        "capa_tiempo": layer,
+        "bloquea_disponibilidad": _coerce_bool(
+            payload.get("bloquea_disponibilidad"),
+            defaults["bloquea_disponibilidad"],
+        ),
+        "cuenta_productivo": _coerce_bool(
+            payload.get("cuenta_productivo"),
+            defaults["cuenta_productivo"],
+        ),
+        "cuenta_recuperacion": _coerce_bool(
+            payload.get("cuenta_recuperacion"),
+            defaults["cuenta_recuperacion"],
+        ),
+        "carga_mental": (
+            _normalize_text(payload.get("carga_mental"))
+            if _normalize_text(payload.get("carga_mental")) in {"baja", "media", "alta"}
+            else defaults["carga_mental"]
+        ),
+        "carga_fisica": (
+            _normalize_text(payload.get("carga_fisica"))
+            if _normalize_text(payload.get("carga_fisica")) in {"baja", "media", "alta"}
+            else defaults["carga_fisica"]
+        ),
+    }
+
+
+def _apply_time_layer_defaults(event: Dict[str, Any]) -> Dict[str, Any]:
+    event.update(_time_layer_fields(event))
+    return event
+
+
+def _serialize_daily_metric(metric: Dict[str, Any]) -> Dict[str, Any]:
+    out = dict(metric or {})
+    if out.get("_id") is not None:
+        out["_id"] = str(out["_id"])
+    for key in ("id_usuario", "usuario_id"):
+        if isinstance(out.get(key), ObjectId):
+            out[key] = str(out[key])
+    for key in ("created_at", "updated_at"):
+        out[key] = _iso_utc(out.get(key))
+    return out
+
 def _sync_event_association(event_id, old_ref_id, old_ref_tipo, new_ref_id, new_ref_tipo):
     """
     Gestiona la sincronización bidireccional del array event_ids
@@ -87,6 +273,29 @@ def _sync_event_association(event_id, old_ref_id, old_ref_tipo, new_ref_id, new_
                 GoalModel.add_event_to_goal(str(new_ref_id), eid, usuario_id=DEFAULT_USER_ID)
         except Exception as e:
             print(f"Error al asociar evento {eid} al {new_ref_tipo} {new_ref_id}: {e}")
+
+
+def _should_create_task_from_event(doc: Dict[str, Any], ref_id: Any, ref_tipo: Optional[str]) -> bool:
+    return bool(ref_id and ref_tipo == "objetivo" and _normalize_text(doc.get("tipo_evento")) == "tarea")
+
+
+def _create_task_from_event(doc: Dict[str, Any], event_id: ObjectId, goal_id: ObjectId) -> Optional[Dict[str, Any]]:
+    task_doc = {
+        "contenido": doc.get("titulo") or "Nueva tarea",
+        "descripcion": doc.get("descripcion") or "",
+        "estado": "pendiente",
+        "prioridad": "Media",
+        "fecha_limite": doc.get("fecha_fin") or doc.get("fecha_inicio"),
+        "objetivo_id": goal_id,
+        "event_ids": [event_id],
+        "usuario_id": DEFAULT_USER_ID,
+    }
+    task = TaskModel.insert_task(task_doc, usuario_id=DEFAULT_USER_ID)
+    try:
+        TaskModel.recalculate_goal_progress(goal_id, usuario_id=DEFAULT_USER_ID)
+    except Exception as e:
+        print(f"Error al recalcular progreso del objetivo {goal_id}: {e}")
+    return task
 
 
 @calendar_bp.route("/api/events", methods=["GET"])
@@ -137,14 +346,14 @@ def api_list_events():
         for key in ("fecha_inicio", "fecha_fin", "created_at", "updated_at", "start", "end"):
             out[key] = _iso_utc(out.get(key))
         # IDs relacionados → str (nuevos campos unificados)
-        for key in ("id_usuario", "usuario_id", "referencia_id"):
+        for key in ("id_usuario", "usuario_id", "referencia_id", "objetivo_id", "generated_task_id"):
             if isinstance(out.get(key), ObjectId):
                 out[key] = str(out[key])
         # Compatibilidad: si el evento todavía tiene id_tarea/id_objetivo (datos antiguos)
         for key in ("id_objetivo", "id_tarea"):
             if isinstance(out.get(key), ObjectId):
                 out[key] = str(out[key])
-        events.append(out)
+        events.append(_apply_time_layer_defaults(out))
 
     return jsonify(events)
 
@@ -171,11 +380,86 @@ def api_events_timeline():
         out["_id"] = str(out.get("_id"))
         for key in ("fecha_inicio", "fecha_fin", "created_at", "updated_at", "start", "end"):
             out[key] = _iso_utc(out.get(key))
-        for key in ("id_usuario", "usuario_id", "referencia_id", "id_objetivo", "id_tarea"):
+        for key in (
+            "id_usuario",
+            "usuario_id",
+            "referencia_id",
+            "id_objetivo",
+            "id_tarea",
+            "objetivo_id",
+            "generated_task_id",
+        ):
             if isinstance(out.get(key), ObjectId):
                 out[key] = str(out[key])
-        events.append(out)
+        events.append(_apply_time_layer_defaults(out))
     return jsonify(events)
+
+
+@calendar_bp.route("/api/daily-metrics", methods=["GET"])
+def api_daily_metrics():
+    """Devuelve metricas diarias del usuario para un rango YYYY-MM-DD."""
+    start = (request.args.get("start") or "").strip()
+    end = (request.args.get("end") or start).strip()
+    if not start:
+        return jsonify({"error": "Falta start en formato YYYY-MM-DD."}), 400
+
+    try:
+        include_weather = (request.args.get("weather") or "").strip().lower() in {"1", "true", "yes", "on"}
+        if include_weather:
+            ensure_weather_for_range(start, end, usuario_id=DEFAULT_USER_ID)
+        metrics = DailyMetricModel.get_range(start, end, usuario_id=DEFAULT_USER_ID)
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+
+    return jsonify([_serialize_daily_metric(metric) for metric in metrics])
+
+
+@calendar_bp.route("/api/daily-metrics/<date_key>/sleep", methods=["POST", "PUT", "PATCH"])
+def api_upsert_sleep_metric(date_key: str):
+    """Guarda horas de sueno del dia. El origen manual deja sitio a wearables."""
+    payload = request.get_json(silent=True) or {}
+    has_value = "sleep_hours" in payload or "hours" in payload
+    if not has_value:
+        return jsonify({"error": "Falta sleep_hours."}), 400
+
+    raw_hours = payload.get("sleep_hours", payload.get("hours"))
+    source = (payload.get("source") or "manual").strip().lower() or "manual"
+
+    try:
+        metric = DailyMetricModel.upsert_sleep(
+            date_key,
+            raw_hours,
+            source=source,
+            usuario_id=DEFAULT_USER_ID,
+        )
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+
+    return jsonify(_serialize_daily_metric(metric))
+
+
+@calendar_bp.route("/api/daily-metrics/<date_key>/mood", methods=["POST", "PUT", "PATCH"])
+def api_upsert_mood_metric(date_key: str):
+    """Guarda el animo diario en escala 1-5."""
+    payload = request.get_json(silent=True) or {}
+    has_value = "mood_score" in payload or "score" in payload
+    if not has_value:
+        return jsonify({"error": "Falta mood_score."}), 400
+
+    raw_score = payload.get("mood_score", payload.get("score"))
+    source = (payload.get("source") or "manual").strip().lower() or "manual"
+
+    try:
+        metric = DailyMetricModel.upsert_mood(
+            date_key,
+            raw_score,
+            source=source,
+            usuario_id=DEFAULT_USER_ID,
+        )
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+
+    return jsonify(_serialize_daily_metric(metric))
 
 
 @calendar_bp.route("/api/events", methods=["POST"])
@@ -222,10 +506,36 @@ def api_create_event():
         "created_at": datetime.now(timezone.utc),
         "updated_at": datetime.now(timezone.utc),
     }
+    doc.update(_time_layer_fields(payload))
 
     col, _ = _events_col()
     res = col.insert_one(doc)
     event_id = res.inserted_id
+    original_goal_id = ref_id if ref_tipo == "objetivo" else None
+
+    if _should_create_task_from_event(doc, ref_id, ref_tipo):
+        task = _create_task_from_event(doc, event_id, ref_id)
+        task_id = task.get("_id") if task else None
+        if task_id:
+            ref_id = task_id
+            ref_tipo = "tarea"
+            doc["referencia_id"] = task_id
+            doc["referencia_tipo"] = "tarea"
+            doc["objetivo_id"] = original_goal_id
+            doc["generated_task_id"] = task_id
+            doc["updated_at"] = datetime.now(timezone.utc)
+            col.update_one(
+                {"_id": event_id},
+                {
+                    "$set": {
+                        "referencia_id": task_id,
+                        "referencia_tipo": "tarea",
+                        "objetivo_id": original_goal_id,
+                        "generated_task_id": task_id,
+                        "updated_at": doc["updated_at"],
+                    }
+                },
+            )
 
     # Sincronización bidireccional: añadir event_id a la tarea/objetivo
     if ref_id and ref_tipo:
@@ -237,9 +547,10 @@ def api_create_event():
     for key in ("fecha_inicio", "fecha_fin", "created_at", "updated_at"):
         out[key] = _iso_utc(out.get(key))
     # IDs relacionados → str
-    for key in ("id_usuario", "usuario_id", "referencia_id"):
+    for key in ("id_usuario", "usuario_id", "referencia_id", "objetivo_id", "generated_task_id"):
         if isinstance(out.get(key), ObjectId):
             out[key] = str(out[key])
+    _apply_time_layer_defaults(out)
 
     return jsonify(out), 201
 
@@ -308,6 +619,24 @@ def api_update_event(event_id: str):
         updates["referencia_id"] = new_ref_id
         updates["referencia_tipo"] = new_ref_tipo
 
+    time_layer_keys = {
+        "capa_tiempo",
+        "time_layer",
+        "categoria_tiempo",
+        "bloquea_disponibilidad",
+        "cuenta_productivo",
+        "cuenta_recuperacion",
+        "carga_mental",
+        "carga_fisica",
+    }
+    if any(key in payload for key in time_layer_keys | {"titulo", "descripcion", "tipo_evento"}):
+        layer_source = dict(existing)
+        layer_source.update(updates)
+        for key in time_layer_keys:
+            if key in payload:
+                layer_source[key] = payload.get(key)
+        updates.update(_time_layer_fields(layer_source))
+
     if not updates:
         return jsonify({"error": "No hay campos para actualizar."}), 400
 
@@ -341,13 +670,14 @@ def api_update_event(event_id: str):
     for key in ("fecha_inicio", "fecha_fin", "created_at", "updated_at"):
         out[key] = _iso_utc(out.get(key))
     # IDs relacionados → str
-    for key in ("id_usuario", "usuario_id", "referencia_id"):
+    for key in ("id_usuario", "usuario_id", "referencia_id", "objetivo_id", "generated_task_id"):
         if isinstance(out.get(key), ObjectId):
             out[key] = str(out[key])
     # Compatibilidad con datos antiguos
     for key in ("id_objetivo", "id_tarea"):
         if isinstance(out.get(key), ObjectId):
             out[key] = str(out[key])
+    _apply_time_layer_defaults(out)
 
     return jsonify(out)
 
@@ -385,9 +715,13 @@ def api_delete_event(event_id: str):
     if old_ref_id and old_ref_tipo:
         _sync_event_association(oid, old_ref_id, old_ref_tipo, None, None)
 
-    res = col.delete_one({"_id": oid})
-    if res.deleted_count == 0:
-        return jsonify({"error": "Evento no encontrado."}), 404
+    if not queue_deletion("Events", oid):
+        return jsonify({"error": "No se pudo registrar el borrado del evento."}), 500
+
+    try:
+        flush_deletion_queue()
+    except Exception:
+        pass
 
     return jsonify({"deleted": True, "_id": event_id})
 

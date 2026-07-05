@@ -56,6 +56,13 @@ QUESTION_DEFINITIONS = [
         "why": "Ayuda a proteger tiempo que no se puede mover.",
     },
     {
+        "field": "available_windows",
+        "label": "Ventanas disponibles",
+        "type": "list",
+        "required": False,
+        "why": "Convierte las horas totales en huecos reales de agenda.",
+    },
+    {
         "field": "avoid_this_week",
         "label": "Cosas que no quieres tocar esta semana",
         "type": "list",
@@ -80,7 +87,7 @@ QUESTION_DEFINITIONS = [
 
 ALLOWED_FIELDS = {question["field"] for question in QUESTION_DEFINITIONS}
 REQUIRED_FIELDS = {question["field"] for question in QUESTION_DEFINITIONS if question["required"]}
-LIST_FIELDS = {"weekly_top_priorities", "fixed_commitments", "avoid_this_week"}
+LIST_FIELDS = {"weekly_top_priorities", "fixed_commitments", "available_windows", "avoid_this_week"}
 
 
 def week_window(now: datetime | None = None) -> tuple[datetime, datetime]:
@@ -125,6 +132,10 @@ def _public_session(session: dict | None) -> dict | None:
             "updated_at": session.get("updated_at"),
         }
     )
+
+
+def _public_questions() -> list[dict[str, Any]]:
+    return serialize_value(QUESTION_DEFINITIONS)
 
 
 def _missing_questions(session: dict | None) -> list[dict[str, Any]]:
@@ -251,6 +262,7 @@ def should_start_weekly_planning(
                 "reason": "Ya existe una sesion de planificacion para esta semana.",
                 "session": _public_session(session),
                 "next_questions": _next_questions(session),
+                "questions": _public_questions(),
             }
         )
 
@@ -285,6 +297,7 @@ def should_start_weekly_planning(
             "reason": " ".join(reasons),
             "session": None,
             "next_questions": QUESTION_DEFINITIONS[:3],
+            "questions": _public_questions(),
         }
     )
 
@@ -302,6 +315,7 @@ def start_weekly_planning_session(
             "created": False,
             "session": _public_session(existing),
             "next_questions": _next_questions(existing),
+            "questions": _public_questions(),
         }
 
     start, end = week_window(current)
@@ -322,6 +336,7 @@ def start_weekly_planning_session(
         "created": True,
         "session": _public_session(session),
         "next_questions": _next_questions(session),
+        "questions": _public_questions(),
     }
 
 
@@ -362,6 +377,7 @@ def answer_weekly_planning_question(
         "session": _public_session(updated),
         "next_questions": _next_questions(updated),
         "ready_for_plan": status == "ready_for_plan",
+        "questions": _public_questions(),
     }
 
 
@@ -556,6 +572,7 @@ def _build_plan_from_session(session: dict, now: datetime) -> dict[str, Any]:
                 "projects": focus_projects[:5],
                 "success_criteria": answers.get("success_criteria"),
                 "fixed_commitments": _normalize_list(answers.get("fixed_commitments")),
+                "available_windows": _normalize_list(answers.get("available_windows")),
                 "avoid_this_week": avoid_terms,
             },
             "recommended_strategy": strategy,
@@ -602,6 +619,7 @@ def build_weekly_plan(
         "plan": plan,
         "ready": status == "planned",
         "next_questions": _next_questions(updated),
+        "questions": _public_questions(),
     }
 
 
@@ -616,4 +634,5 @@ def get_current_week_plan(
         "session": _public_session(session),
         "plan": serialize_value((session or {}).get("generated_plan")),
         "next_questions": _next_questions(session),
+        "questions": _public_questions(),
     }

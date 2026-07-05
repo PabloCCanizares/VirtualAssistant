@@ -8,6 +8,11 @@
       <strong>{{ card.value }}</strong>
       <small>{{ card.detail }}</small>
       <span class="gm-summary-subdetail">{{ card.subdetail }}</span>
+      <div class="gm-summary-graph" aria-hidden="true">
+        {% for bar in card.bars %}
+          <span style="height: {{ bar }}%"></span>
+        {% endfor %}
+      </div>
       <i class="gm-kpi-progress"><em style="width: {{ card.progress }}%"></em></i>
     </article>
   {% endfor %}
@@ -48,7 +53,7 @@
       </section>
 
       <div class="gm-work-grid">
-        <section class="gm-panel">
+        <section class="gm-panel gm-projects-panel">
           <div class="gm-panel-header">
             <div>
               <span class="gm-panel-kicker">Proyectos activos</span>
@@ -83,7 +88,7 @@
           {% endif %}
         </section>
 
-        <section class="gm-panel">
+        <section class="gm-panel gm-goals-panel">
           <div class="gm-panel-header">
             <div>
               <span class="gm-panel-kicker">Objetivos en progreso</span>
@@ -112,6 +117,35 @@
             <div class="gm-empty-state">
               <strong>Sin objetivos activos</strong>
               <span>Los objetivos activos se mostraran en esta zona.</span>
+            </div>
+          {% endif %}
+        </section>
+
+        <section class="gm-panel gm-task-panel">
+          <div class="gm-panel-header">
+            <div>
+              <span class="gm-panel-kicker">Tareas criticas</span>
+              <h3>Cola de ejecucion</h3>
+            </div>
+            <a class="gm-panel-link" href="{{ url_for('task_bp.list_tasks_by_user') }}">Ver tareas</a>
+          </div>
+
+          {% if dashboard.tasks %}
+            <div class="gm-task-list gm-dashboard-task-list">
+              {% for task in dashboard.tasks %}
+                <a class="gm-task-row {% if task.is_overdue %}is-overdue{% endif %}" href="{{ task.url }}">
+                  <span>
+                    <strong>{{ task.title }}</strong>
+                    <small>{{ task.due_label }} &middot; prioridad {{ task.priority }}</small>
+                  </span>
+                  <b>{{ task.priority }}</b>
+                </a>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="gm-empty-state">
+              <strong>Cola limpia</strong>
+              <span>No hay tareas vencidas ni de prioridad alta.</span>
             </div>
           {% endif %}
         </section>

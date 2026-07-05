@@ -1,33 +1,90 @@
-<aside class="gm-intel-panel" aria-label="Contexto inteligente">
-  <section class="gm-panel gm-intel-card">
-    <div class="gm-panel-header">
-      <div>
-        <span class="gm-panel-kicker">Contexto inteligente</span>
-        <h3>Recomendaciones de GoalMind AI</h3>
+{% set brain = dashboard.operational_brain %}
+<aside class="gm-intel-panel gm-operational-brain" id="operationalBrainPanel" data-severity="{{ brain.severity }}" aria-label="Cerebro operativo">
+  <section class="gm-panel gm-brain-card">
+    <div class="gm-brain-header">
+      <div class="gm-brain-title">
+        <span class="gm-brain-mark" aria-hidden="true"></span>
+        <div>
+          <span class="gm-panel-kicker">Cerebro operativo</span>
+          <h3>GoalMind AI</h3>
+        </div>
       </div>
-      <span class="gm-intel-collapse" aria-hidden="true"></span>
+      <div class="gm-brain-state">
+        <span class="gm-brain-chip gm-tone-{{ brain.tone }}" data-brain-status>{{ brain.status }}</span>
+        <small data-brain-updated>Actualizado {{ brain.updated_at }}</small>
+      </div>
     </div>
 
-    <div class="gm-intel-section">
-      <div class="gm-intel-list">
-        {% for item in dashboard.smart_items[:3] %}
-          <div class="gm-intel-item gm-tone-{{ item.tone }}">
-            <span class="gm-intel-icon" aria-hidden="true"></span>
+    <div class="gm-brain-diagnostics" data-brain-diagnostics>
+      {% for metric in brain.diagnostics %}
+        <div class="gm-brain-metric gm-tone-{{ metric.tone }}">
+          <span>{{ metric.label }}</span>
+          <strong>{{ metric.value }}</strong>
+        </div>
+      {% endfor %}
+    </div>
+
+    <section class="gm-brain-next" aria-label="Siguiente mejor accion">
+      <span class="gm-brain-section-label">Siguiente mejor accion</span>
+      <strong data-brain-next-label>{{ brain.next_action.label }}</strong>
+      <p data-brain-next-detail>{{ brain.next_action.detail }}</p>
+      <small data-brain-next-evidence>{{ brain.next_action.evidence }}</small>
+      <div class="gm-brain-actions">
+        <a class="gm-brain-primary" href="{{ brain.next_action.url }}" data-brain-next-url>Ejecutar</a>
+        <button class="gm-brain-secondary" type="button">Aplazar</button>
+        <button class="gm-brain-icon-btn" type="button" aria-label="Mas opciones"></button>
+      </div>
+    </section>
+
+    <section class="gm-brain-section">
+      <div class="gm-brain-section-head">
+        <span class="gm-brain-section-label">Insights emergentes</span>
+        <small data-brain-insight-count>{{ brain.insights|length }} senales</small>
+      </div>
+      <div class="gm-brain-list" data-brain-insights>
+        {% for insight in brain.insights %}
+          <article class="gm-brain-row gm-tone-{{ insight.tone }}">
+            <span class="gm-brain-dot" aria-hidden="true"></span>
             <span>
-              <strong>{{ item.label }}</strong>
-              <small>{{ item.detail }}</small>
+              <strong>{{ insight.title }}</strong>
+              <small>{{ insight.detail }}</small>
             </span>
-          </div>
+            <em>{{ insight.confidence }}</em>
+          </article>
+        {% else %}
+          <div class="gm-brain-empty">No hay senales fuertes ahora mismo.</div>
         {% endfor %}
       </div>
-      <a class="gm-intel-link" href="{{ url_for('dashboard_bp.estadisticas') }}">Ver todas las recomendaciones</a>
-    </div>
+    </section>
 
-    <div class="gm-intel-section">
-      <div class="gm-intel-section-title">Proximos eventos</div>
+    <section class="gm-brain-section">
+      <div class="gm-brain-section-head">
+        <span class="gm-brain-section-label">Acciones preparadas</span>
+        <small>MCP / IA</small>
+      </div>
+      <div class="gm-brain-action-list" data-brain-actions>
+        {% for action in brain.prepared_actions %}
+          <a class="gm-brain-action-row" href="{{ action.url }}">
+            <span>
+              <strong>{{ action.title }}</strong>
+              <small>{{ action.detail }}</small>
+            </span>
+            <em>{{ action.tag }}</em>
+          </a>
+        {% else %}
+          <div class="gm-brain-empty">Sin acciones preparadas.</div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="gm-brain-section gm-brain-events">
+      <div class="gm-brain-section-head">
+        <span class="gm-brain-section-label">Agenda proxima</span>
+        <a href="{{ url_for('calendar_bp.calendar_page') }}">Ver</a>
+      </div>
       {% if dashboard.events %}
         <div class="gm-event-list gm-event-list-compact">
-          {% for event in dashboard.events[:4] %}
+          {% for event in dashboard.events[:2] %}
             <a class="gm-event-row" href="{{ event.url }}">
               <span>
                 <strong>{{ event.day }}</strong>
@@ -41,38 +98,17 @@
           {% endfor %}
         </div>
       {% else %}
-        <div class="gm-empty-state gm-empty-state-compact">
-          <strong>Sin eventos proximos</strong>
-          <span>La agenda no tiene bloqueos cercanos.</span>
-        </div>
+        <div class="gm-brain-empty">La agenda no tiene bloqueos cercanos.</div>
       {% endif %}
-      <a class="gm-intel-link" href="{{ url_for('calendar_bp.calendar_page') }}">Ver agenda completa</a>
-    </div>
+    </section>
 
-    <div class="gm-intel-section">
-      <div class="gm-intel-section-title">Alertas y riesgos</div>
-      <div class="gm-risk-list">
-        {% for alert in dashboard.alerts %}
-          <div class="gm-risk-item gm-tone-{{ alert.tone }}">
-            <span class="gm-risk-icon" aria-hidden="true"></span>
-            <span>
-              <strong>{{ alert.label }}</strong>
-              <small>{{ alert.detail }}</small>
-            </span>
-          </div>
+    <section class="gm-brain-missing">
+      <span>Huecos que faltan</span>
+      <div data-brain-missing>
+        {% for item in brain.missing_context %}
+          <em>{{ item }}</em>
         {% endfor %}
       </div>
-      <a class="gm-intel-link" href="{{ url_for('task_bp.list_tasks_by_user') }}">Ver todos los riesgos</a>
-    </div>
-
-    <div class="gm-next-action">
-      <span class="gm-next-action-icon" aria-hidden="true"></span>
-      <div>
-        <span class="gm-intel-section-title">Siguiente mejor accion</span>
-        <strong>{{ dashboard.main_action.label }}</strong>
-        <small>{{ dashboard.main_action.detail }}</small>
-      </div>
-      <a class="gm-next-action-btn" href="{{ dashboard.main_action.url }}">Ir</a>
-    </div>
+    </section>
   </section>
 </aside>

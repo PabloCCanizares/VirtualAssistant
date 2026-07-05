@@ -35,6 +35,7 @@ collections = [
     "Projects",
     "ProjectDocuments",
     "ProjectDocumentFolders",
+    "DailyMetrics",
     "Events",
     "PlanningSessions",
 ]
@@ -596,7 +597,7 @@ def flush_deletion_queue():
         seen = set()
         unique_candidates = []
         for cid in candidates:
-            key = str(cid)
+            key = (type(cid).__name__, str(cid))
             if key in seen:
                 continue
             seen.add(key)

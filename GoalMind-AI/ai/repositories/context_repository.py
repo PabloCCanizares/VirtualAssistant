@@ -3,12 +3,13 @@ from datetime import date, datetime, timedelta
 
 from bson import ObjectId
 
-from model.event_model import eventModel
 from model.category_model import CategoryModel
+from model.event_model import eventModel
 from model.goal_model import GoalModel
 from model.project_document_model import ProjectDocumentModel
 from model.project_model import ProjectModel
 from model.task_model import TaskModel
+from services.weekly_summary_service import build_weekly_summary_metrics
 
 
 def _serialize_value(value):
@@ -157,6 +158,7 @@ def _load_weekly_due_context(user_id, ref_date=None):
         if _is_date_in_week(e.get("fecha_inicio"), week_start, week_end)
         or _is_date_in_week(e.get("fecha_fin"), week_start, week_end)
     ]
+    ref_datetime = datetime.combine(ref_date or date.today(), datetime.min.time())
 
     return {
         "user_id": str(user_id),
@@ -164,6 +166,17 @@ def _load_weekly_due_context(user_id, ref_date=None):
             "start": week_start.isoformat(),
             "end": week_end.isoformat(),
         },
+        "summary_metrics": build_weekly_summary_metrics(
+            usuario_id=user_id,
+            now=ref_datetime,
+            dataset={
+                "projects": projects,
+                "goals": goals,
+                "tasks": tasks,
+                "events": events,
+                "documents": _load_documents(user_id),
+            },
+        ),
         "tasks_due_this_week": [_serialize_value(task) for task in tasks_due],
         "goals_due_this_week": [_serialize_value(goal) for goal in goals_due],
         "projects_due_this_week": [_serialize_value(project) for project in projects_due],

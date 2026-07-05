@@ -1,5 +1,5 @@
 import pytest
-from langchain_core.messages import HumanMessage
+from langchain_core.messages import AIMessage, HumanMessage
 
 pytest.importorskip("langgraph")
 
@@ -85,6 +85,57 @@ def test_supervisor_keeps_pending_when_message_is_ambiguous():
 
     assert route_after_supervisor(result) == "finalize"
     assert "accion pendiente" in result["final_response"].lower()
+
+
+def test_supervisor_capability_question_bypasses_llm():
+    class _ExplodingLLM:
+        def invoke(self, messages):
+            raise AssertionError("No deberia invocarse el LLM")
+
+    state = {
+        "messages": [
+            HumanMessage(content="Dame recomendaciones personales"),
+            AIMessage(content="Recomendaciones personales..."),
+            HumanMessage(content="Que puedes hacer?"),
+        ],
+        "user_id": "u1",
+    }
+
+    result = supervisor_node(state, _ExplodingLLM())
+
+    assert route_after_supervisor(result) == "finalize"
+    assert result["query_type"] == "capabilities"
+    assert "crear" in result["final_response"].lower()
+    assert "resumir" in result["final_response"].lower()
+
+
+def test_supervisor_classifier_uses_only_latest_user_message():
+    captured = {}
+
+    class _MockLLM:
+        def invoke(self, messages):
+            captured["messages"] = messages
+
+            class Response:
+                content = '{"category": "progress", "use_critic": false}'
+
+            return Response()
+
+    state = {
+        "messages": [
+            HumanMessage(content="Dame recomendaciones personales"),
+            AIMessage(content="Recomendaciones anteriores"),
+            HumanMessage(content="Como voy con mis objetivos?"),
+        ],
+        "user_id": "u1",
+    }
+
+    result = supervisor_node(state, _MockLLM())
+    human_messages = [msg for msg in captured["messages"] if isinstance(msg, HumanMessage)]
+
+    assert route_after_supervisor(result) == "progress"
+    assert len(human_messages) == 1
+    assert human_messages[0].content == "Como voy con mis objetivos?"
 
 
 def test_supervisor_off_topic_injects_message():

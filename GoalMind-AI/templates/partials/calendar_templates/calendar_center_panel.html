@@ -154,11 +154,6 @@
 </head>
 <body>
   <div id="calendar-container">
-    <div class="toolbar">
-      <span class="badge">Calendario</span>
-      <button id="btn-today" class="btn">Hoy</button>
-      <button id="btn-new" class="btn primary">+ Nuevo evento</button>
-    </div>
     <div id="calendar"></div>
     <section id="calendar-cell-view" class="calendar-cell-view" aria-label="Vista Cell compacta">
       <div class="calendar-cell-main">
@@ -193,6 +188,18 @@
             <option value="tarea">Tarea</option>
             <option value="recordatorio">Recordatorio</option>
             <option value="otro">Otro</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="capa_tiempo">Capa de tiempo</label>
+          <select id="capa_tiempo">
+            <option value="productivo">Productivo</option>
+            <option value="salud">Salud / deporte</option>
+            <option value="sueno">SueÃ±o</option>
+            <option value="mantenimiento">Comida / mantenimiento</option>
+            <option value="ocio">Ocio</option>
+            <option value="social">Social</option>
+            <option value="logistica">LogÃ­stica</option>
           </select>
         </div>
         <div class="field">
@@ -258,6 +265,7 @@
     const inputTitulo = document.getElementById('titulo');
     const inputDescripcion = document.getElementById('descripcion');
     const inputTipo = document.getElementById('tipo_evento');
+    const inputCapa = document.getElementById('capa_tiempo');
     const inputInicio = document.getElementById('fecha_inicio');
     const inputFin = document.getElementById('fecha_fin');
     const btnDelete = document.getElementById('btn-delete');
@@ -365,12 +373,31 @@
       }
     });
 
+    function refreshAutoTimeLayer() {
+      if (inputCapa.dataset.autoLayer === '0') return;
+      inputCapa.value = inferTimeLayer(inputTipo.value, inputTitulo.value, inputDescripcion.value);
+      inputCapa.dataset.autoLayer = '1';
+    }
+
+    inputTipo.addEventListener('change', () => {
+      inputCapa.dataset.autoLayer = '1';
+      refreshAutoTimeLayer();
+    });
+    inputTitulo.addEventListener('input', refreshAutoTimeLayer);
+    inputDescripcion.addEventListener('input', refreshAutoTimeLayer);
+    inputCapa.addEventListener('change', () => {
+      inputCapa.dataset.autoLayer = '0';
+    });
+
     function openModal(mode, data = {}) {
       modalTitle.textContent = mode === 'edit' ? 'Editar evento' : 'Nuevo evento';
+      const rawData = data.extendedProps?.raw || data;
       inputId.value = data._id || data.id || '';
       inputTitulo.value = data.titulo || data.title || '';
       inputDescripcion.value = data.descripcion || data.extendedProps?.descripcion || '';
       inputTipo.value = data.tipo_evento || data.extendedProps?.tipo_evento || '';
+      inputCapa.value = rawData.capa_tiempo || data.capa_tiempo || data.extendedProps?.capa_tiempo || inferTimeLayer(inputTipo.value, inputTitulo.value, inputDescripcion.value);
+      inputCapa.dataset.autoLayer = rawData.capa_tiempo || data.capa_tiempo || data.extendedProps?.capa_tiempo ? '0' : '1';
       inputInicio.value = isoToLocalInputValue(data.fecha_inicio || data.start);
       inputFin.value = isoToLocalInputValue(data.fecha_fin || data.end);
       btnDelete.style.display = mode === 'edit' ? 'inline-block' : 'none';
@@ -379,7 +406,6 @@
       clearAssociation();
       
       // Si es edición y hay asociación previa, mostrarla
-      const rawData = data.extendedProps?.raw || data;
       if (rawData.referencia_id && rawData.referencia_tipo) {
         // Nuevo formato unificado
         loadAssociationInfo(rawData.referencia_id, rawData.referencia_tipo);
@@ -462,9 +488,157 @@
     const slotMin = '07:00:00'; // o lee de donde lo tengas
     const slotMax = '24:00:00';
     const initialContentHeight = calcContentHeight(slotMin, slotMax, 120);
+    const cellHourHeight = 32;
     let calendar = null;
     let cellModeActive = false;
     let selectedCellEventId = null;
+    let openMoodDateKey = null;
+    let sleepMetricsByDate = {};
+    let sleepMetricsRangeKey = '';
+    let sleepMetricsLoadingKey = '';
+    let cellSelectionState = null;
+    let cellResizeState = null;
+    let cellNowTimer = null;
+    const cellInteractionStepMinutes = 15;
+    const moodOptions = [
+      { score: 1, label: 'Muy bajo', face: '&#128542;' },
+      { score: 2, label: 'Bajo', face: '&#128577;' },
+      { score: 3, label: 'Neutro', face: '&#128528;' },
+      { score: 4, label: 'Bien', face: '&#128578;' },
+      { score: 5, label: 'Muy bien', face: '&#128516;' }
+    ];
+    const weatherLabels = {
+      0: { label: 'Despejado', icon: '&#9728;' },
+      1: { label: 'Casi claro', icon: '&#9728;' },
+      2: { label: 'Nubes', icon: '&#9729;' },
+      3: { label: 'Cubierto', icon: '&#9729;' },
+      45: { label: 'Niebla', icon: '&#9781;' },
+      48: { label: 'Niebla', icon: '&#9781;' },
+      51: { label: 'Llovizna', icon: '&#9748;' },
+      53: { label: 'Llovizna', icon: '&#9748;' },
+      55: { label: 'Llovizna', icon: '&#9748;' },
+      61: { label: 'Lluvia', icon: '&#9748;' },
+      63: { label: 'Lluvia', icon: '&#9748;' },
+      65: { label: 'Lluvia fuerte', icon: '&#9748;' },
+      71: { label: 'Nieve', icon: '&#10052;' },
+      73: { label: 'Nieve', icon: '&#10052;' },
+      75: { label: 'Nieve fuerte', icon: '&#10052;' },
+      80: { label: 'Chubascos', icon: '&#9748;' },
+      81: { label: 'Chubascos', icon: '&#9748;' },
+      82: { label: 'Chubascos', icon: '&#9748;' },
+      85: { label: 'Nieve', icon: '&#10052;' },
+      86: { label: 'Nieve', icon: '&#10052;' },
+      95: { label: 'Tormenta', icon: '&#9889;' },
+      96: { label: 'Tormenta', icon: '&#9889;' },
+      99: { label: 'Tormenta', icon: '&#9889;' }
+    };
+    const timeLayerLabels = {
+      productivo: 'Productivo',
+      salud: 'Salud',
+      sueno: 'SueÃ±o',
+      mantenimiento: 'Mantenimiento',
+      ocio: 'Ocio',
+      social: 'Social',
+      logistica: 'LogÃ­stica'
+    };
+    const summaryLayerOrder = ['productivo', 'salud', 'sueno', 'ocio', 'social', 'mantenimiento', 'logistica'];
+    const summaryLayerShortLabels = {
+      productivo: 'Prod',
+      salud: 'Sal',
+      sueno: 'Sue',
+      mantenimiento: 'Mant',
+      ocio: 'Ocio',
+      social: 'Soc',
+      logistica: 'Log'
+    };
+    const timeLayerHints = {
+      trabajo: 'productivo',
+      estudio: 'productivo',
+      tarea: 'productivo',
+      reunion: 'productivo',
+      entrega: 'productivo',
+      formacion: 'productivo',
+      foco: 'productivo',
+      deporte: 'salud',
+      entreno: 'salud',
+      gym: 'salud',
+      salud: 'salud',
+      medico: 'salud',
+      terapia: 'salud',
+      paseo: 'salud',
+      dormir: 'sueno',
+      sueno: 'sueno',
+      siesta: 'sueno',
+      descanso: 'sueno',
+      comida: 'mantenimiento',
+      comer: 'mantenimiento',
+      cocinar: 'mantenimiento',
+      compra: 'mantenimiento',
+      limpieza: 'mantenimiento',
+      recado: 'mantenimiento',
+      ocio: 'ocio',
+      cine: 'ocio',
+      serie: 'ocio',
+      lectura: 'ocio',
+      hobby: 'ocio',
+      social: 'social',
+      familia: 'social',
+      amigos: 'social',
+      celebracion: 'social',
+      transporte: 'logistica',
+      desplazamiento: 'logistica',
+      viaje: 'logistica',
+      logistica: 'logistica'
+    };
+    const recoveryLayers = new Set(['salud', 'sueno', 'ocio', 'social']);
+    const weeklyAssistantSchema = {
+      version: 'calendar_weekly_assistant.v1',
+      owner: 'calendar_cell_panel',
+      mcpContext: [
+        'active_user',
+        'calendar_week_range',
+        'agenda_events',
+        'daily_metrics',
+        'daily_weather',
+        'weekly_planning_status',
+        'emergent_insights',
+        'suggested_next_actions'
+      ],
+      filters: {
+        projects: { active_only: true, exclude_status: ['paused', 'completed', 'archived'] },
+        goals: { active_only: true, exclude_status: ['paused', 'completed', 'archived'] }
+      },
+      output: {
+        status: [
+          { key: 'load', label: 'Carga', value: '', detail: '', tone: 'accent', confidence: 'media', evidence: [] },
+          { key: 'focus', label: 'Foco', value: '', detail: '', tone: 'accent', confidence: 'media', evidence: [] },
+          { key: 'sleep', label: 'Sueno', value: '', detail: '', tone: 'accent', confidence: 'media', evidence: [] }
+        ],
+        primary_insight: {
+          title: '',
+          detail: '',
+          evidence: '',
+          weather_heat: { max_c: null, min_c: null, risk: 'unknown' },
+          impact: 'medio',
+          confidence: 'media'
+        },
+        actions: [
+          {
+            id: '',
+            title: '',
+            detail: '',
+            reason: '',
+            tool: '',
+            requires_confirmation: true,
+            status: 'suggested'
+          }
+        ],
+        opportunities: [{ title: '', detail: '', layer: '', confidence: 'media' }],
+        missing_data: [{ field: '', label: '', reason: '' }],
+        safety_note: 'No se ejecuta nada sin confirmacion explicita.'
+      }
+    };
+    window.GoalMindCalendarWeeklyAssistantSchema = weeklyAssistantSchema;
 
     function pad2(value) {
       return String(value).padStart(2, '0');
@@ -494,6 +668,10 @@
         && a.getDate() === b.getDate();
     }
 
+    function cellDayKey(date) {
+      return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
+    }
+
     function escapeHtml(value) {
       return String(value ?? '')
         .replace(/&/g, '&amp;')
@@ -509,11 +687,153 @@
     }
 
     function eventType(event) {
-      return event.extendedProps?.tipo_evento || 'otro';
+      return event.extendedProps?.tipo_evento || event.extendedProps?.raw?.tipo_evento || 'otro';
+    }
+
+    function normalizeTimeLayerText(value) {
+      return String(value || '')
+        .trim()
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '');
+    }
+
+    function inferTimeLayer(tipo = '', title = '', description = '') {
+      const haystack = [
+        normalizeTimeLayerText(tipo),
+        normalizeTimeLayerText(title),
+        normalizeTimeLayerText(description)
+      ].join(' ');
+      for (const [hint, layer] of Object.entries(timeLayerHints)) {
+        if (haystack.includes(hint)) return layer;
+      }
+      return 'productivo';
+    }
+
+    function eventTimeLayer(event) {
+      const raw = event.extendedProps?.raw || {};
+      const explicit = normalizeTimeLayerText(
+        raw.capa_tiempo || event.extendedProps?.capa_tiempo || event.capa_tiempo
+      );
+      if (timeLayerLabels[explicit]) return explicit;
+      return inferTimeLayer(eventType(event), event.title, raw.descripcion || event.extendedProps?.descripcion || '');
+    }
+
+    function timeLayerLabel(layer) {
+      return timeLayerLabels[layer] || timeLayerLabels.productivo;
+    }
+
+    function timeLayerPayload(layer) {
+      return {
+        capa_tiempo: layer,
+        bloquea_disponibilidad: true,
+        cuenta_productivo: layer === 'productivo',
+        cuenta_recuperacion: recoveryLayers.has(layer),
+        carga_mental: layer === 'productivo' ? 'media' : 'baja',
+        carga_fisica: layer === 'salud' ? 'media' : 'baja'
+      };
     }
 
     function formatCellTime(date) {
       return `${pad2(date.getHours())}:${pad2(date.getMinutes())}`;
+    }
+
+    function formatMinutesCompact(totalMinutes) {
+      const safeMinutes = Math.max(0, Math.round(totalMinutes || 0));
+      if (!safeMinutes) return '0h';
+      const hours = Math.floor(safeMinutes / 60);
+      const minutes = safeMinutes % 60;
+      if (!hours) return `${minutes}m`;
+      return minutes ? `${hours}h ${minutes}m` : `${hours}h`;
+    }
+
+    function renderSummaryLayerBar(layerMinutes) {
+      const total = Object.values(layerMinutes).reduce((sum, minutes) => sum + minutes, 0);
+      if (!total) {
+        return '<div class="calendar-summary-layerbar is-empty" aria-label="Sin tiempo planificado"></div>';
+      }
+      const segments = summaryLayerOrder
+        .filter(layer => layerMinutes[layer] > 0)
+        .map(layer => {
+          const minutes = layerMinutes[layer];
+          const label = summaryLayerShortLabels[layer] || timeLayerLabel(layer);
+          return `
+            <span
+              class="calendar-summary-segment"
+              data-capa="${escapeHtml(layer)}"
+              style="--summary-segment-flex:${Math.max(8, minutes)}"
+              title="${escapeHtml(`${timeLayerLabel(layer)} ${formatMinutesCompact(minutes)}`)}"
+              aria-label="${escapeHtml(`${timeLayerLabel(layer)} ${formatMinutesCompact(minutes)}`)}"
+            >
+              ${escapeHtml(label)}
+            </span>
+          `;
+        })
+        .join('');
+      return `<div class="calendar-summary-layerbar">${segments}</div>`;
+    }
+
+    function metricLevel(value) {
+      const text = normalizeTimeLayerText(value);
+      if (!text || text.startsWith('pend')) return 0;
+      if (['baja', 'bajo', 'low', 'ligera', 'ligero'].some(token => text.includes(token))) return 1;
+      if (['media', 'medio', 'moderada', 'moderado', 'normal'].some(token => text.includes(token))) return 2;
+      if (['alta', 'alto', 'high', 'intensa', 'intenso'].some(token => text.includes(token))) return 3;
+      const numeric = Number(String(value || '').replace(',', '.').replace(/[^\d.]/g, ''));
+      if (!Number.isFinite(numeric)) return 0;
+      if (numeric <= 1) return 1;
+      if (numeric <= 3) return 2;
+      return 3;
+    }
+
+    function renderSummaryDots(label, value, kind) {
+      const level = metricLevel(value);
+      const dots = [1, 2, 3]
+        .map(index => `<i class="${index <= level ? 'is-on' : ''}" aria-hidden="true"></i>`)
+        .join('');
+      return `
+        <span class="calendar-summary-meter" data-meter="${escapeHtml(kind)}" title="${escapeHtml(`${label}: ${value || 'Pend.'}`)}">
+          <small>${escapeHtml(label)}</small>
+          <em>${dots}</em>
+        </span>
+      `;
+    }
+
+    function loadLabelFromProductiveMinutes(productiveMinutes) {
+      const minutes = Math.max(0, Math.round(productiveMinutes || 0));
+      if (!minutes) return 'Sin carga';
+      const compact = formatMinutesCompact(minutes);
+      if (minutes >= 7 * 60) return `Alta (${compact})`;
+      if (minutes >= 3 * 60) return `Media (${compact})`;
+      return `Baja (${compact})`;
+    }
+
+    function eventProductiveMinutesOnDay(event, dateKey) {
+      if (!event.start || event.allDay || eventTimeLayer(event) !== 'productivo') return 0;
+      const range = cellEventMinutesOnDay(event, dateKey);
+      return Math.max(0, range.end - range.start);
+    }
+
+    function dayFocusFromTimeLayers(dayEvents, dateKey) {
+      const productiveBlocks = dayEvents
+        .map(event => eventProductiveMinutesOnDay(event, dateKey))
+        .filter(minutes => minutes > 0);
+      const productiveMinutes = productiveBlocks.reduce((sum, minutes) => sum + minutes, 0);
+      const longBlocks = productiveBlocks.filter(minutes => minutes >= 60).length;
+
+      if (!productiveMinutes) return 'Sin foco';
+      if (longBlocks >= 2 || productiveMinutes >= 180) return `Alta (${formatMinutesCompact(productiveMinutes)})`;
+      if (longBlocks >= 1 || productiveMinutes >= 90) return `Media (${formatMinutesCompact(productiveMinutes)})`;
+      return `Baja (${formatMinutesCompact(productiveMinutes)})`;
+    }
+
+    function dayWeatherChip(day) {
+      const metric = dayWeatherMetric(day);
+      const info = weatherInfo(metric);
+      const temp = formatWeatherTempRange(metric, { compact: true });
+      const heat = weatherHeatLevel(metric);
+      if (info.label === 'Pend.') return '<span aria-hidden="true">&#9729;</span><b>--</b>';
+      return `<span aria-hidden="true">${info.icon}</span><b data-heat="${escapeHtml(heat)}">${escapeHtml(temp || info.label)}</b>`;
     }
 
     function formatCellDuration(event) {
@@ -550,7 +870,11 @@
 
     function eventLoadLabel(event) {
       const raw = event.extendedProps?.raw || {};
-      return firstMetricValue(raw, ['carga', 'carga_llm', 'load', 'workload']);
+      const explicit = firstMetricValue(raw, ['carga', 'carga_llm', 'load', 'workload'], '');
+      if (explicit) return explicit;
+      const layer = eventTimeLayer(event);
+      if (layer !== 'productivo') return `No productiva (${timeLayerLabel(layer)})`;
+      return loadLabelFromProductiveMinutes(eventProductiveMinutesOnDay(event, cellDayKey(event.start)));
     }
 
     function eventFocusLabel(event) {
@@ -581,6 +905,10 @@
     }
 
     function daySleepLabel(events, day) {
+      const metric = sleepMetricsByDate[cellDayKey(day)];
+      if (metric && metric.sleep_hours !== undefined && metric.sleep_hours !== null && metric.sleep_hours !== '') {
+        return formatSleepLabel(metric.sleep_hours);
+      }
       const value = dayMetricValue(events, day, [
         'horas_sueno',
         'sueno_horas',
@@ -590,6 +918,230 @@
         'descanso'
       ]);
       return formatSleepLabel(value);
+    }
+
+    function sleepInputValue(day) {
+      const metric = sleepMetricsByDate[cellDayKey(day)];
+      const value = metric?.sleep_hours;
+      if (value === undefined || value === null || value === '') return '';
+      return String(value).replace(/\.0$/, '');
+    }
+
+    function sleepStatusLabel(day) {
+      const metric = sleepMetricsByDate[cellDayKey(day)];
+      if (!metric || metric.sleep_hours === undefined || metric.sleep_hours === null || metric.sleep_hours === '') {
+        return 'Pend.';
+      }
+      return metric.sleep_source === 'device' ? 'Disp.' : 'Manual';
+    }
+
+    function moodOption(score) {
+      const numeric = Number(score);
+      return moodOptions.find(option => option.score === numeric) || null;
+    }
+
+    function dayMoodScore(day) {
+      const metric = sleepMetricsByDate[cellDayKey(day)];
+      const score = metric?.mood_score;
+      return score === undefined || score === null || score === '' ? null : Number(score);
+    }
+
+    function dayMoodFace(day) {
+      return moodOption(dayMoodScore(day))?.face || '&#9786;';
+    }
+
+    function dayMoodLabel(day) {
+      return moodOption(dayMoodScore(day))?.label || 'Elegir';
+    }
+
+    function dayMoodSummary(day) {
+      const option = moodOption(dayMoodScore(day));
+      if (!option) return 'Pend.';
+      return `${option.face} ${escapeHtml(option.label)}`;
+    }
+
+    function dayWeatherMetric(day) {
+      return sleepMetricsByDate[cellDayKey(day)] || {};
+    }
+
+    function weatherInfo(metric) {
+      const code = metric?.weather_code;
+      if (code === undefined || code === null || code === '') {
+        return { label: 'Pend.', icon: '&#9729;' };
+      }
+      return weatherLabels[Number(code)] || { label: metric.weather_label || 'Tiempo', icon: '&#9729;' };
+    }
+
+    function formatWeatherTemp(value) {
+      if (value === undefined || value === null || value === '') return '';
+      const numeric = Number(value);
+      if (!Number.isFinite(numeric)) return '';
+      return `${Math.round(numeric)}C`;
+    }
+
+    function weatherTempNumber(value) {
+      if (value === undefined || value === null || value === '') return null;
+      const numeric = Number(value);
+      return Number.isFinite(numeric) ? numeric : null;
+    }
+
+    function formatWeatherTempRange(metric, options = {}) {
+      const compact = Boolean(options.compact);
+      const min = weatherTempNumber(metric?.weather_temp_min_c);
+      const max = weatherTempNumber(metric?.weather_temp_max_c);
+      const mean = weatherTempNumber(metric?.weather_temp_mean_c);
+      const minLabel = min !== null ? formatWeatherTemp(min) : '';
+      const maxLabel = max !== null ? formatWeatherTemp(max) : '';
+
+      if (minLabel && maxLabel) {
+        if (Math.round(min) === Math.round(max)) return maxLabel;
+        return compact ? `${minLabel}/${maxLabel}` : `${minLabel} min / ${maxLabel} max`;
+      }
+      if (maxLabel) return compact ? `${maxLabel} max` : `max ${maxLabel}`;
+      if (minLabel) return compact ? `${minLabel} min` : `min ${minLabel}`;
+      return mean !== null ? formatWeatherTemp(mean) : '';
+    }
+
+    function weatherHeatLevel(metric) {
+      const max = weatherTempNumber(metric?.weather_temp_max_c ?? metric?.weather_temp_mean_c);
+      if (max === null) return 'unknown';
+      if (max >= 35) return 'extreme';
+      if (max >= 30) return 'hot';
+      if (max >= 27) return 'warm';
+      return 'normal';
+    }
+
+    function formatWeatherRain(value) {
+      if (value === undefined || value === null || value === '') return '';
+      const numeric = Number(value);
+      if (!Number.isFinite(numeric) || numeric <= 0) return '0mm';
+      return `${numeric.toFixed(numeric < 1 ? 1 : 0)}mm`;
+    }
+
+    function dayWeatherSummary(day) {
+      const metric = dayWeatherMetric(day);
+      const info = weatherInfo(metric);
+      const temp = formatWeatherTempRange(metric);
+      if (info.label === 'Pend.') return 'Pend.';
+      return `${info.icon} ${escapeHtml(info.label)}${temp ? ` ${escapeHtml(temp)}` : ''}`;
+    }
+
+    function renderWeatherCell(day) {
+      const metric = dayWeatherMetric(day);
+      const info = weatherInfo(metric);
+      const temp = formatWeatherTempRange(metric, { compact: true });
+      const heat = weatherHeatLevel(metric);
+      const rain = formatWeatherRain(metric.weather_precipitation_mm);
+      const location = metric.weather_location_name || '';
+      return `
+        <span class="calendar-cell-weather-icon">${info.icon}</span>
+        <strong>${escapeHtml(info.label)}</strong>
+        <em data-heat="${escapeHtml(heat)}" title="${escapeHtml(formatWeatherTempRange(metric) || 'Temperatura pendiente')}">${escapeHtml(temp || '--')}</em>
+        <small>${escapeHtml(rain || '--')}</small>
+        ${location ? `<i>${escapeHtml(location)}</i>` : ''}
+      `;
+    }
+
+    function renderMoodOptions(dateKey, selectedScore) {
+      return moodOptions.map(option => {
+        const selectedClass = Number(selectedScore) === option.score ? ' is-selected' : '';
+        return `
+          <button type="button" class="calendar-cell-mood-option${selectedClass}" data-mood-date="${escapeHtml(dateKey)}" data-mood-score="${option.score}" role="option" aria-selected="${selectedClass ? 'true' : 'false'}">
+            <span>${option.face}</span>
+            <strong>${escapeHtml(option.label)}</strong>
+          </button>
+        `;
+      }).join('');
+    }
+
+    async function loadSleepMetricsForDays(days) {
+      if (!days.length) return;
+      const start = cellDayKey(days[0]);
+      const end = cellDayKey(days[days.length - 1]);
+      const rangeKey = `${start}:${end}`;
+      if (rangeKey === sleepMetricsRangeKey || rangeKey === sleepMetricsLoadingKey) return;
+
+      sleepMetricsLoadingKey = rangeKey;
+      try {
+        const res = await fetch(`/api/daily-metrics?start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}&weather=1`);
+        if (!res.ok) throw new Error('Error al cargar metricas diarias');
+        const data = await res.json();
+        const next = { ...sleepMetricsByDate };
+        days.forEach(day => {
+          delete next[cellDayKey(day)];
+        });
+        data.forEach(metric => {
+          if (metric.date) next[metric.date] = metric;
+        });
+        sleepMetricsByDate = next;
+        sleepMetricsRangeKey = rangeKey;
+        if (cellModeActive) renderCellView();
+      } catch (err) {
+        console.error(err);
+      } finally {
+        sleepMetricsLoadingKey = '';
+      }
+    }
+
+    async function saveMoodScore(dateKey, moodScore, trigger) {
+      const score = Number(moodScore);
+      if (!Number.isInteger(score) || score < 1 || score > 5) return;
+
+      trigger?.classList.add('is-saving');
+      try {
+        const res = await fetch(`/api/daily-metrics/${encodeURIComponent(dateKey)}/mood`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ mood_score: score, source: 'manual' })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data?.error || 'Error guardando animo');
+        sleepMetricsByDate[dateKey] = data;
+        openMoodDateKey = null;
+        renderCellView();
+      } catch (err) {
+        console.error(err);
+        alert('No se pudo guardar el animo.');
+      } finally {
+        trigger?.classList.remove('is-saving');
+      }
+    }
+
+    async function saveSleepHours(dateKey, rawValue, input) {
+      const normalized = String(rawValue ?? '').trim().replace(',', '.');
+      let sleepHours = null;
+      if (normalized !== '') {
+        sleepHours = Number(normalized);
+        if (!Number.isFinite(sleepHours) || sleepHours < 0 || sleepHours > 24) {
+          input?.classList.add('is-error');
+          alert('Introduce horas de sueno entre 0 y 24.');
+          return;
+        }
+      }
+
+      const statusEl = document.querySelector(`[data-sleep-status="${dateKey}"]`);
+      input?.classList.remove('is-error');
+      input?.classList.add('is-saving');
+      if (statusEl) statusEl.textContent = 'Guardando';
+
+      try {
+        const res = await fetch(`/api/daily-metrics/${encodeURIComponent(dateKey)}/sleep`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sleep_hours: sleepHours, source: 'manual' })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data?.error || 'Error guardando sueno');
+        sleepMetricsByDate[dateKey] = data;
+        renderCellView();
+      } catch (err) {
+        console.error(err);
+        input?.classList.add('is-error');
+        if (statusEl) statusEl.textContent = 'Error';
+        alert('No se pudieron guardar las horas de sueno.');
+      } finally {
+        input?.classList.remove('is-saving');
+      }
     }
 
     function isAllDayOnDate(event, day) {
@@ -604,14 +1156,338 @@
       return eventStart < dayEnd && eventEnd > dayStart;
     }
 
-    function shouldShowEventInSlot(event, slotStart, slotEnd, visibleStartHour) {
+    function cellEventBlockPlacement(event, day, visibleStartHour, visibleEndHour, gridEl) {
       if (!event.start || event.allDay) return false;
-      if (!sameDay(event.start, slotStart)) return false;
-      const startsInsideSlot = event.start >= slotStart && event.start < slotEnd;
-      const startsBeforeVisibleRange = event.start < slotStart
-        && slotStart.getHours() === visibleStartHour
-        && eventEndDate(event) > slotStart;
-      return startsInsideSlot || startsBeforeVisibleRange;
+      const end = eventEndDate(event);
+      const visibleStart = cloneDate(day);
+      visibleStart.setHours(visibleStartHour, 0, 0, 0);
+      const visibleEnd = cloneDate(day);
+      visibleEnd.setHours(visibleEndHour, 0, 0, 0);
+      if (event.start >= visibleEnd || end <= visibleStart) return false;
+
+      const renderStart = event.start < visibleStart ? visibleStart : event.start;
+      const renderEnd = end > visibleEnd ? visibleEnd : end;
+      const hourIndex = Math.floor((renderStart - visibleStart) / 3600000);
+      const slotHour = visibleStartHour + hourIndex;
+      const slot = gridEl.querySelector(`[data-cell-date="${cellDayKey(day)}"][data-cell-hour="${pad2(slotHour)}"]`);
+      if (!slot) return false;
+      const gridRect = gridEl.getBoundingClientRect();
+      const slotRect = slot.getBoundingClientRect();
+      const topMinutes = Math.max(0, ((renderStart - visibleStart) / 60000) - hourIndex * 60);
+      const durationMinutes = Math.max(15, (renderEnd - renderStart) / 60000);
+      return {
+        left: slotRect.left - gridRect.left,
+        top: slotRect.top - gridRect.top + (topMinutes / 60) * slotRect.height,
+        width: Math.max(24, slotRect.width),
+        height: Math.max(20, (durationMinutes / 60) * slotRect.height),
+        renderStartMs: renderStart.getTime(),
+        renderEndMs: renderEnd.getTime(),
+        lane: 0,
+      };
+    }
+
+    function cellDateFromKey(dateKey) {
+      const [year, month, day] = String(dateKey).split('-').map(Number);
+      return new Date(year, month - 1, day);
+    }
+
+    function cellDateAtMinutes(dateKey, minutes) {
+      const date = cellDateFromKey(dateKey);
+      date.setHours(0, minutes, 0, 0);
+      return date;
+    }
+
+    function cellMinutesForDate(date) {
+      return date.getHours() * 60 + date.getMinutes() + (date.getSeconds() / 60);
+    }
+
+    function clampCellMinutes(minutes) {
+      return Math.max(timeStrToMinutes(slotMin), Math.min(timeStrToMinutes(slotMax), minutes));
+    }
+
+    function roundCellMinutes(minutes) {
+      return clampCellMinutes(Math.round(minutes / cellInteractionStepMinutes) * cellInteractionStepMinutes);
+    }
+
+    function cellDayKeyFromPointer(clientX) {
+      const firstHour = pad2(Math.floor(timeStrToMinutes(slotMin) / 60));
+      const firstRowCells = Array.from(document.querySelectorAll(`.calendar-cell-slot[data-cell-hour="${firstHour}"]`));
+      const direct = firstRowCells.find(cell => {
+        const rect = cell.getBoundingClientRect();
+        return clientX >= rect.left && clientX <= rect.right;
+      });
+      if (direct) return direct.dataset.cellDate;
+
+      const closest = firstRowCells
+        .map(cell => {
+          const rect = cell.getBoundingClientRect();
+          const distance = clientX < rect.left ? rect.left - clientX : clientX - rect.right;
+          return { cell, distance };
+        })
+        .sort((a, b) => a.distance - b.distance)[0];
+      return closest?.cell?.dataset.cellDate || null;
+    }
+
+    function cellMinuteFromPointer(clientY) {
+      const gridEl = document.querySelector('#calendar-cell-grid-wrap .calendar-cell-grid');
+      if (!gridEl) return null;
+      const firstHour = pad2(Math.floor(timeStrToMinutes(slotMin) / 60));
+      const firstCell = gridEl.querySelector(`.calendar-cell-slot[data-cell-hour="${firstHour}"]`);
+      if (!firstCell) return null;
+      const firstRect = firstCell.getBoundingClientRect();
+      const hourHeight = firstRect.height || cellHourHeight;
+      const rawMinutes = timeStrToMinutes(slotMin) + ((clientY - firstRect.top) / hourHeight) * 60;
+      return roundCellMinutes(rawMinutes);
+    }
+
+    function cellPointerDateTime(event, fixedDateKey = null) {
+      const dateKey = fixedDateKey || cellDayKeyFromPointer(event.clientX);
+      const minutes = cellMinuteFromPointer(event.clientY);
+      if (!dateKey || minutes === null) return null;
+      return {
+        dateKey,
+        minutes,
+        date: cellDateAtMinutes(dateKey, minutes)
+      };
+    }
+
+    function cellPositionForMinute(dateKey, minutes) {
+      const gridEl = document.querySelector('#calendar-cell-grid-wrap .calendar-cell-grid');
+      if (!gridEl) return null;
+      const clamped = clampCellMinutes(minutes);
+      const hour = Math.min(Math.floor(clamped / 60), Math.floor((timeStrToMinutes(slotMax) - 1) / 60));
+      const slot = gridEl.querySelector(`[data-cell-date="${dateKey}"][data-cell-hour="${pad2(hour)}"]`);
+      if (!slot) return null;
+      const gridRect = gridEl.getBoundingClientRect();
+      const slotRect = slot.getBoundingClientRect();
+      const minuteOffset = clamped - hour * 60;
+      return {
+        left: slotRect.left - gridRect.left,
+        top: slotRect.top - gridRect.top + (minuteOffset / 60) * slotRect.height,
+        width: slotRect.width,
+        hourHeight: slotRect.height
+      };
+    }
+
+    function cellPlacementFromMinutes(dateKey, startMinutes, endMinutes) {
+      const start = clampCellMinutes(Math.min(startMinutes, endMinutes));
+      const end = clampCellMinutes(Math.max(startMinutes, endMinutes));
+      const startPosition = cellPositionForMinute(dateKey, start);
+      if (!startPosition) return null;
+      return {
+        left: startPosition.left,
+        top: startPosition.top,
+        width: startPosition.width,
+        height: Math.max(20, ((end - start) / 60) * startPosition.hourHeight)
+      };
+    }
+
+    function applyCellPlacement(element, placement) {
+      if (!element || !placement) return;
+      element.style.setProperty('--cell-event-left', `${placement.left}px`);
+      element.style.setProperty('--cell-event-top', `${placement.top}px`);
+      element.style.setProperty('--cell-event-width', `${placement.width}px`);
+      element.style.setProperty('--cell-event-height', `${placement.height}px`);
+    }
+
+    function clearCellSelectionPreview() {
+      document.querySelector('.calendar-cell-selection')?.remove();
+    }
+
+    function renderCellSelectionPreview() {
+      clearCellSelectionPreview();
+      if (!cellSelectionState) return;
+      const gridEl = document.querySelector('#calendar-cell-grid-wrap .calendar-cell-grid');
+      const placement = cellPlacementFromMinutes(
+        cellSelectionState.dateKey,
+        cellSelectionState.startMinutes,
+        cellSelectionState.currentMinutes
+      );
+      if (!gridEl || !placement) return;
+      const start = Math.min(cellSelectionState.startMinutes, cellSelectionState.currentMinutes);
+      const end = Math.max(cellSelectionState.startMinutes, cellSelectionState.currentMinutes);
+      gridEl.insertAdjacentHTML('beforeend', `
+        <div class="calendar-cell-selection" style="--cell-selection-left:${placement.left}px;--cell-selection-top:${placement.top}px;--cell-selection-width:${placement.width}px;--cell-selection-height:${placement.height}px">
+          <span>${escapeHtml(formatCellTime(cellDateAtMinutes(cellSelectionState.dateKey, start)))}</span>
+          <strong>${escapeHtml(formatCellDuration({ start: cellDateAtMinutes(cellSelectionState.dateKey, start), end: cellDateAtMinutes(cellSelectionState.dateKey, end) }))}</strong>
+        </div>
+      `);
+    }
+
+    function renderCellNowIndicator(days, startHour, endHour) {
+      document.querySelector('.calendar-cell-now')?.remove();
+      const gridEl = document.querySelector('#calendar-cell-grid-wrap .calendar-cell-grid');
+      if (!gridEl) return;
+      const now = new Date();
+      const todayKey = cellDayKey(now);
+      if (!days.some(day => cellDayKey(day) === todayKey)) return;
+      const minutes = cellMinutesForDate(now);
+      if (minutes < startHour * 60 || minutes > endHour * 60) return;
+      const position = cellPositionForMinute(todayKey, minutes);
+      if (!position) return;
+      gridEl.insertAdjacentHTML('beforeend', `
+        <div class="calendar-cell-now" style="--cell-now-left:${position.left}px;--cell-now-top:${position.top}px;--cell-now-width:${position.width}px">
+          <span>${escapeHtml(formatCellTime(now))}</span>
+        </div>
+      `);
+    }
+
+    function cellEventMinutesOnDay(event, dateKey) {
+      const start = event.start && cellDayKey(event.start) === dateKey
+        ? cellMinutesForDate(event.start)
+        : timeStrToMinutes(slotMin);
+      const endDate = eventEndDate(event);
+      const end = cellDayKey(endDate) === dateKey
+        ? cellMinutesForDate(endDate)
+        : timeStrToMinutes(slotMax);
+      return {
+        start: clampCellMinutes(start),
+        end: clampCellMinutes(end <= start ? timeStrToMinutes(slotMax) : end)
+      };
+    }
+
+    async function saveCellEventDates(eventId, startDate, endDate) {
+      const res = await fetch(`/api/events/${encodeURIComponent(eventId)}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fecha_inicio: startDate.toISOString(),
+          fecha_fin: endDate.toISOString()
+        })
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data?.error || 'Error actualizando fechas');
+      }
+      calendar.refetchEvents();
+    }
+
+    function beginCellSelection(event, slot) {
+      if (event.button !== 0) return;
+      if (event.target.closest('.calendar-cell-chip, button, input, select, textarea')) return;
+      const point = cellPointerDateTime(event, slot.dataset.cellDate);
+      if (!point) return;
+      event.preventDefault();
+      openMoodDateKey = null;
+      const maxMinutes = timeStrToMinutes(slotMax);
+      cellSelectionState = {
+        pointerId: event.pointerId,
+        dateKey: point.dateKey,
+        startMinutes: point.minutes,
+        currentMinutes: Math.min(maxMinutes, point.minutes + 60),
+        moved: false
+      };
+      slot.setPointerCapture?.(event.pointerId);
+      renderCellSelectionPreview();
+    }
+
+    function beginCellResize(event, chip, edge) {
+      if (event.button !== 0) return;
+      const calendarEvent = calendar?.getEventById(chip.dataset.eventId);
+      if (!calendarEvent?.start) return;
+      const dateKey = cellDayKey(calendarEvent.start);
+      const minutes = cellEventMinutesOnDay(calendarEvent, dateKey);
+      event.preventDefault();
+      event.stopPropagation();
+      cellResizeState = {
+        pointerId: event.pointerId,
+        eventId: calendarEvent.id,
+        dateKey,
+        edge,
+        startMinutes: minutes.start,
+        endMinutes: minutes.end,
+        previewStartMinutes: minutes.start,
+        previewEndMinutes: minutes.end,
+        chip
+      };
+      chip.classList.add('is-resizing');
+      chip.setPointerCapture?.(event.pointerId);
+    }
+
+    function handleCellPointerMove(event) {
+      if (cellSelectionState) {
+        const point = cellPointerDateTime(event, cellSelectionState.dateKey);
+        if (!point) return;
+        const nextMinutes = point.minutes;
+        cellSelectionState.moved = cellSelectionState.moved
+          || Math.abs(nextMinutes - cellSelectionState.startMinutes) >= cellInteractionStepMinutes;
+        cellSelectionState.currentMinutes = nextMinutes;
+        renderCellSelectionPreview();
+        return;
+      }
+
+      if (cellResizeState) {
+        const point = cellPointerDateTime(event, cellResizeState.dateKey);
+        if (!point) return;
+        if (cellResizeState.edge === 'start') {
+          cellResizeState.previewStartMinutes = Math.min(
+            point.minutes,
+            cellResizeState.previewEndMinutes - cellInteractionStepMinutes
+          );
+        } else {
+          cellResizeState.previewEndMinutes = Math.max(
+            point.minutes,
+            cellResizeState.previewStartMinutes + cellInteractionStepMinutes
+          );
+        }
+        const placement = cellPlacementFromMinutes(
+          cellResizeState.dateKey,
+          cellResizeState.previewStartMinutes,
+          cellResizeState.previewEndMinutes
+        );
+        applyCellPlacement(cellResizeState.chip, placement);
+        const timeLabel = cellResizeState.chip.querySelector('span');
+        if (timeLabel) {
+          timeLabel.textContent = formatCellTime(cellDateAtMinutes(cellResizeState.dateKey, cellResizeState.previewStartMinutes));
+        }
+      }
+    }
+
+    async function finishCellPointerInteraction(event) {
+      if (cellSelectionState) {
+        const state = cellSelectionState;
+        cellSelectionState = null;
+        clearCellSelectionPreview();
+        const startMinutes = Math.min(state.startMinutes, state.currentMinutes);
+        let endMinutes = Math.max(state.startMinutes, state.currentMinutes);
+        if (!state.moved || endMinutes <= startMinutes) {
+          endMinutes = Math.min(timeStrToMinutes(slotMax), startMinutes + 60);
+        }
+        openModal('new', {
+          start: cellDateAtMinutes(state.dateKey, startMinutes).toISOString(),
+          end: cellDateAtMinutes(state.dateKey, endMinutes).toISOString(),
+          tipo_evento: 'tarea',
+          capa_tiempo: 'productivo'
+        });
+        return;
+      }
+
+      if (cellResizeState) {
+        const state = cellResizeState;
+        cellResizeState = null;
+        state.chip?.classList.remove('is-resizing');
+        try {
+          await saveCellEventDates(
+            state.eventId,
+            cellDateAtMinutes(state.dateKey, state.previewStartMinutes),
+            cellDateAtMinutes(state.dateKey, state.previewEndMinutes)
+          );
+        } catch (err) {
+          console.error(err);
+          alert('No se pudo actualizar la duracion.');
+          renderCellView();
+        }
+      }
+    }
+
+    function cancelCellPointerInteraction() {
+      cellSelectionState = null;
+      clearCellSelectionPreview();
+      if (cellResizeState?.chip) {
+        cellResizeState.chip.classList.remove('is-resizing');
+      }
+      cellResizeState = null;
+      if (cellModeActive) renderCellView();
     }
 
     function eventToEditData(event) {
@@ -622,7 +1498,8 @@
         end: event.end?.toISOString(),
         extendedProps: event.extendedProps || {},
         descripcion: event.extendedProps?.descripcion || '',
-        tipo_evento: event.extendedProps?.tipo_evento || ''
+        tipo_evento: event.extendedProps?.tipo_evento || '',
+        capa_tiempo: eventTimeLayer(event)
       };
     }
 
@@ -640,18 +1517,49 @@
         .sort((a, b) => a.start - b.start);
     }
 
-    function renderCellChip(event, allDay = false) {
+    function renderCellChip(event, placement = null) {
       const tipo = escapeHtml(eventType(event));
-      const time = allDay ? 'Dia' : formatCellTime(event.start);
-      const duration = allDay ? '' : ` ${formatCellDuration(event)}`;
+      const layer = eventTimeLayer(event);
+      const time = formatCellTime(event.start);
       const selectedClass = selectedCellEventId === event.id ? ' is-selected' : '';
+      const blockClass = placement ? ' is-duration-block' : '';
+      const placementStyle = placement
+        ? ` style="--cell-event-left:${placement.left}px;--cell-event-top:${placement.top}px;--cell-event-width:${placement.width}px;--cell-event-height:${placement.height}px;"`
+        : '';
       return `
-        <button type="button" class="calendar-cell-chip${selectedClass}" data-event-id="${escapeHtml(event.id)}" data-tipo="${tipo}" title="${escapeHtml(event.title)}">
+        <button type="button" class="calendar-cell-chip${selectedClass}${blockClass}" data-event-id="${escapeHtml(event.id)}" data-tipo="${tipo}" data-capa="${escapeHtml(layer)}" title="${escapeHtml(timeLayerLabel(layer))} · ${escapeHtml(event.title)}"${placementStyle}>
+          ${placement ? '<i class="calendar-cell-resize-handle is-start" data-resize-edge="start" aria-hidden="true"></i>' : ''}
           <span>${escapeHtml(time)}</span>
           <strong>${escapeHtml(event.title || '(Sin titulo)')}</strong>
-          ${duration ? `<em>${escapeHtml(duration)}</em>` : ''}
+          ${placement ? '<i class="calendar-cell-resize-handle is-end" data-resize-edge="end" aria-hidden="true"></i>' : ''}
         </button>
       `;
+    }
+
+    function renderCellEventLayer(events, days, startHour, endHour) {
+      const gridEl = document.querySelector('#calendar-cell-grid-wrap .calendar-cell-grid');
+      if (!gridEl) return;
+      const eventBlocks = [];
+
+      days.forEach(day => {
+        const laneEnds = [];
+        const placements = events
+          .map(event => ({ event, placement: cellEventBlockPlacement(event, day, startHour, endHour, gridEl) }))
+          .filter(item => item.placement)
+          .sort((a, b) => a.placement.renderStartMs - b.placement.renderStartMs || b.placement.renderEndMs - a.placement.renderEndMs);
+
+        placements.forEach(({ event, placement }) => {
+          let lane = laneEnds.findIndex(endMs => endMs <= placement.renderStartMs);
+          if (lane === -1) lane = laneEnds.length;
+          laneEnds[lane] = placement.renderEndMs;
+          placement.lane = 0;
+          eventBlocks.push(renderCellChip(event, placement));
+        });
+      });
+
+      if (eventBlocks.length) {
+        gridEl.insertAdjacentHTML('beforeend', `<div class="calendar-cell-event-layer">${eventBlocks.join('')}</div>`);
+      }
     }
 
     function renderDailySummary(events, days) {
@@ -659,26 +1567,54 @@
       if (!summaryEl) return;
       const dayFormatter = new Intl.DateTimeFormat('es-ES', { weekday: 'short', day: '2-digit' });
       const cells = days.map(day => {
+        const dateKey = cellDayKey(day);
         const dayEvents = eventsForCellDay(events, day);
-        const busyMinutes = dayEvents.reduce((sum, event) => {
-          if (!event.start || event.allDay) return sum;
-          return sum + Math.max(15, Math.round((eventEndDate(event) - event.start) / 60000));
-        }, 0);
-        const hours = Math.floor(busyMinutes / 60);
-        const minutes = busyMinutes % 60;
-        const timeLabel = busyMinutes ? `${hours}h${minutes ? ` ${minutes}m` : ''}` : '0h';
-        const firstEvent = dayEvents.find(event => !event.allDay);
-        const dayLoad = firstMetricValue(dayEvents[0]?.extendedProps?.raw || {}, ['carga_dia', 'carga', 'load'], 'Pend.');
-        const dayFocus = firstMetricValue(dayEvents[0]?.extendedProps?.raw || {}, ['foco_dia', 'foco', 'focus'], 'Pend.');
+        const layerMinutes = dayEvents.reduce((acc, event) => {
+          if (!event.start || event.allDay) return acc;
+          const range = cellEventMinutesOnDay(event, dateKey);
+          const minutes = Math.max(0, range.end - range.start);
+          const layer = eventTimeLayer(event);
+          acc[layer] = (acc[layer] || 0) + minutes;
+          return acc;
+        }, {});
+        const productiveMinutes = layerMinutes.productivo || 0;
+        const nonProductiveMinutes = Object.entries(layerMinutes)
+          .filter(([layer]) => layer !== 'productivo')
+          .reduce((sum, [, minutes]) => sum + minutes, 0);
+        const layerLabel = Object.entries(layerMinutes)
+          .filter(([, minutes]) => minutes > 0)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 3)
+          .map(([layer, minutes]) => `${timeLayerLabel(layer).slice(0, 3)} ${formatMinutesCompact(minutes)}`)
+          .join(' · ') || 'sin capas';
+        const explicitDayLoad = dayEvents.reduce((value, event) => (
+          value || firstMetricValue(event.extendedProps?.raw || {}, ['carga_dia', 'carga', 'load'], '')
+        ), '');
+        const dayLoad = explicitDayLoad || loadLabelFromProductiveMinutes(productiveMinutes);
+        const dayFocus = dayFocusFromTimeLayers(dayEvents, dateKey);
+        const sleepLabel = daySleepLabel(events, day);
+        const moodLabel = dayMoodLabel(day);
+        const weatherText = dayWeatherSummary(day).replace(/<[^>]*>/g, '');
         return `
-          <div class="calendar-cell-day-summary">
-            <span>${escapeHtml(dayFormatter.format(day))}</span>
-            <strong>${dayEvents.length}</strong>
-            <em>ev.</em>
-            <small>${escapeHtml(timeLabel)}</small>
-            <mark>${firstEvent ? escapeHtml(formatCellTime(firstEvent.start)) : 'libre'}</mark>
-            <i>Carga <b>${escapeHtml(dayLoad)}</b></i>
-            <i>Foco <b>${escapeHtml(dayFocus)}</b></i>
+          <div class="calendar-cell-day-summary" title="${escapeHtml(`${dayFormatter.format(day)} | Prod ${formatMinutesCompact(productiveMinutes)} | Otros ${formatMinutesCompact(nonProductiveMinutes)} | ${layerLabel}`)}">
+            <div class="calendar-summary-head">
+              <span>${escapeHtml(dayFormatter.format(day))}</span>
+              <em>${dayEvents.length} ev</em>
+            </div>
+            <div class="calendar-summary-main">
+              <strong>Prod ${escapeHtml(formatMinutesCompact(productiveMinutes))}</strong>
+              <small>Otros ${escapeHtml(formatMinutesCompact(nonProductiveMinutes))}</small>
+            </div>
+            ${renderSummaryLayerBar(layerMinutes)}
+            <div class="calendar-summary-indicators">
+              ${renderSummaryDots('Carga', dayLoad, 'load')}
+              ${renderSummaryDots('Foco', dayFocus, 'focus')}
+            </div>
+            <div class="calendar-summary-chips">
+              <span class="calendar-summary-chip" title="${escapeHtml(`Sueno: ${sleepLabel}`)}"><b>${escapeHtml(sleepLabel)}</b></span>
+              <span class="calendar-summary-chip" title="${escapeHtml(`Animo: ${moodLabel}`)}">${dayMoodFace(day)}</span>
+              <span class="calendar-summary-chip" title="${escapeHtml(weatherText)}">${dayWeatherChip(day)}</span>
+            </div>
           </div>
         `;
       }).join('');
@@ -687,6 +1623,439 @@
         <div class="calendar-cell-day-summary-list">${cells}</div>
       `;
     }
+
+    function weekVisibleEvents(events, days) {
+      if (!days.length) return [];
+      const weekEnd = cellAddDays(days[days.length - 1], 1);
+      return events.filter(event => {
+        const end = eventEndDate(event);
+        return event.start && event.start < weekEnd && end >= days[0];
+      });
+    }
+
+    function dayLayerMinutesForAssistant(events, day) {
+      const dateKey = cellDayKey(day);
+      return eventsForCellDay(events, day).reduce((acc, event) => {
+        if (!event.start || event.allDay) return acc;
+        const range = cellEventMinutesOnDay(event, dateKey);
+        const minutes = Math.max(0, range.end - range.start);
+        if (!minutes) return acc;
+        const layer = eventTimeLayer(event);
+        acc[layer] = (acc[layer] || 0) + minutes;
+        return acc;
+      }, {});
+    }
+
+    function weekLayerMinutesForAssistant(visibleEvents, days) {
+      return visibleEvents.reduce((acc, event) => {
+        if (!event.start || event.allDay) return acc;
+        days.forEach(day => {
+          if (!eventOverlapsDay(event, day)) return;
+          const range = cellEventMinutesOnDay(event, cellDayKey(day));
+          const minutes = Math.max(0, range.end - range.start);
+          if (!minutes) return;
+          const layer = eventTimeLayer(event);
+          acc[layer] = (acc[layer] || 0) + minutes;
+        });
+        return acc;
+      }, {});
+    }
+
+    function totalLayerMinutes(layerMinutes, layers = null) {
+      return Object.entries(layerMinutes).reduce((sum, [layer, minutes]) => {
+        if (layers && !layers.includes(layer)) return sum;
+        return sum + minutes;
+      }, 0);
+    }
+
+    function eventVisibleMinutesForAssistant(event, days) {
+      if (!event.start || event.allDay) return 0;
+      return days.reduce((sum, day) => {
+        if (!eventOverlapsDay(event, day)) return sum;
+        const range = cellEventMinutesOnDay(event, cellDayKey(day));
+        return sum + Math.max(0, range.end - range.start);
+      }, 0);
+    }
+
+    function weekRangeShort(days) {
+      if (!days.length) return '';
+      const formatter = new Intl.DateTimeFormat('es-ES', { day: '2-digit', month: 'short' });
+      return `${formatter.format(days[0])} - ${formatter.format(days[days.length - 1])}`;
+    }
+
+    function sleepHoursForDay(day) {
+      const value = sleepMetricsByDate[cellDayKey(day)]?.sleep_hours;
+      if (value === undefined || value === null || value === '') return null;
+      const numeric = Number(value);
+      return Number.isFinite(numeric) ? numeric : null;
+    }
+
+    function buildWeeklyAssistantDraft(events, days, layerMinutes, visibleEvents) {
+      const dayFormatter = new Intl.DateTimeFormat('es-ES', { weekday: 'short' });
+      const dailyStats = days.map(day => {
+        const layers = dayLayerMinutesForAssistant(events, day);
+        return {
+          date: cellDayKey(day),
+          label: dayFormatter.format(day),
+          productive: layers.productivo || 0,
+          total: totalLayerMinutes(layers),
+          recovery: totalLayerMinutes(layers, ['salud', 'sueno', 'ocio', 'social'])
+        };
+      });
+      const maxProductiveDay = dailyStats.reduce((best, item) => (
+        item.productive > best.productive ? item : best
+      ), dailyStats[0] || { label: 'dia', productive: 0, total: 0, recovery: 0 });
+      const lightDay = dailyStats.reduce((best, item) => (
+        item.productive < best.productive ? item : best
+      ), dailyStats[0] || { label: 'dia', productive: 0, total: 0, recovery: 0 });
+      const productiveTotal = layerMinutes.productivo || 0;
+      const recoveryTotal = totalLayerMinutes(layerMinutes, ['salud', 'sueno', 'ocio', 'social']);
+      const focusBlocks = visibleEvents.filter(event => (
+        eventTimeLayer(event) === 'productivo' && eventVisibleMinutesForAssistant(event, days) >= 60
+      )).length;
+      const sleepValues = days
+        .map(day => sleepHoursForDay(day))
+        .filter(value => value !== null);
+      const missingSleepDays = days.length - sleepValues.length;
+      const sleepSpread = sleepValues.length
+        ? Math.max(...sleepValues) - Math.min(...sleepValues)
+        : 0;
+      const weatherStats = days.map(day => {
+        const metric = dayWeatherMetric(day);
+        return {
+          date: cellDayKey(day),
+          label: dayFormatter.format(day),
+          min: weatherTempNumber(metric.weather_temp_min_c),
+          max: weatherTempNumber(metric.weather_temp_max_c),
+          mean: weatherTempNumber(metric.weather_temp_mean_c),
+          heat: weatherHeatLevel(metric)
+        };
+      });
+      const weatherWithTemp = weatherStats.filter(item => item.max !== null || item.mean !== null);
+      const hottestWeather = weatherWithTemp.reduce((best, item) => {
+        const itemValue = item.max ?? item.mean ?? -Infinity;
+        const bestValue = best ? (best.max ?? best.mean ?? -Infinity) : -Infinity;
+        return itemValue > bestValue ? item : best;
+      }, null);
+      const hottestValue = hottestWeather ? (hottestWeather.max ?? hottestWeather.mean) : null;
+      const heatRisk = hottestValue === null
+        ? 'unknown'
+        : hottestValue >= 35 ? 'extreme' : hottestValue >= 30 ? 'hot' : hottestValue >= 27 ? 'warm' : 'normal';
+
+      let loadTone = 'good';
+      let loadValue = 'Baja';
+      let loadDetail = `${formatMinutesCompact(productiveTotal)} productivas`;
+      if (productiveTotal >= 28 * 60 || maxProductiveDay.productive >= 7 * 60) {
+        loadTone = 'warn';
+        loadValue = 'Alta';
+        loadDetail = `${maxProductiveDay.label} concentra ${formatMinutesCompact(maxProductiveDay.productive)}`;
+      } else if (productiveTotal >= 18 * 60) {
+        loadTone = 'accent';
+        loadValue = 'Media';
+        loadDetail = `${formatMinutesCompact(productiveTotal)} productivas`;
+      }
+
+      const focusTone = focusBlocks >= 3 ? 'good' : focusBlocks >= 1 ? 'accent' : 'warn';
+      const focusValue = focusBlocks >= 3 ? 'Protegido' : focusBlocks >= 1 ? 'Fragil' : 'Sin bloques';
+      const focusDetail = `${focusBlocks} bloques de 60m+`;
+
+      let sleepTone = 'good';
+      let sleepValue = 'Estable';
+      let sleepDetail = sleepValues.length
+        ? `${sleepValues.length}/7 dias registrados`
+        : 'sin registro semanal';
+      if (!sleepValues.length || missingSleepDays >= 3) {
+        sleepTone = 'warn';
+        sleepValue = 'Incompleto';
+      } else if (sleepSpread >= 1.5) {
+        sleepTone = 'warn';
+        sleepValue = 'Irregular';
+        sleepDetail = `${sleepSpread.toFixed(1)}h de variacion`;
+      }
+
+      let primaryInsight = {
+        title: 'Semana con base estable',
+        detail: 'La agenda tiene capas diferenciadas y permite separar trabajo, salud, ocio y mantenimiento.',
+        evidence: `${visibleEvents.length} eventos visibles, ${formatMinutesCompact(productiveTotal)} productivas.`,
+        impact: 'medio',
+        confidence: 'media',
+        tone: 'good'
+      };
+      if (heatRisk === 'extreme' || heatRisk === 'hot') {
+        primaryInsight = {
+          title: heatRisk === 'extreme' ? 'Calor extremo en la semana' : 'Calor alto en la semana',
+          detail: 'La temperatura maxima puede afectar energia, foco y tolerancia a la carga. Conviene proteger el trabajo exigente fuera del pico de calor.',
+          evidence: `${hottestWeather.label} llega a ${formatWeatherTemp(hottestValue)} max.`,
+          weather_heat: {
+            max_c: hottestValue,
+            min_c: hottestWeather.min,
+            risk: heatRisk
+          },
+          impact: heatRisk === 'extreme' ? 'alto' : 'medio',
+          confidence: 'alta',
+          tone: 'warn'
+        };
+      } else if (loadTone === 'warn') {
+        primaryInsight = {
+          title: 'Riesgo de saturacion',
+          detail: 'La carga productiva aparece concentrada. Conviene mover o proteger bloques antes de que la semana se cierre.',
+          evidence: `${maxProductiveDay.label} tiene ${formatMinutesCompact(maxProductiveDay.productive)} productivas.`,
+          impact: 'alto',
+          confidence: 'media',
+          tone: 'warn'
+        };
+      } else if (focusBlocks < 2) {
+        primaryInsight = {
+          title: 'Foco poco protegido',
+          detail: 'Hay trabajo previsto, pero faltan bloques largos donde la agenda defienda concentracion real.',
+          evidence: `${focusBlocks} bloques productivos de al menos una hora.`,
+          impact: 'medio',
+          confidence: 'media',
+          tone: 'accent'
+        };
+      } else if (missingSleepDays >= 3) {
+        primaryInsight = {
+          title: 'Sueno sin contexto suficiente',
+          detail: 'La lectura de carga y recuperacion queda coja si faltan varios dias de sueno.',
+          evidence: `${missingSleepDays} dias sin horas de sueno registradas.`,
+          impact: 'medio',
+          confidence: 'alta',
+          tone: 'warn'
+        };
+      }
+
+      const actions = [];
+      if (heatRisk === 'extreme' || heatRisk === 'hot') {
+        actions.push({
+          id: 'protect_heat_window',
+          title: 'Evitar pico de calor',
+          detail: 'Mover foco o esfuerzo intenso a una franja mas fresca.',
+          reason: `${hottestWeather.label} alcanza ${formatWeatherTemp(hottestValue)} de maxima.`,
+          tool: 'calendar.reschedule_event',
+          requiresConfirmation: true,
+          tone: 'warn'
+        });
+      }
+      if (loadTone === 'warn') {
+        actions.push({
+          id: 'rebalance_load',
+          title: 'Rebalancear carga',
+          detail: `Mover 60-90 min desde ${maxProductiveDay.label} hacia ${lightDay.label}.`,
+          reason: `${maxProductiveDay.label} acumula ${formatMinutesCompact(maxProductiveDay.productive)} productivas.`,
+          tool: 'calendar.reschedule_event',
+          requiresConfirmation: true,
+          tone: 'warn'
+        });
+      }
+      if (focusBlocks < 3) {
+        actions.push({
+          id: 'create_focus_block',
+          title: 'Reservar foco',
+          detail: 'Crear un bloque de 90 min sin reuniones ni mantenimiento.',
+          reason: `${focusBlocks} bloques largos detectados esta semana.`,
+          tool: 'calendar.create_event',
+          requiresConfirmation: true,
+          tone: 'accent'
+        });
+      }
+      if (missingSleepDays > 0) {
+        actions.push({
+          id: 'complete_sleep',
+          title: 'Completar sueno',
+          detail: 'Rellenar las horas pendientes para mejorar la lectura de carga.',
+          reason: `${missingSleepDays} dias sin registro manual o de dispositivo.`,
+          tool: 'daily_metrics.upsert_sleep',
+          requiresConfirmation: true,
+          tone: 'warn'
+        });
+      }
+      if (recoveryTotal < Math.max(120, productiveTotal * 0.16)) {
+        actions.push({
+          id: 'protect_recovery',
+          title: 'Reservar recuperacion',
+          detail: 'Anadir una franja corta de salud, descanso u ocio real.',
+          reason: `${formatMinutesCompact(recoveryTotal)} en capas de recuperacion.`,
+          tool: 'calendar.create_event',
+          requiresConfirmation: true,
+          tone: 'good'
+        });
+      }
+      actions.push({
+        id: 'review_week_priority',
+        title: 'Elegir prioridad',
+        detail: 'Marcar la accion critica que debe sobrevivir aunque el dia se tuerza.',
+        reason: 'El MCP necesita prioridad real para ordenar consejos.',
+        tool: 'weekly_planning.set_priority',
+        requiresConfirmation: true,
+        tone: 'accent'
+      });
+
+      const opportunities = [
+        recoveryTotal
+          ? {
+              title: 'Usar recuperacion como dato',
+              detail: `${formatMinutesCompact(recoveryTotal)} ya separados de lo productivo.`,
+              layer: 'recuperacion',
+              confidence: 'media'
+            }
+          : {
+              title: 'Planificar ocio real',
+              detail: 'No hay ocio o recuperacion visible en la semana.',
+              layer: 'ocio',
+              confidence: 'media'
+            },
+        {
+          title: 'Afinar carga diaria',
+          detail: 'Carga y foco quedan listos para que el MCP los calcule con agenda y metricas.',
+          layer: 'ia',
+          confidence: 'alta'
+        }
+      ];
+
+      const missingData = [];
+      if (missingSleepDays > 0) {
+        missingData.push({ field: 'sleep_hours', label: 'sueno', reason: 'mejora carga y recuperacion' });
+      }
+      missingData.push(
+        { field: 'energy', label: 'energia', reason: 'calibra el foco recomendado' },
+        { field: 'week_priority', label: 'prioridad', reason: 'ordena acciones emergentes' },
+        { field: 'fatigue', label: 'cansancio', reason: 'detecta saturacion subjetiva' }
+      );
+
+      return {
+        schemaVersion: weeklyAssistantSchema.version,
+        generatedBy: 'local_heuristic_until_mcp',
+        weekRange: weekRangeShort(days),
+        status: [
+          {
+            key: 'load',
+            label: 'Carga',
+            value: loadValue,
+            detail: loadDetail,
+            tone: loadTone,
+            confidence: 'media',
+            evidence: [`${formatMinutesCompact(productiveTotal)} productivas`, `${visibleEvents.length} eventos`]
+          },
+          {
+            key: 'focus',
+            label: 'Foco',
+            value: focusValue,
+            detail: focusDetail,
+            tone: focusTone,
+            confidence: 'media',
+            evidence: [`${focusBlocks} bloques largos`]
+          },
+          {
+            key: 'sleep',
+            label: 'Sueno',
+            value: sleepValue,
+            detail: sleepDetail,
+            tone: sleepTone,
+            confidence: sleepValues.length ? 'media' : 'baja',
+            evidence: [`${sleepValues.length}/7 dias con sueno`]
+          }
+        ],
+        primaryInsight,
+        actions: actions.slice(0, 3),
+        opportunities,
+        missingData: missingData.slice(0, 3),
+        safetyNote: weeklyAssistantSchema.output.safety_note
+      };
+    }
+
+    function renderWeeklyAssistantPanel(assistant) {
+      window.GoalMindCalendarWeeklyAssistantSchema = weeklyAssistantSchema;
+      window.GoalMindBuildCalendarWeeklyAssistantDraft = buildWeeklyAssistantDraft;
+      const schemaJson = escapeHtml(JSON.stringify(weeklyAssistantSchema));
+      const statusCards = assistant.status.map(item => `
+        <div class="calendar-ai-status-card" data-tone="${escapeHtml(item.tone)}" data-mcp-field="status.${escapeHtml(item.key)}">
+          <span>${escapeHtml(item.label)}</span>
+          <strong>${escapeHtml(item.value)}</strong>
+          <small>${escapeHtml(item.detail)}</small>
+        </div>
+      `).join('');
+      const actionCards = assistant.actions.map((action, index) => `
+        <article class="calendar-ai-action" data-tone="${escapeHtml(action.tone)}" data-mcp-field="actions.${index}" data-mcp-tool="${escapeHtml(action.tool)}" data-requires-confirmation="${action.requiresConfirmation ? 'true' : 'false'}">
+          <div class="calendar-ai-action-head">
+            <span aria-hidden="true"></span>
+            <div>
+              <strong>${escapeHtml(action.title)}</strong>
+              <p>${escapeHtml(action.detail)}</p>
+            </div>
+          </div>
+          <small>Motivo: ${escapeHtml(action.reason)}</small>
+          <div class="calendar-ai-action-buttons">
+            <button type="button" class="calendar-ai-btn is-primary" data-calendar-ai-action data-action-intent="apply">Aplicar</button>
+            <button type="button" class="calendar-ai-btn is-ghost" data-calendar-ai-action data-action-intent="snooze">Posponer</button>
+          </div>
+          <em class="calendar-ai-action-state">requiere confirmacion</em>
+        </article>
+      `).join('');
+      const opportunities = assistant.opportunities.map((item, index) => `
+        <li data-mcp-field="opportunities.${index}" data-capa="${escapeHtml(item.layer)}">
+          <strong>${escapeHtml(item.title)}</strong>
+          <span>${escapeHtml(item.detail)}</span>
+        </li>
+      `).join('');
+      const missingData = assistant.missingData.map(item => `
+        <span class="calendar-ai-chip" data-mcp-field="missing_data.${escapeHtml(item.field)}" title="${escapeHtml(item.reason)}">${escapeHtml(item.label)}</span>
+      `).join('');
+
+      return `
+        <section class="calendar-ai-panel" data-mcp-field="calendar_weekly_assistant" data-schema-version="${escapeHtml(assistant.schemaVersion)}" data-source="${escapeHtml(assistant.generatedBy)}">
+          <template id="calendar-weekly-assistant-schema" data-mcp-field="schema">${schemaJson}</template>
+          <header class="calendar-ai-header">
+            <div class="calendar-cell-panel-kicker">IA semanal</div>
+            <h3>Sugerencias de la semana</h3>
+            <p>${escapeHtml(assistant.weekRange)} | huecos preparados para MCP</p>
+          </header>
+          <div class="calendar-ai-status" aria-label="Estado semanal">
+            ${statusCards}
+          </div>
+          <article class="calendar-ai-insight" data-tone="${escapeHtml(assistant.primaryInsight.tone)}" data-mcp-field="primary_insight">
+            <span>Insight principal</span>
+            <strong>${escapeHtml(assistant.primaryInsight.title)}</strong>
+            <p>${escapeHtml(assistant.primaryInsight.detail)}</p>
+            <small>${escapeHtml(assistant.primaryInsight.evidence)} | impacto ${escapeHtml(assistant.primaryInsight.impact)} | confianza ${escapeHtml(assistant.primaryInsight.confidence)}</small>
+          </article>
+          <section class="calendar-ai-section">
+            <div class="calendar-ai-section-title">
+              <span>Acciones</span>
+              <b>${assistant.actions.length}</b>
+            </div>
+            <div class="calendar-ai-actions">${actionCards}</div>
+          </section>
+          <section class="calendar-ai-section">
+            <div class="calendar-ai-section-title">
+              <span>Oportunidades</span>
+              <b>MCP</b>
+            </div>
+            <ul class="calendar-ai-list">${opportunities}</ul>
+          </section>
+          <section class="calendar-ai-section">
+            <div class="calendar-ai-section-title">
+              <span>Pendiente de datos</span>
+            </div>
+            <div class="calendar-ai-missing">${missingData}</div>
+          </section>
+          <p class="calendar-ai-safety" data-mcp-field="safety_note">${escapeHtml(assistant.safetyNote)}</p>
+        </section>
+      `;
+    }
+
+    function bindWeeklyAssistantActions(panelEl) {
+      panelEl.querySelectorAll('[data-calendar-ai-action]').forEach(button => {
+        button.addEventListener('click', () => {
+          const actionEl = button.closest('.calendar-ai-action');
+          const stateEl = actionEl?.querySelector('.calendar-ai-action-state');
+          const isApply = button.dataset.actionIntent === 'apply';
+          actionEl?.classList.add('is-queued');
+          if (stateEl) stateEl.textContent = isApply ? 'pendiente de confirmar' : 'pospuesto';
+        });
+      });
+    }
+
+    window.GoalMindBuildCalendarWeeklyAssistantDraft = buildWeeklyAssistantDraft;
 
     function renderCellPanel(events, days) {
       const panelEl = document.getElementById('calendar-cell-panel-content');
@@ -714,6 +2083,10 @@
               <strong>${escapeHtml(eventType(selectedEvent))}</strong>
             </div>
             <div>
+              <span>Capa</span>
+              <strong>${escapeHtml(timeLayerLabel(eventTimeLayer(selectedEvent)))}</strong>
+            </div>
+            <div>
               <span>Dia</span>
               <strong>${escapeHtml(formatCellDateLong(selectedEvent.start))}</strong>
             </div>
@@ -730,11 +2103,15 @@
           ${referenceType ? `<p class="calendar-cell-detail-link">${escapeHtml(referenceType)}</p>` : ''}
           <div class="calendar-cell-panel-actions">
             <button type="button" class="calendar-cell-panel-btn" id="calendar-cell-edit-event">Editar</button>
+            <button type="button" class="calendar-cell-panel-btn danger" id="calendar-cell-delete-event">Eliminar</button>
             <button type="button" class="calendar-cell-panel-btn ghost" id="calendar-cell-clear-event">Cerrar</button>
           </div>
         `;
         document.getElementById('calendar-cell-edit-event')?.addEventListener('click', () => {
           openModal('edit', eventToEditData(selectedEvent));
+        });
+        document.getElementById('calendar-cell-delete-event')?.addEventListener('click', async () => {
+          await deleteCalendarEvent(selectedEvent.id);
         });
         document.getElementById('calendar-cell-clear-event')?.addEventListener('click', () => {
           selectedCellEventId = null;
@@ -743,32 +2120,33 @@
         return;
       }
 
-      const visibleEvents = events.filter(event => {
-        const end = eventEndDate(event);
-        return event.start < cellAddDays(days[days.length - 1], 1) && end >= days[0];
-      });
-      const byType = visibleEvents.reduce((acc, event) => {
-        const tipo = eventType(event);
-        acc[tipo] = (acc[tipo] || 0) + 1;
-        return acc;
-      }, {});
-      const typeRows = Object.entries(byType)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 4)
-        .map(([tipo, count]) => `<span><b>${escapeHtml(count)}</b>${escapeHtml(tipo || 'otro')}</span>`)
-        .join('');
-      panelEl.innerHTML = `
-        <div class="calendar-cell-panel-kicker">Cell</div>
-        <h3>Semana compacta</h3>
-        <div class="calendar-cell-summary">
-          <div><b>${visibleEvents.length}</b><span>eventos</span></div>
-          <div><b>${days.length}</b><span>dias</span></div>
-          <div><b>IA</b><span>carga</span></div>
-          <div><b>IA</b><span>foco</span></div>
-          ${typeRows || '<span><b>0</b>sin eventos</span>'}
-        </div>
-        <p class="calendar-cell-panel-hint">Selecciona un evento para verlo aqui.</p>
-      `;
+      const visibleEvents = weekVisibleEvents(events, days);
+      const layerMinutes = weekLayerMinutesForAssistant(visibleEvents, days);
+      const assistant = buildWeeklyAssistantDraft(events, days, layerMinutes, visibleEvents);
+      panelEl.innerHTML = renderWeeklyAssistantPanel(assistant);
+      bindWeeklyAssistantActions(panelEl);
+    }
+
+    async function deleteCalendarEvent(eventId, options = {}) {
+      const id = String(eventId || '').trim();
+      if (!id) return false;
+      if (!confirm('Eliminar este evento?')) return false;
+
+      try {
+        const res = await fetch(`/api/events/${encodeURIComponent(id)}`, { method: 'DELETE' });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data?.deleted) throw new Error(data?.error || 'Error eliminando');
+        selectedCellEventId = null;
+        calendar?.getEventById(id)?.remove();
+        if (options.closeModal) closeModal();
+        calendar?.refetchEvents();
+        if (cellModeActive) renderCellView();
+        return true;
+      } catch (err) {
+        console.error(err);
+        alert('No se pudo eliminar el evento.');
+        return false;
+      }
     }
 
     function selectCellEvent(eventId) {
@@ -780,6 +2158,8 @@
       if (!calendar) return;
       const gridWrap = document.getElementById('calendar-cell-grid-wrap');
       if (!gridWrap) return;
+      const cellView = document.getElementById('calendar-cell-view');
+      cellView?.classList.toggle('has-open-mood', Boolean(openMoodDateKey));
 
       const startHour = timeStrToMinutes(slotMin) / 60;
       const endHour = timeStrToMinutes(slotMax) / 60;
@@ -788,7 +2168,7 @@
       const events = calendar.getEvents();
       const dayFormatter = new Intl.DateTimeFormat('es-ES', { weekday: 'short', day: '2-digit', month: 'short' });
       const today = new Date();
-      const parts = ['<div class="calendar-cell-grid" role="grid">'];
+      const parts = [`<div class="calendar-cell-grid" role="grid" style="--calendar-cell-hour-height:${cellHourHeight}px">`];
 
       parts.push('<div class="calendar-cell-head calendar-cell-time-head">Hora</div>');
       days.forEach(day => {
@@ -798,10 +2178,53 @@
 
       parts.push('<div class="calendar-cell-time calendar-cell-sleep-head">Sueño</div>');
       days.forEach(day => {
+        const sleepDateKey = cellDayKey(day);
+        const sleepInputId = `calendar-sleep-${sleepDateKey}`;
         parts.push(`
-          <div class="calendar-cell-slot calendar-cell-sleep-row">
-            <span>Horas</span>
-            <strong>${escapeHtml(daySleepLabel(events, day))}</strong>
+          <div class="calendar-cell-slot calendar-cell-sleep-row" data-sleep-cell="${escapeHtml(sleepDateKey)}">
+            <label for="${escapeHtml(sleepInputId)}">Horas</label>
+            <input
+              id="${escapeHtml(sleepInputId)}"
+              class="calendar-cell-sleep-input"
+              type="number"
+              min="0"
+              max="24"
+              step="0.25"
+              inputmode="decimal"
+              value="${escapeHtml(sleepInputValue(day))}"
+              placeholder="--"
+              data-sleep-date="${escapeHtml(sleepDateKey)}"
+              aria-label="Horas de sueno ${escapeHtml(sleepDateKey)}"
+            >
+            <span class="calendar-cell-sleep-status" data-sleep-status="${escapeHtml(sleepDateKey)}">${escapeHtml(sleepStatusLabel(day))}</span>
+          </div>
+        `);
+      });
+
+      parts.push('<div class="calendar-cell-time calendar-cell-mood-head">Animo</div>');
+      days.forEach(day => {
+        const moodDateKey = cellDayKey(day);
+        const moodScore = dayMoodScore(day);
+        const isOpen = openMoodDateKey === moodDateKey;
+        parts.push(`
+          <div class="calendar-cell-slot calendar-cell-mood-row${isOpen ? ' is-open' : ''}" data-mood-cell="${escapeHtml(moodDateKey)}">
+            <button type="button" class="calendar-cell-mood-trigger" data-mood-date="${escapeHtml(moodDateKey)}" aria-haspopup="listbox" aria-expanded="${isOpen ? 'true' : 'false'}">
+              <span>${dayMoodFace(day)}</span>
+              <strong>${escapeHtml(dayMoodLabel(day))}</strong>
+            </button>
+            <div class="calendar-cell-mood-popover" role="listbox" aria-label="Seleccionar animo">
+              ${renderMoodOptions(moodDateKey, moodScore)}
+            </div>
+          </div>
+        `);
+      });
+
+      parts.push('<div class="calendar-cell-time calendar-cell-weather-head">Tiempo</div>');
+      days.forEach(day => {
+        const weatherDateKey = cellDayKey(day);
+        parts.push(`
+          <div class="calendar-cell-slot calendar-cell-weather-row" data-weather-cell="${escapeHtml(weatherDateKey)}">
+            ${renderWeatherCell(day)}
           </div>
         `);
       });
@@ -815,15 +2238,9 @@
           slotStart.setHours(safeHour, 0, 0, 0);
           const slotEnd = cloneDate(day);
           slotEnd.setHours(safeHour + 1, 0, 0, 0);
-          const matches = events.filter(event => shouldShowEventInSlot(event, slotStart, slotEnd, startHour));
-          const visible = matches.slice(0, 4).map(event => renderCellChip(event)).join('');
-          const overflow = matches.length > 4
-            ? `<span class="calendar-cell-more">+${matches.length - 4}</span>`
-            : '';
           const isToday = sameDay(day, today) ? ' is-today' : '';
           parts.push(`
-            <div class="calendar-cell-slot${isToday}${rowTone}" data-start="${slotStart.toISOString()}" data-end="${slotEnd.toISOString()}">
-              ${visible}${overflow}
+            <div class="calendar-cell-slot${isToday}${rowTone}" data-start="${slotStart.toISOString()}" data-end="${slotEnd.toISOString()}" data-cell-date="${escapeHtml(cellDayKey(day))}" data-cell-hour="${pad2(safeHour)}">
             </div>
           `);
         });
@@ -831,18 +2248,62 @@
 
       parts.push('</div>');
       gridWrap.innerHTML = parts.join('');
+      renderCellEventLayer(events, days, startHour, endHour);
+      renderCellNowIndicator(days, startHour, endHour);
+      loadSleepMetricsForDays(days);
       renderDailySummary(events, days);
       renderCellPanel(events, days);
 
-      gridWrap.querySelectorAll('.calendar-cell-slot[data-start]').forEach(slot => {
-        slot.addEventListener('click', (event) => {
-          if (event.target.closest('.calendar-cell-chip')) return;
-          openModal('new', { start: slot.dataset.start, end: slot.dataset.end });
+      gridWrap.querySelectorAll('.calendar-cell-sleep-input').forEach(input => {
+        let lastValue = input.value;
+        input.addEventListener('click', event => event.stopPropagation());
+        input.addEventListener('keydown', event => {
+          if (event.key === 'Enter') {
+            event.preventDefault();
+            input.blur();
+          }
+          event.stopPropagation();
+        });
+        input.addEventListener('change', () => {
+          if (input.value === lastValue) return;
+          lastValue = input.value;
+          saveSleepHours(input.dataset.sleepDate, input.value, input);
         });
       });
 
+      gridWrap.querySelectorAll('.calendar-cell-mood-trigger').forEach(trigger => {
+        trigger.addEventListener('click', event => {
+          event.stopPropagation();
+          const dateKey = trigger.dataset.moodDate;
+          openMoodDateKey = openMoodDateKey === dateKey ? null : dateKey;
+          renderCellView();
+        });
+      });
+
+      gridWrap.querySelectorAll('.calendar-cell-mood-option').forEach(option => {
+        option.addEventListener('click', event => {
+          event.stopPropagation();
+          saveMoodScore(option.dataset.moodDate, option.dataset.moodScore, option);
+        });
+      });
+
+      gridWrap.querySelectorAll('.calendar-cell-slot[data-start]').forEach(slot => {
+        slot.addEventListener('pointerdown', (event) => beginCellSelection(event, slot));
+      });
+
+      gridWrap.onpointermove = handleCellPointerMove;
+      gridWrap.onpointerup = finishCellPointerInteraction;
+      gridWrap.onpointercancel = cancelCellPointerInteraction;
+      gridWrap.onpointerleave = event => {
+        if (cellSelectionState || cellResizeState) handleCellPointerMove(event);
+      };
+
       gridWrap.querySelectorAll('.calendar-cell-chip').forEach(chip => {
+        chip.querySelectorAll('.calendar-cell-resize-handle').forEach(handle => {
+          handle.addEventListener('pointerdown', (event) => beginCellResize(event, chip, handle.dataset.resizeEdge));
+        });
         chip.addEventListener('click', (event) => {
+          if (cellResizeState || event.target.closest('.calendar-cell-resize-handle')) return;
           event.stopPropagation();
           selectCellEvent(chip.dataset.eventId);
         });
@@ -867,9 +2328,17 @@
       cellButton?.classList.toggle('fc-button-active', active);
       cellButton?.setAttribute('aria-pressed', active ? 'true' : 'false');
 
+      if (cellNowTimer) {
+        clearInterval(cellNowTimer);
+        cellNowTimer = null;
+      }
       if (active) {
         renderCellView();
+        cellNowTimer = setInterval(() => {
+          if (cellModeActive) renderCellView();
+        }, 60000);
       } else if (calendar) {
+        cancelCellPointerInteraction();
         calendar.updateSize();
       }
     }
@@ -878,6 +2347,12 @@
       ['dayGridMonth', 'timeGridWeek', 'timeGridDay', 'listWeek'].forEach(viewName => {
         calendarEl.querySelector(`.fc-${viewName}-button`)?.addEventListener('click', () => setCellMode(false));
       });
+    }
+
+    function ensureCalendarBadge(calendarEl) {
+      const leftToolbar = calendarEl.querySelector('.fc-toolbar .fc-toolbar-chunk:first-child');
+      if (!leftToolbar || leftToolbar.querySelector('.badge')) return;
+      leftToolbar.insertAdjacentHTML('afterbegin', '<span class="badge">Calendario</span>');
     }
 
     // ---------- FullCalendar ----------
@@ -934,6 +2409,12 @@
               extendedProps: {
                 descripcion: e.descripcion || '',
                 tipo_evento: e.tipo_evento || '',
+                capa_tiempo: e.capa_tiempo || '',
+                cuenta_productivo: Boolean(e.cuenta_productivo),
+                cuenta_recuperacion: Boolean(e.cuenta_recuperacion),
+                bloquea_disponibilidad: e.bloquea_disponibilidad !== false,
+                carga_mental: e.carga_mental || '',
+                carga_fisica: e.carga_fisica || '',
                 raw: e
               }
             }));
@@ -962,7 +2443,8 @@
             end: ev.end?.toISOString(),
             extendedProps: ev.extendedProps || {},
             descripcion: ev.extendedProps?.descripcion || '',
-            tipo_evento: ev.extendedProps?.tipo_evento || ''
+            tipo_evento: ev.extendedProps?.tipo_evento || '',
+            capa_tiempo: eventTimeLayer(ev)
           });
         },
 
@@ -979,6 +2461,7 @@
         eventDidMount: function (info) {
           const tipo = info.event.extendedProps?.tipo_evento;
           if (tipo) info.el.dataset.tipo = tipo;
+          info.el.dataset.capa = eventTimeLayer(info.event);
         },
 
         datesSet: function () {
@@ -991,21 +2474,23 @@
       });
 
       calendar.render();
+      ensureCalendarBadge(calendarEl);
       wireViewButtons(calendarEl);
       setCellMode(true);
 
       // Botones extras
-      btnNew.addEventListener('click', () => {
+      btnNew?.addEventListener('click', () => {
         const now = new Date();
         const in1h = new Date(now.getTime() + 60 * 60 * 1000);
         openModal('new', { start: now.toISOString(), end: in1h.toISOString() });
       });
-      btnToday.addEventListener('click', () => calendar.today());
+      btnToday?.addEventListener('click', () => calendar.today());
 
       // Guardar (crear/actualizar)
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const id = inputId.value.trim();
+        const selectedLayer = inputCapa.value || inferTimeLayer(inputTipo.value, inputTitulo.value, inputDescripcion.value);
         const payload = {
           titulo: inputTitulo.value.trim(),
           descripcion: inputDescripcion.value.trim(),
@@ -1014,7 +2499,8 @@
           fecha_fin: localInputValueToISO(inputFin.value),
           // Referencia unificada (reemplaza id_objetivo / id_tarea)
           referencia_id: null,
-          referencia_tipo: null
+          referencia_tipo: null,
+          ...timeLayerPayload(selectedLayer)
         };
         
         // Establecer la referencia según el tipo seleccionado

@@ -55,18 +55,6 @@ class TestQueueDeletion:
 class TestFlushQueue:
     """`flush_deletion_queue` propaga al remoto y limpia los completados."""
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason=(
-            "Hallazgo: el dedup de `flush_deletion_queue` colapsa la variante "
-            "string y la variante ObjectId del target_id porque usa `str(cid)` "
-            "como clave (mongo_conn.py:603-609). Cuando `target_id` se guarda "
-            "como string (que es lo que hace `queue_deletion`), la variante "
-            "ObjectId se descarta y el `delete_many` no matchea el documento "
-            "remoto (cuyo `_id` es ObjectId). Resultado: los borrados offline "
-            "nunca se propagan a Atlas. Detectado por este test."
-        ),
-    )
     def test_propagates_deletion_to_remote_then_clears(self, mongo_mock, monkeypatch):
         from database import mongo_conn
 

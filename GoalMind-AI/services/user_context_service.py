@@ -8,6 +8,7 @@ from typing import Any
 from bson import ObjectId
 
 from database.mongo_conn import get_app_user_id
+from model.daily_metric_model import DailyMetricModel
 from model.event_model import eventModel
 from model.goal_model import GoalModel
 from model.project_document_model import ProjectDocumentModel
@@ -66,6 +67,34 @@ DOCUMENT_FIELDS = (
     "uploaded_at",
     "updated_at",
     "remote_sync_pending",
+)
+
+DAILY_METRIC_FIELDS = (
+    "_id",
+    "date",
+    "sleep_hours",
+    "sleep_source",
+    "sleep_unit",
+    "mood_score",
+    "mood_label",
+    "mood_source",
+    "weather_code",
+    "weather_label",
+    "weather_kind",
+    "weather_source",
+    "weather_location_name",
+    "weather_temp_mean_c",
+    "weather_temp_max_c",
+    "weather_temp_min_c",
+    "weather_apparent_temp_mean_c",
+    "weather_precipitation_mm",
+    "weather_precipitation_hours",
+    "weather_wind_speed_max_kmh",
+    "weather_shortwave_radiation_mj_m2",
+    "weather_cloud_cover_mean_pct",
+    "weather_fetched_at",
+    "created_at",
+    "updated_at",
 )
 
 
@@ -178,6 +207,7 @@ def get_user_dataset(usuario_id: str | None = None) -> dict:
     tasks = TaskModel.get_all_tasks(usuario_id=user_id)
     documents = ProjectDocumentModel.get_all_documents(usuario_id=user_id)
     events = eventModel.get_all_events(usuario_id=user_id)
+    daily_metrics = DailyMetricModel.get_recent(limit=30, usuario_id=user_id)
     return {
         "user_id": user_id,
         "projects": projects,
@@ -185,6 +215,7 @@ def get_user_dataset(usuario_id: str | None = None) -> dict:
         "tasks": tasks,
         "documents": documents,
         "events": events,
+        "daily_metrics": daily_metrics,
     }
 
 
@@ -328,6 +359,7 @@ def get_user_snapshot(usuario_id: str | None = None, *, now: datetime | None = N
             "tasks": len(active_scope["tasks"]),
             "documents": len(active_scope["documents"]),
             "events": len(dataset["events"]),
+            "daily_metrics": len(dataset.get("daily_metrics", [])),
             "pending_tasks": len(pending_tasks),
             "completed_tasks": len(completed_tasks),
             "active_projects": len(active_scope["projects"]),
@@ -341,6 +373,10 @@ def get_user_snapshot(usuario_id: str | None = None, *, now: datetime | None = N
         ],
         "goals_without_tasks": [public_doc(goal, GOAL_FIELDS) for goal in goals_without_tasks],
         "upcoming_deadlines": upcoming[:10],
+        "recent_daily_metrics": [
+            public_doc(metric, DAILY_METRIC_FIELDS)
+            for metric in dataset.get("daily_metrics", [])[:14]
+        ],
         "recent_activity": _recent_items(active_dataset, limit=10),
     }
 
